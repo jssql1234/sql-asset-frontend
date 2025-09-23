@@ -1,0 +1,30 @@
+.semi-datepicker * {
+    --semi-color-text-0: var(--color-onSurface);
+    --semi-color-text-2: var(--color-onSurfaceVariant);
+    --semi-color-disabled-text: color-mix(in srgb, var(--color-onSurface) 38%, transparent);
+
+    --semi-color-primary: var(--color-primary);
+    --semi-color-primary-hover: color-mix(in srgb, var(--color-primary) 80%, transparent);
+    --semi-color-primary-active: var(--color-primary);
+    --semi-color-primary-disabled: color-mix(in srgb, var(--color-primary) 38%, transparent);
+
+    --semi-color-primary-light-active: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    --semi-color-primary-light-default: var(--color-tertiary);
+
+    --semi-color-focus-border: var(--color-primary);
+    --semi-color-fill-0: var(--color-hover);
+}
+
+.semi-portal * {
+    --semi-color-bg-3: var(--color-surfaceContainerHigh);
+}
+
+.semi-datepicker-input {
+    background-color: var(--color-surfaceContainerHighest) !important;
+    height: 36px !important;
+}
+
+/* .semi-input-wrapper {
+    background-color: transparent !important;
+    height: 36px !important;
+} */

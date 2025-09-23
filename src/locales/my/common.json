@@ -1,0 +1,79 @@
+{
+  "en": "Inggeris",
+  "cn": "Cina",
+  "my": "Melayu",
+
+  "light": "Cerah",
+  "dark": "Gelap",
+
+  "search": "Carian",
+  "cancel": "Batal",
+  "continue": "Teruskan",
+  "save": "Simpan",
+
+  "result": "Tiada hasil.",
+
+  "sidebar": {
+    "home": "Laman Utama",
+    "updateCompany": "Kemaskini Syarikat",
+    "updateUserProfile": "Kemaskini Profil Pengguna",
+    "stores": "Kedai",
+    "products": "Produk",
+    "orders": "Pesanan",
+    "orderDetails": "Butiran Pesanan",
+    "payments": "Pembayaran",
+    "users": "Pengguna",
+    "manageGroups": "Urus Kumpulan",
+    "logout": "Log Keluar",
+    "roles": "Kebenaran",
+    "userProfile": "Profil Pengguna",
+    "switchCompany": "Tukar Syarikat",
+    "company": "Syarikat",
+    "createCompany": "Cipta Syarikat Baharu",
+    "managePasskey": "Urus Kunci Akses",
+    "manageSession": "Urus Log keluar Sesi",
+    "companyList": "Senarai Syarikat"
+  },
+
+  "sync": {
+    "sync": "Segerak",
+    "syncWithDate": "Segerak Ikut Tarikh",
+    "syncData": "Segerakkan Data",
+    "syncAll": "Segerak Semua",
+    "syncLazada": "Segerak Lazada",
+    "syncShopee": "Segerak Shopee",
+    "syncTiktok": "Segerak Tiktok",
+    "selectStore": "Sila pilih kedai yang anda mahu segerakkan data daripadanya",
+    "selectedCount": "{{selected}} daripada {{total}} dipilih",
+    "lastSynced": "Terakhir diselaraskan",
+    "never": "Tidak pernah"
+  },
+
+  "status": {
+    "completed": "Selesai",
+    "delivered": "Telah Dihantar",
+    "returnCancelled": "Dikembalikan & Dibatalkan",
+    "toShip": "Untuk Dihantar",
+    "shipped": "Telah Dihantar",
+    "newOrder": "Order Baru",
+    "unpaid": "Belum Bayar",
+    "inProcess": "Sedang Diproses",
+    "active": "Aktif",
+    "inactive": "Tidak Aktif",
+    "cancelled": "Dibatalkan",
+    "returned": "Dipulangkan",
+    "unknown": "Tidak Diketahui"
+  },
+
+  "exportFile": "Eksport",
+  "exportCSV": "Eksport CSV",
+  "exportExcel": "Eksport Excel",
+
+  "startDate": "Tarikh Mula",
+  "endDate": "Tarikh Tamat",
+
+  "copy": {
+    "copySuccess": "Berjaya disalin ke papan klip!",
+    "copyFail": "Gagal menyalin"
+  }
+}

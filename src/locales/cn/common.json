@@ -1,0 +1,79 @@
+{
+  "en": "英文",
+  "cn": "中文",
+  "my": "马来文",
+
+  "light": "亮模式",
+  "dark": "暗模式",
+
+  "search": "搜索",
+  "cancel": "取消",
+  "continue": "继续",
+  "save": "保存",
+
+  "result": "没有结果。",
+
+  "sidebar": {
+    "home": "主页",
+    "updateCompany": "更新公司",
+    "updateUserProfile": "更新用户资料",
+    "stores": "商店",
+    "products": "产品",
+    "orders": "订单",
+    "orderDetails": "订单详情",
+    "payments": "支付",
+    "users": "用户",
+    "manageGroups": "管理群组",
+    "logout": "登出",
+    "roles": "权限",
+    "userProfile": "用户资料",
+    "switchCompany": "切换公司",
+    "company": "公司",
+    "createCompany": "创建新公司",
+    "managePasskey": "管理通行密钥",
+    "manageSession": "管理登录环节",
+    "companyList": "公司列表"
+  },
+
+  "sync": {
+    "sync": "同步",
+    "syncWithDate": "按日期同步",
+    "syncData": "同步数据",
+    "syncAll": "全部同步",
+    "syncLazada": "同步 Lazada",
+    "syncShopee": "同步 Shopee",
+    "syncTiktok": "同步 Tiktok",
+    "selectStore": "请选择您要同步数据的商店",
+    "selectedCount": "已选择 {{selected}}/{{total}}",
+    "lastSynced": "上次同步",
+    "never": "从不"
+  },
+
+  "status": {
+    "completed": "已完成",
+    "delivered": "已送达",
+    "returnCancelled": "退货与取消",
+    "toShip": "待发货",
+    "shipped": "已发货",
+    "newOrder": "新订单",
+    "unpaid": "未付款",
+    "inProcess": "处理中",
+    "active": "启用",
+    "inactive": "停用",
+    "cancelled": "已取消",
+    "returned": "已退回",
+    "unknown": "未知"
+  },
+
+  "exportFile": "导出文件",
+  "exportCSV": "导出 CSV",
+  "exportExcel": "导出 Excel",
+
+  "startDate": "开始日期",
+  "endDate": "结束日期",
+
+  "copy": {
+    "copySuccess": "已复制到剪贴板！",
+    "copyFail": "复制失败"
+  }
+}

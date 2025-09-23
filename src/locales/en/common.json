@@ -1,0 +1,79 @@
+{
+  "en": "English",
+  "cn": "Chinese",
+  "my": "Malay",
+
+  "light": "Light",
+  "dark": "Dark",
+
+  "search": "Search",
+  "cancel": "Cancel",
+  "continue": "Continue",
+  "save": "Save",
+
+  "result": "No results.",
+
+  "sidebar": {
+    "home": "Home",
+    "updateCompany": "Update Company",
+    "updateUserProfile": "Update User Profile",
+    "stores": "Stores",
+    "products": "Products",
+    "orders": "Orders",
+    "orderDetails": "Order Details",
+    "payments": "Payments",
+    "users": "Users",
+    "manageGroups": "Manage Groups",
+    "logout": "Logout",
+    "roles": "Permissions",
+    "userProfile": " User Profile",
+    "switchCompany": "Switch Company",
+    "company": "Company",
+    "createCompany": "Create New Company",
+    "managePasskey": "Manage Passkey",
+    "manageSession": "Manage Session",
+    "companyList": "Company List"
+  },
+
+  "sync": {
+    "sync": "Sync",
+    "syncWithDate": "Sync with Date",
+    "syncData": "Sync Data",
+    "syncAll": "Sync All",
+    "syncLazada": "Sync Lazada",
+    "syncShopee": "Sync Shopee",
+    "syncTiktok": "Sync Tiktok",
+    "selectStore": "Please select the stores you want to sync data from",
+    "selectedCount": "{{selected}} of {{total}} selected",
+    "lastSynced": "Last synced",
+    "never": "Never"
+  },
+
+  "status": {
+    "completed": "Completed",
+    "delivered": "Delivered",
+    "returnCancelled": "Return & Canceled",
+    "toShip": "To Ship",
+    "shipped": "Shipped",
+    "newOrder": "New Order",
+    "unpaid": "Unpaid",
+    "inProcess": "In Process",
+    "active": "Active",
+    "inactive": "Inactive",
+    "cancelled": "Canceled",
+    "returned": "Returned",
+    "unknown": "Unknown"
+  },
+
+  "exportFile": "Export",
+  "exportCSV": "Export CSV",
+  "exportExcel": "Export Excel",
+
+  "startDate": "Start Date",
+  "endDate": "End Date",
+
+  "copy": {
+    "copySuccess": "Copied to clipboard!",
+    "copyFail": "Failed to copy"
+  }
+}

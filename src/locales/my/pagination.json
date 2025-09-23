@@ -1,0 +1,9 @@
+{
+    "rowsSelected": "{{selected}} daripada {{total}} baris dipilih",
+    "rowsPerPage": "Baris setiap halaman",
+    "pageOf": "Halaman {{current}} daripada {{total}}",
+    "firstPage": "Halaman pertama",
+    "previousPage": "Halaman sebelumnya",
+    "nextPage": "Halaman seterusnya",
+    "lastPage": "Halaman terakhir"
+}

@@ -1,0 +1,236 @@
+/* Import Tailwind CSS base styles */
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import "tailwindcss";
+@import "./styles/semi-design.css";
+
+/* Enable Tailwind Animate plugin */
+/* Removed @plugin directive. Configure "tailwindcss-animate" in the Tailwind CSS configuration file. */
+
+html {
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+/* Custom variant for dark mode */
+@custom-variant dark (&:is(.dark *));
+
+/* Light theme variables */
+@theme {
+  --color-primary: #5aa2ff;
+  --color-onPrimary: #ffffff;
+  --color-primaryContainer: #e7e9ff;
+  --color-onPrimaryContainer: #5aa2ff;
+  --color-secondary: #fafbff;
+  --color-onSecondary: #32303c;
+  --color-secondaryContainer: #f3f4f6;
+  --color-onSecondaryContainer: #32303c;
+  --color-tertiary: #e9f3ff;
+  --color-onTertiary: #32303c;
+  --color-tertiaryContainer: #f9fafb;
+  --color-onTertiaryContainer: #32303c;
+  --color-switchOffContainer: #eef0f2;
+  --color-onSwitchOffContainer: #bec8c9;
+  --color-error: #b3261e;
+  --color-onError: #ffffff;
+  --color-errorContainer: #f9dedc;
+  --color-onErrorContainer: #32303c;
+  --color-warning: #ffa500;
+  --color-onWarning: #ffffff;
+  --color-warningContainer: #fff4e5;
+  --color-onWarningContainer: #442a00;
+  --color-background: #ffffff;
+  --color-onBackground: #32303c;
+  --color-surface: #ffffff;
+  --color-onSurface: #32303c;
+  --color-surfaceVariant: #484654;
+  --color-onSurfaceVariant: #71717a;
+  --color-outline: #ededee;
+  --color-outlineVariant: #e5e5e5;
+  --color-scrim: oklch(0 0 0 / 0.5);
+  --color-inverseSurface: #262626;
+  --color-inverseOnSurface: #ffffff;
+  --color-surfaceContainerLowest: #ffffff;
+  --color-surfaceContainerLow: #ffffff;
+  --color-surfaceContainer: #ffffff;
+  --color-surfaceContainerHigh: #ffffff;
+  --color-surfaceContainerHighest: #ffffff;
+  --color-hover: oklch(63.69% 0.02 60 / 0.08);
+
+  /* Unused currently */
+  --color-greenContainer: #d8f4f8;
+  --color-green: #006971;
+  --color-yellowContainer: #fefbea;
+  --color-yellow: #d4953f;
+  --color-blueContainer: #dee0ff;
+  --color-blue: #5aa2ff;
+}
+
+/* Dark theme variables */
+.dark {
+  --color-primary: #5aa2ff;
+  --color-onPrimary: #ffffff;
+  --color-primaryContainer: #292c61;
+  --color-onPrimaryContainer: #ffffff;
+  --color-secondary: #313131;
+  --color-onSecondary: #ffffff;
+  --color-secondaryContainer: #3b3b3b;
+  --color-onSecondaryContainer: #ffffff;
+  --color-tertiary: #4f4f4f;
+  --color-onTertiary: #f9f9f9;
+  --color-tertiaryContainer: #4f4f4f;
+  --color-onTertiaryContainer: #ffffff;
+  --color-switchOffContainer: #f5f7f9;
+  --color-onSwitchOffContainer: #bec8c9;
+  --color-error: #cc2d24;
+  --color-onError: #f9f9f9;
+  --color-errorContainer: #f9dedc;
+  --color-onErrorContainer: #8c3a3f;
+  --color-warning: #ffb74d;
+  --color-onWarning: #000000;
+  --color-warningContainer: #442a00;
+  --color-onWarningContainer: #ffddb0;
+  --color-background: #16161a;
+  --color-onBackground: #f9f9f9;
+  --color-surface: #0e1415;
+  --color-onSurface: #f9f9f9;
+  --color-surfaceVariant: #eaeaea;
+  --color-onSurfaceVariant: #ababab;
+  --color-outline: #838383;
+  --color-outlineVariant: #5b5e61;
+  --color-scrim: oklch(0 0 0 / 0.5);
+  --color-inverseSurface: #f9f9f9;
+  --color-inverseOnSurface: #32303c;
+  --color-surfaceContainerLowest: #191919;
+  --color-surfaceContainerLow: #262626;
+  --color-surfaceContainer: #313131;
+  --color-surfaceContainerHigh: #262626;
+  --color-surfaceContainerHighest: #3b3b3b;
+  --color-hover: oklch(63.69% 0.027 223.71 / 0.12);
+
+  /* Unused currently */
+  --color-greenContainer: #d8f4f8;
+  --color-green: #0095a2;
+  --color-yellowContainer: #fbf9ec;
+  --color-yellow: #d4953f;
+  --color-blueContainer: #e7e9ff;
+  --color-blue: #2783fc;
+}
+
+/* Custom font mimic M3 */
+@theme {
+  --font-roboto: "Inter", sans-serif;
+
+  /* Label (Prominent variants Semibold: 600) */
+  --label-large-prominent-weight: 600;
+  --label-medium-prominent-weight: 600;
+  --label-small-prominent-weight: 600;
+}
+
+/* Define utility classes for typography */
+@layer utilities {
+  /* Title styles */
+  .title-large {
+    font-size: var(--text-2xl); /* 1.875rem = 30px */
+    line-height: var(--text-2xl--line-height); /* 1.2 (36px) */
+  }
+
+  .title-medium {
+    font-size: var(--text-xl); /* 1.5rem = 24px */
+    line-height: var(--text-xl--line-height); /* 1.333 (32px) */
+  }
+
+  .title-small {
+    font-size: var(--text-lg); /* 1.25rem = 20px */
+    line-height: var(--text-lg--line-height); /* 1.4 (28px) */
+  }
+
+  /* Body styles */
+  .body-large {
+    font-size: var(--text-base); /* 1rem = 16px */
+    line-height: var(--text-base--line-height); /* 1.5 (24px) */
+  }
+
+  .body-medium {
+    font-size: var(--text-sm); /* 14px */
+    line-height: var(--text-sm--line-height); /* 1.43 (20px) */
+  }
+
+  .body-small {
+    font-size: var(--text-xs); /* 12px */
+    line-height: var(--text-xs--line-height); /* 1.33 (16px) */
+  }
+
+  /* Label styles */
+  .label-large-bold {
+    font-size: var(--text-base); /* 1rem = 16px */
+    line-height: var(--text-base--line-height); /* 1.5 (24px) */
+    font-weight: var(--label-large-prominent-weight);
+  }
+  .label-large {
+    font-size: var(--text-base); /* 1rem = 16px */
+    line-height: var(--text-base--line-height); /* 1.5 (24px) */
+    font-weight: var(--label-large-weight);
+  }
+  .label-medium-bold {
+    font-size: var(--text-sm); /* 14px */
+    line-height: var(--text-sm--line-height); /* 1.43 (20px) */
+    font-weight: var(--label-medium-prominent-weight);
+  }
+  .label-medium {
+    font-size: var(--text-sm); /* 14px */
+    line-height: var(--text-sm--line-height); /* 1.43 (20px) */
+    font-weight: var(--label-medium-weight);
+  }
+  .label-small {
+    font-size: var(--text-xs); /* 12px */
+    line-height: var(--text-xs--line-height); /* 1.33 (16px) */
+    font-weight: var(--label-small-weight);
+  }
+}
+
+.no-transitions,
+.no-transitions * {
+  transition: none !important;
+}
+
+body {
+  overflow: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #e6e6e6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9e9e9e;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #666;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #888;
+}
+
+.left-0 {
+  left: 0;
+}
+.right-0 {
+  right: 0;
+}

@@ -84,23 +84,7 @@ const WorkRequest = () => (
   </AssetLayout>
 );
 
-const Allocation = () => (
-  <AssetLayout activeSidebarItem="allocation">
-    <div className="space-y-6">
-      <div>
-        <h1 className="title-large text-onBackground">Allocation</h1>
-        <p className="body-medium text-onSurfaceVariant">
-          Allocate assets to departments and locations
-        </p>
-      </div>
-      <div className="bg-surface rounded-lg shadow p-6">
-        <p className="body-medium text-onSurfaceVariant">
-          Allocation functionality will be implemented here.
-        </p>
-      </div>
-    </div>
-  </AssetLayout>
-);
+const Allocation = () => <AssetAllocationPage />;
 
 const DowntimeTracking = () => (
   <AssetLayout activeSidebarItem="downtime-tracking">
@@ -179,7 +163,6 @@ function AppRoutes() {
       <Route path="/downtime-tracking" element={<DowntimeTracking />} />
       <Route path="/insurance" element={<Insurance />} />
       <Route path="/meter-reading" element={<MeterReading />} />
-      {/* <Route path="/asset-allocation" element={<AssetAllocationPage />} /> */}
 
       {/* Catch-all (404 redirect) */}
       <Route path="*" element={<Navigate to="/" replace />} />

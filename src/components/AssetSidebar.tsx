@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '@/utils/utils';
+import { MenuBar } from './MenuBar';
 
 // Types for sidebar navigation
 interface SidebarItem {

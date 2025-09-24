@@ -37,60 +37,6 @@ const MenuBar: React.FC<MenuBarProps> = ({ className = "" }) => {
         { label: "Depreciation", href: "/depreciation-schedule" },
         { label: "Disposal", href: "/disposal-schedule" },
         { label: "Hire Purchase", href: "/hire-purchase-schedule" },
-        {
-          label: "Working Sheets",
-          submenu: [
-            {
-              label: "Working Sheets HK-1.2",
-              onClick: () => openSubWindowWithReport("Working Sheets HK-1.2"),
-            },
-            {
-              label: "Working Sheets HK-1.2.1",
-              onClick: () => openSubWindowWithReport("Working Sheets HK-1.2.1"),
-            },
-            {
-              label: "Working Sheets HK-1.2.1A",
-              onClick: () =>
-                openSubWindowWithReport("Working Sheets HK-1.2.1A"),
-            },
-            {
-              label: "Working Sheets HK-1.2.2",
-              onClick: () => openSubWindowWithReport("Working Sheets HK-1.2.2"),
-            },
-            {
-              label: "Working Sheets HK-1.2.2A",
-              onClick: () =>
-                openSubWindowWithReport("Working Sheets HK-1.2.2A"),
-            },
-            {
-              label: "Working Sheets HK-1.2.3",
-              onClick: () => openSubWindowWithReport("Working Sheets HK-1.2.3"),
-            },
-            {
-              label: "Working Sheets HK-1.2.3A",
-              onClick: () =>
-                openSubWindowWithReport("Working Sheets HK-1.2.3A"),
-            },
-            {
-              label: "Working Sheets HK-1.2.3B",
-              onClick: () =>
-                openSubWindowWithReport("Working Sheets HK-1.2.3B"),
-            },
-            {
-              label: "Working Sheets HK-1.2.4",
-              onClick: () => openSubWindowWithReport("Working Sheets HK-1.2.4"),
-            },
-            {
-              label: "Working Sheets HK-1.2.4A",
-              onClick: () =>
-                openSubWindowWithReport("Working Sheets HK-1.2.4A"),
-            },
-            {
-              label: "Working Sheets HK-1.2A",
-              onClick: () => openSubWindowWithReport("Working Sheets HK-1.2A"),
-            },
-          ],
-        },
       ],
     },
     {
@@ -178,7 +124,7 @@ const MenuBar: React.FC<MenuBarProps> = ({ className = "" }) => {
           <DropdownMenuSubmenu
             key={index}
             trigger={
-              <div className="cursor-pointer px-3 py-2 flex items-center justify-between w-full">
+              <div className="cursor-pointer px-0 py-0 flex items-center justify-between w-full">
                 <span>{item.label}</span>
                 <svg
                   width="16"
@@ -218,7 +164,7 @@ const MenuBar: React.FC<MenuBarProps> = ({ className = "" }) => {
             <Button
               variant="ghost"
               size="sm"
-              className="bg-transparent label-medium text-onSurface hover:bg-gray-200 px-3 py-2 h-10 rounded-md transition-all duration-200 ease-in-out"
+              className="bg-transparent label-medium text-onSurface hover:bg-gray-200 px-3 py-2 h-7 rounded-md transition-all duration-200 ease-in-out"
             >
               {item.label}
             </Button>
@@ -235,7 +181,7 @@ const MenuBar: React.FC<MenuBarProps> = ({ className = "" }) => {
         key={index}
         variant="ghost"
         size="sm"
-        className="bg-transparent label-medium text-onSurface hover:bg-gray-200 px-3 py-2 h-10 rounded-md transition-all duration-200 ease-in-out"
+        className="bg-transparent label-medium text-onSurface hover:bg-gray-200 px-3 py-2 h-7 rounded-md transition-all duration-200 ease-in-out"
         onClick={() => handleMenuItemClick(item)}
       >
         {item.label}
@@ -248,7 +194,7 @@ const MenuBar: React.FC<MenuBarProps> = ({ className = "" }) => {
       id="menu"
       className={`w-full bg-surface border-b border-outline shadow-sm ${className}`}
     >
-      <div className="flex items-center h-12 px-4">
+      <div className="flex items-center h-7 px-2">
         {menuItems.map((item, index) => renderMenuItem(item, index))}
       </div>
     </nav>

@@ -7,13 +7,15 @@ interface AssetLogoProps {
 
 const AssetLogo: React.FC<AssetLogoProps> = ({ className = "" }) => {
   return (
-    <div className={`flex items-center gap-0 ${className}`}>
+    <div className={`flex items-center gap-2 ${className}`}>
       <img
         src={sqlLogo}
         alt="SQL Asset Logo"
-        className="h-[90px] w-[90px] object-contain"
+        className="h-12 w-12 object-contain"
       />
-      <span className="title-large text-onSurface font-semibold">Asset</span>
+      <span className="title-small text-onSurface font-semibold">
+        SQL Asset
+      </span>
     </div>
   );
 };

@@ -4,9 +4,9 @@ import { lazy } from "react";
 import AssetMain from "./features/asset/pages/AssetMain";
 
 const Testing = lazy(() => import("@/example/example"));
-const AssetAllocationPage = lazy(
-  () => import("@/features/asset-allocation/pages/AssetAllocation")
-);
+// const AssetAllocationPage = lazy(
+//   () => import("@/features/asset-allocation/pages/AssetAllocation")
+// );
 
 // Import AssetLayout for consistent navigation
 import { AssetLayout } from "./components/AssetSidebar";
@@ -179,7 +179,7 @@ function AppRoutes() {
       <Route path="/downtime-tracking" element={<DowntimeTracking />} />
       <Route path="/insurance" element={<Insurance />} />
       <Route path="/meter-reading" element={<MeterReading />} />
-      <Route path="/asset-allocation" element={<AssetAllocationPage />} />
+      {/* <Route path="/asset-allocation" element={<AssetAllocationPage />} /> */}
 
       {/* Catch-all (404 redirect) */}
       <Route path="*" element={<Navigate to="/" replace />} />

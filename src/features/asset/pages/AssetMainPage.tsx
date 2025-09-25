@@ -1,5 +1,5 @@
 import React from "react";
-import { AssetLayout } from "@/components/AssetSidebar";
+import { AssetLayout } from "@/layout/AssetSidebar";
 
 const AssetMainPage: React.FC = () => {
   return (

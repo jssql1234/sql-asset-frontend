@@ -10,11 +10,33 @@ import {
   PATH_TO_SIDEBAR_ID,
   getPageTitle,
 } from './AssetSidebar.config';
-import type {
-  SidebarItem,
-  SidebarItemId,
-  SidebarSection,
-} from './AssetSidebar.config';
+import type { SidebarItem, SidebarItemId, SidebarSection } from './AssetSidebar.config';
+
+let persistedExpandedSections: string[] | null = null;
+
+const ensureSectionIncluded = (
+  sections: string[],
+  sectionToInclude: string | null
+): string[] => {
+  if (!sectionToInclude) {
+    return sections;
+  }
+  return sections.includes(sectionToInclude)
+    ? sections
+    : [...sections, sectionToInclude];
+};
+
+const findSectionTitleByItemId = (itemId: SidebarItemId | null): string | null => {
+  if (!itemId) {
+    return null;
+  }
+
+  const matchedSection = SIDEBAR_SECTIONS.find((section) =>
+    section.items.some((sectionItem) => sectionItem.id === itemId)
+  );
+
+  return matchedSection?.title ?? null;
+};
 
 // Sidebar Item Component
 interface SidebarItemProps {
@@ -25,6 +47,7 @@ interface SidebarItemProps {
 
 const SidebarItemComponent: React.FC<SidebarItemProps> = ({ item, isActive, onClick }) => {
   const navigate = useNavigate();
+  const IconComponent = item.icon;
 
   const handleClick = () => {
     onClick(item);
@@ -51,7 +74,10 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({ item, isActive, onCl
           : "text-onSurface"
       )}
     >
-      <span className="truncate">{item.label}</span>
+      <div className="flex items-center gap-3">
+        {IconComponent ? <IconComponent size={16} className="text-onSurfaceVariant" /> : null}
+        <span className="truncate">{item.label}</span>
+      </div>
     </Button>
   );
 };
@@ -76,7 +102,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = ({ title, isFirst = false, i
       !isFirst && "mt-2.5"
     )}
   >
-    <span className="truncate">{title}</span>
+    <span className="truncate font-bold">{title}</span>
     {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
   </Button>
 );
@@ -94,14 +120,25 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
   className 
 }) => {
   const location = useLocation();
-  const [selectedItem, setSelectedItem] = useState<SidebarItemId | null>(activeItem ?? null);
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    () => new Set(SIDEBAR_SECTIONS.map((section) => section.title))
-  );
+  const detectedItemFromPath = PATH_TO_SIDEBAR_ID[
+    location.pathname as keyof typeof PATH_TO_SIDEBAR_ID
+  ] ?? null;
+
+  const initialSelectedItem = activeItem ?? detectedItemFromPath ?? null;
+  const [selectedItem, setSelectedItem] = useState<SidebarItemId | null>(initialSelectedItem);
+  const [expandedSections, setExpandedSections] = useState<string[]>(() => {
+    const initialSectionTitle = findSectionTitleByItemId(initialSelectedItem);
+    if (persistedExpandedSections && persistedExpandedSections.length > 0) {
+      return ensureSectionIncluded(persistedExpandedSections, initialSectionTitle);
+    }
+    return initialSectionTitle ? [initialSectionTitle] : [];
+  });
 
   // Auto-detect active item from current route
   useEffect(() => {
-    const detectedItem = PATH_TO_SIDEBAR_ID[location.pathname as keyof typeof PATH_TO_SIDEBAR_ID];
+    const detectedItem = PATH_TO_SIDEBAR_ID[
+      location.pathname as keyof typeof PATH_TO_SIDEBAR_ID
+    ];
     if (detectedItem && detectedItem !== selectedItem) {
       setSelectedItem(detectedItem);
     }
@@ -115,21 +152,38 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
   }, [activeItem]);
 
   const handleItemClick = (item: SidebarItem) => {
-    setSelectedItem(item.id as SidebarItemId);
+    const nextItemId = item.id as SidebarItemId;
+    setSelectedItem(nextItemId);
     onItemSelect?.(item);
   };
 
   const toggleSection = (title: string) => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(title)) {
-        newSet.delete(title);
-      } else {
-        newSet.add(title);
-      }
-      return newSet;
-    });
+    setExpandedSections((prev) =>
+      prev.includes(title)
+        ? prev.filter((sectionTitle) => sectionTitle !== title)
+        : [...prev, title]
+    );
   };
+
+  useEffect(() => {
+    persistedExpandedSections = expandedSections;
+  }, [expandedSections]);
+
+  useEffect(() => {
+    if (!selectedItem) {
+      return;
+    }
+    const sectionTitle = findSectionTitleByItemId(selectedItem);
+    if (!sectionTitle) {
+      return;
+    }
+    setExpandedSections((prev) => {
+      if (prev.includes(sectionTitle)) {
+        return prev;
+      }
+      return [...prev, sectionTitle];
+    });
+  }, [selectedItem]);
 
   return (
     <div className={cn(
@@ -148,10 +202,10 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
             <SidebarHeader 
               title={section.title} 
               isFirst={sectionIndex === 0}
-              isExpanded={expandedSections.has(section.title)}
+              isExpanded={expandedSections.includes(section.title)}
               onClick={() => toggleSection(section.title)}
             />
-            {expandedSections.has(section.title) && section.items.map((item) => (
+            {expandedSections.includes(section.title) && section.items.map((item) => (
               <SidebarItemComponent
                 key={item.id}
                 item={item}

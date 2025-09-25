@@ -31,7 +31,7 @@ export function useCreateAsset() {
       });
     },
 
-    onError: (error: Error) => {
+    onError: (_error: Error) => {
       addToast({
         variant: "error",
         title: t("asset:toast.createAssetFail"),

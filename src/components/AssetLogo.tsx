@@ -8,7 +8,7 @@ interface AssetLogoProps {
 
 const AssetLogo: React.FC<AssetLogoProps> = ({ className = "", title = "SQL Asset" }) => {
   return (
-    <div className={`flex items-center gap-9 ${className}`}>
+    <div className={`flex items-center gap-20 ${className}`}>
       <img
         src={sqlLogo}
         alt="SQL Asset Logo"

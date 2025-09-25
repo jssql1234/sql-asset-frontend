@@ -204,7 +204,7 @@ const AssetLayout: React.FC<AssetLayoutProps> = ({
 
   return (
     <div className={cn("flex flex-col h-screen bg-background", className)}>
-      <div className="flex items-center gap-5 px-4 py-3 border-b border-outline bg-surface shadow-sm">
+      <div className="flex items-center gap-5 px-4 py-0 border-b border-outline bg-surface shadow-sm">
         <Button
           type="button"
           variant="outline"

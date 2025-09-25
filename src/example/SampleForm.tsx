@@ -28,7 +28,7 @@ export const SampleForm = () => {
     try {
       await fakeApiCall(); 
       alert("Submitted succesfuly");
-    } catch (error: Error) {
+    } catch (error: unknown) {
       setError("files", {});
       setError("files", { message: "fail submit file" });
     }

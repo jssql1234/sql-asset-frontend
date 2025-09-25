@@ -97,11 +97,11 @@ export default function AssetContentArea() {
     const boolEntries = Object.entries(boolFilters).filter(([, set]) => set && set.size > 0);
     return SAMPLE_ASSETS.filter((row) => {
       const textOk = txtEntries.every(([key, value]) => {
-        const raw = (row as any)[key];
+        const raw = row[key as keyof AssetRow];
         if (raw === undefined || raw === null) return false;
         return String(raw).toLowerCase().includes(String(value).toLowerCase());
       });
-      const boolOk = boolEntries.every(([key, set]) => set.has(Boolean((row as any)[key])));
+      const boolOk = boolEntries.every(([key, set]) => set.has(Boolean(row[key as keyof AssetRow])));
       return textOk && boolOk;
     });
   }, [filters, boolFilters]);
@@ -358,7 +358,7 @@ export default function AssetContentArea() {
                 {visibleColumns.map((col) => (
                   <div key={col.id} className="border-t border-r border-outline px-3 py-2 h-full flex items-center">
                     {(() => {
-                      const val = (row as any)[col.id];
+                      const val = row[col.id as keyof AssetRow];
                       if (col.type === "boolean") return val ? "Yes" : "No";
                       if (col.type === "number") return typeof val === "number" ? val.toLocaleString() : val;
                       return col.id === "description" ? (

@@ -192,30 +192,6 @@ export type SidebarItemId =
   | typeof HOME_ITEM.id
   | (typeof SIDEBAR_SECTIONS)[number]["items"][number]["id"];
 
-export const PATH_TO_SIDEBAR_ID = {
-  "/asset": "asset",
-  "/process-ca": "process-ca",
-  "/dashboard": "dashboard",
-  "/maintenance-schedule": "maintenance-schedule",
-  "/work-request": "work-request",
-  "/allocation": "allocation",
-  "/downtime-tracking": "downtime-tracking",
-  "/insurance": "insurance",
-  "/meter-reading": "meter-reading",
-  "/user-group-management": "user-group-management",
-  "/user-access-rights": "user-access-rights",
-  "/maintenance-PIC": "maintenance-pic",
-  "/maintenance-spare-parts": "maintenance-spare-parts",
-  "/maintenance-in-house-labors": "maintenance-in-house-labors",
-  "/maintenance-outsourced-vendors": "maintenance-outsourced-vendors",
-  "/maintenance-locations": "maintenance-locations",
-  "/maintenance-departments": "maintenance-departments",
-  "/maintenance-location-types": "maintenance-location-types",
-  "/maintenance-vendors": "maintenance-vendors",
-  "/maintenance-assetGroup": "maintenance-assetGroup",
-  "/asset-history": "asset-history",
-} as const satisfies Record<string, SidebarItemId>;
-
 export const getPageTitle = (itemId: string): string => {
   if (itemId === HOME_ITEM.id) {
     return HOME_ITEM.label;

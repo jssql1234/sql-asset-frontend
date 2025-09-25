@@ -7,12 +7,21 @@ import { ChevronDown, ChevronUp, Sidebar as SidebarIcon } from '@/assets/icons';
 import {
   HOME_ITEM,
   SIDEBAR_SECTIONS,
-  PATH_TO_SIDEBAR_ID,
   getPageTitle,
 } from './AssetSidebar.config';
 import type { SidebarItem, SidebarItemId, SidebarSection } from './AssetSidebar.config';
 
 let persistedExpandedSections: string[] | null = null;
+
+const getItemIdFromPath = (pathname: string): SidebarItemId | null => {
+  if (HOME_ITEM.href === pathname) return HOME_ITEM.id;
+  for (const section of SIDEBAR_SECTIONS) {
+    for (const item of section.items) {
+      if ('href' in item && item.href === pathname) return item.id;
+    }
+  }
+  return null;
+};
 
 const ensureSectionIncluded = (
   sections: string[],
@@ -120,9 +129,7 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
   className 
 }) => {
   const location = useLocation();
-  const detectedItemFromPath = PATH_TO_SIDEBAR_ID[
-    location.pathname as keyof typeof PATH_TO_SIDEBAR_ID
-  ] ?? null;
+  const detectedItemFromPath = getItemIdFromPath(location.pathname) ?? null;
 
   const initialSelectedItem = activeItem ?? detectedItemFromPath ?? null;
   const [selectedItem, setSelectedItem] = useState<SidebarItemId | null>(initialSelectedItem);
@@ -136,9 +143,7 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
 
   // Auto-detect active item from current route
   useEffect(() => {
-    const detectedItem = PATH_TO_SIDEBAR_ID[
-      location.pathname as keyof typeof PATH_TO_SIDEBAR_ID
-    ];
+    const detectedItem = getItemIdFromPath(location.pathname);
     if (detectedItem && detectedItem !== selectedItem) {
       setSelectedItem(detectedItem);
     }

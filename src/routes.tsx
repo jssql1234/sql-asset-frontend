@@ -10,7 +10,7 @@ import MaintenanceSchedulePage from "./features/asset/pages/MaintenanceScheduleP
 import WorkRequestPage from "./features/asset/pages/WorkRequestPage";
 import DowntimeTrackingPage from "./features/asset/pages/DowntimeTrackingPage";
 import InsurancePage from "./features/asset/pages/InsurancePage";
-import MeterPage from "./features/asset/pages/MeterPage";
+import MeterPage from "./features/meter/pages/MeterPage";
 
 const Testing = lazy(() => import("@/example/example"));
 // const AssetAllocationPage = lazy(

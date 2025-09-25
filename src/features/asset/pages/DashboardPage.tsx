@@ -1,7 +1,7 @@
 import React from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 
-const AssetAllocationPage: React.FC = () => {
+const DashboardPage: React.FC = () => {
   return (
     <AssetLayout activeSidebarItem="dashboard">
       <></>
@@ -9,4 +9,4 @@ const AssetAllocationPage: React.FC = () => {
   );
 };
 
-export default AssetAllocationPage;
+export default DashboardPage;

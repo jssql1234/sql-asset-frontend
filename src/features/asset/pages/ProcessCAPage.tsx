@@ -1,7 +1,7 @@
 import React from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 
-const AssetAllocationPage: React.FC = () => {
+const ProcessCAPage: React.FC = () => {
   return (
     <AssetLayout activeSidebarItem="process-ca">
       <></>
@@ -9,4 +9,4 @@ const AssetAllocationPage: React.FC = () => {
   );
 };
 
-export default AssetAllocationPage;
+export default ProcessCAPage;

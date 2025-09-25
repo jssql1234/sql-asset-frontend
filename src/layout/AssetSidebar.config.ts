@@ -1,26 +1,6 @@
 import type { ComponentType } from "react";
 import type { IconProps } from "@tabler/icons-react";
-import {
-  Store,
-  Calculator,
-  LayoutDashboard,
-  CalendarEvent,
-  Tool,
-  OrderDetails,
-  Clock,
-  ShieldCheck,
-  Gauge,
-  Users,
-  Roles,
-  UserCog,
-  Company,
-  Location,
-  Building,
-  Map,
-  CompanyList,
-  History,
-  Settings,
-} from "@/assets/icons";
+import { Store, Calculator, LayoutDashboard, CalendarEvent, Tool, OrderDetails, Clock, ShieldCheck, Gauge, Users, Roles, UserCog, Company, Location, Building, Map, CompanyList, History, Settings } from "@/assets/icons";
 
 export type SidebarIconComponent = ComponentType<IconProps>;
 
@@ -37,190 +17,55 @@ export interface SidebarSection {
   readonly items: readonly SidebarItem[];
 }
 
-export const HOME_ITEM = {
-  id: "asset",
-  label: "Asset List",
-  icon: Store,
-  href: "/asset",
-} as const satisfies SidebarItem;
-
 export const SIDEBAR_SECTIONS = [
+  {
+    title: "",
+    items: [
+      { id: "asset", label: "Asset List", icon: Store, href: "/asset" },
+    ],
+  },
   {
     title: "Tax Computation",
     items: [
-      {
-        id: "process-ca",
-        label: "Process CA",
-        icon: Calculator,
-        href: "/process-ca",
-      },
+      { id: "process-ca", label: "Process CA", icon: Calculator, href: "/process-ca" },
     ],
   },
   {
     title: "Asset Maintenance",
     items: [
-      {
-        id: "dashboard",
-        label: "Dashboard",
-        icon: LayoutDashboard,
-        href: "/dashboard",
-      },
-      {
-        id: "maintenance-schedule",
-        label: "Maintenance Schedule",
-        icon: CalendarEvent,
-        href: "/maintenance-schedule",
-      },
-      {
-        id: "work-request",
-        label: "Work Requests",
-        icon: Tool,
-        href: "/work-request",
-      },
-      {
-        id: "allocation",
-        label: "Allocation",
-        icon: OrderDetails,
-        href: "/allocation",
-      },
-      {
-        id: "downtime-tracking",
-        label: "Downtime Records",
-        icon: Clock,
-        href: "/downtime-tracking",
-      },
-      {
-        id: "insurance",
-        label: "Insurance & Warranty Claims",
-        icon: ShieldCheck,
-        href: "/insurance",
-      },
-      {
-        id: "meter-reading",
-        label: "Meter Reading",
-        icon: Gauge,
-        href: "/meter-reading",
-      },
+      { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+      { id: "maintenance-schedule", label: "Maintenance Schedule", icon: CalendarEvent, href: "/maintenance-schedule" },
+      { id: "work-request", label: "Work Requests", icon: Tool, href: "/work-request" },
+      { id: "allocation", label: "Allocation", icon: OrderDetails, href: "/allocation" },
+      { id: "downtime-tracking", label: "Downtime Records", icon: Clock, href: "/downtime-tracking" },
+      { id: "insurance", label: "Insurance & Warranty Claims", icon: ShieldCheck, href: "/insurance" },
+      { id: "meter-reading", label: "Meter Reading", icon: Gauge, href: "/meter-reading" },
     ],
   },
   {
     title: "Tools",
     items: [
-      {
-        id: "user-group-management",
-        label: "User Group Management",
-        icon: Users,
-        href: "/user-group-management",
-      },
-      {
-        id: "user-access-rights",
-        label: "User Access Rights",
-        icon: Roles,
-        href: "/user-access-rights",
-      },
-      {
-        id: "maintenance-pic",
-        label: "Maintain User...",
-        icon: UserCog,
-        href: "/maintenance-PIC",
-      },
-      {
-        id: "maintenance-spare-parts",
-        label: "Maintain Spare Part...",
-        icon: Tool,
-        href: "/maintenance-spare-parts",
-      },
-      {
-        id: "maintenance-in-house-labors",
-        label: "Maintain In-House Labor...",
-        icon: Building,
-        href: "/maintenance-in-house-labors",
-      },
-      {
-        id: "maintenance-outsourced-vendors",
-        label: "Maintain Outsourced Vendor...",
-        icon: Company,
-        href: "/maintenance-outsourced-vendors",
-      },
-      {
-        id: "maintenance-locations",
-        label: "Maintain Location...",
-        icon: Location,
-        href: "/maintenance-locations",
-      },
-      {
-        id: "maintenance-departments",
-        label: "Maintain Department...",
-        icon: Building,
-        href: "/maintenance-departments",
-      },
-      {
-        id: "maintenance-location-types",
-        label: "Maintain Location Type...",
-        icon: Map,
-        href: "/maintenance-location-types",
-      },
-      {
-        id: "maintenance-vendors",
-        label: "Maintain Vendor...",
-        icon: Store,
-        href: "/maintenance-vendors",
-      },
-      {
-        id: "maintenance-assetGroup",
-        label: "Maintain Asset Group...",
-        icon: CompanyList,
-        href: "/maintenance-assetGroup",
-      },
-      {
-        id: "asset-history",
-        label: "Asset History",
-        icon: History,
-        href: "/asset-history",
-      },
-      {
-        id: "options",
-        label: "Options",
-        icon: Settings,
-        onClick: () => console.log("Opening options sub-window"),
-      },
+      { id: "user-group-management", label: "User Group Management", icon: Users, href: "/user-group-management" },
+      { id: "user-access-rights", label: "User Access Rights", icon: Roles, href: "/user-access-rights" },
+      { id: "maintenance-pic", label: "Maintain User...", icon: UserCog, href: "/maintenance-PIC" },
+      { id: "maintenance-spare-parts", label: "Maintain Spare Part...", icon: Tool, href: "/maintenance-spare-parts" },
+      { id: "maintenance-in-house-labors", label: "Maintain In-House Labor...", icon: Building, href: "/maintenance-in-house-labors" },
+      { id: "maintenance-outsourced-vendors", label: "Maintain Outsourced Vendor...", icon: Company, href: "/maintenance-outsourced-vendors" },
+      { id: "maintenance-locations", label: "Maintain Location...", icon: Location, href: "/maintenance-locations" },
+      { id: "maintenance-departments", label: "Maintain Department...", icon: Building, href: "/maintenance-departments" },
+      { id: "maintenance-location-types", label: "Maintain Location Type...", icon: Map, href: "/maintenance-location-types" },
+      { id: "maintenance-vendors", label: "Maintain Vendor...", icon: Store, href: "/maintenance-vendors" },
+      { id: "maintenance-assetGroup", label: "Maintain Asset Group...", icon: CompanyList, href: "/maintenance-assetGroup" },
+      { id: "asset-history", label: "Asset History", icon: History, href: "/asset-history" },
+      { id: "options", label: "Options", icon: Settings, onClick: () => console.log("Opening options sub-window") },
     ],
   },
 ] as const satisfies readonly SidebarSection[];
 
 export type SidebarItemId =
-  | typeof HOME_ITEM.id
-  | (typeof SIDEBAR_SECTIONS)[number]["items"][number]["id"];
-
-export const PATH_TO_SIDEBAR_ID = {
-  "/asset": "asset",
-  "/process-ca": "process-ca",
-  "/dashboard": "dashboard",
-  "/maintenance-schedule": "maintenance-schedule",
-  "/work-request": "work-request",
-  "/allocation": "allocation",
-  "/downtime-tracking": "downtime-tracking",
-  "/insurance": "insurance",
-  "/meter-reading": "meter-reading",
-  "/user-group-management": "user-group-management",
-  "/user-access-rights": "user-access-rights",
-  "/maintenance-PIC": "maintenance-pic",
-  "/maintenance-spare-parts": "maintenance-spare-parts",
-  "/maintenance-in-house-labors": "maintenance-in-house-labors",
-  "/maintenance-outsourced-vendors": "maintenance-outsourced-vendors",
-  "/maintenance-locations": "maintenance-locations",
-  "/maintenance-departments": "maintenance-departments",
-  "/maintenance-location-types": "maintenance-location-types",
-  "/maintenance-vendors": "maintenance-vendors",
-  "/maintenance-assetGroup": "maintenance-assetGroup",
-  "/asset-history": "asset-history",
-} as const satisfies Record<string, SidebarItemId>;
+  (typeof SIDEBAR_SECTIONS)[number]["items"][number]["id"];
 
 export const getPageTitle = (itemId: string): string => {
-  if (itemId === HOME_ITEM.id) {
-    return HOME_ITEM.label;
-  }
-
   for (const section of SIDEBAR_SECTIONS) {
     const matchedItem = section.items.find((item) => item.id === itemId);
     if (matchedItem) {

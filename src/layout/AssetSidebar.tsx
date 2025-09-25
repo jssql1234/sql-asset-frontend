@@ -4,15 +4,19 @@ import { cn } from '@/utils/utils';
 import AssetLogo from '@/components/AssetLogo';
 import { Button } from '@/components/ui/components';
 import { ChevronDown, ChevronUp, Sidebar as SidebarIcon } from '@/assets/icons';
-import {
-  HOME_ITEM,
-  SIDEBAR_SECTIONS,
-  PATH_TO_SIDEBAR_ID,
-  getPageTitle,
-} from './AssetSidebar.config';
+import { SIDEBAR_SECTIONS, getPageTitle,} from './AssetSidebar.config';
 import type { SidebarItem, SidebarItemId, SidebarSection } from './AssetSidebar.config';
 
 let persistedExpandedSections: string[] | null = null;
+
+const getItemIdFromPath = (pathname: string): SidebarItemId | null => {
+  for (const section of SIDEBAR_SECTIONS) {
+    for (const item of section.items) {
+      if ('href' in item && item.href === pathname) return item.id;
+    }
+  }
+  return null;
+};
 
 const ensureSectionIncluded = (
   sections: string[],
@@ -35,7 +39,7 @@ const findSectionTitleByItemId = (itemId: SidebarItemId | null): string | null =
     section.items.some((sectionItem) => sectionItem.id === itemId)
   );
 
-  return matchedSection?.title ?? null;
+  return matchedSection?.title || null;
 };
 
 // Sidebar Item Component
@@ -120,9 +124,7 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
   className 
 }) => {
   const location = useLocation();
-  const detectedItemFromPath = PATH_TO_SIDEBAR_ID[
-    location.pathname as keyof typeof PATH_TO_SIDEBAR_ID
-  ] ?? null;
+  const detectedItemFromPath = getItemIdFromPath(location.pathname) ?? null;
 
   const initialSelectedItem = activeItem ?? detectedItemFromPath ?? null;
   const [selectedItem, setSelectedItem] = useState<SidebarItemId | null>(initialSelectedItem);
@@ -136,9 +138,7 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
 
   // Auto-detect active item from current route
   useEffect(() => {
-    const detectedItem = PATH_TO_SIDEBAR_ID[
-      location.pathname as keyof typeof PATH_TO_SIDEBAR_ID
-    ];
+    const detectedItem = getItemIdFromPath(location.pathname);
     if (detectedItem && detectedItem !== selectedItem) {
       setSelectedItem(detectedItem);
     }
@@ -191,21 +191,17 @@ const AssetSidebar: React.FC<AssetSidebarProps> = ({
       className
     )}>
       <div className="flex flex-col overflow-y-auto min-h-0">
-        <SidebarItemComponent
-          key={HOME_ITEM.id}
-          item={HOME_ITEM}
-          isActive={selectedItem === HOME_ITEM.id}
-          onClick={handleItemClick}
-        />
         {SIDEBAR_SECTIONS.map((section, sectionIndex) => (
-          <div key={section.title}>
-            <SidebarHeader 
-              title={section.title} 
-              isFirst={sectionIndex === 0}
-              isExpanded={expandedSections.includes(section.title)}
-              onClick={() => toggleSection(section.title)}
-            />
-            {expandedSections.includes(section.title) && section.items.map((item) => (
+          <div key={section.title || `section-${sectionIndex}`}>
+            {section.title && (
+              <SidebarHeader 
+                title={section.title} 
+                isFirst={sectionIndex === 0}
+                isExpanded={expandedSections.includes(section.title)}
+                onClick={() => toggleSection(section.title)}
+              />
+            )}
+            {(section.title ? expandedSections.includes(section.title) : true) && section.items.map((item) => (
               <SidebarItemComponent
                 key={item.id}
                 item={item}
@@ -290,11 +286,4 @@ const AssetLayout: React.FC<AssetLayoutProps> = ({
 
 export default AssetSidebar;
 export { AssetSidebar, ContentArea, AssetLayout };
-export type {
-  AssetLayoutProps,
-  AssetSidebarProps,
-  ContentAreaProps,
-  SidebarItem,
-  SidebarItemId,
-  SidebarSection,
-};
+export type { AssetLayoutProps, AssetSidebarProps, ContentAreaProps, SidebarItem, SidebarItemId, SidebarSection,};

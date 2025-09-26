@@ -39,7 +39,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
     };
 
   const getColumns = () => {
-    if (disposalType === 'partial') {
+    if (disposalType === 'partial' || disposalType === 'normal') {
       return [
         { key: 'assetId', label: 'Asset ID', width: 'w-32' },
         { key: 'recipient', label: 'Recipient', width: 'w-40' },
@@ -174,7 +174,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
                 <td className="px-3 py-3 text-sm text-gray-700">
                   {totals.originalCost.toFixed(2)}
                 </td>
-                {disposalType === 'partial' && (
+                {(disposalType === 'partial' || disposalType === 'normal') && (
                   <td className="px-3 py-3 text-sm text-gray-700">
                     {totals.disposedCost.toFixed(2)}
                   </td>

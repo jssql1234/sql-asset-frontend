@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
 import MultipleAssetsTable from './MultipleAssetsTable';
 
-interface PartialDisposalFormData {
+interface NormalDisposalFormData {
   assetId: string;
   acquireDate: string;
   disposalDate: string;
@@ -14,15 +14,15 @@ interface PartialDisposalFormData {
   isControlledDisposal: boolean;
 }
 
-interface PartialDisposalFormProps {
-  data: PartialDisposalFormData;
-  onChange: (field: keyof PartialDisposalFormData, value: string | number | boolean) => void;
+interface NormalDisposalFormProps {
+  data: NormalDisposalFormData;
+  onChange: (field: keyof NormalDisposalFormData, value: string | number | boolean) => void;
   onNext: () => void;
   onPrevious: () => void;
   readOnly?: boolean;
 }
 
-const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
+const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
   data,
   onChange,
   onNext,
@@ -36,7 +36,7 @@ const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
     setLocalData(data);
   }, [data]);
 
-  const handleInputChange = (field: keyof PartialDisposalFormData) => 
+  const handleInputChange = (field: keyof NormalDisposalFormData) => 
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.type === 'number' 
         ? parseFloat(e.target.value) || 0 
@@ -48,7 +48,7 @@ const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
       onChange(field, value);
     };
 
-  const handleCheckboxChange = (field: keyof PartialDisposalFormData) => 
+  const handleCheckboxChange = (field: keyof NormalDisposalFormData) => 
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.checked;
       setLocalData(prev => ({ ...prev, [field]: value }));
@@ -170,15 +170,15 @@ const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
           <hr className="border-t border-gray-300 my-6" />
 
           {/* Multiple Assets Table */}
-          <MultipleAssetsTable
-            assets={[]}
-            disposalType="partial"
-            onAssetChange={() => {}}
-            onAddAsset={() => {}}
-            onRemoveAsset={() => {}}
-            availableAssetIds={['AS-0001', 'AS-0002', 'AS-0004', 'AS-0005']}
-            readOnly={readOnly}
-          />
+           <MultipleAssetsTable
+             assets={[]}
+             disposalType="normal"
+             onAssetChange={() => {}}
+             onAddAsset={() => {}}
+             onRemoveAsset={() => {}}
+             availableAssetIds={['AS-0001', 'AS-0002', 'AS-0004', 'AS-0005']}
+             readOnly={readOnly}
+           />
 
           {/* Warning Messages */}
           {localData.isAssetScrapped && (
@@ -348,4 +348,4 @@ const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
   );
 };
 
-export default PartialDisposalForm;
+export default NormalDisposalForm;

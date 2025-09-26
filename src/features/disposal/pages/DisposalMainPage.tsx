@@ -3,7 +3,7 @@ import { AssetLayout } from '@/layout/AssetSidebar';
 import DisposalStepWizard from '../components/DisposalStepWizard';
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
-import PartialDisposalForm from '../components/PartialDisposalForm';
+import NormalDisposalForm from '../components/NormalDisposalForm';
 import MFRS5DisposalForm from '../components/MFRS5DisposalForm';
 import GiftDisposalForm from '../components/GiftDisposalForm';
 import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
@@ -67,7 +67,7 @@ const DisposalMainPage: React.FC = () => {
   // const [multipleAssetsData, setMultipleAssetsData] = useState<unknown[]>([]);
   
   // Disposal type specific data
-  const [partialDisposalData, setPartialDisposalData] = useState({
+  const [normalDisposalData, setNormalDisposalData] = useState({
     assetId: '',
     acquireDate: '',
     disposalDate: '',
@@ -144,7 +144,7 @@ const DisposalMainPage: React.FC = () => {
         setAssetData(baseAssetData);
         
         // Also populate disposal-type specific forms with basic asset info
-        setPartialDisposalData(prev => ({
+        setNormalDisposalData(prev => ({
           ...prev,
           assetId: baseAssetData.assetCode,
           acquireDate: baseAssetData.purchaseDate,
@@ -263,8 +263,8 @@ const DisposalMainPage: React.FC = () => {
   // };
 
   // Disposal type specific handlers
-  const handlePartialDisposalChange = (field: string, value: string | number | boolean) => {
-    setPartialDisposalData(prev => ({
+  const handleNormalDisposalChange = (field: string, value: string | number | boolean) => {
+    setNormalDisposalData(prev => ({
       ...prev,
       [field]: value,
     }));
@@ -289,6 +289,22 @@ const DisposalMainPage: React.FC = () => {
       ...prev,
       [field]: value,
     }));
+  };
+
+  // Helper function to format disposal type display
+  const formatDisposalType = (disposalType: string): string => {
+    switch (disposalType) {
+      case 'partial':
+        return 'Normal';
+      case 'mfrs5':
+        return 'MFRS5';
+      case 'gift':
+        return 'Gift';
+      case 'agriculture':
+        return 'Agriculture';
+      default:
+        return disposalType.charAt(0).toUpperCase() + disposalType.slice(1);
+    }
   };
 
   // Calculate disposal results directly based on disposal type and asset data
@@ -378,7 +394,7 @@ const DisposalMainPage: React.FC = () => {
       purchaseDate: '',
       disposalDate: '',
     });
-    setPartialDisposalData({
+    setNormalDisposalData({
       assetId: '',
       acquireDate: '',
       disposalDate: '',
@@ -514,9 +530,9 @@ const DisposalMainPage: React.FC = () => {
         // Render disposal-type specific asset information forms
         if (selectedDisposalType === 'partial') {
           return (
-            <PartialDisposalForm
-              data={partialDisposalData}
-              onChange={handlePartialDisposalChange}
+            <NormalDisposalForm
+              data={normalDisposalData}
+              onChange={handleNormalDisposalChange}
               onNext={handleNextStep}
               onPrevious={handlePreviousStep}
             />
@@ -581,7 +597,7 @@ const DisposalMainPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Disposal Type:</span>
-                  <span className="font-medium text-gray-900">{selectedDisposalType}</span>
+                  <span className="font-medium text-gray-900">{formatDisposalType(selectedDisposalType)}</span>
                 </div>
                 <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Written Down Value:</span>

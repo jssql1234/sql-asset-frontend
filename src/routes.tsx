@@ -14,6 +14,7 @@ import MeterPage from "./features/meter/pages/MeterPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 
 const Testing = lazy(() => import("@/example/example"));
+const TableDemo = lazy(() => import("@/example/tableDemo"));
 const AssetAllocationPage = lazy(
   () => import("@/features/asset-allocation/pages/AssetAllocation")
 );

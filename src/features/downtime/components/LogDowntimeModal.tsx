@@ -1,16 +1,9 @@
 import React, { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-} from "@/components/ui/components";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
-import type { DowntimeFormData } from "../types/downtime";
+import type { DowntimeFormData } from "@/features/downtime/types";
 
 interface LogDowntimeModalProps {
   open: boolean;
@@ -89,7 +82,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
         <DialogHeader>
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Asset Selection */}
           <div className="flex flex-col gap-2">
@@ -149,21 +142,20 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
               required
             />
           </div>
-        </form>
 
-        <DialogFooter>
-          <Button variant="outline" type="button" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            variant="default" 
-            type="submit"
-            disabled={!formData.assetId || !formData.description.trim()}
-            onClick={handleSubmit}
-          >
-            Log Incident
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              type="submit"
+              disabled={!formData.assetId || !formData.description.trim()}
+            >
+              Log Incident
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

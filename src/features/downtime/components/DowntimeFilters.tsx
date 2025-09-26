@@ -1,33 +1,21 @@
 import React from "react";
 import SearchBar from "@/components/SearchBar";
-import { 
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
-import type { FilterState } from "../types/downtime";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, Button } from "@/components/ui/components";
+import type { FilterState } from "@/features/downtime/types";
 
 interface DowntimeFiltersProps {
   filters: FilterState;
   onFiltersChange: (newFilters: Partial<FilterState>) => void;
 }
 
-const assetOptions = [
+const assetOptions: Array<{ value: string; label: string }> = [
   { value: "", label: "All Assets" },
   { value: "CBT-001", label: "Conveyor Belt A1" },
   { value: "PMP-002", label: "Pump System B2" },
   { value: "GEN-003", label: "Generator C3" },
 ];
 
-const statusOptions = [
-  { value: "", label: "All Status" },
-  { value: "Active", label: "Active" },
-  { value: "In Progress", label: "In Progress" },
-  { value: "Resolved", label: "Resolved" },
-];
-
-const priorityOptions = [
+const priorityOptions: Array<{ value: FilterState["priority"]; label: string }> = [
   { value: "", label: "All Priority" },
   { value: "Low", label: "Low" },
   { value: "Medium", label: "Medium" },
@@ -44,23 +32,29 @@ export const DowntimeFilters: React.FC<DowntimeFiltersProps> = ({
     return option?.label || "All Assets";
   };
 
-  const getSelectedStatusLabel = () => {
-    const option = statusOptions.find(opt => opt.value === filters.status);
-    return option?.label || "All Status";
-  };
+
 
   const getSelectedPriorityLabel = () => {
     const option = priorityOptions.find(opt => opt.value === filters.priority);
     return option?.label || "All Priority";
   };
 
+  const clearFilters = () => {
+    onFiltersChange({
+      search: "",
+      asset: "",
+      status: "",
+      priority: "",
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4 bg-surfaceContainer p-4 rounded-md border border-outline">
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="flex flex-wrap items-end gap-4">
         {/* Search */}
-        <div className="flex flex-col gap-2">
-          <label className="label-medium text-onSurface">Search</label>
+        <div className="min-w-[220px] flex-1">
+          <label className="body-small text-onSurface">Search</label>
           <SearchBar
             value={filters.search}
             onSearch={(value) => onFiltersChange({ search: value })}
@@ -71,7 +65,7 @@ export const DowntimeFilters: React.FC<DowntimeFiltersProps> = ({
 
         {/* Asset Filter */}
         <div className="flex flex-col gap-2">
-          <label className="label-medium text-onSurface">Asset</label>
+          <label className="body-small text-onSurface">Asset</label>
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger label={getSelectedAssetLabel()} className="w-full justify-between" />
             <DropdownMenuContent>
@@ -87,27 +81,11 @@ export const DowntimeFilters: React.FC<DowntimeFiltersProps> = ({
           </DropdownMenu>
         </div>
 
-        {/* Status Filter */}
-        <div className="flex flex-col gap-2">
-          <label className="label-medium text-onSurface">Status</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger label={getSelectedStatusLabel()} className="w-full justify-between" />
-            <DropdownMenuContent>
-              {statusOptions.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => onFiltersChange({ status: option.value })}
-                >
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+
 
         {/* Priority Filter */}
         <div className="flex flex-col gap-2">
-          <label className="label-medium text-onSurface">Priority</label>
+          <label className="body-small text-onSurface">Priority</label>
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger label={getSelectedPriorityLabel()} className="w-full justify-between" />
             <DropdownMenuContent>
@@ -122,6 +100,10 @@ export const DowntimeFilters: React.FC<DowntimeFiltersProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
+        <Button variant="outline" size="sm" onClick={clearFilters}>
+          Clear Filters
+        </Button>
       </div>
     </div>
   );

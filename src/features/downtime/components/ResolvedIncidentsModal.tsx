@@ -1,66 +1,16 @@
 import React, { useState, useMemo } from "react";
-import { 
-  Dialog, 
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  Button,
-} from "@/components/ui/components";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { type ColumnDef } from "@tanstack/react-table";
 import SearchBar from "@/components/SearchBar";
-import type { DowntimeIncident } from "../types/downtime";
+import type { DowntimeIncident } from "@/features/downtime/types";
+import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/components/DowntimeTable";
+import { resolvedIncidents } from "@/features/downtime/mockData";
 
 interface ResolvedIncidentsModalProps {
   open: boolean;
   onClose: () => void;
 }
-
-// Mock resolved incidents data
-const resolvedIncidents: DowntimeIncident[] = [
-  {
-    id: "3",
-    assetName: "Generator C3",
-    assetId: "GEN-003",
-    priority: "Critical",
-    status: "Resolved",
-    startTime: "2025-09-25T14:20:00Z",
-    endTime: "2025-09-25T16:45:00Z",
-    downtimeDuration: "2h 25m",
-    description: "Complete power failure",
-    reportedBy: "Mike Johnson",
-    resolvedBy: "Sarah Wilson",
-    resolutionNotes: "Replaced faulty alternator",
-  },
-  {
-    id: "4",
-    assetName: "Hydraulic Press E5",
-    assetId: "HP-005",
-    priority: "High",
-    status: "Resolved",
-    startTime: "2025-09-24T10:30:00Z",
-    endTime: "2025-09-24T14:15:00Z",
-    downtimeDuration: "3h 45m",
-    description: "Hydraulic leak causing pressure drop",
-    reportedBy: "David Lee",
-    resolvedBy: "Emma Clark",
-    resolutionNotes: "Replaced damaged hydraulic seals and refilled fluid",
-  },
-  {
-    id: "5",
-    assetName: "Cooling System F6",
-    assetId: "CS-006",
-    priority: "Medium",
-    status: "Resolved",
-    startTime: "2025-09-23T16:00:00Z",
-    endTime: "2025-09-23T18:30:00Z",
-    downtimeDuration: "2h 30m",
-    description: "Overheating due to blocked air filters",
-    reportedBy: "Lisa Wong",
-    resolvedBy: "Tom Brown",
-    resolutionNotes: "Cleaned and replaced air filters, system operating normally",
-  },
-];
 
 export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   open,
@@ -96,18 +46,8 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         accessorKey: "priority",
         header: "Priority",
         cell: ({ getValue }) => {
-          const priority = getValue() as string;
-          const priorityColors = {
-            Low: "bg-blue text-white",
-            Medium: "bg-yellow text-black",
-            High: "bg-warning text-white", 
-            Critical: "bg-error text-white",
-          };
-          return (
-            <span className={`px-2 py-1 rounded text-xs font-medium ${priorityColors[priority as keyof typeof priorityColors] || "bg-gray-500 text-white"}`}>
-              {priority}
-            </span>
-          );
+          const priority = getValue() as DowntimeIncident["priority"];
+          return <Badge text={priority} variant={PRIORITY_BADGE_VARIANT[priority]} />;
         },
       },
       {
@@ -146,13 +86,6 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         },
       },
       {
-        accessorKey: "resolvedBy",
-        header: "Resolved By",
-        cell: ({ getValue }) => {
-          return <span>{getValue() as string}</span>;
-        },
-      },
-      {
         accessorKey: "resolutionNotes",
         header: "Resolution",
         cell: ({ getValue }) => {
@@ -174,12 +107,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <DialogTitle>Resolved Incidents</DialogTitle>
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
-          </div>
+          <DialogTitle>Resolved Incidents</DialogTitle>
         </DialogHeader>
         
         {/* Search */}

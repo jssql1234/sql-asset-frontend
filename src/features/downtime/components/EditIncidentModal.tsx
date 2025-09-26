@@ -1,16 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { 
-  Dialog, 
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-} from "@/components/ui/components";
+import { Dialog,  DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
-import type { DowntimeIncident, EditIncidentFormData } from "../types/downtime";
+import type { DowntimeIncident, EditIncidentFormData } from "@/features/downtime/types";
 
 interface EditIncidentModalProps {
   open: boolean;
@@ -118,7 +111,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         <DialogHeader>
           <DialogTitle>Edit Incident</DialogTitle>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Asset Name (Read-only) */}
           <div className="flex flex-col gap-2">
@@ -214,21 +207,19 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
               />
             </div>
           )}
+          <DialogFooter>
+            <Button variant="outline" type="button" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              type="submit"
+              disabled={!formData.description.trim() || (formData.status === "Resolved" && !formData.endTime)}
+            >
+              Update Incident
+            </Button>
+          </DialogFooter>
         </form>
-
-        <DialogFooter>
-          <Button variant="outline" type="button" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button 
-            variant="default" 
-            type="submit"
-            disabled={!formData.description.trim() || (formData.status === "Resolved" && !formData.endTime)}
-            onClick={handleSubmit}
-          >
-            Update Incident
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

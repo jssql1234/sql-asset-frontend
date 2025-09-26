@@ -23,8 +23,8 @@ export interface DowntimeSummary {
 export interface FilterState {
   search: string;
   asset: string;
-  status: string;
-  priority: string;
+  status: "" | DowntimeIncident["status"];
+  priority: "" | DowntimeIncident["priority"];
 }
 
 export interface ModalState {

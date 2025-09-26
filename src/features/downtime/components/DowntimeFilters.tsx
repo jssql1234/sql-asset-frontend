@@ -32,8 +32,6 @@ export const DowntimeFilters: React.FC<DowntimeFiltersProps> = ({
     return option?.label || "All Assets";
   };
 
-
-
   const getSelectedPriorityLabel = () => {
     const option = priorityOptions.find(opt => opt.value === filters.priority);
     return option?.label || "All Priority";
@@ -80,8 +78,6 @@ export const DowntimeFilters: React.FC<DowntimeFiltersProps> = ({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-
-
 
         {/* Priority Filter */}
         <div className="flex flex-col gap-2">

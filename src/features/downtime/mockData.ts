@@ -1,0 +1,85 @@
+import type { DowntimeIncident, DowntimeSummary } from "./types";
+
+// Mock data - in real app this would come from API
+export const mockIncidents: DowntimeIncident[] = [
+  {
+    id: "1",
+    assetName: "Conveyor Belt A1",
+    assetId: "CBT-001",
+    priority: "High",
+    status: "Active",
+    startTime: "2025-09-26T08:30:00Z",
+    description: "Motor overheating causing system shutdown",
+    reportedBy: "John Smith",
+  },
+  {
+    id: "2",
+    assetName: "Pump System B2",
+    assetId: "PMP-002",
+    priority: "Medium",
+    status: "In Progress",
+    startTime: "2025-09-26T06:15:00Z",
+    description: "Pressure valve malfunction",
+    reportedBy: "Jane Doe",
+  },
+  {
+    id: "3",
+    assetName: "Generator C3",
+    assetId: "GEN-003",
+    priority: "Critical",
+    status: "Resolved",
+    startTime: "2025-09-25T14:20:00Z",
+    endTime: "2025-09-25T16:45:00Z",
+    downtimeDuration: "2h 25m",
+    description: "Complete power failure",
+    reportedBy: "Mike Johnson",
+    resolvedBy: "Sarah Wilson",
+    resolutionNotes: "Replaced faulty alternator",
+  },
+];
+
+export const mockSummary: DowntimeSummary = {
+  activeIncidents: 1,
+  totalIncidents: 15,
+  totalResolved: 12,
+  totalDowntime: "48h 32m",
+};
+
+export const resolvedIncidents: DowntimeIncident[] = [
+  {
+    id: "3",
+    assetName: "Generator C3",
+    assetId: "GEN-003",
+    priority: "Critical",
+    status: "Resolved",
+    startTime: "2025-09-25T14:20:00Z",
+    endTime: "2025-09-25T16:45:00Z",
+    downtimeDuration: "2h 25m",
+    description: "",
+    resolutionNotes: "Replaced faulty alternator",
+  },
+  {
+    id: "4",
+    assetName: "Hydraulic Press E5",
+    assetId: "HP-005",
+    priority: "High",
+    status: "Resolved",
+    startTime: "2025-09-24T10:30:00Z",
+    endTime: "2025-09-24T14:15:00Z",
+    downtimeDuration: "3h 45m",
+    description: "",
+    resolutionNotes: "Replaced damaged hydraulic seals and refilled fluid",
+  },
+  {
+    id: "5",
+    assetName: "Cooling System F6",
+    assetId: "CS-006",
+    priority: "Medium",
+    status: "Resolved",
+    startTime: "2025-09-23T16:00:00Z",
+    endTime: "2025-09-23T18:30:00Z",
+    downtimeDuration: "2h 30m",
+    description: "",
+    resolutionNotes: "Cleaned and replaced air filters, system operating normally",
+  },
+];

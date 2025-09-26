@@ -26,7 +26,7 @@ const MeterGroupToggleCard = ({
 
   return (
     <div
-      className="overflow-hidden rounded-lg border border-outlineVariant bg-gray-100 shadow-sm"
+      className="overflow-hidden rounded-lg border border-outlineVariant shadow-md"
       data-expanded={isExpanded}
     >
       <ToggleList

@@ -28,6 +28,11 @@ export const SIDEBAR_SECTIONS = [
     title: "Tax Computation",
     items: [
       { id: "process-ca", label: "Process CA", icon: Calculator, href: "/process-ca" },
+      {
+        id: "disposal",
+        label: "Asset Disposal",
+        href: "/disposal",
+      },
     ],
   },
   {

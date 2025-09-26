@@ -34,7 +34,7 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
     },
     {
       value: 'gift',
-      label: 'Gift to Approved Institutions - Deemed Disposal Value = 0',
+      label: 'Gift to Approved Institutions',
     },
     {
       value: 'agriculture',

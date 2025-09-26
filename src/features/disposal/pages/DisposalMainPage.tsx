@@ -562,33 +562,33 @@ const DisposalMainPage: React.FC = () => {
                 <p className="text-gray-700 mt-1">Review and confirm disposal results</p>
               </div>
               
-              <div className="bg-surfaceContainer rounded-lg p-6">
+              <div className="bg-gray-50 rounded-lg p-6">
                 <h4 className="font-medium text-gray-900 mb-4">Calculation Summary</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                     <span className="text-gray-700">Asset ID:</span>
                     <span className="font-medium text-gray-900">{assetData.assetCode}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                     <span className="text-gray-700">Disposal Type:</span>
                     <span className="font-medium text-gray-900">{selectedDisposalType}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                     <span className="text-gray-700">Written Down Value:</span>
                     <span className="font-medium text-gray-900">RM {results.writtenDownValue.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                     <span className="text-gray-700">Tax Treatment:</span>
                     <span className="font-medium text-gray-900">{results.taxTreatment}</span>
                   </div>
                   {results.balancingAllowance > 0 && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                       <span className="text-gray-700">Balancing Allowance:</span>
                       <span className="font-medium text-green-700">RM {results.balancingAllowance.toFixed(2)}</span>
                     </div>
                   )}
                   {results.balancingCharge > 0 && (
-                    <div className="flex justify-between">
+                    <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                       <span className="text-gray-700">Balancing Charge:</span>
                       <span className="font-medium text-red-700">RM {results.balancingCharge.toFixed(2)}</span>
                     </div>
@@ -631,24 +631,24 @@ const DisposalMainPage: React.FC = () => {
               <p className="text-gray-700 mt-1">Review and confirm {selectedDisposalType.toUpperCase()} disposal results</p>
             </div>
             
-            <div className="bg-surfaceContainer rounded-lg p-6">
+            <div className="bg-gray-50 rounded-lg p-6">
               <h4 className="font-medium text-gray-900 mb-4">Disposal Calculation Summary</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="flex justify-between">
+                <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Asset ID:</span>
                   <span className="font-medium text-gray-900">{assetData.assetCode}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Disposal Type:</span>
                   <span className="font-medium text-gray-900">{selectedDisposalType.toUpperCase()}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Status:</span>
                   <span className="font-medium text-blue-700">Multiple Assets Disposal</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Tax Treatment:</span>
-                  <span className="font-medium text-gray-900">Complex Calculation Required</span>
+                  <span className="font-medium text-gray-900">Balancing Charge / Allowance</span>
                 </div>
               </div>
             </div>

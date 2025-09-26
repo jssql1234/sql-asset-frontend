@@ -15,13 +15,13 @@ import {
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { cn } from "@/utils/utils";
 import type {
-  Asset,
   Meter,
   MeterAssignmentStrategy,
   MeterGroup,
   MeterGroupInput,
   MeterInput,
-} from "../../../types/meter";
+} from "@/types/meter";
+import type { Asset } from "@/types/asset";
 
 const boundaryOptions: Array<{ value: MeterGroupInput["boundaryTrigger"]; label: string }> = [
   { value: "none", label: "No automation" },
@@ -719,7 +719,7 @@ const AssignAssetsDialog = ({
     if (!search) return true;
     return (
       asset.name.toLowerCase().includes(search) ||
-      asset.code.toLowerCase().includes(search) ||
+      asset.id.toLowerCase().includes(search) ||
       asset.category?.toLowerCase().includes(search)
     );
   });
@@ -820,14 +820,11 @@ const AssignAssetsDialog = ({
                           <td className="px-4 py-3">
                             <div className="flex flex-col">
                               <span className="font-semibold">{asset.name}</span>
-                              <span className="text-xs text-onSurfaceVariant">{asset.code}</span>
+                              <span className="text-xs text-onSurfaceVariant">{asset.id}</span>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-onSurfaceVariant">
                             {asset.category ?? "—"}
-                          </td>
-                          <td className="px-4 py-3 capitalize text-onSurfaceVariant">
-                            {asset.status ?? "—"}
                           </td>
                           <td className="px-4 py-3 text-onSurfaceVariant">
                             {assignment ? (

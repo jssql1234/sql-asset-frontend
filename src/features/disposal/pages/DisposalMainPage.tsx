@@ -3,6 +3,8 @@ import { AssetLayout } from '@/layout/AssetSidebar';
 import DisposalStepWizard from '../components/DisposalStepWizard';
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
+import PartialDisposalForm from '../components/PartialDisposalForm';
+import MFRS5DisposalForm from '../components/MFRS5DisposalForm';
 import GiftDisposalForm from '../components/GiftDisposalForm';
 import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
 import DisposalSummary from '../components/DisposalSummary';
@@ -65,6 +67,23 @@ const DisposalMainPage: React.FC = () => {
   // const [multipleAssetsData, setMultipleAssetsData] = useState<unknown[]>([]);
   
   // Disposal type specific data
+  const [partialDisposalData, setPartialDisposalData] = useState({
+    assetId: '',
+    acquireDate: '',
+    disposalDate: '',
+    disposalValue: 0,
+    recipient: '',
+    isAssetScrapped: false,
+    isControlledDisposal: false,
+  });
+
+  const [mfrs5DisposalData, setMfrs5DisposalData] = useState({
+    assetId: '',
+    classificationDate: '',
+    disposalValue: 0,
+    recipient: '',
+  });
+
   const [giftDisposalData, setGiftDisposalData] = useState({
     assetCode: '',
     acquireDate: '',
@@ -125,6 +144,17 @@ const DisposalMainPage: React.FC = () => {
         setAssetData(baseAssetData);
         
         // Also populate disposal-type specific forms with basic asset info
+        setPartialDisposalData(prev => ({
+          ...prev,
+          assetId: baseAssetData.assetCode,
+          acquireDate: baseAssetData.purchaseDate,
+        }));
+
+        setMfrs5DisposalData(prev => ({
+          ...prev,
+          assetId: baseAssetData.assetCode,
+        }));
+
         setGiftDisposalData(prev => ({
           ...prev,
           assetCode: baseAssetData.assetCode,
@@ -167,36 +197,15 @@ const DisposalMainPage: React.FC = () => {
 
     // Add conditional steps based on disposal type
     if (selectedCase === 'normal' && selectedDisposalType) {
-      // For complex disposal types that need additional details
-      if (selectedDisposalType === 'partial' || selectedDisposalType === 'mfrs5') {
-        baseSteps.push({
-          id: 'disposal-details',
-          label: 'Disposal Details',
-          description: 'Configure disposal parameters',
-          completed: currentStep > 3,
-          current: currentStep === 3,
-          disabled: currentStep < 3,
-        });
-
-        baseSteps.push({
-          id: 'results',
-          label: 'Final Results',
-          description: 'Confirm disposal',
-          completed: disposalConfirmed,
-          current: currentStep === 4,
-          disabled: currentStep < 4,
-        });
-      } else {
-        // For simple disposal types (gift, agriculture, normal) - go directly to results
-        baseSteps.push({
-          id: 'results',
-          label: 'Final Results',
-          description: 'Confirm disposal',
-          completed: disposalConfirmed,
-          current: currentStep === 3,
-          disabled: currentStep < 3,
-        });
-      }
+      // All disposal types go directly to results after asset information
+      baseSteps.push({
+        id: 'results',
+        label: 'Final Results',
+        description: 'Confirm disposal',
+        completed: disposalConfirmed,
+        current: currentStep === 3,
+        disabled: currentStep < 3,
+      });
     }
 
     return baseSteps;
@@ -204,7 +213,7 @@ const DisposalMainPage: React.FC = () => {
 
   // Step navigation handlers
   const handleNextStep = () => {
-    const maxStep = selectedDisposalType === 'partial' || selectedDisposalType === 'mfrs5' ? 5 : 4;
+    const maxStep = 4; // All disposal types now have same number of steps
     if (currentStep < maxStep) {
       setCurrentStep(currentStep + 1);
     }
@@ -217,24 +226,12 @@ const DisposalMainPage: React.FC = () => {
   };
 
   const handleStepClick = (stepId: string) => {
-    let stepMap: Record<string, number>;
-    
-    if (selectedDisposalType === 'partial' || selectedDisposalType === 'mfrs5') {
-      // Complex disposal types with extra step
-      stepMap = {
-        'disposal-type': 1,
-        'asset-info': 2,
-        'disposal-details': 3,
-        'results': 4,
-      };
-    } else {
-      // Simple disposal types
-      stepMap = {
-        'disposal-type': 1,
-        'asset-info': 2,
-        'results': 3,
-      };
-    }
+    // All disposal types now have same step structure
+    const stepMap = {
+      'disposal-type': 1,
+      'asset-info': 2,
+      'results': 3,
+    };
     
     const targetStep = stepMap[stepId as keyof typeof stepMap];
     if (targetStep && targetStep <= currentStep + 1) {
@@ -266,6 +263,20 @@ const DisposalMainPage: React.FC = () => {
   // };
 
   // Disposal type specific handlers
+  const handlePartialDisposalChange = (field: string, value: string | number | boolean) => {
+    setPartialDisposalData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
+  const handleMfrs5DisposalChange = (field: string, value: string | number) => {
+    setMfrs5DisposalData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const handleGiftDisposalChange = (field: string, value: string) => {
     setGiftDisposalData(prev => ({
       ...prev,
@@ -366,6 +377,21 @@ const DisposalMainPage: React.FC = () => {
       totalCAClaimed: 0,
       purchaseDate: '',
       disposalDate: '',
+    });
+    setPartialDisposalData({
+      assetId: '',
+      acquireDate: '',
+      disposalDate: '',
+      disposalValue: 0,
+      recipient: '',
+      isAssetScrapped: false,
+      isControlledDisposal: false,
+    });
+    setMfrs5DisposalData({
+      assetId: '',
+      classificationDate: '',
+      disposalValue: 0,
+      recipient: '',
     });
     setGiftDisposalData({
       assetCode: '',
@@ -486,7 +512,25 @@ const DisposalMainPage: React.FC = () => {
 
       case 2:
         // Render disposal-type specific asset information forms
-        if (selectedDisposalType === 'gift') {
+        if (selectedDisposalType === 'partial') {
+          return (
+            <PartialDisposalForm
+              data={partialDisposalData}
+              onChange={handlePartialDisposalChange}
+              onNext={handleNextStep}
+              onPrevious={handlePreviousStep}
+            />
+          );
+        } else if (selectedDisposalType === 'mfrs5') {
+          return (
+            <MFRS5DisposalForm
+              data={mfrs5DisposalData}
+              onChange={handleMfrs5DisposalChange}
+              onNext={handleNextStep}
+              onPrevious={handlePreviousStep}
+            />
+          );
+        } else if (selectedDisposalType === 'gift') {
           return (
             <GiftDisposalForm
               data={giftDisposalData}
@@ -517,122 +561,19 @@ const DisposalMainPage: React.FC = () => {
           );
         }
 
-      case 3:
-        // For complex disposal types (partial, MFRS5) - show disposal details
-        if (selectedDisposalType === 'partial') {
-          return (
-            <Card className="space-y-6">
-              <div className="border-b border-outlineVariant pb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Partial Disposal Details</h3>
-                <p className="text-gray-700 mt-1">Configure partial disposal parameters for multiple assets</p>
-              </div>
-              <div className="text-center py-8">
-                <p className="text-gray-600">Partial disposal form will be implemented here</p>
-              </div>
-              <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
-                <Button onClick={handleNextStep}>Next</Button>
-              </div>
-            </Card>
-          );
-        } else if (selectedDisposalType === 'mfrs5') {
-          return (
-            <Card className="space-y-6">
-              <div className="border-b border-outlineVariant pb-4">
-                <h3 className="text-lg font-semibold text-gray-900">MFRS 5 Held-for-Sale Details</h3>
-                <p className="text-gray-700 mt-1">Configure MFRS 5 disposal for multiple assets</p>
-              </div>
-              <div className="text-center py-8">
-                <p className="text-gray-600">MFRS 5 disposal form will be implemented here</p>
-              </div>
-              <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
-                <Button onClick={handleNextStep}>Next</Button>
-              </div>
-            </Card>
-          );
-        } else {
-          // For simple disposal types (gift, agriculture, normal) - show final results directly
-          const results = calculateDisposalResults(selectedDisposalType, assetData);
-          
-          return (
-            <Card className="space-y-6">
-              <div className="border-b border-outlineVariant pb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Disposal Results</h3>
-                <p className="text-gray-700 mt-1">Review and confirm disposal results</p>
-              </div>
-              
-              <div className="bg-gray-50 rounded-lg p-6">
-                <h4 className="font-medium text-gray-900 mb-4">Calculation Summary</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                    <span className="text-gray-700">Asset ID:</span>
-                    <span className="font-medium text-gray-900">{assetData.assetCode}</span>
-                  </div>
-                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                    <span className="text-gray-700">Disposal Type:</span>
-                    <span className="font-medium text-gray-900">{selectedDisposalType}</span>
-                  </div>
-                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                    <span className="text-gray-700">Written Down Value:</span>
-                    <span className="font-medium text-gray-900">RM {results.writtenDownValue.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                    <span className="text-gray-700">Tax Treatment:</span>
-                    <span className="font-medium text-gray-900">{results.taxTreatment}</span>
-                  </div>
-                  {results.balancingAllowance > 0 && (
-                    <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                      <span className="text-gray-700">Balancing Allowance:</span>
-                      <span className="font-medium text-green-700">RM {results.balancingAllowance.toFixed(2)}</span>
-                    </div>
-                  )}
-                  {results.balancingCharge > 0 && (
-                    <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                      <span className="text-gray-700">Balancing Charge:</span>
-                      <span className="font-medium text-red-700">RM {results.balancingCharge.toFixed(2)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex justify-between pt-4">
-                <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
-                <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsViewingSummary(true)}
-                  >
-                    View Summary
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      setCalculationResults(results);
-                      handleConfirmDisposal();
-                    }}
-                    disabled={disposalConfirmed}
-                  >
-                    {disposalConfirmed ? 'Confirmed' : 'Confirm Disposal'}
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          );
-        }
-
-      case 4: {
-        // Step 4 only for complex disposal types (partial, MFRS5) - show final results
+      case 3: {
+        // Show final results for all disposal types
         const results = calculateDisposalResults(selectedDisposalType, assetData);
         
         return (
           <Card className="space-y-6">
             <div className="border-b border-outlineVariant pb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Final Results</h3>
-              <p className="text-gray-700 mt-1">Review and confirm {selectedDisposalType.toUpperCase()} disposal results</p>
+              <h3 className="text-lg font-semibold text-gray-900">Disposal Results</h3>
+              <p className="text-gray-700 mt-1">Review and confirm disposal results</p>
             </div>
             
             <div className="bg-gray-50 rounded-lg p-6">
-              <h4 className="font-medium text-gray-900 mb-4">Disposal Calculation Summary</h4>
+              <h4 className="font-medium text-gray-900 mb-4">Calculation Summary</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Asset ID:</span>
@@ -640,16 +581,28 @@ const DisposalMainPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Disposal Type:</span>
-                  <span className="font-medium text-gray-900">{selectedDisposalType.toUpperCase()}</span>
+                  <span className="font-medium text-gray-900">{selectedDisposalType}</span>
                 </div>
                 <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
-                  <span className="text-gray-700">Status:</span>
-                  <span className="font-medium text-blue-700">Multiple Assets Disposal</span>
+                  <span className="text-gray-700">Written Down Value:</span>
+                  <span className="font-medium text-gray-900">RM {results.writtenDownValue.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
                   <span className="text-gray-700">Tax Treatment:</span>
-                  <span className="font-medium text-gray-900">Balancing Charge / Allowance</span>
+                  <span className="font-medium text-gray-900">{results.taxTreatment}</span>
                 </div>
+                {results.balancingAllowance > 0 && (
+                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
+                    <span className="text-gray-700">Balancing Allowance:</span>
+                    <span className="font-medium text-green-700">RM {results.balancingAllowance.toFixed(2)}</span>
+                  </div>
+                )}
+                {results.balancingCharge > 0 && (
+                  <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
+                    <span className="text-gray-700">Balancing Charge:</span>
+                    <span className="font-medium text-red-700">RM {results.balancingCharge.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -676,6 +629,7 @@ const DisposalMainPage: React.FC = () => {
           </Card>
         );
       }
+
 
 
       default:

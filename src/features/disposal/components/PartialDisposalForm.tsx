@@ -166,6 +166,9 @@ const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
             </div>
           </div>
 
+          {/* Divider */}
+          <hr className="border-t border-gray-300 my-6" />
+
           {/* Multiple Assets Table */}
           <MultipleAssetsTable
             assets={[]}

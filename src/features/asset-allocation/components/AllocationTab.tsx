@@ -1,13 +1,9 @@
 import { useMemo } from "react";
 import { Button, Card } from "@/components/ui/components";
 import SummaryCards from "@/components/SummaryCards";
-import AssetFilters, { type FilterOptions } from "./AssetFilters";
-import AssetTable from "./AssetTable";
-import type {
-  AllocationFilters,
-  AllocationSummary,
-  AssetRecord,
-} from "../types";
+import AllocationFilter, { type FilterOptions } from "./AllocationFilter";
+import AllocationTable from "./AllocationTable";
+import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../types";
 
 interface AllocationTabProps {
   assets: AssetRecord[];
@@ -18,10 +14,10 @@ interface AllocationTabProps {
   onFilterChange: (filters: AllocationFilters) => void;
   onResetFilters: () => void;
   onSelectionChange: (assets: AssetRecord[]) => void;
-  onOpenAllocationModal: () => void;
-  onOpenTransferModal: () => void;
-  onOpenReturnModal: () => void;
-  onInspectAsset: (asset: AssetRecord) => void;
+  onOpenAllocationModal?: () => void;
+  onOpenTransferModal?: () => void;
+  onOpenReturnModal?: () => void;
+  onInspectAsset?: (asset: AssetRecord) => void;
 }
 
 const AllocationTab: React.FC<AllocationTabProps> = ({
@@ -79,13 +75,27 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" onClick={onOpenReturnModal}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!onOpenReturnModal}
+            onClick={() => onOpenReturnModal?.()}
+          >
             Bulk Return
           </Button>
-          <Button variant="outline" size="sm" onClick={onOpenTransferModal}>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={!onOpenTransferModal}
+            onClick={() => onOpenTransferModal?.()}
+          >
             Bulk Transfer
           </Button>
-          <Button size="sm" onClick={onOpenAllocationModal}>
+          <Button
+            size="sm"
+            disabled={!onOpenAllocationModal}
+            onClick={() => onOpenAllocationModal?.()}
+          >
             Bulk Allocation
           </Button>
         </div>
@@ -93,7 +103,7 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
 
       <SummaryCards data={summaryCards} />
 
-      <AssetFilters
+      <AllocationFilter
         filters={filters}
         options={filterOptions}
         onFilterChange={onFilterChange}
@@ -112,23 +122,27 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
             <Button
               variant="secondary"
               size="sm"
-              disabled={selectedAssetIds.length === 0}
-              onClick={onOpenAllocationModal}
+              disabled={
+                selectedAssetIds.length === 0 || !onOpenAllocationModal
+              }
+              onClick={() => onOpenAllocationModal?.()}
             >
               Allocate Selected
             </Button>
             <Button
               variant="secondary"
               size="sm"
-              disabled={selectedAssetIds.length === 0}
-              onClick={onOpenTransferModal}
+              disabled={
+                selectedAssetIds.length === 0 || !onOpenTransferModal
+              }
+              onClick={() => onOpenTransferModal?.()}
             >
               Transfer Selected
             </Button>
           </div>
         </div>
         <div className="flex-1 border-t border-outline">
-          <AssetTable
+          <AllocationTable
             assets={assets}
             selectedAssetIds={selectedAssetIds}
             onSelectionChange={onSelectionChange}

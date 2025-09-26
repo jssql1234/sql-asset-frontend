@@ -66,10 +66,10 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
   );
 
   return (
-    <div className="flex h-full flex-col gap-6">
-      <header className="flex flex-col gap-3 rounded-xl border border-outline bg-surface p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex h-full flex-col gap-6 p-2">
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h2 className="title-large text-onSurface">Asset Allocation</h2>
+          <h2 className="title-large font-semibold text-onSurface">Asset Allocation</h2>
           <p className="body-medium text-onSurfaceVariant">
             Monitor allocation status, utilization, and perform bulk actions.
           </p>

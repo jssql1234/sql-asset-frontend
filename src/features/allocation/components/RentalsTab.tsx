@@ -77,10 +77,10 @@ const RentalsTab: React.FC = () => {
   const rentalsForTable: RentalRecord[] = filteredRentals;
 
   return (
-    <div className="flex h-full flex-col gap-6">
-      <header className="flex flex-col gap-3 rounded-xl border border-outline bg-surface p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+    <div className="flex h-full flex-col gap-6 p-2">
+      <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="title-large text-onSurface">Asset Rental</h2>
+          <h2 className="title-large font-semibold text-onSurface">Asset Rental</h2>
           <p className="body-medium text-onSurfaceVariant">
             Manage customer rentals, scheduling windows, and required assets.
           </p>

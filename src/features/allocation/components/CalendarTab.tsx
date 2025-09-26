@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Button, Card, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip,} from "@/components/ui/components";
+import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import CalendarView from "./CalendarView";
 
@@ -42,54 +42,36 @@ const CalendarTab = () => {
 
   return (
     <div className="space-y-6">
-      <Card className="border border-outline bg-surface p-6 shadow-sm">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h2 className="title-large text-onSurface">Asset Calendar</h2>
-            <p className="body-medium text-onSurfaceVariant mt-1">
-              View asset assignments, reservations, and maintenance windows on a timeline.
-            </p>
-          </div>
+      <div className="flex flex-col gap-6 p-2 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <h2 className="title-large font-semibold text-onSurface">Asset Calendar</h2>
+          <p className="body-medium text-onSurfaceVariant mt-1">
+            View asset assignments, reservations, and maintenance windows on a timeline.
+          </p>
+        </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <div className="flex gap-3">
-              <Input
-                placeholder="Search assets..."
-                value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
-                className="w-52"
-              />
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  label={
-                    ASSET_CATEGORIES.find((option) => option.value === assetFilter)?.label ??
-                    "All Assets"
-                  }
-                  className="w-48 justify-between"
-                />
-                <DropdownMenuContent matchTriggerWidth disablePortal>
-                  <DropdownMenuRadioGroup
-                    value={assetFilter}
-                    onValueChange={(value) => setAssetFilter(value)}
-                  >
-                    {ASSET_CATEGORIES.map((option) => (
-                      <DropdownMenuRadioItem key={option.value} value={option.value}>
-                        {option.label}
-                      </DropdownMenuRadioItem>
-                    ))}
-                  </DropdownMenuRadioGroup>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex gap-3">
+            <Input
+              placeholder="Search assets..."
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              className="w-52"
+            />
             <DropdownMenu>
-              <DropdownMenuTrigger label={activeViewLabel} className="w-44 justify-between" />
+              <DropdownMenuTrigger
+                label={
+                  ASSET_CATEGORIES.find((option) => option.value === assetFilter)?.label ??
+                  "All Assets"
+                }
+                className="w-48 justify-between"
+              />
               <DropdownMenuContent matchTriggerWidth disablePortal>
                 <DropdownMenuRadioGroup
-                  value={viewMode}
-                  onValueChange={(value) => setViewMode(value)}
+                  value={assetFilter}
+                  onValueChange={(value) => setAssetFilter(value)}
                 >
-                  {VIEW_OPTIONS.map((option) => (
+                  {ASSET_CATEGORIES.map((option) => (
                     <DropdownMenuRadioItem key={option.value} value={option.value}>
                       {option.label}
                     </DropdownMenuRadioItem>
@@ -98,6 +80,22 @@ const CalendarTab = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger label={activeViewLabel} className="w-44 justify-between" />
+            <DropdownMenuContent matchTriggerWidth disablePortal>
+              <DropdownMenuRadioGroup
+                value={viewMode}
+                onValueChange={(value) => setViewMode(value)}
+              >
+                {VIEW_OPTIONS.map((option) => (
+                  <DropdownMenuRadioItem key={option.value} value={option.value}>
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {activeFilters.length > 0 && (
@@ -122,7 +120,7 @@ const CalendarTab = () => {
             </Button>
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Calendar Legend */}
       <div className="bg-surfaceContainer border border-outline rounded-lg p-4">

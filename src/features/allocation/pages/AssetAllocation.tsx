@@ -133,14 +133,14 @@ const AssetAllocationPage: React.FC = () => {
       ),
     },
     {
-      value: "calendar",
-      label: "Calendar",
-      content: <CalendarTab />,
-    },
-    {
       value: "rentals",
       label: "Rentals",
       content: <RentalsTab />,
+    },
+    {
+      value: "calendar",
+      label: "Calendar",
+      content: <CalendarTab />,
     },
   ];
 

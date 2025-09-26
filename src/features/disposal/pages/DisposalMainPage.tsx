@@ -7,7 +7,6 @@ import NormalDisposalForm from '../components/NormalDisposalForm';
 import MFRS5DisposalForm from '../components/MFRS5DisposalForm';
 import GiftDisposalForm from '../components/GiftDisposalForm';
 import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
-import DisposalSummary from '../components/DisposalSummary';
 import DisposalHistoryTable from '../components/DisposalHistoryTable';
 import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
@@ -48,7 +47,6 @@ const DisposalMainPage: React.FC = () => {
   const [selectedCase, setSelectedCase] = useState<'special' | 'normal' | null>(null);
   const [selectedDisposalType, setSelectedDisposalType] = useState('');
   const [isViewingHistory, setIsViewingHistory] = useState(false);
-  const [isViewingSummary, setIsViewingSummary] = useState(false);
   const [disposalConfirmed, setDisposalConfirmed] = useState(false);
 
   // Asset data state
@@ -376,68 +374,7 @@ const DisposalMainPage: React.FC = () => {
     setDisposalHistory(prev => [newHistoryItem, ...prev]);
   };
 
-  // Edit disposal
-  const handleEditDisposal = () => {
-    setCurrentStep(1);
-    setIsViewingSummary(false);
-  };
 
-  // Clear disposal data
-  const handleClearDisposal = () => {
-    setAssetData({
-      assetCode: '',
-      assetDescription: '',
-      originalCost: 0,
-      qualifyingExpenditure: 0,
-      residualExpenditure: 0,
-      totalCAClaimed: 0,
-      purchaseDate: '',
-      disposalDate: '',
-    });
-    setNormalDisposalData({
-      assetId: '',
-      acquireDate: '',
-      disposalDate: '',
-      disposalValue: 0,
-      recipient: '',
-      isAssetScrapped: false,
-      isControlledDisposal: false,
-    });
-    setMfrs5DisposalData({
-      assetId: '',
-      classificationDate: '',
-      disposalValue: 0,
-      recipient: '',
-    });
-    setGiftDisposalData({
-      assetCode: '',
-      acquireDate: '',
-      disposalDate: '',
-      recipient: '',
-    });
-    setAgricultureDisposalData({
-      assetCode: '',
-      acquireDate: '',
-      disposalDate: '',
-      disposalValue: 0,
-      recipient: '',
-      assetScrapped: false,
-      controlledDisposal: false,
-    });
-    setSelectedCase(null);
-    setSelectedDisposalType('');
-    // setMultipleAssetsData([]);
-    setCalculationResults({
-      balancingAllowance: 0,
-      balancingCharge: 0,
-      writtenDownValue: 0,
-      taxTreatment: '',
-      netTaxEffect: 0,
-    });
-    setCurrentStep(1);
-    setIsViewingSummary(false);
-    setDisposalConfirmed(false);
-  };
 
   // Render current step content
   const renderStepContent = () => {
@@ -466,47 +403,6 @@ const DisposalMainPage: React.FC = () => {
       );
     }
 
-    // Show disposal summary if confirmed
-    if (isViewingSummary && disposalConfirmed) {
-      return (
-        <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-900">Disposal Summary</h2>
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                onClick={handleEditDisposal}
-              >
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleClearDisposal}
-              >
-                Clear
-              </Button>
-            </div>
-          </div>
-          <DisposalSummary
-            assetData={{
-              assetId: assetData.assetCode,
-              assetDescription: assetData.assetDescription,
-              originalCost: assetData.originalCost,
-              disposalValue: calculationResults.writtenDownValue,
-              disposalDate: assetData.disposalDate,
-              acquireDate: assetData.purchaseDate,
-              disposalType: selectedDisposalType,
-            }}
-            calculationResults={calculationResults}
-            disposalType={selectedDisposalType}
-            onConfirm={handleConfirmDisposal}
-            onEdit={handleEditDisposal}
-            onCancel={handleClearDisposal}
-            isConfirming={false}
-          />
-        </div>
-      );
-    }
 
     // Regular step content (corrected order)
     switch (currentStep) {
@@ -624,23 +520,15 @@ const DisposalMainPage: React.FC = () => {
 
             <div className="flex justify-between pt-4">
               <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
-              <div className="space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewingSummary(true)}
-                >
-                  View Summary
-                </Button>
-                <Button
-                  onClick={() => {
-                    setCalculationResults(results);
-                    handleConfirmDisposal();
-                  }}
-                  disabled={disposalConfirmed}
-                >
-                  {disposalConfirmed ? 'Confirmed' : 'Confirm Disposal'}
-                </Button>
-              </div>
+              <Button
+                onClick={() => {
+                  setCalculationResults(results);
+                  handleConfirmDisposal();
+                }}
+                disabled={disposalConfirmed}
+              >
+                {disposalConfirmed ? 'Confirmed' : 'Confirm Disposal'}
+              </Button>
             </div>
           </Card>
         );
@@ -670,14 +558,6 @@ const DisposalMainPage: React.FC = () => {
               >
                 {isViewingHistory ? 'New Disposal' : 'View History'}
               </Button>
-              {disposalConfirmed && (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsViewingSummary(!isViewingSummary)}
-                >
-                  {isViewingSummary ? 'Back to Process' : 'View Summary'}
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -685,7 +565,7 @@ const DisposalMainPage: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
           {/* Sidebar with Wizard */}
-          {!isViewingHistory && !isViewingSummary && (
+          {!isViewingHistory && (
             <div className="w-80 bg-surfaceContainer border-r border-outlineVariant p-6 overflow-y-auto">
               <DisposalStepWizard
                 steps={getWizardSteps()}

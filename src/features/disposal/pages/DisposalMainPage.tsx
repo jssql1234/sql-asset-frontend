@@ -566,7 +566,7 @@ const DisposalMainPage: React.FC = () => {
                 <h4 className="font-medium text-gray-900 mb-4">Calculation Summary</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-700">Asset Code:</span>
+                    <span className="text-gray-700">Asset ID:</span>
                     <span className="font-medium text-gray-900">{assetData.assetCode}</span>
                   </div>
                   <div className="flex justify-between">
@@ -635,7 +635,7 @@ const DisposalMainPage: React.FC = () => {
               <h4 className="font-medium text-gray-900 mb-4">Disposal Calculation Summary</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-gray-700">Asset Code:</span>
+                  <span className="text-gray-700">Asset ID:</span>
                   <span className="font-medium text-gray-900">{assetData.assetCode}</span>
                 </div>
                 <div className="flex justify-between">

@@ -105,26 +105,26 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
     if (isMultipleAssets && Array.isArray(assetData)) {
       return (
         <Card className="space-y-4">
-          <h4 className="font-medium text-onSurface border-b border-outlineVariant pb-2">
+          <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">
             Assets Information ({assetData.length} assets)
           </h4>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-surfaceContainer">
+              <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-onSurface border-b border-outlineVariant">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
                     Asset ID
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-onSurface border-b border-outlineVariant">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
                     Description
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-onSurface border-b border-outlineVariant">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
                     Original Cost
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-onSurface border-b border-outlineVariant">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
                     Disposal Value
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-onSurface border-b border-outlineVariant">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
                     Disposal Date
                   </th>
                 </tr>
@@ -158,38 +158,38 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
       const asset = Array.isArray(assetData) ? assetData[0] : assetData;
       return (
         <Card className="space-y-4">
-          <h4 className="font-medium text-onSurface border-b border-outlineVariant pb-2">
+          <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">
             Asset Information
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-onSurface mb-1">Asset ID:</label>
-              <div className="text-sm text-onSurface">{asset.assetId}</div>
+              <label className="block text-sm font-medium text-gray-900 mb-1">Asset ID:</label>
+              <div className="text-sm text-gray-900">{asset.assetId}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-onSurface mb-1">Description:</label>
-              <div className="text-sm text-onSurface">{asset.assetDescription}</div>
+              <label className="block text-sm font-medium text-gray-900 mb-1">Description:</label>
+              <div className="text-sm text-gray-900">{asset.assetDescription}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-onSurface mb-1">Original Cost:</label>
-              <div className="text-sm text-onSurface">{formatCurrency(asset.originalCost)}</div>
+              <label className="block text-sm font-medium text-gray-900 mb-1">Original Cost:</label>
+              <div className="text-sm text-gray-900">{formatCurrency(asset.originalCost)}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-onSurface mb-1">Disposal Value:</label>
-              <div className="text-sm text-onSurface">{formatCurrency(asset.disposalValue)}</div>
+              <label className="block text-sm font-medium text-gray-900 mb-1">Disposal Value:</label>
+              <div className="text-sm text-gray-900">{formatCurrency(asset.disposalValue)}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-onSurface mb-1">Acquire Date:</label>
-              <div className="text-sm text-onSurface">{formatDate(asset.acquireDate)}</div>
+              <label className="block text-sm font-medium text-gray-900 mb-1">Acquire Date:</label>
+              <div className="text-sm text-gray-900">{formatDate(asset.acquireDate)}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-onSurface mb-1">Disposal Date:</label>
-              <div className="text-sm text-onSurface">{formatDate(asset.disposalDate)}</div>
+              <label className="block text-sm font-medium text-gray-900 mb-1">Disposal Date:</label>
+              <div className="text-sm text-gray-900">{formatDate(asset.disposalDate)}</div>
             </div>
             {asset.recipient && (
               <div>
-                <label className="block text-sm font-medium text-onSurface mb-1">Recipient:</label>
-                <div className="text-sm text-onSurface">{asset.recipient}</div>
+                <label className="block text-sm font-medium text-gray-900 mb-1">Recipient:</label>
+                <div className="text-sm text-gray-900">{asset.recipient}</div>
               </div>
             )}
           </div>
@@ -200,8 +200,8 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
 
   const renderCalculationResults = () => (
     <Card className="space-y-4">
-      <div className="flex justify-between items-center border-b border-outlineVariant pb-2">
-        <h4 className="font-medium text-onSurface">Calculation Results</h4>
+      <div className="flex justify-between items-center border-b border-gray-200 pb-2">
+        <h4 className="font-medium text-gray-900">Calculation Results</h4>
         {showWorkingSheet && onViewWorkingSheet && (
           <Button
             variant="outline"
@@ -215,9 +215,9 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-surfaceContainer p-4 rounded-md">
-          <div className="text-sm text-onSurface mb-1">Written Down Value</div>
-          <div className="text-lg font-semibold text-onSurface">
+        <div className="bg-gray-50 p-4 rounded-md">
+          <div className="text-sm text-gray-700 mb-1">Written Down Value</div>
+          <div className="text-lg font-semibold text-gray-900">
             {formatCurrency(calculationResults.writtenDownValue)}
           </div>
         </div>
@@ -279,9 +279,9 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
         </div>
       )}
 
-      <div className="border-t border-outlineVariant pt-4">
+      <div className="border-t border-gray-200 pt-4">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-onSurface">Tax Treatment:</span>
+          <span className="text-sm font-medium text-gray-900">Tax Treatment:</span>
           {getTaxTreatmentBadge(calculationResults.taxTreatment)}
         </div>
       </div>
@@ -297,13 +297,13 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
             <h3 className="text-lg font-semibold text-primary">
               Disposal Summary - {getDisposalTypeLabel(disposalType)}
             </h3>
-            <p className="text-sm text-outline mt-1">
+            <p className="text-sm text-gray-700 mt-1">
               Review the disposal details and calculation results before confirming
             </p>
           </div>
           <div className="text-right">
-            <div className="text-sm text-outline">Status</div>
-            <div className="text-lg font-semibold text-primary">Ready for Confirmation</div>
+            <div className="text-xs text-gray-500 uppercase tracking-wide">Status</div>
+            <div className="text-lg font-semibold text-green-700">Ready for Confirmation</div>
           </div>
         </div>
       </Card>

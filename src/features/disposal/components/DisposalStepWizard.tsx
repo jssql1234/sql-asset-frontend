@@ -163,30 +163,6 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
           );
         })}
       </div>
-
-      {/* Summary */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <div className="grid grid-cols-3 gap-4 text-center text-sm">
-          <div>
-            <div className="font-semibold text-green-600">
-              {steps.filter(s => s.completed).length}
-            </div>
-            <div className="text-gray-700">Completed</div>
-          </div>
-          <div>
-            <div className="font-semibold text-primary">
-              {steps.filter(s => s.current).length}
-            </div>
-            <div className="text-gray-700">Current</div>
-          </div>
-          <div>
-            <div className="font-semibold text-gray-700">
-              {steps.filter(s => !s.completed && !s.current).length}
-            </div>
-            <div className="text-gray-700">Remaining</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

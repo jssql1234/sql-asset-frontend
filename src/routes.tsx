@@ -13,6 +13,7 @@ import InsurancePage from "./features/asset/pages/InsurancePage";
 import MeterPage from "./features/meter/pages/MeterPage";
 
 const Testing = lazy(() => import("@/example/example"));
+const TableDemo = lazy(() => import("@/example/tableDemo"));
 // const AssetAllocationPage = lazy(
 //   () => import("@/features/asset-allocation/pages/AssetAllocation")
 // );
@@ -30,7 +31,9 @@ function AppRoutes() {
     <Routes>
       {/* Root path */}
       <Route path="/" element={<AssetMainPage />} />
+
       <Route path="/testing" element={<Testing />} />
+      <Route path="/tabledemo" element={<TableDemo />} />
       {/* Asset Management Routes */}
 
       <Route path="/asset" element={<AssetMainPage />} />

@@ -5,6 +5,7 @@ import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTable } from "@/features/asset/components/ContentTable";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
+import CreateAssetModal from "./CreateAssetModal";
 
 type AssetRow = {
   id: string;
@@ -262,6 +263,7 @@ const createColumns = (): CustomColumnDef<AssetRow>[] => [
 export default function AssetContentArea() {
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
@@ -325,7 +327,7 @@ export default function AssetContentArea() {
               visibleColumns={visibleColumns}
               setVisibleColumns={setVisibleColumns}
             />
-            <Button size="sm" onClick={() => {/* create new asset */}}>
+            <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
               Add
             </Button>
             {selectedRowIds.length > 0 && (
@@ -352,6 +354,12 @@ export default function AssetContentArea() {
           />
         </div>
       </Card>
+
+      {/* Create Asset Modal */}
+      <CreateAssetModal
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+      />
 
     </div>
   );

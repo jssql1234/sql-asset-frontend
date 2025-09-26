@@ -75,7 +75,7 @@ const SidebarItemComponent: React.FC<SidebarItemProps> = ({ item, isActive, onCl
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
         isActive
           ? "bg-primaryContainer text-onPrimaryContainer border-l-primary"
-          : "text-onSurface"
+          : "text-onSurface hover:bg-hover"
       )}
     >
       <div className="flex items-center gap-3">

@@ -38,7 +38,7 @@ export const SIDEBAR_SECTIONS = [
       { id: "maintenance-schedule", label: "Maintenance Schedule", icon: CalendarEvent, href: "/maintenance-schedule" },
       { id: "work-request", label: "Work Requests", icon: Tool, href: "/work-request" },
       { id: "allocation", label: "Allocation", icon: OrderDetails, href: "/allocation" },
-      { id: "downtime-tracking", label: "Downtime Records", icon: Clock, href: "/downtime-tracking" },
+      { id: "downtime-tracking", label: "Downtime Tracking", icon: Clock, href: "/downtime-tracking" },
       { id: "insurance", label: "Insurance & Warranty Claims", icon: ShieldCheck, href: "/insurance" },
       { id: "meter-reading", label: "Meter Reading", icon: Gauge, href: "/meter-reading" },
     ],

@@ -25,7 +25,14 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
   className = '',
 }) => {
   const currentStepIndex = steps.findIndex(step => step.current);
-  const progressPercentage = ((currentStepIndex + 1) / steps.length) * 100;
+  const completedSteps = steps.filter(step => step.completed).length;
+  
+  // Fix progress calculation to align with dots
+  // Progress should fill to the current step position, accounting for spacing
+  const progressSteps = currentStepIndex >= 0 ? currentStepIndex : completedSteps;
+  // Calculate progress based on the position between dots
+  // For 3 steps: 0%, 50%, 100% (positions between the dots)
+  const progressPercentage = steps.length > 1 ? (progressSteps / (steps.length - 1)) * 100 : 0;
 
   const handleStepClick = (step: WizardStep) => {
     if (!allowStepNavigation || step.disabled || !onStepClick) return;
@@ -90,18 +97,37 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Progress Bar */}
+      {/* Progress Bar with Label */}
       {showProgressBar && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
             <span className="text-sm font-medium text-gray-900">Progress</span>
-            <span className="text-sm text-gray-700">{Math.round(progressPercentage)}%</span>
+            <span className={`text-sm font-medium ${
+              completedSteps === steps.length ? 'text-green-600' : 'text-gray-700'
+            }`}>
+              {currentStepIndex + 1}/{steps.length}
+            </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-2 relative">
             <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300 ease-in-out"
+              className={`h-2 rounded-full transition-all duration-300 ease-in-out ${
+                completedSteps === steps.length ? 'bg-green-500' : 'bg-primary'
+              }`}
               style={{ width: `${progressPercentage}%` }}
             />
+          </div>
+          
+          {/* Progress dots for each step */}
+          <div className="flex justify-between mt-2">
+            {steps.map((step) => (
+              <div
+                key={step.id}
+                className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                  step.completed ? 'bg-green-500' : 
+                  step.current ? 'bg-primary' : 'bg-gray-300'
+                }`}
+              />
+            ))}
           </div>
         </div>
       )}

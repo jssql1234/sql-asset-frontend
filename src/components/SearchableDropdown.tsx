@@ -94,9 +94,13 @@ export const SearchableDropdown = ({
         <div className="flex flex-col">
           {selectedItem ? (
             <>
-              <span className="font-medium text-onSurface">{selectedItem.label}</span>
+              <span className="font-medium text-onSurface">
+                {selectedItem.label}
+              </span>
               {selectedItem.sublabel && (
-                <span className="text-xs text-onSurfaceVariant">{selectedItem.sublabel}</span>
+                <span className="text-xs text-onSurfaceVariant">
+                  {selectedItem.sublabel}
+                </span>
               )}
             </>
           ) : (
@@ -136,8 +140,9 @@ export const SearchableDropdown = ({
                   type="button"
                   onClick={() => handleSelect(item.id)}
                   className={cn(
-                    "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainer focus:bg-surfaceContainer focus:outline-none",
-                    selectedId === item.id && "bg-primaryContainer text-onPrimaryContainer"
+                    "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainerLowest focus:bg-surfaceContainerLowest focus:outline-none",
+                    selectedId === item.id &&
+                      "bg-primaryContainer text-onPrimaryContainer"
                   )}
                 >
                   <span className="font-medium">{item.label}</span>

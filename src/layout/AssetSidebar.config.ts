@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { IconProps } from "@tabler/icons-react";
-import { Store, Calculator, LayoutDashboard, CalendarEvent, Tool, OrderDetails, Clock, ShieldCheck, Gauge, Users, Roles, UserCog, Company, Location, Building, Map, CompanyList, History, Settings } from "@/assets/icons";
+import { Store, Calculator, FileStack, LayoutDashboard, CalendarEvent, Tool, OrderDetails, Clock, ShieldCheck, Gauge, Users, Roles, UserCog, Company, Location, Building, Map, CompanyList, History, Settings } from "@/assets/icons";
 
 export type SidebarIconComponent = ComponentType<IconProps>;
 
@@ -28,11 +28,7 @@ export const SIDEBAR_SECTIONS = [
     title: "Tax Computation",
     items: [
       { id: "process-ca", label: "Process CA", icon: Calculator, href: "/process-ca" },
-      {
-        id: "disposal",
-        label: "Asset Disposal",
-        href: "/disposal",
-      },
+      { id: "disposal", label: "Asset Disposal", icon: FileStack, href: "/disposal" },
     ],
   },
   {

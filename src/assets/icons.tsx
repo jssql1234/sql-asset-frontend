@@ -86,4 +86,6 @@ export {
   IconHistory as History,
   IconShieldCheck as ShieldCheck,
   IconSettings as Settings,
+
+  IconFiles as FileStack,
 } from "@tabler/icons-react"

@@ -49,7 +49,7 @@ html {
   --color-scrim: oklch(0 0 0 / 0.5);
   --color-inverseSurface: #262626;
   --color-inverseOnSurface: #ffffff;
-  --color-surfaceContainerLowest: #ffffff;
+  --color-surfaceContainerLowest: #f7f6f5;
   --color-surfaceContainerLow: #ffffff;
   --color-surfaceContainer: #ffffff;
   --color-surfaceContainerHigh: #ffffff;

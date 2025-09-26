@@ -2,15 +2,15 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { Button, Card } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { DataTable } from "@/components/ui/components/Table/DataTable";
+import { SearchableDropdown } from "@/components/SearchableDropdown";
 import type { ColumnDef } from "@tanstack/react-table";
-import { cn } from "@/utils/utils";
 import {
-  type Asset,
   type Meter,
   type MeterGroup,
   type MeterReading,
   type MeterReadingDraft,
 } from "../../../types/meter";
+import type { Asset } from "@/types/asset";
 
 interface MeterReadingsViewProps {
   groups: MeterGroup[];
@@ -33,11 +33,7 @@ type AssetOption = {
 type MeterDraft = {
   value: string;
   notes: string;
-};
-
-const violationCopy: Record<NonNullable<MeterReading["boundaryViolation"]>, string> = {
-  lower: "Below lower boundary",
-  upper: "Above upper boundary",
+  showNotes?: boolean;
 };
 
 const formatTimestamp = (iso: string) =>
@@ -59,20 +55,9 @@ const formatRelativeTime = (iso: string) => {
   return `${days} day${days > 1 ? "s" : ""} ago`;
 };
 
-const findViolation = (meter: Meter, value: number) => {
-  if (Number.isNaN(value)) return undefined;
-  if (typeof meter.lowerBoundary === "number" && value < meter.lowerBoundary) {
-    return "lower" as const;
-  }
-  if (typeof meter.upperBoundary === "number" && value > meter.upperBoundary) {
-    return "upper" as const;
-  }
-  return undefined;
-};
-
 const buildEmptyDraft = (meters: Meter[]): Record<string, MeterDraft> =>
   meters.reduce<Record<string, MeterDraft>>((acc, meter) => {
-    acc[meter.id] = { value: "", notes: "" };
+    acc[meter.id] = { value: "", notes: "", showNotes: false };
     return acc;
   }, {});
 
@@ -82,7 +67,6 @@ export const MeterReadingsView = ({
   onSaveReadings,
   onDeleteReading,
   getReadingsByAssetId,
-  getReadingSummaryByMeterId,
 }: MeterReadingsViewProps) => {
   const assetOptions = useMemo<AssetOption[]>(() => {
     return groups.flatMap((group) =>
@@ -101,7 +85,7 @@ export const MeterReadingsView = ({
   }, [groups]);
 
   const [selectedAssetId, setSelectedAssetId] = useState<string>(
-    assetOptions[0]?.asset.id ?? ""
+    assetOptions[0]?.asset.id.toString() ?? ""
   );
   const [meterDrafts, setMeterDrafts] = useState<Record<string, MeterDraft>>(
     buildEmptyDraft(assetOptions[0]?.group.meters ?? [])
@@ -110,11 +94,21 @@ export const MeterReadingsView = ({
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
   const selectedOption = useMemo(() =>
-    assetOptions.find((option) => option.asset.id === selectedAssetId),
+    assetOptions.find((option) => option.asset.id.toString() === selectedAssetId),
   [assetOptions, selectedAssetId]);
 
   const selectedGroup = selectedOption?.group;
   const selectedAsset = selectedOption?.asset;
+
+  // Prepare dropdown options
+  const dropdownOptions = useMemo(() => 
+    assetOptions.map(option => ({
+      id: option.asset.id.toString(),
+      label: option.asset.name || option.asset.description || `Asset ${option.asset.id}`,
+      sublabel: `${option.group.name} • ID: ${option.asset.id}`,
+    })),
+    [assetOptions]
+  );
 
   useEffect(() => {
     if (!selectedGroup) {
@@ -150,6 +144,28 @@ export const MeterReadingsView = ({
     }));
   };
 
+  const toggleAllNotesVisibility = () => {
+    if (!selectedGroup) return;
+    
+    // Check if any notes are currently visible
+    const anyNotesVisible = selectedGroup.meters.some(
+      meter => meterDrafts[meter.id]?.showNotes
+    );
+    
+    // Toggle all notes to the opposite state
+    const newDrafts = { ...meterDrafts };
+    selectedGroup.meters.forEach(meter => {
+      if (newDrafts[meter.id]) {
+        newDrafts[meter.id] = {
+          ...newDrafts[meter.id],
+          showNotes: !anyNotesVisible,
+        };
+      }
+    });
+    
+    setMeterDrafts(newDrafts);
+  };
+
   const handleSaveReadings = () => {
     if (!selectedGroup || !selectedAsset) {
       setFormError("Select an asset with assigned meters to record readings.");
@@ -183,7 +199,7 @@ export const MeterReadingsView = ({
 
     onSaveReadings({
       groupId: selectedGroup.id,
-      assetId: selectedAsset.id,
+      assetId: selectedAsset.id.toString(),
       entries,
     });
 
@@ -193,7 +209,7 @@ export const MeterReadingsView = ({
   };
 
   const assetHistory = selectedAsset?.id
-    ? getReadingsByAssetId(selectedAsset.id)
+    ? getReadingsByAssetId(selectedAsset.id.toString())
     : [];
 
   const readingColumns = useMemo<ColumnDef<MeterReading>[]>(
@@ -263,19 +279,6 @@ export const MeterReadingsView = ({
         ),
       },
       {
-        id: "boundary",
-        header: "Boundary",
-        cell: ({ row }) => (
-          row.original.boundaryViolation ? (
-            <span className="inline-flex rounded-full bg-error/10 px-3 py-1 text-xs font-semibold text-error">
-              {violationCopy[row.original.boundaryViolation]}
-            </span>
-          ) : (
-            <span className="text-xs text-onSurfaceVariant">Within range</span>
-          )
-        ),
-      },
-      {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
@@ -307,160 +310,119 @@ export const MeterReadingsView = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="space-y-4">
-        <header className="flex flex-col gap-2 border-b border-outlineVariant pb-4">
-          <h2 className="text-lg font-semibold text-onSurface">Record readings</h2>
-          <p className="text-sm text-onSurfaceVariant">
-            Select an asset and capture the latest meter readings. Boundary violations are highlighted instantly.
-          </p>
+      {/* Section 1: Asset Selection */}
+      <Card className="space-y-4 shadow-xl">
+        <header className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold text-onSurface">Asset Selection</h2>
         </header>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-semibold text-onSurface">Asset</span>
-            <div className="grid gap-2 md:grid-cols-2">
-              {assetOptions.map((option) => {
-                const isActive = selectedAssetId === option.asset.id;
-                return (
-                  <button
-                    key={option.asset.id}
-                    type="button"
-                    onClick={() => setSelectedAssetId(option.asset.id)}
-                    className={cn(
-                      "rounded-md border px-4 py-3 text-left transition",
-                      isActive
-                        ? "border-primary bg-primary text-onPrimary"
-                        : "border-outlineVariant bg-surface hover:border-primary/40"
-                    )}
-                  >
-                    <span className="text-sm font-semibold">
-                      {option.asset.name}
-                    </span>
-                    <span className={cn("text-xs", isActive ? "text-onPrimary/80" : "text-onSurfaceVariant")}
-                    >
-                      {option.asset.code} • {option.group.name}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {selectedGroup && selectedAsset ? (
-            <div className="flex flex-col gap-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                {selectedGroup.meters.map((meter) => {
-                  const draft = meterDrafts[meter.id] ?? { value: "", notes: "" };
-                  const numericValue = Number(draft.value);
-                  const violation = findViolation(meter, numericValue);
-                  const lastReading = getReadingSummaryByMeterId(
-                    meter.id,
-                    selectedAsset.id
-                  );
-
-                  return (
-                    <div
-                      key={meter.id}
-                      className={cn(
-                        "flex flex-col gap-3 rounded-md border p-4",
-                        violation
-                          ? "border-error bg-error/5"
-                          : "border-outlineVariant bg-surfaceContainer"
-                      )}
-                    >
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm font-semibold text-onSurface">
-                            {meter.name}
-                          </span>
-                          {violation && (
-                            <span className="rounded-full bg-error px-2 py-1 text-[11px] font-semibold text-onError">
-                              {violationCopy[violation]}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs text-onSurfaceVariant">
-                          {typeof meter.lowerBoundary === "number" ||
-                          typeof meter.upperBoundary === "number"
-                            ? `Threshold: ${
-                                meter.lowerBoundary !== undefined
-                                  ? `≥ ${meter.lowerBoundary}`
-                                  : ""
-                              }${
-                                meter.lowerBoundary !== undefined &&
-                                meter.upperBoundary !== undefined
-                                  ? " and "
-                                  : ""
-                              }${
-                                meter.upperBoundary !== undefined
-                                  ? `≤ ${meter.upperBoundary}`
-                                  : ""
-                              } ${meter.unit}`
-                            : "No boundaries configured"}
-                        </p>
-                        {lastReading && (
-                          <p className="text-xs text-onSurfaceVariant">
-                            Last reading: {lastReading.value} {meter.unit} • {formatRelativeTime(lastReading.recordedAt)}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col gap-2">
-                        <Input
-                          value={draft.value}
-                          inputMode="decimal"
-                          placeholder={`Enter ${meter.unit}`}
-                          onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                            handleValueChange(meter.id, event.target.value)
-                          }
-                        />
-                        <TextArea
-                          rows={3}
-                          placeholder={
-                            meter.notesPlaceholder ?? "Optional notes"
-                          }
-                          value={draft.notes}
-                          onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-                            handleNotesChange(meter.id, event.target.value)
-                          }
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              {formError && (
-                <div className="rounded-md border border-error bg-error/5 px-4 py-3 text-sm text-error">
-                  {formError}
-                </div>
-              )}
-              {formSuccess && (
-                <div className="rounded-md border border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                  {formSuccess}
-                </div>
-              )}
-              <div className="flex justify-end gap-2">
-                <Button variant="secondary" onClick={() => setMeterDrafts(buildEmptyDraft(selectedGroup.meters))}>
-                  Clear values
-                </Button>
-                <Button onClick={handleSaveReadings}>Save readings</Button>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-md border border-dashed border-outlineVariant bg-surfaceContainer p-6 text-center text-sm text-onSurfaceVariant">
-              Select an asset to enter readings.
-            </div>
-          )}
+        <div className="flex flex-col gap-2">
+          <SearchableDropdown
+            items={dropdownOptions}
+            selectedId={selectedAssetId}
+            onSelect={setSelectedAssetId}
+            placeholder="Search and select an asset..."
+            className="w-full"
+            maxHeight="max-h-48"
+            emptyMessage="No assets found"
+          />
         </div>
       </Card>
 
-      <Card className="space-y-4">
-        <header className="flex flex-col gap-2 border-b border-outlineVariant pb-4">
-          <h3 className="text-lg font-semibold text-onSurface">Reading history</h3>
-          <p className="text-sm text-onSurfaceVariant">
-            Review the captured readings for the selected asset. Use the delete action to correct erroneous entries.
-          </p>
+      {/* Section 2: Record Readings */}
+      <Card className="space-y-4 shadow-xl">
+        <header className="flex flex-col gap-2">
+          <h2 className="text-lg font-semibold text-onSurface">Record Readings</h2>
         </header>
+
+        {selectedGroup && selectedAsset ? (
+          <div className="flex flex-col gap-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {selectedGroup.meters.map((meter) => {
+                const draft = meterDrafts[meter.id] ?? { value: "", notes: "", showNotes: false };
+
+                return (
+                  <div
+                    key={meter.id}
+                    className="flex flex-col gap-3 rounded-md border border-outlineVariant bg-surfaceContainer p-3 min-w-0"
+                  >
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-semibold text-onSurface truncate" title={meter.name}>
+                        {meter.name}
+                      </span>
+                      <span className="text-xs text-onSurfaceVariant">
+                        Unit: {meter.unit}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        value={draft.value}
+                        inputMode="decimal"
+                        placeholder={`Enter ${meter.unit}`}
+                        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                          handleValueChange(meter.id, event.target.value)
+                        }
+                      />
+
+                      {/* Collapsible Notes Section */}
+                      {draft.showNotes && (
+                        <div className="animate-in slide-in-from-top-2 duration-200">
+                          <TextArea
+                            rows={2}
+                            placeholder={meter.notesPlaceholder ?? "Optional notes"}
+                            value={draft.notes}
+                            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                              handleNotesChange(meter.id, event.target.value)
+                            }
+                            className="text-sm"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {formError && (
+              <div className="rounded-md border border-error bg-error/5 px-4 py-3 text-sm text-error">
+                {formError}
+              </div>
+            )}
+            
+            {formSuccess && (
+              <div className="rounded-md border border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                {formSuccess}
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="secondary" 
+                onClick={toggleAllNotesVisibility}
+              >
+                {selectedGroup?.meters.some(meter => meterDrafts[meter.id]?.showNotes) 
+                  ? "Hide all notes" 
+                  : "Add notes"
+                }
+              </Button>
+              <Button onClick={handleSaveReadings}>Save readings</Button>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-md border border-dashed border-outlineVariant bg-surfaceContainer p-6 text-center text-sm text-onSurfaceVariant">
+            Select an asset to enter readings.
+          </div>
+        )}
+      </Card>
+
+      {/* Section 3: Reading History */}
+      <Card className="space- shadow-xl">
+        <header className="flex flex-col gap-2 pb-4">
+          <h3 className="text-lg font-semibold text-onSurface">Meter Reading History</h3>
+        </header>
+        
         <DataTable
           data={assetHistory}
           columns={readingColumns}
@@ -468,6 +430,7 @@ export const MeterReadingsView = ({
           showPagination={assetHistory.length > 10}
         />
       </Card>
+      <br />
     </div>
   );
 };

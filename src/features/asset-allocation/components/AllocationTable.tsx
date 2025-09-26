@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge, ProgressBar } from "@/components/ui/components";
+import { Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import type { AssetRecord } from "../types";
 
@@ -17,14 +17,6 @@ const statusVariantMap: Record<AssetRecord["status"], string> = {
   "Fully Booked": "red",
   Maintenance: "yellow",
   Reserved: "primary",
-};
-
-const availabilityVariantMap: Record<AssetRecord["availability"], string> = {
-  Available: "green",
-  Scheduled: "blue",
-  "In Maintenance": "yellow",
-  Reserved: "primary",
-  Unavailable: "grey",
 };
 
 const AllocationTable: React.FC<AllocationTableProps> = ({
@@ -95,22 +87,6 @@ const AllocationTable: React.FC<AllocationTableProps> = ({
         size: 116,
       },
       {
-        id: "utilization",
-        header: "Utilization",
-        cell: ({ row }) => {
-          const utilization = Math.round(row.original.utilizationRate * 100);
-          return (
-            <div className="flex flex-col gap-1">
-              <ProgressBar value={utilization} max={100} />
-              <span className="body-small text-onSurfaceVariant">
-                {utilization}%
-              </span>
-            </div>
-          );
-        },
-        size: 160,
-      },
-      {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
@@ -137,41 +113,8 @@ const AllocationTable: React.FC<AllocationTableProps> = ({
         ),
       },
       {
-        accessorKey: "availability",
-        header: "Availability",
-        cell: ({ row }) => (
-          <Badge
-            text={row.original.availability}
-            variant={
-              availabilityVariantMap[row.original.availability] ?? "primary"
-            }
-          />
-        ),
-        size: 150,
-      },
-      {
-        id: "nextMaintenance",
-        header: "Next Maintenance",
-        cell: ({ row }) => (
-          <div className="flex flex-col">
-            {row.original.nextMaintenance ? (
-              <span className="body-medium text-onSurface">
-                {new Date(row.original.nextMaintenance).toLocaleDateString()}
-              </span>
-            ) : (
-              <span className="body-small text-onSurfaceVariant">
-                Not scheduled
-              </span>
-            )}
-            <span className="body-small text-onSurfaceVariant">
-              Updated {new Date(row.original.updatedAt).toLocaleDateString()}
-            </span>
-          </div>
-        ),
-      },
-      {
         id: "actions",
-        header: "Details",
+        header: "Actions",
         cell: ({ row }) => (
           <button
             type="button"

@@ -1,24 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  Button,
-  Card,
-  Badge,
-} from "@/components/ui/components";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button, Card, Badge,} from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { cn } from "@/utils/utils";
-import type {
-  AllocationActionPayload,
-  AllocationSelection,
-  AllocationType,
-  AssetRecord,
-} from "../types";
+import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord, } from "../types";
 
 interface AllocationModalProps {
   isOpen: boolean;

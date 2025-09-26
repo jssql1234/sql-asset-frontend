@@ -1,0 +1,301 @@
+import type {
+  AllocationType,
+  AssetRecord,
+  CalendarEventRecord,
+  RentalRecord,
+  RentalStatus,
+  TransferType,
+  ReturnType,
+} from "./types";
+
+const now = new Date();
+const addDays = (days: number) => {
+  const date = new Date(now);
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
+};
+
+export const MOCK_ASSETS: AssetRecord[] = [
+  {
+    id: "asset-001",
+    code: "LTP-001",
+    name: "Dell Latitude 7430",
+    category: "Laptop",
+    location: "HQ - IT Store",
+    pic: "John Lee",
+    status: "Available",
+    total: 25,
+    allocated: 14,
+    remaining: 11,
+    utilizationRate: 0.56,
+    updatedAt: addDays(-2),
+    nextMaintenance: addDays(35),
+    tags: ["Laptop", "Windows", "Intel i7"],
+    notes: "Ready for allocation to new hires.",
+  },
+  {
+    id: "asset-002",
+    code: "LTP-015",
+    name: "Apple MacBook Pro 16\"",
+    category: "Laptop",
+    location: "HQ - Studio",
+    pic: "Aisha Kamal",
+    status: "In Use",
+    total: 12,
+    allocated: 11,
+    remaining: 1,
+    utilizationRate: 0.92,
+    updatedAt: addDays(-1),
+    nextMaintenance: addDays(60),
+    tags: ["Laptop", "macOS", "Design"],
+    notes: "Reserved for design team expansion.",
+  },
+  {
+    id: "asset-003",
+    code: "PRJ-008",
+    name: "Epson EB-U50 Projector",
+    category: "Projector",
+    location: "HQ - Meeting Room A",
+    pic: "Mei Li",
+    status: "Fully Booked",
+    total: 4,
+    allocated: 4,
+    remaining: 0,
+    utilizationRate: 1,
+    updatedAt: addDays(-5),
+    nextMaintenance: addDays(14),
+    tags: ["Projector", "Conference"],
+    notes: "Booked for quarterly training sessions.",
+  },
+  {
+    id: "asset-004",
+    code: "VEH-003",
+    name: "Toyota HiAce Van",
+    category: "Vehicle",
+    location: "Logistics Yard",
+    pic: "Samuel Ong",
+    status: "Maintenance",
+    total: 6,
+    allocated: 5,
+    remaining: 1,
+    utilizationRate: 0.83,
+    updatedAt: addDays(-10),
+    nextMaintenance: addDays(3),
+    tags: ["Vehicle", "Logistics"],
+    notes: "Scheduled maintenance in progress.",
+  },
+  {
+    id: "asset-005",
+    code: "ITM-024",
+    name: "Cisco Catalyst 9300 Switch",
+    category: "Network",
+    location: "Data Center",
+    pic: "Hafiz Rahman",
+    status: "Available",
+    total: 8,
+    allocated: 3,
+    remaining: 5,
+    utilizationRate: 0.38,
+    updatedAt: addDays(-4),
+    nextMaintenance: addDays(90),
+    tags: ["Network", "Core"],
+    notes: "Spare units for branch deployment.",
+  },
+  {
+    id: "asset-006",
+    code: "CAM-011",
+    name: "Canon EOS R6 Kit",
+    category: "Camera",
+    location: "HQ - Media Lab",
+    pic: "Rachel Tan",
+    status: "In Use",
+    total: 7,
+    allocated: 6,
+    remaining: 1,
+    utilizationRate: 0.86,
+    updatedAt: addDays(-3),
+    nextMaintenance: addDays(25),
+    tags: ["Camera", "Media"],
+    notes: "Reserved for marketing campaign shoots.",
+  },
+  {
+    id: "asset-007",
+    code: "EQP-019",
+    name: "Bosch Industrial Drill",
+    category: "Tool",
+    location: "Plant 2 Workshop",
+    pic: "Chong Wei",
+    status: "Available",
+    total: 15,
+    allocated: 9,
+    remaining: 6,
+    utilizationRate: 0.6,
+    updatedAt: addDays(-1),
+    nextMaintenance: addDays(45),
+    tags: ["Tool", "Workshop"],
+    notes: "Ready for allocation.",
+  },
+  {
+    id: "asset-008",
+    code: "SFT-004",
+    name: "Adobe Creative Cloud Licenses",
+    category: "Software",
+    location: "Cloud",
+    pic: "IT Procurement",
+    status: "In Use",
+    total: 50,
+    allocated: 42,
+    remaining: 8,
+    utilizationRate: 0.84,
+    updatedAt: addDays(-7),
+    tags: ["Software", "Design"],
+    notes: "New seats arriving next month.",
+  },
+];
+
+export const MOCK_CALENDAR_EVENTS: CalendarEventRecord[] = [
+  {
+    id: "event-001",
+    assetId: "asset-002",
+    assetName: "Apple MacBook Pro 16\"",
+    type: "active-rental",
+    start: addDays(-5),
+    end: addDays(2),
+    assignee: "Design Sprint Team",
+    status: "In Use",
+    notes: "Extended due to project milestone.",
+  },
+  {
+    id: "event-002",
+    assetId: "asset-003",
+    assetName: "Epson EB-U50 Projector",
+    type: "scheduled-rental",
+    start: addDays(3),
+    end: addDays(4),
+    location: "HQ Auditorium",
+    status: "Available",
+    notes: "Leadership town hall.",
+  },
+  {
+    id: "event-003",
+    assetId: "asset-004",
+    assetName: "Toyota HiAce Van",
+    type: "maintenance",
+    start: addDays(-1),
+    end: addDays(1),
+    location: "Service Center",
+    status: "Maintenance",
+    notes: "Brake system inspection.",
+  },
+  {
+    id: "event-004",
+    assetId: "asset-006",
+    assetName: "Canon EOS R6 Kit",
+    type: "in-use",
+    start: addDays(-2),
+    end: addDays(6),
+    assignee: "Marketing Studio",
+    status: "In Use",
+    notes: "Product launch shoot.",
+  },
+  {
+    id: "event-005",
+    assetId: "asset-008",
+    assetName: "Adobe Creative Cloud Licenses",
+    type: "return-due",
+    start: addDays(7),
+    notes: "License renewal reminder.",
+  },
+];
+
+export const MOCK_RENTALS: RentalRecord[] = [
+  {
+    id: "rental-001",
+    assetId: "asset-006",
+    assetName: "Canon EOS R6 Kit",
+    customerName: "Creative Studio Team",
+    location: "Marketing",
+    status: "Active",
+    startDate: addDays(-2),
+    endDate: addDays(5),
+    quantity: 2,
+    contactEmail: "studio@company.com",
+    notes: "Includes lighting accessories.",
+  },
+  {
+    id: "rental-002",
+    assetId: "asset-003",
+    assetName: "Epson EB-U50 Projector",
+    customerName: "Training Department",
+    location: "HQ Auditorium",
+    status: "Scheduled",
+    startDate: addDays(3),
+    endDate: addDays(4),
+    quantity: 1,
+    contactEmail: "training@company.com",
+  },
+  {
+    id: "rental-003",
+    assetId: "asset-004",
+    assetName: "Toyota HiAce Van",
+    customerName: "Logistics Team",
+    location: "Warehouse",
+    status: "Overdue",
+    startDate: addDays(-8),
+    endDate: addDays(-1),
+    quantity: 1,
+    contactEmail: "logistics@company.com",
+    notes: "Awaiting maintenance clearance.",
+  },
+  {
+    id: "rental-004",
+    assetId: "asset-002",
+    assetName: "Apple MacBook Pro 16\"",
+    customerName: "Design Sprint Team",
+    location: "Product Design",
+    status: "Active",
+    startDate: addDays(-5),
+    endDate: addDays(2),
+    quantity: 4,
+    contactEmail: "design@company.com",
+  },
+];
+
+export const MOCK_TRANSFER_TYPES: TransferType[] = [
+  "location-to-location",
+  "user-to-user",
+];
+
+export const MOCK_RETURN_TYPES: ReturnType[] = [
+  "location-return",
+  "user-return",
+];
+
+export const MOCK_ALLOCATION_TYPES: AllocationType[] = [
+  "location",
+  "user",
+];
+
+export const MOCK_LOCATIONS = Array.from(
+  new Set(MOCK_ASSETS.map((asset) => asset.location))
+).sort();
+
+export const MOCK_PICS = Array.from(
+  new Set(MOCK_ASSETS.map((asset) => asset.pic))
+).sort();
+
+export const MOCK_STATUS = Array.from(
+  new Set(MOCK_ASSETS.map((asset) => asset.status))
+).sort();
+
+export const MOCK_RENTAL_STATUS: RentalStatus[] = [
+  "Scheduled",
+  "Active",
+  "Completed",
+  "Overdue",
+  "Cancelled",
+];
+
+export const MOCK_RENTAL_LOCATIONS = Array.from(
+  new Set(MOCK_RENTALS.map((rental) => rental.location))
+).sort();

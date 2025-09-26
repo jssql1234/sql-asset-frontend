@@ -1,47 +1,39 @@
 import { useMemo } from "react";
 import { Input } from "@/components/ui/components/Input";
-import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip, } from "@/components/ui/components";
-import type { AllocationFilters, AssetStatus } from "../types";
+import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip } from "@/components/ui/components";
+import type { RentalFilters, RentalStatus } from "../types";
 
-export interface FilterOptions {
+interface RentalFiltersProps {
+  filters: RentalFilters;
+  statuses: RentalStatus[];
   locations: string[];
-  pics: string[];
-  statuses: AssetStatus[];
-}
-
-interface AllocationFilterProps {
-  filters: AllocationFilters;
-  options: FilterOptions;
-  onFilterChange: (filters: AllocationFilters) => void;
+  onFilterChange: (filters: RentalFilters) => void;
   onResetFilters: () => void;
 }
 
-const AllocationFilter: React.FC<AllocationFilterProps> = ({
+function RentalFiltersPanel({
   filters,
-  options,
+  statuses,
+  locations,
   onFilterChange,
   onResetFilters,
-}) => {
-  const setFilter = (key: keyof AllocationFilters, value: string) => {
+}: RentalFiltersProps) {
+  const setFilter = (key: keyof RentalFilters, value: string) => {
     onFilterChange({ ...filters, [key]: value });
   };
 
   const activeFilters = useMemo(
     () =>
       [
-        filters.location && {
-          key: "location" as const,
-          label: `Location: ${filters.location}`,
-        },
-        filters.pic && {
-          key: "pic" as const,
-          label: `PIC: ${filters.pic}`,
-        },
         filters.status && {
           key: "status" as const,
           label: `Status: ${filters.status}`,
         },
-      ].filter(Boolean) as { key: keyof AllocationFilters; label: string }[],
+        filters.location && {
+          key: "location" as const,
+          label: `Location: ${filters.location}`,
+        },
+      ].filter(Boolean) as { key: keyof RentalFilters; label: string }[],
     [filters]
   );
 
@@ -49,39 +41,31 @@ const AllocationFilter: React.FC<AllocationFilterProps> = ({
     <div className="flex flex-col gap-3 rounded-xl border border-outline bg-surfaceContainer p-4 shadow-sm">
       <div className="flex flex-wrap items-end gap-4">
         <div className="min-w-[220px] flex-1">
-          <label className="body-small text-onSurface" htmlFor="allocation-search">
+          <label className="body-small text-onSurface" htmlFor="rental-search">
             Search
           </label>
           <Input
-            id="allocation-search"
-            placeholder="Search by asset, status, or location"
+            id="rental-search"
+            placeholder="Search by asset, customer, or status"
             value={filters.search}
             onChange={(event) => setFilter("search", event.target.value)}
           />
         </div>
 
         <FilterDropdown
-          label="Location"
-          value={filters.location}
-          placeholder="All Locations"
-          options={options.locations}
-          onChange={(value) => setFilter("location", value)}
-        />
-
-        <FilterDropdown
-          label="PIC"
-          value={filters.pic}
-          placeholder="All PICs"
-          options={options.pics}
-          onChange={(value) => setFilter("pic", value)}
-        />
-
-        <FilterDropdown
           label="Status"
           value={filters.status}
           placeholder="All Status"
-          options={options.statuses}
-          onChange={(value) => setFilter("status", value as string)}
+          options={statuses}
+          onChange={(value) => setFilter("status", value)}
+        />
+
+        <FilterDropdown
+          label="Location"
+          value={filters.location}
+          placeholder="All Locations"
+          options={locations}
+          onChange={(value) => setFilter("location", value)}
         />
 
         <Button variant="outline" size="sm" onClick={onResetFilters}>
@@ -119,17 +103,17 @@ interface FilterDropdownProps {
   label: string;
   value: string;
   placeholder: string;
-  options: (string | number | AssetStatus)[];
+  options: (string | number | RentalStatus)[];
   onChange: (value: string) => void;
 }
 
-const FilterDropdown: React.FC<FilterDropdownProps> = ({
+const FilterDropdown = ({
   label,
   value,
   placeholder,
   options,
   onChange,
-}) => {
+}: FilterDropdownProps) => {
   return (
     <div className="flex min-w-[180px] flex-col gap-1">
       <label className="body-small text-onSurface">{label}</label>
@@ -143,9 +127,7 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
             value={value}
             onValueChange={(next) => onChange(next)}
           >
-            <DropdownMenuRadioItem value="">
-              {placeholder}
-            </DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="">{placeholder}</DropdownMenuRadioItem>
             {options.map((option) => (
               <DropdownMenuRadioItem key={String(option)} value={String(option)}>
                 {option}
@@ -156,6 +138,6 @@ const FilterDropdown: React.FC<FilterDropdownProps> = ({
       </DropdownMenu>
     </div>
   );
-};
+}
 
-export default AllocationFilter;
+export default RentalFiltersPanel;

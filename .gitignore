@@ -25,3 +25,4 @@ dist-ssr
 *.sw?
 *.env
 *build
+src/features/asset/components/AssetContentArea copy.tsx

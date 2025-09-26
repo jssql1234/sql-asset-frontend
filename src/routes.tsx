@@ -10,18 +10,14 @@ import MaintenanceSchedulePage from "./features/asset/pages/MaintenanceScheduleP
 import WorkRequestPage from "./features/asset/pages/WorkRequestPage";
 import DowntimeTrackingPage from "./features/asset/pages/DowntimeTrackingPage";
 import InsurancePage from "./features/asset/pages/InsurancePage";
-import MeterPage from "./features/meter/pages/MeterPage";
+/* import MeterPage from "./features/meter/pages/MeterPage"; */
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
 const AssetAllocationPage = lazy(
-  () => import("@/features/asset-allocation/pages/AssetAllocation")
+  () => import("@/features/allocation/pages/AssetAllocation")
 );
-
-
-
-// const Allocation = () => <AssetAllocationPage />;
 
 const Allocation = () => <AssetAllocationPage />;
 
@@ -35,7 +31,7 @@ function AppRoutes() {
       {/* Root path */}
       <Route path="/asset" element={<AssetMainPage />} />
       <Route path="/testing" element={<Testing />} />
-      <Route path="/tabledemo" element={<TableDemo />} />
+      {/* <Route path="/tabledemo" element={<TableDemo />} /> */}
       {/* Asset Management Routes */}
 
       <Route path="/asset" element={<AssetMainPage />} />
@@ -46,7 +42,7 @@ function AppRoutes() {
       <Route path="/allocation" element={<Allocation />} />
       <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
       <Route path="/insurance" element={<InsurancePage />} />
-      <Route path="/meter-reading" element={<MeterPage />} />
+      {/* <Route path="/meter-reading" element={<MeterPage />} /> */}
       
       {/* Disposal Routes */}
       <Route path="/disposal" element={<DisposalMainPage />} />

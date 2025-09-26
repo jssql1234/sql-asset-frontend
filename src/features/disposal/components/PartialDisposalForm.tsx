@@ -242,7 +242,7 @@ const PartialDisposalForm: React.FC<PartialDisposalFormProps> = ({
         <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
           <div className="flex">
             <div className="text-blue-600 text-sm">
-              <strong>Controlled Disposal:</strong> Special rules apply for controlled disposal transactions.
+              Special rules apply for controlled disposal transactions.
             </div>
           </div>
         </div>

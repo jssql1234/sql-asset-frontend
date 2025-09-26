@@ -77,7 +77,7 @@ const MFRS5DisposalForm: React.FC<MFRS5DisposalFormProps> = ({
       {/* Info Alert */}
       <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
         <div className="text-blue-800 text-sm">
-          <strong>MFRS 5 Disposal:</strong> Assets classified as held-for-sale. Clawback provisions may apply for assets acquired within 2 years.
+          Assets classified as held-for-sale. Clawback provisions may apply for assets acquired within 2 years.
         </div>
       </div>
 

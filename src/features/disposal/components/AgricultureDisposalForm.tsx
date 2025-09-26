@@ -52,7 +52,6 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
             </svg>
           </div>
           <div>
-            <h4 className="font-medium text-blue-900">Agriculture Disposal</h4>
             <p className="text-sm text-blue-700 mt-1">
               Disposal value will not affect BA/BC calculation.
             </p>
@@ -136,7 +135,7 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
       </div>
 
       {/* Checkboxes */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         <div className="flex items-center space-x-3">
           <input
             type="checkbox"
@@ -166,27 +165,30 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
         </div>
       </div>
 
+      {/* Divider Line */}
+      <div className="border-t border-gray-200 mb-6"></div>
+
       {/* Disposal Summary */}
       <div className="bg-gray-50 rounded-lg p-4">
         <h4 className="font-medium text-gray-900 mb-3">Disposal Summary</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="flex justify-between">
+          <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
             <span className="text-gray-700">Disposal Value:</span>
             <span className="font-medium text-gray-900">
               RM {(data.assetScrapped ? 0 : data.disposalValue).toFixed(2)}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
             <span className="text-gray-700">Tax Treatment:</span>
             <span className="font-medium text-gray-900">No BA/BC impact</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
             <span className="text-gray-700">Control Status:</span>
             <span className="font-medium text-gray-900">
               {data.controlledDisposal ? 'Controlled' : 'Uncontrolled'}
             </span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
             <span className="text-gray-700">Asset Status:</span>
             <span className="font-medium text-gray-900">
               {data.assetScrapped ? 'Scrapped' : 'Active'}

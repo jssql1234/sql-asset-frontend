@@ -44,7 +44,6 @@ const GiftDisposalForm: React.FC<GiftDisposalFormProps> = ({
             </svg>
           </div>
           <div>
-            <h4 className="font-medium text-blue-900">Gift to Approved Institutions</h4>
             <p className="text-sm text-blue-700 mt-1">
               Deemed disposal value = RM 0.00. No BA/BC calculation required.
             </p>
@@ -112,14 +111,14 @@ const GiftDisposalForm: React.FC<GiftDisposalFormProps> = ({
       </div>
 
       {/* Disposal Value Display */}
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="bg-gray-50 rounded-lg p-4 mt-6">
         <h4 className="font-medium text-gray-900 mb-3">Disposal Summary</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div className="flex justify-between">
+          <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
             <span className="text-gray-700">Disposal Value:</span>
             <span className="font-medium text-gray-900">RM 0.00</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between py-2 px-3 border border-gray-200 rounded-md bg-white">
             <span className="text-gray-700">Tax Treatment:</span>
             <span className="font-medium text-gray-900">No BA/BC calculation</span>
           </div>

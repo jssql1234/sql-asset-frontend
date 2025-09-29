@@ -195,7 +195,7 @@ const DisposalMainPage: React.FC = () => {
         label: 'Final Results',
         description: 'Confirm disposal',
         completed: disposalConfirmed,
-        current: currentStep === 3,
+        current: currentStep === 3 && !disposalConfirmed,
         disabled: currentStep < 3,
       }
     ];
@@ -511,8 +511,10 @@ const DisposalMainPage: React.FC = () => {
               )}
               <Button
                 onClick={() => {
-                  setCalculationResults(results);
-                  handleConfirmDisposal();
+                  if (!disposalConfirmed) {
+                    setCalculationResults(results);
+                    handleConfirmDisposal();
+                  }
                 }}
                 disabled={disposalConfirmed}
               >

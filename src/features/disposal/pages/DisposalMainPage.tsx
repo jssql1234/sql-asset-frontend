@@ -518,8 +518,10 @@ const DisposalMainPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex justify-between pt-4">
-              <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
+            <div className={`flex pt-4 ${disposalConfirmed ? 'justify-end' : 'justify-between'}`}>
+              {!disposalConfirmed && (
+                <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
+              )}
               <Button
                 onClick={() => {
                   setCalculationResults(results);

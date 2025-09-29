@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, Button } from "@/components/ui/components";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "./Dialog";
+import { Button } from "@/components/ui/components";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import CreateAsset from "./CreateAsset";
 import type { CreateAssetFormData } from "../zod/createAssetForm";

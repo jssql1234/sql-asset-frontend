@@ -16,7 +16,7 @@ interface ClaimsTabProps {
   filters: ClaimFilters;
   onFiltersChange: (filters: Partial<ClaimFilters>) => void;
   onAddClaim: () => void;
-  onCreateWorkOrder: (claim: CoverageClaim) => void;
+  onViewClaim: (claim: CoverageClaim) => void;
 }
 
 export const ClaimsTab: React.FC<ClaimsTabProps> = ({
@@ -25,7 +25,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   filters,
   onFiltersChange,
   onAddClaim,
-  onCreateWorkOrder,
+  onViewClaim,
 }) => {
   const summaryCards: SummaryCardItem[] = useMemo(
     () => [
@@ -140,7 +140,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
       <CoverageTable
         variant="claims"
         claims={filteredClaims}
-        onCreateWorkOrder={onCreateWorkOrder}
+        onViewClaim={onViewClaim}
       />
     </div>
   );

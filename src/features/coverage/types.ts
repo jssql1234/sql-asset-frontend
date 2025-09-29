@@ -104,7 +104,9 @@ export interface CoverageModalsState {
   policyForm: boolean;
   policyDetails: CoveragePolicy | null;
   warrantyForm: boolean;
+  warrantyDetails: CoverageWarranty | null;
   claimForm: boolean;
   workOrderFromClaim: boolean;
   claimForWorkOrder: CoverageClaim | null;
+  claimDetails: CoverageClaim | null;
 }

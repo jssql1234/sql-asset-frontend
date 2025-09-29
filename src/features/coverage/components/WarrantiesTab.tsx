@@ -16,6 +16,7 @@ interface WarrantiesTabProps {
   filters: WarrantyFilters;
   onFiltersChange: (filters: Partial<WarrantyFilters>) => void;
   onAddWarranty: () => void;
+  onViewWarranty: (warranty: CoverageWarranty) => void;
 }
 
 export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
@@ -25,6 +26,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
   filters,
   onFiltersChange,
   onAddWarranty,
+  onViewWarranty,
 }) => {
   const summaryCards: SummaryCardItem[] = useMemo(
     () => [
@@ -135,7 +137,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
         }
       />
 
-      <CoverageTable variant="warranties" warranties={filteredWarranties} />
+      <CoverageTable variant="warranties" warranties={filteredWarranties} onViewWarranty={onViewWarranty} />
     </div>
   );
 };

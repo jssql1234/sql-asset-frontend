@@ -5,8 +5,10 @@ import { PoliciesTab } from "@/features/coverage/components/PoliciesTab";
 import { WarrantiesTab } from "@/features/coverage/components/WarrantiesTab";
 import { ClaimsTab } from "@/features/coverage/components/ClaimsTab";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
+import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
 import { PolicyDetailsModal } from "@/features/coverage/components/modal/PolicyDetailsModal";
 import { PolicyFormModal } from "@/features/coverage/components/modal/PolicyFormModal";
+import { WarrantyDetailsModal } from "@/features/coverage/components/modal/WarrantyDetailsModal";
 import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
 import {
@@ -23,6 +25,7 @@ import type {
   ClaimFilters,
   CoverageClaim,
   CoverageModalsState,
+  CoverageWarranty,
   PolicyFilters,
   WarrantyFilters,
 } from "@/features/coverage/types";
@@ -50,9 +53,11 @@ const CoverageManagementPage: React.FC = () => {
     policyForm: false,
     policyDetails: null,
     warrantyForm: false,
+    warrantyDetails: null,
     claimForm: false,
     workOrderFromClaim: false,
     claimForWorkOrder: null,
+    claimDetails: null,
   });
 
   const handleViewPolicy = (policy: CoverageModalsState["policyDetails"]) => {
@@ -69,11 +74,10 @@ const CoverageManagementPage: React.FC = () => {
     }));
   };
 
-  const handleCreateWorkOrder = (claim: CoverageClaim) => {
+  const handleCloseWarrantyDetails = () => {
     setModals((prev) => ({
       ...prev,
-      workOrderFromClaim: true,
-      claimForWorkOrder: claim,
+      warrantyDetails: null,
     }));
   };
 
@@ -82,6 +86,27 @@ const CoverageManagementPage: React.FC = () => {
       ...prev,
       workOrderFromClaim: false,
       claimForWorkOrder: null,
+    }));
+  };
+
+  const handleViewWarranty = (warranty: CoverageWarranty) => {
+    setModals((prev) => ({
+      ...prev,
+      warrantyDetails: warranty,
+    }));
+  };
+
+  const handleViewClaim = (claim: CoverageClaim) => {
+    setModals((prev) => ({
+      ...prev,
+      claimDetails: claim,
+    }));
+  };
+
+  const handleCloseClaimDetails = () => {
+    setModals((prev) => ({
+      ...prev,
+      claimDetails: null,
     }));
   };
 
@@ -120,6 +145,7 @@ const CoverageManagementPage: React.FC = () => {
           onAddWarranty={() =>
             setModals((prev) => ({ ...prev, warrantyForm: true }))
           }
+          onViewWarranty={handleViewWarranty}
         />
       ),
     },
@@ -137,7 +163,7 @@ const CoverageManagementPage: React.FC = () => {
           onAddClaim={() =>
             setModals((prev) => ({ ...prev, claimForm: true }))
           }
-          onCreateWorkOrder={handleCreateWorkOrder}
+          onViewClaim={handleViewClaim}
         />
       ),
     },
@@ -175,6 +201,16 @@ const CoverageManagementPage: React.FC = () => {
         providers={warrantyProviders}
       />
 
+      <WarrantyDetailsModal
+        open={Boolean(modals.warrantyDetails)}
+        warranty={modals.warrantyDetails}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseWarrantyDetails();
+          }
+        }}
+      />
+
       <ClaimFormModal
         open={modals.claimForm}
         onOpenChange={(open) =>
@@ -182,6 +218,16 @@ const CoverageManagementPage: React.FC = () => {
         }
         policies={coveragePolicies}
         warranties={coverageWarranties}
+      />
+
+      <ClaimDetailsModal
+        open={Boolean(modals.claimDetails)}
+        claim={modals.claimDetails}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseClaimDetails();
+          }
+        }}
       />
 
       <WorkOrderFromClaimModal

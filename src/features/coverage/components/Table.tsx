@@ -19,12 +19,13 @@ type PoliciesVariantProps = {
 type WarrantiesVariantProps = {
   variant: "warranties";
   warranties: CoverageWarranty[];
+  onViewWarranty: (warranty: CoverageWarranty) => void;
 };
 
 type ClaimsVariantProps = {
   variant: "claims";
   claims: CoverageClaim[];
-  onCreateWorkOrder: (claim: CoverageClaim) => void;
+  onViewClaim: (claim: CoverageClaim) => void;
 };
 
 type CoverageTableProps =
@@ -102,31 +103,12 @@ const PoliciesVariantTable = ({
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
-        accessorKey: "assetsCovered",
-        header: "Assets",
-        cell: ({ row }) => (
-          <div className="flex flex-wrap gap-1">
-            {row.original.assetsCovered.map((asset) => (
-              <Badge
-                key={asset.id}
-                text={asset.name}
-                variant="grey"
-                className="h-7 px-3 py-1"
-              />
-            ))}
-          </div>
-        ),
-      },
-      {
         id: "actions",
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
             <Button variant="outline" size="sm" onClick={() => onViewPolicy(row.original)}>
               View
-            </Button>
-            <Button variant="secondary" size="sm">
-              Edit
             </Button>
           </div>
         ),
@@ -147,7 +129,7 @@ const PoliciesVariantTable = ({
   );
 };
 
-const WarrantiesVariantTable = ({ warranties }: WarrantiesVariantProps) => {
+const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVariantProps) => {
   const columns = useMemo<ColumnDef<CoverageWarranty>[]>(
     () => [
       {
@@ -184,23 +166,21 @@ const WarrantiesVariantTable = ({ warranties }: WarrantiesVariantProps) => {
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
-        accessorKey: "assetsCovered",
-        header: "Assets",
+        id: "actions",
+        header: "Actions",
         cell: ({ row }) => (
-          <div className="flex flex-wrap gap-1">
-            {row.original.assetsCovered.map((asset) => (
-              <Badge
-                key={asset.id}
-                text={asset.name}
-                variant="grey"
-                className="h-7 px-3 py-1"
-              />
-            ))}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={() => onViewWarranty(row.original)}>
+              View
+            </Button>
           </div>
         ),
+        meta: {
+          align: "right",
+        },
       },
     ],
-    []
+    [onViewWarranty]
   );
 
   return (
@@ -214,7 +194,7 @@ const WarrantiesVariantTable = ({ warranties }: WarrantiesVariantProps) => {
 
 const ClaimsVariantTable = ({
   claims,
-  onCreateWorkOrder,
+  onViewClaim,
 }: ClaimsVariantProps) => {
   const columns = useMemo<ColumnDef<CoverageClaim>[]>(
     () => [
@@ -304,18 +284,8 @@ const ClaimsVariantTable = ({
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => onViewClaim(row.original)}>
               View
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={
-                row.original.type !== "Warranty" || Boolean(row.original.workOrderId)
-              }
-              onClick={() => onCreateWorkOrder(row.original)}
-            >
-              Create Work Order
             </Button>
           </div>
         ),
@@ -324,7 +294,7 @@ const ClaimsVariantTable = ({
         },
       },
     ],
-    [onCreateWorkOrder]
+    [onViewClaim]
   );
 
   return (
@@ -343,16 +313,16 @@ const CoverageTable = (props: CoverageTableProps) => {
   }
 
   if (props.variant === "warranties") {
-    const { warranties } = props;
-    return <WarrantiesVariantTable variant="warranties" warranties={warranties} />;
+    const { warranties, onViewWarranty } = props;
+    return <WarrantiesVariantTable variant="warranties" warranties={warranties} onViewWarranty={onViewWarranty} />;
   }
 
-  const { claims, onCreateWorkOrder } = props;
+  const { claims, onViewClaim } = props;
   return (
     <ClaimsVariantTable
       variant="claims"
       claims={claims}
-      onCreateWorkOrder={onCreateWorkOrder}
+      onViewClaim={onViewClaim}
     />
   );
 };

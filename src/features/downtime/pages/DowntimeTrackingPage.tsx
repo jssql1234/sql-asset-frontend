@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
-import { Button } from "@/components/ui/components";
+import { TabHeader } from "@/components/TabHeader";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
@@ -76,29 +76,22 @@ const DowntimeTrackingPage: React.FC = () => {
   return (
     <AssetLayout activeSidebarItem="downtime-tracking">
       <div className="flex flex-col gap-6 p-1">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="title-large font-semibold text-onSurface">Downtime Tracking</h1>
-            <p className="body-medium text-onSurfaceVariant mt-1">
-              Monitor and manage asset downtime incidents
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true }))}
-            >
-              View Resolved
-            </Button>
-            <Button
-              variant="default"
-              onClick={() => setModals((prev: ModalState) => ({ ...prev, logDowntime: true }))}
-            >
-              Log Downtime
-            </Button>
-          </div>
-        </div>
+        <TabHeader
+          title="Downtime Tracking"
+          subtitle="Monitor and manage asset downtime incidents"
+          actions={[
+            {
+              label: "View Resolved",
+              onAction: () => setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true })),
+              variant: "outline",
+            },
+            {
+              label: "Log Downtime",
+              onAction: () => setModals((prev: ModalState) => ({ ...prev, logDowntime: true })),
+              variant: "default",
+            },
+          ]}
+        />
 
         {/* Summary Cards */}
         <SummaryCards data={summaryCardsData} columns={4} />

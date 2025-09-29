@@ -52,19 +52,19 @@ const CalculationResultsTable: React.FC<CalculationResultsTableProps> = ({
     
     if (isCharge) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-errorContainer text-error">
           {treatment}
         </span>
       );
     } else if (isAllowance) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primaryContainer text-primary">
           {treatment}
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-surfaceContainer text-onSurface">
           {treatment}
         </span>
       );
@@ -222,21 +222,21 @@ const CalculationResultsTable: React.FC<CalculationResultsTableProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <div className="text-sm text-blue-600 mb-1">Total Balancing Allowance</div>
-            <div className="text-2xl font-bold text-blue-800">{formatCurrency(totalSummary.totalBA)}</div>
+          <div className="bg-primaryContainer border border-primary rounded-md p-4">
+            <div className="text-sm text-primary mb-1">Total Balancing Allowance</div>
+            <div className="text-2xl font-bold text-primary">{formatCurrency(totalSummary.totalBA)}</div>
           </div>
           
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <div className="text-sm text-red-600 mb-1">Total Balancing Charge</div>
-            <div className="text-2xl font-bold text-red-800">{formatCurrency(totalSummary.totalBC)}</div>
+          <div className="bg-errorContainer border border-error rounded-md p-4">
+            <div className="text-sm text-error mb-1">Total Balancing Charge</div>
+            <div className="text-2xl font-bold text-error">{formatCurrency(totalSummary.totalBC)}</div>
           </div>
           
           <div className={`border rounded-md p-4 ${
-            totalSummary.netEffect >= 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+            totalSummary.netEffect >= 0 ? 'bg-greenContainer border-green' : 'bg-errorContainer border-error'
           }`}>
             <div className={`text-sm mb-1 ${
-              totalSummary.netEffect >= 0 ? 'text-green-600' : 'text-red-600'
+              totalSummary.netEffect >= 0 ? 'text-green' : 'text-error'
             }`}>
               Net Tax Effect
             </div>

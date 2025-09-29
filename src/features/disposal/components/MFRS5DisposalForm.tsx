@@ -45,8 +45,8 @@ const MFRS5DisposalForm: React.FC<MFRS5DisposalFormProps> = ({
       </div>
 
       {/* Info Alert */}
-      <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-        <div className="text-blue-800 text-sm">
+      <div className="bg-primaryContainer border border-primary rounded-md p-4">
+        <div className="text-onPrimaryContainer text-sm">
           <strong>MFRS 5 Held-for-Sale:</strong> Trigger BA BC on classification date
         </div>
       </div>
@@ -54,7 +54,7 @@ const MFRS5DisposalForm: React.FC<MFRS5DisposalFormProps> = ({
       {/* Asset Information */}
       <div className="space-y-4">
         <div className="space-y-2">
-          <label htmlFor="mfrs5-asset-id" className="block text-sm font-medium text-gray-900">
+          <label htmlFor="mfrs5-asset-id" className="block text-sm font-medium text-onBackground">
             Asset ID
           </label>
           <Input
@@ -62,7 +62,7 @@ const MFRS5DisposalForm: React.FC<MFRS5DisposalFormProps> = ({
             type="text"
             value={localData.assetId}
             disabled={true}
-            className="bg-gray-100 cursor-not-allowed"
+            className="bg-surfaceContainer cursor-not-allowed"
           />
         </div>
 

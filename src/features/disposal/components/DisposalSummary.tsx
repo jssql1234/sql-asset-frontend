@@ -82,19 +82,19 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
     
     if (isCharge) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-errorContainer text-error">
           {treatment}
         </span>
       );
     } else if (isAllowance) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primaryContainer text-primary">
           {treatment}
         </span>
       );
     } else {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-surfaceContainer text-onSurface">
           {treatment}
         </span>
       );
@@ -105,26 +105,26 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
     if (isMultipleAssets && Array.isArray(assetData)) {
       return (
         <Card className="space-y-4">
-          <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">
+          <h4 className="font-medium text-onBackground border-b border-outline pb-2">
             Assets Information ({assetData.length} assets)
           </h4>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-surfaceContainer">
                 <tr>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-onBackground border-b border-outline">
                     Asset ID
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-onBackground border-b border-outline">
                     Description
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-onBackground border-b border-outline">
                     Original Cost
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-onBackground border-b border-outline">
                     Disposal Value
                   </th>
-                  <th className="px-3 py-2 text-left text-sm font-medium text-gray-900 border-b border-gray-200">
+                  <th className="px-3 py-2 text-left text-sm font-medium text-onBackground border-b border-outline">
                     Disposal Date
                   </th>
                 </tr>
@@ -158,38 +158,38 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
       const asset = Array.isArray(assetData) ? assetData[0] : assetData;
       return (
         <Card className="space-y-4">
-          <h4 className="font-medium text-gray-900 border-b border-gray-200 pb-2">
+          <h4 className="font-medium text-onBackground border-b border-outline pb-2">
             Asset Information
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Asset ID:</label>
-              <div className="text-sm text-gray-900">{asset.assetId}</div>
+              <label className="block text-sm font-medium text-onBackground mb-1">Asset ID:</label>
+              <div className="text-sm text-onBackground">{asset.assetId}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Description:</label>
-              <div className="text-sm text-gray-900">{asset.assetDescription}</div>
+              <label className="block text-sm font-medium text-onBackground mb-1">Description:</label>
+              <div className="text-sm text-onBackground">{asset.assetDescription}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Original Cost:</label>
-              <div className="text-sm text-gray-900">{formatCurrency(asset.originalCost)}</div>
+              <label className="block text-sm font-medium text-onBackground mb-1">Original Cost:</label>
+              <div className="text-sm text-onBackground">{formatCurrency(asset.originalCost)}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Disposal Value:</label>
-              <div className="text-sm text-gray-900">{formatCurrency(asset.disposalValue)}</div>
+              <label className="block text-sm font-medium text-onBackground mb-1">Disposal Value:</label>
+              <div className="text-sm text-onBackground">{formatCurrency(asset.disposalValue)}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Acquire Date:</label>
-              <div className="text-sm text-gray-900">{formatDate(asset.acquireDate)}</div>
+              <label className="block text-sm font-medium text-onBackground mb-1">Acquire Date:</label>
+              <div className="text-sm text-onBackground">{formatDate(asset.acquireDate)}</div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-1">Disposal Date:</label>
-              <div className="text-sm text-gray-900">{formatDate(asset.disposalDate)}</div>
+              <label className="block text-sm font-medium text-onBackground mb-1">Disposal Date:</label>
+              <div className="text-sm text-onBackground">{formatDate(asset.disposalDate)}</div>
             </div>
             {asset.recipient && (
               <div>
-                <label className="block text-sm font-medium text-gray-900 mb-1">Recipient:</label>
-                <div className="text-sm text-gray-900">{asset.recipient}</div>
+                <label className="block text-sm font-medium text-onBackground mb-1">Recipient:</label>
+                <div className="text-sm text-onBackground">{asset.recipient}</div>
               </div>
             )}
           </div>
@@ -200,8 +200,8 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
 
   const renderCalculationResults = () => (
     <Card className="space-y-4">
-      <div className="flex justify-between items-center border-b border-gray-200 pb-2">
-        <h4 className="font-medium text-gray-900">Calculation Results</h4>
+      <div className="flex justify-between items-center border-b border-outline pb-2">
+        <h4 className="font-medium text-onBackground">Calculation Results</h4>
         {showWorkingSheet && onViewWorkingSheet && (
           <Button
             variant="outline"
@@ -215,16 +215,16 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div className="text-sm text-gray-700 mb-1">Written Down Value</div>
-          <div className="text-lg font-semibold text-gray-900">
+        <div className="bg-surfaceContainer p-4 rounded-md">
+          <div className="text-sm text-onSurface mb-1">Written Down Value</div>
+          <div className="text-lg font-semibold text-onBackground">
             {formatCurrency(calculationResults.writtenDownValue)}
           </div>
         </div>
 
-        <div className="bg-blue-50 border border-blue-200 p-4 rounded-md">
-          <div className="text-sm text-blue-600 mb-1">Balancing Allowance</div>
-          <div className="text-lg font-semibold text-blue-800">
+        <div className="bg-primaryContainer border border-primary p-4 rounded-md">
+          <div className="text-sm text-primary mb-1">Balancing Allowance</div>
+          <div className="text-lg font-semibold text-primary">
             {calculationResults.balancingAllowance > 0 
               ? formatCurrency(calculationResults.balancingAllowance)
               : '-'
@@ -232,9 +232,9 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
           </div>
         </div>
 
-        <div className="bg-red-50 border border-red-200 p-4 rounded-md">
-          <div className="text-sm text-red-600 mb-1">Balancing Charge</div>
-          <div className="text-lg font-semibold text-red-800">
+        <div className="bg-errorContainer border border-error p-4 rounded-md">
+          <div className="text-sm text-error mb-1">Balancing Charge</div>
+          <div className="text-lg font-semibold text-error">
             {calculationResults.balancingCharge > 0 
               ? formatCurrency(calculationResults.balancingCharge)
               : '-'
@@ -244,16 +244,16 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
 
         <div className={`border p-4 rounded-md ${
           calculationResults.netTaxEffect >= 0 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-red-50 border-red-200'
+            ? 'bg-greenContainer border-green' 
+            : 'bg-errorContainer border-error'
         }`}>
           <div className={`text-sm mb-1 ${
-            calculationResults.netTaxEffect >= 0 ? 'text-green-600' : 'text-red-600'
+            calculationResults.netTaxEffect >= 0 ? 'text-green' : 'text-error'
           }`}>
             Net Tax Effect
           </div>
           <div className={`text-lg font-semibold ${
-            calculationResults.netTaxEffect >= 0 ? 'text-green-800' : 'text-red-800'
+            calculationResults.netTaxEffect >= 0 ? 'text-green' : 'text-error'
           }`}>
             {formatCurrency(Math.abs(calculationResults.netTaxEffect))}
             <span className="text-xs ml-1">
@@ -264,24 +264,24 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
       </div>
 
       {calculationResults.clawbackAmount && calculationResults.clawbackAmount > 0 && (
-        <div className="bg-red-50 border border-red-200 p-4 rounded-md">
+        <div className="bg-errorContainer border border-error p-4 rounded-md">
           <div className="flex justify-between items-center">
             <div>
-              <div className="text-sm font-medium text-red-800 mb-1">Clawback Amount</div>
+              <div className="text-sm font-medium text-error mb-1">Clawback Amount</div>
               <div className="text-sm text-red-700">
                 Additional charge due to disposal within 2 years of acquisition
               </div>
             </div>
-            <div className="text-lg font-bold text-red-800">
+            <div className="text-lg font-bold text-error">
               {formatCurrency(calculationResults.clawbackAmount)}
             </div>
           </div>
         </div>
       )}
 
-      <div className="border-t border-gray-200 pt-4">
+      <div className="border-t border-outline pt-4">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-medium text-gray-900">Tax Treatment:</span>
+          <span className="text-sm font-medium text-onBackground">Tax Treatment:</span>
           {getTaxTreatmentBadge(calculationResults.taxTreatment)}
         </div>
       </div>
@@ -297,12 +297,12 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
             <h3 className="text-lg font-semibold text-primary">
               Disposal Summary - {getDisposalTypeLabel(disposalType)}
             </h3>
-            <p className="text-sm text-gray-700 mt-1">
+            <p className="text-sm text-onSurface mt-1">
               Review the disposal details and calculation results before confirming
             </p>
           </div>
           <div className="text-right">
-            <div className="text-xs text-gray-500 uppercase tracking-wide">Status</div>
+            <div className="text-xs text-onSurfaceVariant uppercase tracking-wide">Status</div>
             <div className="text-lg font-semibold text-green-700">Ready for Confirmation</div>
           </div>
         </div>
@@ -315,9 +315,9 @@ const DisposalSummary: React.FC<DisposalSummaryProps> = ({
       {renderCalculationResults()}
 
       {/* Important Notes */}
-      <Card className="bg-amber-50 border border-amber-200">
-        <h4 className="font-medium text-amber-800 mb-2">Important Notes</h4>
-        <ul className="text-sm text-amber-700 space-y-1">
+      <Card className="bg-warningContainer border border-warning">
+        <h4 className="font-medium text-warning mb-2">Important Notes</h4>
+        <ul className="text-sm text-onWarningContainer space-y-1">
           <li>• Please ensure all asset details and calculations are correct before confirming</li>
           <li>• Once confirmed, this disposal will be recorded in the system</li>
           <li>• Tax implications should be reviewed with your tax advisor</li>

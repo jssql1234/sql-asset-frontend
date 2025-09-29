@@ -72,7 +72,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
             value={asset.assetId}
             onChange={handleInputChange(asset.id, 'assetId')}
             disabled={readOnly || isReadOnlyField}
-            className={`w-full px-2 py-1 border border-gray-300 rounded ${isReadOnlyField ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`w-full px-2 py-1 border border-outline rounded ${isReadOnlyField ? 'bg-surfaceContainer cursor-not-allowed' : ''}`}
           >
             <option value="">Select Asset</option>
             {availableAssetIds.map(assetId => (
@@ -103,7 +103,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
             value={value || ''}
             onChange={handleInputChange(asset.id, column.key as keyof AssetData)}
             disabled={readOnly || isReadOnlyField}
-            className={`w-full ${isReadOnlyField ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+            className={`w-full ${isReadOnlyField ? 'bg-surfaceContainer cursor-not-allowed' : ''}`}
             step={isNumericField ? '0.01' : undefined}
             placeholder={isNumericField ? '0.00' : column.key === 'recipient' ? 'Enter recipient' : ''}
           />
@@ -138,14 +138,14 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
         )}
       </div>
 
-      <div className="overflow-x-auto border border-gray-300 rounded-md">
+      <div className="overflow-x-auto border border-outline rounded-md">
         <table className="w-full border-collapse">
-          <thead className="bg-gray-50">
+          <thead className="bg-surfaceContainer">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-3 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-300"
+                  className="px-3 py-3 text-left text-sm font-medium text-onSurface border-b border-outline"
                 >
                   {column.label}
                 </th>
@@ -154,7 +154,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
           </thead>
           <tbody>
             {assets.map((asset, index) => (
-              <tr key={asset.id} className={`border-b border-gray-200 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+              <tr key={asset.id} className={`border-b border-outline ${index % 2 === 0 ? 'bg-surface' : 'bg-surfaceContainer'}`}>
                 {columns.map((column) => (
                   <td key={column.key} className="px-3 py-3">
                     {renderCell(asset, column)}
@@ -165,21 +165,21 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
             
             {/* Totals Row */}
             {assets.length > 0 && (
-              <tr className="bg-gray-100 border-t-2 border-gray-400 font-semibold">
-                <td className="px-3 py-3 text-sm text-gray-700">TOTAL</td>
-                <td className="px-3 py-3 text-sm text-gray-700">-</td>
-                <td className="px-3 py-3 text-sm text-blue-700">
+              <tr className="bg-surfaceContainer border-t-2 border-outlineVariant font-semibold">
+                <td className="px-3 py-3 text-sm text-onSurface">TOTAL</td>
+                <td className="px-3 py-3 text-sm text-onSurface">-</td>
+                <td className="px-3 py-3 text-sm text-primary">
                   {totals.disposalValue.toFixed(2)}
                 </td>
-                <td className="px-3 py-3 text-sm text-gray-700">
+                <td className="px-3 py-3 text-sm text-onSurface">
                   {totals.originalCost.toFixed(2)}
                 </td>
                 {(disposalType === 'partial' || disposalType === 'normal') && (
-                  <td className="px-3 py-3 text-sm text-gray-700">
+                  <td className="px-3 py-3 text-sm text-onSurface">
                     {totals.disposedCost.toFixed(2)}
                   </td>
                 )}
-                <td className="px-3 py-3 text-sm text-gray-700">
+                <td className="px-3 py-3 text-sm text-onSurface">
                   {totals.qty}
                 </td>
                 {!readOnly && <td className="px-3 py-3"></td>}
@@ -191,7 +191,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
 
       {/* Empty state */}
       {assets.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-onSurfaceVariant">
           <p>No assets added yet. Click "Add Asset" to get started.</p>
         </div>
       )}

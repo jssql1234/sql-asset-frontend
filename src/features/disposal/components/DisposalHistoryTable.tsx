@@ -70,9 +70,9 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      completed: { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' },
-      draft: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Draft' },
-      cancelled: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelled' },
+      completed: { bg: 'bg-greenContainer', text: 'text-green', label: 'Completed' },
+      draft: { bg: 'bg-yellowContainer', text: 'text-yellow', label: 'Draft' },
+      cancelled: { bg: 'bg-errorContainer', text: 'text-error', label: 'Cancelled' },
     };
 
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.completed;
@@ -90,7 +90,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
     const isCharge = treatment.toLowerCase().includes('charge');
     return (
       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-        isCharge ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+        isCharge ? 'bg-errorContainer text-error' : 'bg-primaryContainer text-primary'
       }`}>
         {treatment}
       </span>

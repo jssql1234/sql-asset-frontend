@@ -75,7 +75,7 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
     } else if (step.current) {
       return `${baseClasses} bg-primary/10 border border-primary/20`;
     } else if (step.completed) {
-      return `${baseClasses} bg-green-50 border border-green-200`;
+      return `${baseClasses} bg-greenContainer border border-green`;
     } else if (allowStepNavigation && onStepClick) {
       return `${baseClasses} cursor-pointer hover:bg-surfaceContainer`;
     } else {
@@ -101,17 +101,17 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
       {showProgressBar && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-sm font-medium text-gray-900">Progress</span>
+            <span className="text-sm font-medium text-onBackground">Progress</span>
             <span className={`text-sm font-medium ${
-              completedSteps === steps.length ? 'text-green-600' : 'text-gray-700'
+              completedSteps === steps.length ? 'text-green' : 'text-onSurface'
             }`}>
               {currentStepIndex + 1}/{steps.length}
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2 relative">
+          <div className="w-full bg-outline rounded-full h-2 relative">
             <div 
               className={`h-2 rounded-full transition-all duration-300 ease-in-out ${
-                completedSteps === steps.length ? 'bg-green-500' : 'bg-primary'
+                completedSteps === steps.length ? 'bg-lightGreen' : 'bg-primary'
               }`}
               style={{ width: `${progressPercentage}%` }}
             />
@@ -123,8 +123,8 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
               <div
                 key={step.id}
                 className={`w-2 h-2 rounded-full transition-colors duration-200 ${
-                  step.completed ? 'bg-green-500' : 
-                  step.current ? 'bg-primary' : 'bg-gray-300'
+                  step.completed ? 'bg-lightGreen' : 
+                  step.current ? 'bg-primary' : 'bg-outlineVariant'
                 }`}
               />
             ))}
@@ -147,14 +147,14 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
                 <div className="flex-grow">
                   <div className={`font-medium ${
                     step.current ? 'text-primary' : 
-                    step.completed ? 'text-green-700' : 
-                    step.disabled ? 'text-gray-400' : 'text-gray-900'
+                    step.completed ? 'text-green' : 
+                    step.disabled ? 'text-onSurfaceVariant' : 'text-onBackground'
                   }`}>
                     {step.label}
                   </div>
                   {step.description && (
                     <div className={`text-sm ${
-                      step.disabled ? 'text-gray-400' : 'text-gray-600'
+                      step.disabled ? 'text-onSurfaceVariant' : 'text-onSurface'
                     }`}>
                       {step.description}
                     </div>
@@ -171,7 +171,7 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
                 )}
                 
                 {step.completed && !step.current && (
-                  <div className="text-green-600">
+                  <div className="text-green">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>

@@ -34,13 +34,13 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
 
   return (
     <Card className="space-y-6">
-      <div className="border-b border-gray-200 pb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Asset Information</h3>
+      <div className="border-b border-outline pb-4">
+        <h3 className="text-lg font-semibold text-onBackground">Asset Information</h3>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label htmlFor="asset-code" className="block text-sm font-medium text-gray-900">
+          <label htmlFor="asset-code" className="block text-sm font-medium text-onBackground">
             Asset ID
           </label>
           <Input
@@ -48,12 +48,12 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
             type="text"
             value={data.assetCode}
             disabled={true}
-            className="bg-gray-100 cursor-not-allowed"
+            className="bg-surfaceContainer cursor-not-allowed"
           />
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="asset-description" className="block text-sm font-medium text-gray-900">
+          <label htmlFor="asset-description" className="block text-sm font-medium text-onBackground">
             Description
           </label>
           <Input
@@ -69,8 +69,8 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label htmlFor="original-cost" className="block text-sm font-medium text-gray-900">
-            Original Cost <span className="text-red-600">*</span>
+          <label htmlFor="original-cost" className="block text-sm font-medium text-onBackground">
+            Original Cost <span className="text-error">*</span>
           </label>
           <Input
             id="original-cost"
@@ -85,8 +85,8 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="qualifying-expenditure" className="block text-sm font-medium text-gray-900">
-            Qualifying Expenditure (QE) <span className="text-red-600">*</span>
+          <label htmlFor="qualifying-expenditure" className="block text-sm font-medium text-onBackground">
+            Qualifying Expenditure (QE) <span className="text-error">*</span>
           </label>
           <Input
             id="qualifying-expenditure"
@@ -103,8 +103,8 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label htmlFor="residual-expenditure" className="block text-sm font-medium text-gray-900">
-            Residual Expenditure (RE) <span className="text-red-600">*</span>
+          <label htmlFor="residual-expenditure" className="block text-sm font-medium text-onBackground">
+            Residual Expenditure (RE) <span className="text-error">*</span>
           </label>
           <Input
             id="residual-expenditure"
@@ -119,8 +119,8 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="total-ca-claimed" className="block text-sm font-medium text-gray-900">
-            Total Capital Allowance Claimed <span className="text-red-600">*</span>
+          <label htmlFor="total-ca-claimed" className="block text-sm font-medium text-onBackground">
+            Total Capital Allowance Claimed <span className="text-error">*</span>
           </label>
           <Input
             id="total-ca-claimed"
@@ -137,7 +137,7 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label htmlFor="purchase-date" className="block text-sm font-medium text-gray-900">
+          <label htmlFor="purchase-date" className="block text-sm font-medium text-onBackground">
             Purchase Date
           </label>
           <Input
@@ -150,8 +150,8 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="disposal-date" className="block text-sm font-medium text-gray-900">
-            Disposal Date <span className="text-red-600">*</span>
+          <label htmlFor="disposal-date" className="block text-sm font-medium text-onBackground">
+            Disposal Date <span className="text-error">*</span>
           </label>
           <Input
             id="disposal-date"

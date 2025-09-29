@@ -52,8 +52,8 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
 
   return (
     <Card className="space-y-6">
-      <div className="border-b border-gray-200 pb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Cases</h3>
+      <div className="border-b border-outline pb-4">
+        <h3 className="text-lg font-semibold text-onBackground">Cases</h3>
       </div>
 
       <div className="space-y-4">
@@ -68,7 +68,7 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
               disabled={disabled}
               className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
             />
-            <span className="text-gray-900">Special Cases</span>
+            <span className="text-onBackground">Special Cases</span>
           </label>
 
           <label className="flex items-center space-x-3 cursor-pointer">
@@ -81,14 +81,14 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
               disabled={disabled}
               className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
             />
-            <span className="text-gray-900">Normal Cases</span>
+            <span className="text-onBackground">Normal Cases</span>
           </label>
         </div>
 
         {selectedCase === 'normal' && (
-          <div className="mt-6 space-y-4 p-4 bg-gray-50 rounded-md">
-            <div className="border-b border-gray-200 pb-2">
-              <h4 className="font-medium text-gray-900">Disposal Type</h4>
+          <div className="mt-6 space-y-4 p-4 bg-surfaceContainer rounded-md">
+            <div className="border-b border-outline pb-2">
+              <h4 className="font-medium text-onBackground">Disposal Type</h4>
             </div>
 
             <div className="space-y-3">
@@ -103,7 +103,7 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
                     disabled={disabled}
                     className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
                   />
-                  <span className="text-gray-900 text-sm">{type.label}</span>
+                  <span className="text-onBackground text-sm">{type.label}</span>
                 </label>
               ))}
             </div>

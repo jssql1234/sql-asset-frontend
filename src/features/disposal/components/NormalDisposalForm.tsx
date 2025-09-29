@@ -75,11 +75,11 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
           
           {/* Toggle Button for Single/Multiple Assets */}
           <div className="flex items-center space-x-3">
-            <span className="text-sm text-gray-600">Single Asset</span>
+            <span className="text-sm text-onSurface">Single Asset</span>
             <button
               type="button"
               className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-200 focus:outline-none ${
-                isMultipleAssets ? 'bg-primary' : 'bg-gray-300'
+                isMultipleAssets ? 'bg-primary' : 'bg-outlineVariant'
               }`}
               onClick={handleToggleChange}
               disabled={readOnly}
@@ -90,7 +90,7 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
                 }`}
               />
             </button>
-            <span className="text-sm text-gray-600">Multiple Assets</span>
+            <span className="text-sm text-onSurface">Multiple Assets</span>
           </div>
         </div>
       </div>
@@ -98,8 +98,8 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
       {isMultipleAssets ? (
         /* Multiple Assets Form */
         <div className="space-y-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <div className="text-blue-800 text-sm">
+          <div className="bg-primaryContainer border border-primary rounded-md p-4">
+            <div className="text-onPrimaryContainer text-sm">
               <strong>Multiple Assets Disposal:</strong> Configure disposal details for multiple assets at once.
             </div>
           </div>
@@ -167,7 +167,7 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
           </div>
 
           {/* Divider */}
-          <hr className="border-t border-gray-300 my-6" />
+          <hr className="border-t border-outline my-6" />
 
           {/* Multiple Assets Table */}
            <MultipleAssetsTable
@@ -182,16 +182,16 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
 
           {/* Warning Messages */}
           {localData.isAssetScrapped && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
-              <div className="text-amber-600 text-sm">
+            <div className="bg-warningContainer border border-warning rounded-md p-4">
+              <div className="text-onWarningContainer text-sm">
                 <strong>Note:</strong> Asset scrapped - disposal value is set to 0 for all assets.
               </div>
             </div>
           )}
 
           {localData.isControlledDisposal && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="text-blue-600 text-sm">
+            <div className="bg-primaryContainer border border-primary rounded-md p-4">
+              <div className="text-onPrimaryContainer text-sm">
                 Special rules apply for controlled disposal transactions.
               </div>
             </div>
@@ -203,7 +203,7 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
           {/* Asset Information */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <label htmlFor="asset-id" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="asset-id" className="block text-sm font-medium text-onBackground">
                 Asset ID
               </label>
               <Input
@@ -211,7 +211,7 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
                 type="text"
                 value={localData.assetId}
                 disabled={true}
-                className="bg-gray-100 cursor-not-allowed"
+                className="bg-surfaceContainer cursor-not-allowed"
               />
             </div>
 
@@ -310,16 +310,16 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
 
           {/* Warning Messages */}
           {localData.isAssetScrapped && (
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
-              <div className="text-amber-600 text-sm">
+            <div className="bg-warningContainer border border-warning rounded-md p-4">
+              <div className="text-onWarningContainer text-sm">
                 <strong>Note:</strong> Asset scrapped - disposal value is set to 0.
               </div>
             </div>
           )}
 
           {localData.isControlledDisposal && (
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-              <div className="text-blue-600 text-sm">
+            <div className="bg-primaryContainer border border-primary rounded-md p-4">
+              <div className="text-onPrimaryContainer text-sm">
                 Special rules apply for controlled disposal transactions.
               </div>
             </div>

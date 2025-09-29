@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
@@ -21,283 +21,9 @@ interface CreateAssetProps {
   onSuccess?: (data: CreateAssetFormData) => void;
 }
 
-const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
-  const [batchMode] = useState(false);
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<CreateAssetFormData>({
-    resolver: zodResolver(createAssetFormSchema),
-    defaultValues: {
-      inactive: false,
-      quantity: 1,
-      quantityPerUnit: 1,
-      depreciationMethod: "Straight Line",
-      depreciationFrequency: "yearly",
-      usefulLife: 10,
-      aca: false,
-      extraCheckbox: false,
-      extraCommercial: false,
-      extraNewVehicle: false,
-      serialNumbers: [],
-    },
-  });
-
-  const inactive = watch("inactive");
-
-  const onSubmit = (data: CreateAssetFormData) => {
-    console.log("Form data:", data);
-    // Handle form submission
-    onSuccess?.(data);
-  };
-
-  // Mock data for dropdowns
-  const assetGroups = [
-    { value: "", label: "-- Choose Asset Group --" },
-    { value: "computers", label: "Computers" },
-    { value: "furniture", label: "Furniture" },
-    { value: "vehicles", label: "Vehicles" },
-  ];
-
-  const tabs: TabItem[] = [
-    {
-      label: "Allowance",
-      value: "allowance",
-      content: <AllowanceTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
-      label: "Hire Purchase",
-      value: "hire-purchase",
-      content: <HirePurchaseTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
-      label: "Depreciation",
-      value: "depreciation",
-      content: <DepreciationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
-      label: "Disposal",
-      value: "disposal",
-      content: <DisposalTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
-      label: "Allocation",
-      value: "allocation",
-      content: <AllocationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
-      label: "Serial No",
-      value: "serial-no",
-      content: <SerialNoTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
-      label: "Warranty",
-      value: "warranty",
-      content: <WarrantyTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-  ];
-
-  return (
-    <div className="bg-surface p-6 pt-0">
-      <div className="max-w-4xl mx-auto">
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Inactive Section */}
-          <Card className="p-4">
-            <div className="flex justify-end gap-4">
-              <div className="flex items-center gap-2">
-                <Option
-                  type="checkbox"
-                  {...register("inactive")}
-                  checked={inactive}
-                />
-                <label className="body-small text-onSurfaceVariant">Inactive</label>
-              </div>
-              {inactive && (
-                <div className="flex gap-4">
-                  <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">Start:</label>
-                    <SemiDatePicker
-                      inputType="date"
-                      value={watch("inactiveStart")}
-                      onChange={(date) => setValue("inactiveStart", date as string)}
-                      className="border-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">End:</label>
-                    <SemiDatePicker
-                      inputType="date"
-                      value={watch("inactiveEnd")}
-                      onChange={(date) => setValue("inactiveEnd", date as string)}
-                      className="border-none"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          {/* Main Form Fields */}
-          <Card className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Batch ID - conditional */}
-              {batchMode && (
-                <div>
-                  <label className="body-small text-onSurfaceVariant block mb-1">
-                    Batch ID <span className="text-error">*</span>
-                  </label>
-                  <Input {...register("batchID")} placeholder="Enter Batch ID" />
-                  {errors.batchID && (
-                    <span className="body-small text-error">{errors.batchID.message}</span>
-                  )}
-                </div>
-              )}
-
-              {/* Asset ID */}
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">
-                  Asset ID <span className="text-error">*</span>
-                </label>
-                <Input {...register("code")} placeholder="Enter Asset ID" />
-                {errors.code && (
-                  <span className="body-small text-error">{errors.code.message}</span>
-                )}
-              </div>
-
-              {/* Asset Group */}
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">
-                  Asset Group <span className="text-error">*</span>
-                </label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button variant="outline" className="w-full justify-between">
-                      {assetGroups.find(g => g.value === watch("assetGroup"))?.label || "-- Choose Asset Group --"}
-                      <ChevronDown className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-fit">
-                    {assetGroups.map((group) => (
-                      <DropdownMenuItem
-                        key={group.value}
-                        onClick={() => setValue("assetGroup", group.value)}
-                      >
-                        {group.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                {errors.assetGroup && (
-                  <span className="body-small text-error">{errors.assetGroup.message}</span>
-                )}
-              </div>
-
-              {/* Asset Name */}
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">
-                  Asset Name <span className="text-error">*</span>
-                </label>
-                <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
-                {errors.assetName && (
-                  <span className="body-small text-error">{errors.assetName.message}</span>
-                )}
-              </div>
-
-              {/* Quantity in Batch */}
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">
-                  Quantity in Batch <span className="text-error">*</span>
-                </label>
-                <Input
-                  type="number"
-                  {...register("quantity", { valueAsNumber: true })}
-                  min="1"
-                  max="999"
-                />
-                {errors.quantity && (
-                  <span className="body-small text-error">{errors.quantity.message}</span>
-                )}
-              </div>
-
-              {/* Quantity per Asset - conditional */}
-              {batchMode && (
-                <div>
-                  <label className="body-small text-onSurfaceVariant block mb-1">
-                    Quantity per Asset <span className="text-error">*</span>
-                  </label>
-                  <Input
-                    type="number"
-                    {...register("quantityPerUnit", { valueAsNumber: true })}
-                    min="1"
-                    max="999"
-                  />
-                  {errors.quantityPerUnit && (
-                    <span className="body-small text-error">{errors.quantityPerUnit.message}</span>
-                  )}
-                </div>
-              )}
-
-              {/* Cost */}
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">Cost:</label>
-                <Input {...register("cost")} placeholder="0.00" />
-                {errors.cost && (
-                  <span className="body-small text-error">{errors.cost.message}</span>
-                )}
-              </div>
-            </div>
-
-            {/* Description */}
-            <div className="mt-4">
-              <label className="body-small text-onSurfaceVariant block mb-1">Description</label>
-              <TextArea {...register("description")} placeholder="Tin mining industry" />
-            </div>
-
-            {/* Dates */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">
-                  Purchase Date
-                </label>
-                <SemiDatePicker
-                  inputType="date"
-                  value={watch("purchaseDate")}
-                  onChange={(date) => setValue("purchaseDate", date as string)}
-                  className="border-none"
-                />
-              </div>
-              <div>
-                <label className="body-small text-onSurfaceVariant block mb-1">
-                  Date First Used / Depreciation Start Date
-                </label>
-                <SemiDatePicker
-                  inputType="date"
-                  value={watch("acquireDate")}
-                  onChange={(date) => setValue("acquireDate", date as string)}
-                  className="border-none"
-                />
-              </div>
-            </div>
-          </Card>
-
-          {/* Tabs */}
-          <Card className="p-6">
-            <Tabs tabs={tabs} />
-          </Card>
-
-          {/* Submit Button */}
-          <div className="flex justify-end">
-            <Button type="submit">Create Asset</Button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
+interface CreateAssetRef {
+  submit: () => void;
+}
 
 // Tab Components
 const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
@@ -772,5 +498,285 @@ const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
     </div>
   );
 };
+
+const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) => {
+  const { onSuccess } = props;
+  const [batchMode] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm<CreateAssetFormData>({
+    resolver: zodResolver(createAssetFormSchema),
+    defaultValues: {
+      inactive: false,
+      quantity: 1,
+      quantityPerUnit: 1,
+      depreciationMethod: "Straight Line",
+      depreciationFrequency: "yearly",
+      usefulLife: 10,
+      aca: false,
+      extraCheckbox: false,
+      extraCommercial: false,
+      extraNewVehicle: false,
+      serialNumbers: [],
+    },
+  });
+
+  const inactive = watch("inactive");
+
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    submit: () => formRef.current?.requestSubmit(),
+  }));
+
+  const onSubmit = (data: CreateAssetFormData) => {
+    console.log("Form data:", data);
+    // Handle form submission
+    onSuccess?.(data);
+  };
+
+  // Mock data for dropdowns
+  const assetGroups = [
+    { value: "", label: "-- Choose Asset Group --" },
+    { value: "computers", label: "Computers" },
+    { value: "furniture", label: "Furniture" },
+    { value: "vehicles", label: "Vehicles" },
+  ];
+
+  const tabs: TabItem[] = [
+    {
+      label: "Allowance",
+      value: "allowance",
+      content: <AllowanceTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+    {
+      label: "Hire Purchase",
+      value: "hire-purchase",
+      content: <HirePurchaseTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+    {
+      label: "Depreciation",
+      value: "depreciation",
+      content: <DepreciationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+    {
+      label: "Disposal",
+      value: "disposal",
+      content: <DisposalTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+    {
+      label: "Allocation",
+      value: "allocation",
+      content: <AllocationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+    {
+      label: "Serial No",
+      value: "serial-no",
+      content: <SerialNoTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+    {
+      label: "Warranty",
+      value: "warranty",
+      content: <WarrantyTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+    },
+  ];
+
+  return (
+    <div className="bg-surface p-6 pt-0">
+      <div className="max-w-4xl mx-auto">
+        <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Inactive Section */}
+          <Card className="p-4">
+            <div className="flex justify-end gap-4">
+              <div className="flex items-center gap-2">
+                <Option
+                  type="checkbox"
+                  {...register("inactive")}
+                  checked={inactive}
+                />
+                <label className="body-small text-onSurfaceVariant">Inactive</label>
+              </div>
+              {inactive && (
+                <div className="flex gap-4">
+                  <div>
+                    <label className="body-small text-onSurfaceVariant block mb-1">Start:</label>
+                    <SemiDatePicker
+                      inputType="date"
+                      value={watch("inactiveStart")}
+                      onChange={(date) => setValue("inactiveStart", date as string)}
+                      className="border-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="body-small text-onSurfaceVariant block mb-1">End:</label>
+                    <SemiDatePicker
+                      inputType="date"
+                      value={watch("inactiveEnd")}
+                      onChange={(date) => setValue("inactiveEnd", date as string)}
+                      className="border-none"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Main Form Fields */}
+          <Card className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Batch ID - conditional */}
+              {batchMode && (
+                <div>
+                  <label className="body-small text-onSurfaceVariant block mb-1">
+                    Batch ID <span className="text-error">*</span>
+                  </label>
+                  <Input {...register("batchID")} placeholder="Enter Batch ID" />
+                  {errors.batchID && (
+                    <span className="body-small text-error">{errors.batchID.message}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Asset ID */}
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">
+                  Asset ID <span className="text-error">*</span>
+                </label>
+                <Input {...register("code")} placeholder="Enter Asset ID" />
+                {errors.code && (
+                  <span className="body-small text-error">{errors.code.message}</span>
+                )}
+              </div>
+
+              {/* Asset Group */}
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">
+                  Asset Group <span className="text-error">*</span>
+                </label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <Button variant="outline" className="w-full justify-between">
+                      {assetGroups.find(g => g.value === watch("assetGroup"))?.label || "-- Choose Asset Group --"}
+                      <ChevronDown className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-fit">
+                    {assetGroups.map((group) => (
+                      <DropdownMenuItem
+                        key={group.value}
+                        onClick={() => setValue("assetGroup", group.value)}
+                      >
+                        {group.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                {errors.assetGroup && (
+                  <span className="body-small text-error">{errors.assetGroup.message}</span>
+                )}
+              </div>
+
+              {/* Asset Name */}
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">
+                  Asset Name <span className="text-error">*</span>
+                </label>
+                <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
+                {errors.assetName && (
+                  <span className="body-small text-error">{errors.assetName.message}</span>
+                )}
+              </div>
+
+              {/* Quantity in Batch */}
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">
+                  Quantity in Batch <span className="text-error">*</span>
+                </label>
+                <Input
+                  type="number"
+                  {...register("quantity", { valueAsNumber: true })}
+                  min="1"
+                  max="999"
+                />
+                {errors.quantity && (
+                  <span className="body-small text-error">{errors.quantity.message}</span>
+                )}
+              </div>
+
+              {/* Quantity per Asset - conditional */}
+              {batchMode && (
+                <div>
+                  <label className="body-small text-onSurfaceVariant block mb-1">
+                    Quantity per Asset <span className="text-error">*</span>
+                  </label>
+                  <Input
+                    type="number"
+                    {...register("quantityPerUnit", { valueAsNumber: true })}
+                    min="1"
+                    max="999"
+                  />
+                  {errors.quantityPerUnit && (
+                    <span className="body-small text-error">{errors.quantityPerUnit.message}</span>
+                  )}
+                </div>
+              )}
+
+              {/* Cost */}
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">Cost:</label>
+                <Input {...register("cost")} placeholder="0.00" />
+                {errors.cost && (
+                  <span className="body-small text-error">{errors.cost.message}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="mt-4">
+              <label className="body-small text-onSurfaceVariant block mb-1">Description</label>
+              <TextArea {...register("description")} placeholder="Tin mining industry" />
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">
+                  Purchase Date
+                </label>
+                <SemiDatePicker
+                  inputType="date"
+                  value={watch("purchaseDate")}
+                  onChange={(date) => setValue("purchaseDate", date as string)}
+                  className="border-none"
+                />
+              </div>
+              <div>
+                <label className="body-small text-onSurfaceVariant block mb-1">
+                  Date First Used / Depreciation Start Date
+                </label>
+                <SemiDatePicker
+                  inputType="date"
+                  value={watch("acquireDate")}
+                  onChange={(date) => setValue("acquireDate", date as string)}
+                  className="border-none"
+                />
+              </div>
+            </div>
+          </Card>
+
+          {/* Tabs */}
+          <Card className="p-6">
+            <Tabs tabs={tabs} />
+          </Card>
+        </form>
+      </div>
+    </div>
+  );
+});
 
 export default CreateAsset;

@@ -26,8 +26,17 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
 }) => {
   const currentStepIndex = steps.findIndex(step => step.current);
   const completedSteps = steps.filter(step => step.completed).length;
-  const progressSteps = currentStepIndex >= 0 ? currentStepIndex : completedSteps;
-  const progressPercentage = steps.length > 1 ? (progressSteps / (steps.length - 1)) * 100 : 0;
+
+  let progressPercentage: number;
+  if (completedSteps === steps.length) {
+    progressPercentage = 100;
+  } else {
+    const progressSteps = currentStepIndex >= 0 ? currentStepIndex : completedSteps;
+    progressPercentage = steps.length > 1 ? (progressSteps / (steps.length - 1)) * 100 : 0;
+  }
+  
+  // Calculate display step number - if all steps are completed, show total; otherwise show current step
+  const displayStepNumber = completedSteps === steps.length ? steps.length : (currentStepIndex >= 0 ? currentStepIndex + 1 : completedSteps);
 
   const handleStepClick = (step: WizardStep) => {
     if (!allowStepNavigation || step.disabled || !onStepClick) return;
@@ -100,7 +109,7 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
             <span className={`text-sm font-medium ${
               completedSteps === steps.length ? 'text-green' : 'text-onSurface'
             }`}>
-              {currentStepIndex + 1}/{steps.length}
+              {displayStepNumber}/{steps.length}
             </span>
           </div>
           <div className="w-full bg-outline rounded-full h-2 relative">

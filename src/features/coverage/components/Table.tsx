@@ -3,11 +3,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
-import type {
-  CoverageClaim,
-  CoveragePolicy,
-  CoverageWarranty,
-} from "@/features/coverage/types";
+import type { CoverageClaim, CoveragePolicy, CoverageWarranty } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
 
 type PoliciesVariantProps = {

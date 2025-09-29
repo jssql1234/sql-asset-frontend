@@ -11,24 +11,8 @@ import { PolicyFormModal } from "@/features/coverage/components/modal/PolicyForm
 import { WarrantyDetailsModal } from "@/features/coverage/components/modal/WarrantyDetailsModal";
 import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
-import {
-  coverageClaims,
-  coveragePolicies,
-  coverageWarranties,
-  claimSummary,
-  policyProviders,
-  policySummary,
-  warrantyProviders,
-  warrantySummary,
-} from "@/features/coverage/mockData";
-import type {
-  ClaimFilters,
-  CoverageClaim,
-  CoverageModalsState,
-  CoverageWarranty,
-  PolicyFilters,
-  WarrantyFilters,
-} from "@/features/coverage/types";
+import { coverageClaims, coveragePolicies, coverageWarranties, claimSummary, policyProviders, policySummary, warrantyProviders, warrantySummary } from "@/features/coverage/mockData";
+import type { ClaimFilters, CoverageClaim, CoverageModalsState, CoverageWarranty, PolicyFilters, WarrantyFilters } from "@/features/coverage/types";
 
 const CoverageManagementPage: React.FC = () => {
   const [policyFilters, setPolicyFilters] = useState<PolicyFilters>({

@@ -3,11 +3,7 @@ import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
-import type {
-  CoverageWarranty,
-  WarrantyFilters,
-  WarrantySummaryMetrics,
-} from "@/features/coverage/types";
+import type { CoverageWarranty, WarrantyFilters, WarrantySummaryMetrics } from "@/features/coverage/types";
 
 interface WarrantiesTabProps {
   warranties: CoverageWarranty[];

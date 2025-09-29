@@ -1,13 +1,6 @@
 import React from "react";
 import SearchBar from "@/components/SearchBar";
-import {
-  Button,
-  Card,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
+import { Button, Card, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { cn } from "@/utils/utils";
 
 interface DropdownOption {

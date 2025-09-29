@@ -3,11 +3,7 @@ import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
-import type {
-  ClaimFilters,
-  ClaimSummaryMetrics,
-  CoverageClaim,
-} from "@/features/coverage/types";
+import type { ClaimFilters, ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
 import { formatCurrency } from "@/features/coverage/utils/formatters";
 
 interface ClaimsTabProps {

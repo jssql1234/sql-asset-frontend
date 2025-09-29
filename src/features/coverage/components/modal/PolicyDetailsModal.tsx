@@ -1,8 +1,7 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/components";
 import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
-import { CoverageDefinitionList } from "@/features/coverage/components/CoverageDefinitionList";
-import { CoverageSection } from "@/features/coverage/components/CoverageSection";
+import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoveragePolicy } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
@@ -39,60 +38,50 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
 
             <div className="flex flex-col gap-6">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <CoverageSection title="Coverage Overview">
-                  <CoverageDefinitionList
-                    items={[
-                      {
-                        label: "Coverage Amount",
-                        value: (
-                          <span className="font-semibold text-onSurface">
-                            {formatCurrency(policy.coverageAmount)}
-                          </span>
-                        ),
-                      },
-                      {
-                        label: "Remaining Coverage",
-                        value: (
-                          <span className="font-semibold text-onSurface">
-                            {formatCurrency(policy.remainingCoverage)}
-                          </span>
-                        ),
-                      },
-                      {
-                        label: "Total Claimed",
-                        value: formatCurrency(policy.totalClaimed),
-                      },
-                      {
-                        label: "Annual Premium",
-                        value: formatCurrency(policy.annualPremium),
-                      },
-                    ]}
-                  />
-                </CoverageSection>
+                <DetailModalSection
+                  title="Coverage Overview"
+                  items={[
+                    {
+                      label: "Coverage Amount",
+                      value: formatCurrency(policy.coverageAmount),
+                    },
+                    {
+                      label: "Remaining Coverage",
+                      value: formatCurrency(policy.remainingCoverage)
+                    },
+                    {
+                      label: "Total Claimed",
+                      value: formatCurrency(policy.totalClaimed),
+                    },
+                    {
+                      label: "Annual Premium",
+                      value: formatCurrency(policy.annualPremium),
+                    },
+                  ]}
+                />
 
-                <CoverageSection title="Key Dates">
-                  <CoverageDefinitionList
-                    items={[
-                      {
-                        label: "Start Date",
-                        value: formatDate(policy.startDate),
-                      },
-                      {
-                        label: "Expiry Date",
-                        value: formatDate(policy.expiryDate),
-                      },
-                    ]}
-                  />
-                </CoverageSection>
+                <DetailModalSection
+                  title="Key Dates"
+                  items={[
+                    {
+                      label: "Start Date",
+                      value: formatDate(policy.startDate),
+                    },
+                    {
+                      label: "Expiry Date",
+                      value: formatDate(policy.expiryDate),
+                    },
+                  ]}
+                />
               </div>
 
-              <CoverageSection title="Description">
+              <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
                   {policy.description || "No additional description provided."}
                 </p>
-              </CoverageSection>
+              </DetailModalSection>
 
-              <CoverageSection
+              <DetailModalSection
                 title="Assets Covered"
                 subtitle={`${policy.assetsCovered.length} assets`}
               >
@@ -104,7 +93,7 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
                     </Button>
                   )}
                 />
-              </CoverageSection>
+              </DetailModalSection>
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

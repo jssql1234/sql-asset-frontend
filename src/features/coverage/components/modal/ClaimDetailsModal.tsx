@@ -1,8 +1,7 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
-import { CoverageDefinitionList } from "@/features/coverage/components/CoverageDefinitionList";
-import { CoverageSection } from "@/features/coverage/components/CoverageSection";
+import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
@@ -38,49 +37,44 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
             </DialogHeader>
 
             <div className="flex flex-col gap-6">
-              <CoverageSection title="Claim Summary">
-                <CoverageDefinitionList
-                  items={[
-                    {
-                      label: "Claim Type",
-                      value: (
-                        <span className="font-semibold text-onSurface">{claim.type}</span>
-                      ),
-                    },
-                    {
-                      label: "Reference",
-                      value: (
-                        <div className="text-right">
-                          <span className="block font-medium text-onSurface">{claim.referenceName}</span>
-                          <span className="body-small text-onSurfaceVariant">{claim.referenceId}</span>
-                        </div>
-                      ),
-                    },
-                    {
-                      label: "Claim Amount",
-                      value: (
-                        <span className="font-semibold">{formatCurrency(claim.amount)}</span>
-                      ),
-                    },
-                    {
-                      label: "Filed On",
-                      value: formatDate(claim.dateFiled),
-                    },
-                    {
-                      label: "Work Order",
-                      value: claim.workOrderId ?? "Not created",
-                    },
-                  ]}
-                />
-              </CoverageSection>
+              <DetailModalSection
+                title="Claim Summary"
+                items={[
+                  {
+                    label: "Claim Type",
+                    value: claim.type,
+                  },
+                  {
+                    label: "Reference",
+                    value: (
+                      <div className="text-right">
+                        <span className="block font-medium text-onSurface">{claim.referenceName}</span>
+                        <span className="body-small text-onSurfaceVariant">{claim.referenceId}</span>
+                      </div>
+                    ),
+                  },
+                  {
+                    label: "Claim Amount",
+                    value: formatCurrency(claim.amount),
+                  },
+                  {
+                    label: "Filed On",
+                    value: formatDate(claim.dateFiled),
+                  },
+                  {
+                    label: "Work Order",
+                    value: claim.workOrderId ?? "Not created",
+                  },
+                ]}
+              />
 
-              <CoverageSection title="Description">
+              <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
                   {claim.description || "No additional description provided."}
                 </p>
-              </CoverageSection>
+              </DetailModalSection>
 
-              <CoverageSection
+              <DetailModalSection
                 title="Assets"
                 subtitle={`${claim.assets.length} assets`}
               >
@@ -92,7 +86,7 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
                     </Button>
                   )}
                 />
-              </CoverageSection>
+              </DetailModalSection>
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

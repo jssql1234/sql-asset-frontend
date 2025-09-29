@@ -1,16 +1,7 @@
 import React from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
-import { CoverageDefinitionList } from "@/features/coverage/components/CoverageDefinitionList";
-import { CoverageSection } from "@/features/coverage/components/CoverageSection";
+import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageWarranty } from "@/features/coverage/types";
 import { formatDate } from "@/features/coverage/utils/formatters";
@@ -46,32 +37,27 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
             </DialogHeader>
 
             <div className="flex flex-col gap-6">
-              <CoverageSection title="Warranty Coverage">
-                <CoverageDefinitionList
-                  items={[
-                    {
-                      label: "Coverage Details",
-                      value: (
-                        <span className="font-semibold text-onSurface">
-                          {warranty.coverage}
-                        </span>
-                      ),
-                    },
-                    {
-                      label: "Expiry Date",
-                      value: formatDate(warranty.expiryDate),
-                    },
-                  ]}
-                />
-              </CoverageSection>
+              <DetailModalSection
+                title="Warranty Coverage"
+                items={[
+                  {
+                    label: "Coverage Details",
+                    value: (warranty.coverage),
+                  },
+                  {
+                    label: "Expiry Date",
+                    value: formatDate(warranty.expiryDate),
+                  },
+                ]}
+              />
 
-              <CoverageSection title="Description">
+              <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
                   {warranty.description || "No additional description provided."}
                 </p>
-              </CoverageSection>
+              </DetailModalSection>
 
-              <CoverageSection
+              <DetailModalSection
                 title="Assets Covered"
                 subtitle={`${warranty.assetsCovered.length} assets`}
               >
@@ -83,7 +69,7 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
                     </Button>
                   )}
                 />
-              </CoverageSection>
+              </DetailModalSection>
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

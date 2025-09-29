@@ -1,17 +1,9 @@
 import React from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
-import { CoverageSection } from "@/features/coverage/components/CoverageSection";
+import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import type { CoverageClaim } from "@/features/coverage/types";
 
 interface WorkOrderFromClaimModalProps {
@@ -44,7 +36,7 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
                 onOpenChange(false);
               }}
             >
-              <CoverageSection title="Basic Information">
+              <DetailModalSection title="Basic Information">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Work Order ID</label>
@@ -67,9 +59,9 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
                     />
                   </div>
                 </div>
-              </CoverageSection>
+              </DetailModalSection>
 
-              <CoverageSection
+              <DetailModalSection
                 title="Assets"
                 subtitle="Asset linkage is read-only for warranty-originated work orders."
               >
@@ -81,9 +73,9 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
                     </Button>
                   )}
                 />
-              </CoverageSection>
+              </DetailModalSection>
 
-              <CoverageSection title="Work Order Details">
+              <DetailModalSection title="Work Order Details">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Work Type *</label>
@@ -98,7 +90,7 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
                     <Input placeholder="e.g. Approved" />
                   </div>
                 </div>
-              </CoverageSection>
+              </DetailModalSection>
 
               <DialogFooter className="flex justify-end gap-3">
                 <Button variant="outline" onClick={() => onOpenChange(false)}>

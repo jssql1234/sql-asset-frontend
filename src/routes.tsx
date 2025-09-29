@@ -14,6 +14,7 @@ import MeterPage from "./features/meter/pages/MeterPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 
 const Testing = lazy(() => import("@/example/example"));
+const TableDemo = lazy(() => import("@/example/tableDemo"));
 const AssetAllocationPage = lazy(
   () => import("@/features/allocation/pages/AssetAllocation")
 );
@@ -40,7 +41,7 @@ function AppRoutes() {
       <Route path="/work-request" element={<WorkRequestPage />} />
       <Route path="/allocation" element={<Allocation />} />
       <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
-  <Route path="/insurance" element={<CoverageManagementPage />} />
+      <Route path="/insurance" element={<CoverageManagementPage />} />
       <Route path="/meter-reading" element={<MeterPage />} />
       
       {/* Disposal Routes */}

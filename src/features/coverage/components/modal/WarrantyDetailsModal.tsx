@@ -19,7 +19,7 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
         {warranty ? (
           <>
             <DialogHeader>
@@ -36,7 +36,7 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
               </div>
             </DialogHeader>
 
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 overflow-y-auto">
               <DetailModalSection
                 title="Warranty Coverage"
                 items={[

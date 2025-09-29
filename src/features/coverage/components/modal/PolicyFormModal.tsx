@@ -36,7 +36,7 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{headerTitle}</DialogTitle>
           <DialogDescription>
@@ -44,10 +44,11 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="flex flex-col gap-6"
-          onSubmit={(event) => {
-            event.preventDefault();
+        <div className="flex flex-col gap-6 overflow-y-auto">
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(event) => {
+              event.preventDefault();
             onOpenChange(false);
           }}
         >
@@ -170,14 +171,15 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
               </div>
             </div>
           </Card>
-
-          <DialogFooter className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Save</Button>
-          </DialogFooter>
         </form>
+        </div>
+
+        <DialogFooter className="flex gap-3 justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="submit">Save</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

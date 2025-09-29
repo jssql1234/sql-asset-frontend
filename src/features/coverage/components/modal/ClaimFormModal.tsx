@@ -28,7 +28,7 @@ export const ClaimFormModal: React.FC<ClaimFormModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{initialClaim ? "Edit Claim" : "Add Claim"}</DialogTitle>
           <DialogDescription>
@@ -36,13 +36,14 @@ export const ClaimFormModal: React.FC<ClaimFormModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          className="flex flex-col gap-6"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onOpenChange(false);
-          }}
-        >
+        <div className="flex flex-col gap-6 overflow-y-auto">
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              onOpenChange(false);
+            }}
+          >
           <Card className="space-y-4 border border-outline bg-surfaceContainer">
             <div className="space-y-1">
               <h3 className="title-small font-semibold text-onSurface">Claim Details</h3>
@@ -176,14 +177,15 @@ export const ClaimFormModal: React.FC<ClaimFormModalProps> = ({
               />
             </div>
           </Card>
-
-          <DialogFooter className="flex gap-3 justify-end">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit">Save</Button>
-          </DialogFooter>
         </form>
+        </div>
+
+        <DialogFooter className="flex gap-3 justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button type="submit">Save</Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

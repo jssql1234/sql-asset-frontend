@@ -19,7 +19,7 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
         {policy ? (
           <>
             <DialogHeader>
@@ -36,7 +36,7 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
               </div>
             </DialogHeader>
 
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-6 overflow-y-auto">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <DetailModalSection
                   title="Coverage Overview"

@@ -8,6 +8,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/components";
+import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
+import { CoverageDefinitionList } from "@/features/coverage/components/CoverageDefinitionList";
+import { CoverageSection } from "@/features/coverage/components/CoverageSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageWarranty } from "@/features/coverage/types";
 import { formatDate } from "@/features/coverage/utils/formatters";
@@ -43,53 +46,44 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
             </DialogHeader>
 
             <div className="flex flex-col gap-6">
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <h3 className="title-small font-semibold text-onSurface mb-3">Warranty Coverage</h3>
-                <dl className="space-y-3 body-medium text-onSurface">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Coverage Details</dt>
-                    <dd className="text-right font-semibold text-onSurface">
-                      {warranty.coverage}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Expiry Date</dt>
-                    <dd>{formatDate(warranty.expiryDate)}</dd>
-                  </div>
-                </dl>
-              </section>
+              <CoverageSection title="Warranty Coverage">
+                <CoverageDefinitionList
+                  items={[
+                    {
+                      label: "Coverage Details",
+                      value: (
+                        <span className="font-semibold text-onSurface">
+                          {warranty.coverage}
+                        </span>
+                      ),
+                    },
+                    {
+                      label: "Expiry Date",
+                      value: formatDate(warranty.expiryDate),
+                    },
+                  ]}
+                />
+              </CoverageSection>
 
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <h3 className="title-small font-semibold text-onSurface mb-3">Description</h3>
+              <CoverageSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
                   {warranty.description || "No additional description provided."}
                 </p>
-              </section>
+              </CoverageSection>
 
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
-                  <span className="body-small text-onSurfaceVariant">
-                    {warranty.assetsCovered.length} assets
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {warranty.assetsCovered.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="flex items-center justify-between rounded-md border border-outlineVariant bg-surfaceContainerLowest px-3 py-2"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium text-onSurface">{asset.name}</span>
-                        <span className="body-small text-onSurfaceVariant">{asset.id}</span>
-                      </div>
-                      <Button variant="link" size="sm">
-                        View Asset
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <CoverageSection
+                title="Assets Covered"
+                subtitle={`${warranty.assetsCovered.length} assets`}
+              >
+                <CoverageAssetGrid
+                  assets={warranty.assetsCovered}
+                  action={(asset) => (
+                    <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
+                      View Asset
+                    </Button>
+                  )}
+                />
+              </CoverageSection>
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

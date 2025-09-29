@@ -3,13 +3,14 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
+import { CoverageSection } from "@/features/coverage/components/CoverageSection";
 import type { CoverageWarranty } from "@/features/coverage/types";
 
 interface WarrantyFormModalProps {
@@ -29,7 +30,7 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Warranty" : "Add Warranty"}</DialogTitle>
           <DialogDescription>
@@ -44,35 +45,37 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
             onOpenChange(false);
           }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Warranty Name *</label>
-              <Input defaultValue={initialWarranty?.name} placeholder="e.g. Robotics Extended Care" />
+          <CoverageSection title="Warranty Details">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Warranty Name *</label>
+                <Input defaultValue={initialWarranty?.name} placeholder="e.g. Robotics Extended Care" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Provider *</label>
+                <Input defaultValue={initialWarranty?.provider} list="warranty-provider-suggestions" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Warranty Number *</label>
+                <Input defaultValue={initialWarranty?.warrantyNumber} placeholder="e.g. OMNI-PR-2201" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Coverage Type *</label>
+                <Input
+                  defaultValue={initialWarranty?.coverage}
+                  placeholder="Parts, Labour, or Full Coverage"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Start Date *</label>
+                <Input type="date" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Expiry Date *</label>
+                <Input type="date" defaultValue={initialWarranty?.expiryDate} />
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Provider *</label>
-              <Input defaultValue={initialWarranty?.provider} list="warranty-provider-suggestions" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Warranty Number *</label>
-              <Input defaultValue={initialWarranty?.warrantyNumber} placeholder="e.g. OMNI-PR-2201" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Coverage Type *</label>
-              <Input
-                defaultValue={initialWarranty?.coverage}
-                placeholder="Parts, Labour, or Full Coverage"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Start Date *</label>
-              <Input type="date" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Expiry Date *</label>
-              <Input type="date" defaultValue={initialWarranty?.expiryDate} />
-            </div>
-          </div>
+          </CoverageSection>
 
           {providers.length > 0 && (
             <datalist id="warranty-provider-suggestions">
@@ -82,25 +85,24 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
             </datalist>
           )}
 
-          <div className="flex flex-col gap-2">
-            <label className="body-small text-onSurface">Description</label>
+          <CoverageSection title="Description">
             <TextArea
               rows={3}
               placeholder="Important clauses, limitations, service windows, etc."
               defaultValue={initialWarranty?.description}
             />
-          </div>
+          </CoverageSection>
 
-          <div className="flex flex-col gap-2">
+          <CoverageSection title="Assets Covered">
             <div className="flex items-center justify-between">
-              <label className="body-small text-onSurface">Assets Covered</label>
+              <label className="body-small text-onSurface">Linked Assets</label>
               <Button variant="outline" size="sm">
                 Manage Assets
               </Button>
             </div>
             <Input placeholder="Search assets by name or ID" disabled />
-            <div className="min-h-[80px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
-              {initialWarranty?.assetsCovered.length ? (
+            <div className="min-h-[96px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
+              {initialWarranty?.assetsCovered?.length ? (
                 initialWarranty.assetsCovered.map((asset) => (
                   <span
                     key={asset.id}
@@ -115,7 +117,7 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
                 </span>
               )}
             </div>
-          </div>
+          </CoverageSection>
 
           <DialogFooter className="flex gap-3 justify-end">
             <Button variant="outline" onClick={() => onOpenChange(false)}>

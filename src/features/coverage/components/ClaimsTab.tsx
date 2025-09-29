@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
-import { Button } from "@/components/ui/components";
+import { CoverageTabHeader } from "@/features/coverage/components/CoverageTabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
 import type {
@@ -80,17 +80,12 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="title-large font-semibold text-onSurface">Claim Management</h2>
-          <p className="body-medium text-onSurfaceVariant">
-            Oversee insurance and warranty claim pipelines
-          </p>
-        </div>
-        <Button variant="default" onClick={onAddClaim}>
-          Add Claim
-        </Button>
-      </div>
+      <CoverageTabHeader
+        title="Claim Management"
+        subtitle="Oversee insurance and warranty claim pipelines"
+        actionLabel="Add Claim"
+        onAction={onAddClaim}
+      />
 
       <SummaryCards data={summaryCards} columns={4} />
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 import { Tabs } from "@/components/ui/components";
 import { PoliciesTab } from "@/features/coverage/components/PoliciesTab";
@@ -60,114 +60,137 @@ const CoverageManagementPage: React.FC = () => {
     claimDetails: null,
   });
 
-  const handleViewPolicy = (policy: CoverageModalsState["policyDetails"]) => {
-    setModals((prev) => ({
-      ...prev,
-      policyDetails: policy,
-    }));
-  };
+  const handleViewPolicy = useCallback(
+    (policy: CoverageModalsState["policyDetails"]) => {
+      setModals((prev) => ({
+        ...prev,
+        policyDetails: policy,
+      }));
+    },
+    [setModals]
+  );
 
-  const handleClosePolicyDetails = () => {
+  const handleClosePolicyDetails = useCallback(() => {
     setModals((prev) => ({
       ...prev,
       policyDetails: null,
     }));
-  };
+  }, [setModals]);
 
-  const handleCloseWarrantyDetails = () => {
+  const handleCloseWarrantyDetails = useCallback(() => {
     setModals((prev) => ({
       ...prev,
       warrantyDetails: null,
     }));
-  };
+  }, [setModals]);
 
-  const handleCloseWorkOrder = () => {
+  const handleCloseWorkOrder = useCallback(() => {
     setModals((prev) => ({
       ...prev,
       workOrderFromClaim: false,
       claimForWorkOrder: null,
     }));
-  };
+  }, [setModals]);
 
-  const handleViewWarranty = (warranty: CoverageWarranty) => {
-    setModals((prev) => ({
-      ...prev,
-      warrantyDetails: warranty,
-    }));
-  };
+  const handleViewWarranty = useCallback(
+    (warranty: CoverageWarranty) => {
+      setModals((prev) => ({
+        ...prev,
+        warrantyDetails: warranty,
+      }));
+    },
+    [setModals]
+  );
 
-  const handleViewClaim = (claim: CoverageClaim) => {
-    setModals((prev) => ({
-      ...prev,
-      claimDetails: claim,
-    }));
-  };
+  const handleViewClaim = useCallback(
+    (claim: CoverageClaim) => {
+      setModals((prev) => ({
+        ...prev,
+        claimDetails: claim,
+      }));
+    },
+    [setModals]
+  );
 
-  const handleCloseClaimDetails = () => {
+  const handleCloseClaimDetails = useCallback(() => {
     setModals((prev) => ({
       ...prev,
       claimDetails: null,
     }));
-  };
+  }, [setModals]);
 
-  const tabs = [
-    {
-      label: "Insurance Policies",
-      value: "policies",
-      content: (
-        <PoliciesTab
-          policies={coveragePolicies}
-          summary={policySummary}
-          providers={policyProviders}
-          filters={policyFilters}
-          onFiltersChange={(filters) =>
-            setPolicyFilters((prev) => ({ ...prev, ...filters }))
-          }
-          onAddPolicy={() =>
-            setModals((prev) => ({ ...prev, policyForm: true }))
-          }
-          onViewPolicy={handleViewPolicy}
-        />
-      ),
-    },
-    {
-      label: "Warranties",
-      value: "warranties",
-      content: (
-        <WarrantiesTab
-          warranties={coverageWarranties}
-          summary={warrantySummary}
-          providers={warrantyProviders}
-          filters={warrantyFilters}
-          onFiltersChange={(filters) =>
-            setWarrantyFilters((prev) => ({ ...prev, ...filters }))
-          }
-          onAddWarranty={() =>
-            setModals((prev) => ({ ...prev, warrantyForm: true }))
-          }
-          onViewWarranty={handleViewWarranty}
-        />
-      ),
-    },
-    {
-      label: "Claim Management",
-      value: "claims",
-      content: (
-        <ClaimsTab
-          claims={coverageClaims}
-          summary={claimSummary}
-          filters={claimFilters}
-          onFiltersChange={(filters) =>
-            setClaimFilters((prev) => ({ ...prev, ...filters }))
-          }
-          onAddClaim={() =>
-            setModals((prev) => ({ ...prev, claimForm: true }))
-          }
-          onViewClaim={handleViewClaim}
-        />
-      ),
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      {
+        label: "Insurance Policies",
+        value: "policies",
+        content: (
+          <PoliciesTab
+            policies={coveragePolicies}
+            summary={policySummary}
+            providers={policyProviders}
+            filters={policyFilters}
+            onFiltersChange={(filters) =>
+              setPolicyFilters((prev) => ({ ...prev, ...filters }))
+            }
+            onAddPolicy={() =>
+              setModals((prev) => ({ ...prev, policyForm: true }))
+            }
+            onViewPolicy={handleViewPolicy}
+          />
+        ),
+      },
+      {
+        label: "Warranties",
+        value: "warranties",
+        content: (
+          <WarrantiesTab
+            warranties={coverageWarranties}
+            summary={warrantySummary}
+            providers={warrantyProviders}
+            filters={warrantyFilters}
+            onFiltersChange={(filters) =>
+              setWarrantyFilters((prev) => ({ ...prev, ...filters }))
+            }
+            onAddWarranty={() =>
+              setModals((prev) => ({ ...prev, warrantyForm: true }))
+            }
+            onViewWarranty={handleViewWarranty}
+          />
+        ),
+      },
+      {
+        label: "Claim Management",
+        value: "claims",
+        content: (
+          <ClaimsTab
+            claims={coverageClaims}
+            summary={claimSummary}
+            filters={claimFilters}
+            onFiltersChange={(filters) =>
+              setClaimFilters((prev) => ({ ...prev, ...filters }))
+            }
+            onAddClaim={() =>
+              setModals((prev) => ({ ...prev, claimForm: true }))
+            }
+            onViewClaim={handleViewClaim}
+          />
+        ),
+      },
+    ],
+    [
+      claimFilters,
+      handleViewClaim,
+      handleViewPolicy,
+      handleViewWarranty,
+      policyFilters,
+      setClaimFilters,
+      setModals,
+      setPolicyFilters,
+      setWarrantyFilters,
+      warrantyFilters,
+    ]
+  );
 
   return (
     <AssetLayout activeSidebarItem="insurance">

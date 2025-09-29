@@ -3,13 +3,14 @@ import {
   Button,
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
+import { CoverageSection } from "@/features/coverage/components/CoverageSection";
 import type { CoveragePolicy } from "@/features/coverage/types";
 
 interface PolicyFormModalProps {
@@ -44,7 +45,7 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{headerTitle}</DialogTitle>
           <DialogDescription>
@@ -59,65 +60,68 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
             onOpenChange(false);
           }}
         >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Policy Name *</label>
-              <Input
-                defaultValue={initialPolicy?.name}
-                placeholder="e.g. Comprehensive Equipment Protection"
-              />
+          <CoverageSection title="Policy Details">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Policy Name *</label>
+                <Input
+                  defaultValue={initialPolicy?.name}
+                  placeholder="e.g. Comprehensive Equipment Protection"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Insurance Provider *</label>
+                <Input
+                  defaultValue={initialPolicy?.provider}
+                  placeholder="Enter provider name"
+                  list="policy-provider-suggestions"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Policy Number *</label>
+                <Input defaultValue={initialPolicy?.policyNumber} placeholder="e.g. AIB-CEQ-2025-01" />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Annual Premium *</label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  defaultValue={initialPolicy?.annualPremium}
+                  placeholder="Enter annual premium"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Coverage Amount *</label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  defaultValue={initialPolicy?.coverageAmount}
+                  placeholder="Enter coverage amount"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Remaining Coverage</label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  defaultValue={initialPolicy?.remainingCoverage}
+                  placeholder="Auto calculated"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Start Date *</label>
+                <Input type="date" defaultValue={initialPolicy?.startDate} />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="body-small text-onSurface">Expiry Date *</label>
+                <Input type="date" defaultValue={initialPolicy?.expiryDate} />
+              </div>
             </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Insurance Provider *</label>
-              <Input
-                defaultValue={initialPolicy?.provider}
-                placeholder="Enter provider name"
-                list="policy-provider-suggestions"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Policy Number *</label>
-              <Input defaultValue={initialPolicy?.policyNumber} placeholder="e.g. AIB-CEQ-2025-01" />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Annual Premium *</label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={initialPolicy?.annualPremium}
-                placeholder="Enter annual premium"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Coverage Amount *</label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={initialPolicy?.coverageAmount}
-                placeholder="Enter coverage amount"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Remaining Coverage</label>
-              <Input
-                type="number"
-                min={0}
-                step="0.01"
-                defaultValue={initialPolicy?.remainingCoverage}
-                placeholder="Auto calculated"
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Start Date *</label>
-              <Input type="date" defaultValue={initialPolicy?.startDate} />
-            </div>
-            <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface">Expiry Date *</label>
-              <Input type="date" defaultValue={initialPolicy?.expiryDate} />
-            </div>
-          </div>
+            {providerSuggestions}
+          </CoverageSection>
 
           {providers.length > 0 && (
             <datalist id="policy-provider-suggestions">
@@ -127,27 +131,24 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
             </datalist>
           )}
 
-          {providerSuggestions}
-
-          <div className="flex flex-col gap-2">
-            <label className="body-small text-onSurface">Description</label>
+          <CoverageSection title="Additional Notes">
             <TextArea
               rows={3}
               placeholder="Provide additional coverage notes, deductibles, or asset-specific clauses"
               defaultValue={initialPolicy?.description}
             />
-          </div>
+          </CoverageSection>
 
-          <div className="flex flex-col gap-2">
+          <CoverageSection title="Assets Covered">
             <div className="flex items-center justify-between">
-              <label className="body-small text-onSurface">Assets Covered</label>
+              <label className="body-small text-onSurface">Linked Assets</label>
               <Button variant="outline" size="sm">
                 Manage Assets
               </Button>
             </div>
             <Input placeholder="Search assets by name or ID" disabled />
             <div className="min-h-[96px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
-              {initialPolicy?.assetsCovered.length ? (
+              {initialPolicy?.assetsCovered?.length ? (
                 initialPolicy.assetsCovered.map((asset) => (
                   <span
                     key={asset.id}
@@ -162,7 +163,7 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
                 </span>
               )}
             </div>
-          </div>
+          </CoverageSection>
 
           <DialogFooter className="flex gap-3 justify-end">
             <Button variant="outline" onClick={() => onOpenChange(false)}>

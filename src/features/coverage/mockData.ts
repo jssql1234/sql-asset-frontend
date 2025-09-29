@@ -17,7 +17,7 @@ export const coveragePolicies: CoveragePolicy[] = [
     remainingCoverage: 875_000,
     annualPremium: 68_400,
     totalClaimed: 325_000,
-  startDate: "2024-01-01",
+    startDate: "2024-01-01",
     expiryDate: "2025-12-31",
     status: "Active",
     assetsCovered: [
@@ -37,7 +37,7 @@ export const coveragePolicies: CoveragePolicy[] = [
     remainingCoverage: 265_000,
     annualPremium: 42_600,
     totalClaimed: 585_000,
-  startDate: "2024-04-19",
+    startDate: "2024-04-19",
     expiryDate: "2025-04-18",
     status: "Expiring Soon",
     assetsCovered: [
@@ -56,7 +56,7 @@ export const coveragePolicies: CoveragePolicy[] = [
     remainingCoverage: 0,
     annualPremium: 21_300,
     totalClaimed: 430_000,
-  startDate: "2023-11-16",
+    startDate: "2023-11-16",
     expiryDate: "2024-11-15",
     status: "Expired",
     assetsCovered: [

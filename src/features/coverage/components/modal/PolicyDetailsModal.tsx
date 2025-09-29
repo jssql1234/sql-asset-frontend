@@ -1,7 +1,10 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/components";
-import type { CoveragePolicy } from "@/features/coverage/types";
+import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
+import { CoverageDefinitionList } from "@/features/coverage/components/CoverageDefinitionList";
+import { CoverageSection } from "@/features/coverage/components/CoverageSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
+import type { CoveragePolicy } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
 
 interface PolicyDetailsModalProps {
@@ -35,74 +38,73 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
             </DialogHeader>
 
             <div className="flex flex-col gap-6">
-              <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="rounded-md border border-outline bg-surfaceContainer p-4">
-                  <h3 className="title-small font-semibold text-onSurface mb-3">Coverage Overview</h3>
-                  <dl className="space-y-3 body-medium text-onSurface">
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Coverage Amount</dt>
-                      <dd className="font-semibold">{formatCurrency(policy.coverageAmount)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Remaining Coverage</dt>
-                      <dd className="font-semibold">{formatCurrency(policy.remainingCoverage)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Total Claimed</dt>
-                      <dd>{formatCurrency(policy.totalClaimed)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Annual Premium</dt>
-                      <dd>{formatCurrency(policy.annualPremium)}</dd>
-                    </div>
-                  </dl>
-                </div>
-                <div className="rounded-md border border-outline bg-surfaceContainer p-4">
-                  <h3 className="title-small font-semibold text-onSurface mb-3">Key Dates</h3>
-                  <dl className="space-y-3 body-medium text-onSurface">
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Start Date</dt>
-                      <dd>{formatDate(policy.startDate)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Expiry Date</dt>
-                      <dd>{formatDate(policy.expiryDate)}</dd>
-                    </div>
-                  </dl>
-                </div>
-              </section>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <CoverageSection title="Coverage Overview">
+                  <CoverageDefinitionList
+                    items={[
+                      {
+                        label: "Coverage Amount",
+                        value: (
+                          <span className="font-semibold text-onSurface">
+                            {formatCurrency(policy.coverageAmount)}
+                          </span>
+                        ),
+                      },
+                      {
+                        label: "Remaining Coverage",
+                        value: (
+                          <span className="font-semibold text-onSurface">
+                            {formatCurrency(policy.remainingCoverage)}
+                          </span>
+                        ),
+                      },
+                      {
+                        label: "Total Claimed",
+                        value: formatCurrency(policy.totalClaimed),
+                      },
+                      {
+                        label: "Annual Premium",
+                        value: formatCurrency(policy.annualPremium),
+                      },
+                    ]}
+                  />
+                </CoverageSection>
 
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <h3 className="title-small font-semibold text-onSurface mb-3">Description</h3>
+                <CoverageSection title="Key Dates">
+                  <CoverageDefinitionList
+                    items={[
+                      {
+                        label: "Start Date",
+                        value: formatDate(policy.startDate),
+                      },
+                      {
+                        label: "Expiry Date",
+                        value: formatDate(policy.expiryDate),
+                      },
+                    ]}
+                  />
+                </CoverageSection>
+              </div>
+
+              <CoverageSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
                   {policy.description || "No additional description provided."}
                 </p>
-              </section>
+              </CoverageSection>
 
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
-                  <span className="body-small text-onSurfaceVariant">
-                    {policy.assetsCovered.length} assets
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {policy.assetsCovered.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="flex items-center justify-between rounded-md border border-outlineVariant bg-surfaceContainerLowest px-3 py-2"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium text-onSurface">{asset.name}</span>
-                        <span className="body-small text-onSurfaceVariant">{asset.id}</span>
-                      </div>
-                      <Button variant="link" size="sm">
-                        View Asset
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <CoverageSection
+                title="Assets Covered"
+                subtitle={`${policy.assetsCovered.length} assets`}
+              >
+                <CoverageAssetGrid
+                  assets={policy.assetsCovered}
+                  action={(asset) => (
+                    <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
+                      View Asset
+                    </Button>
+                  )}
+                />
+              </CoverageSection>
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

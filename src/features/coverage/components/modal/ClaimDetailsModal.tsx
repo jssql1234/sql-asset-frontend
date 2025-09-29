@@ -1,5 +1,8 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
+import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
+import { CoverageDefinitionList } from "@/features/coverage/components/CoverageDefinitionList";
+import { CoverageSection } from "@/features/coverage/components/CoverageSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
@@ -35,66 +38,61 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
             </DialogHeader>
 
             <div className="flex flex-col gap-6">
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <h3 className="title-small font-semibold text-onSurface mb-3">Claim Summary</h3>
-                <dl className="space-y-3 body-medium text-onSurface">
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Claim Type</dt>
-                    <dd className="font-semibold text-onSurface">{claim.type}</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Reference</dt>
-                    <dd className="text-right">
-                      <span className="block font-medium text-onSurface">{claim.referenceName}</span>
-                      <span className="body-small text-onSurfaceVariant">{claim.referenceId}</span>
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Claim Amount</dt>
-                    <dd className="font-semibold">{formatCurrency(claim.amount)}</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Filed On</dt>
-                    <dd>{formatDate(claim.dateFiled)}</dd>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Work Order</dt>
-                    <dd>{claim.workOrderId ?? "Not created"}</dd>
-                  </div>
-                </dl>
-              </section>
+              <CoverageSection title="Claim Summary">
+                <CoverageDefinitionList
+                  items={[
+                    {
+                      label: "Claim Type",
+                      value: (
+                        <span className="font-semibold text-onSurface">{claim.type}</span>
+                      ),
+                    },
+                    {
+                      label: "Reference",
+                      value: (
+                        <div className="text-right">
+                          <span className="block font-medium text-onSurface">{claim.referenceName}</span>
+                          <span className="body-small text-onSurfaceVariant">{claim.referenceId}</span>
+                        </div>
+                      ),
+                    },
+                    {
+                      label: "Claim Amount",
+                      value: (
+                        <span className="font-semibold">{formatCurrency(claim.amount)}</span>
+                      ),
+                    },
+                    {
+                      label: "Filed On",
+                      value: formatDate(claim.dateFiled),
+                    },
+                    {
+                      label: "Work Order",
+                      value: claim.workOrderId ?? "Not created",
+                    },
+                  ]}
+                />
+              </CoverageSection>
 
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <h3 className="title-small font-semibold text-onSurface mb-3">Description</h3>
+              <CoverageSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
                   {claim.description || "No additional description provided."}
                 </p>
-              </section>
+              </CoverageSection>
 
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <h3 className="title-small font-semibold text-onSurface">Assets</h3>
-                  <span className="body-small text-onSurfaceVariant">
-                    {claim.assets.length} assets
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                  {claim.assets.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="flex items-center justify-between rounded-md border border-outlineVariant bg-surfaceContainerLowest px-3 py-2"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium text-onSurface">{asset.name}</span>
-                        <span className="body-small text-onSurfaceVariant">{asset.id}</span>
-                      </div>
-                      <Button variant="link" size="sm">
-                        View Asset
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <CoverageSection
+                title="Assets"
+                subtitle={`${claim.assets.length} assets`}
+              >
+                <CoverageAssetGrid
+                  assets={claim.assets}
+                  action={(asset) => (
+                    <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
+                      View Asset
+                    </Button>
+                  )}
+                />
+              </CoverageSection>
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

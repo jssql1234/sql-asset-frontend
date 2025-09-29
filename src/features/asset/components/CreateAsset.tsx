@@ -102,10 +102,8 @@ const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
   ];
 
   return (
-    <div className="bg-surface p-6">
+    <div className="bg-surface p-6 pt-0">
       <div className="max-w-4xl mx-auto">
-        <h1 className="title-large text-onSurface mb-6">Create Asset</h1>
-
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Inactive Section */}
           <Card className="p-4">
@@ -182,7 +180,7 @@ const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
                       <ChevronDown className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-full">
+                  <DropdownMenuContent className="w-fit">
                     {assetGroups.map((group) => (
                       <DropdownMenuItem
                         key={group.value}

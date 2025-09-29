@@ -37,6 +37,8 @@ interface DisposalCalculationResults {
   disposedQE: number;
   disposedRE: number;
   deemedProceeds: number;
+  annualAllowance?: number;
+  apportionedAllowance?: number;
 }
 
 interface WizardStep {
@@ -311,10 +313,11 @@ const DisposalMainPage: React.FC = () => {
         deemedProceeds: 0,
       };
     } else if (disposalType === 'agriculture') {
+
       return {
         balancingAllowance: 0,
         balancingCharge: 0,
-        totalCAClaimed: agricultureDisposalData.disposalValue,
+        totalCAClaimed: 0,
         taxTreatment: 'Balancing Allowance',
         netTaxEffect: 0,
         disposedCost: 0,
@@ -324,6 +327,8 @@ const DisposalMainPage: React.FC = () => {
         disposedQE: 0,
         disposedRE: 0,
         deemedProceeds: 0,
+        annualAllowance: 0,
+        apportionedAllowance: 0,
       };
     } else {
       // Normal disposal calculations

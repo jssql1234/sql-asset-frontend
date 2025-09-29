@@ -28,6 +28,8 @@ interface DisposalCalculationResults {
   disposedQE: number;
   disposedRE: number;
   deemedProceeds: number;
+  annualAllowance?: number;
+  apportionedAllowance?: number;
 }
 
 interface DisposalResultsProps {
@@ -93,63 +95,154 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
           Calculation Summary
         </h4>
         
-        <div className="bg-white border border-outline rounded-xl p-6 shadow-sm">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Financial Overview */}
-            <div className="space-y-4">
-              <h5 className="font-medium text-primary text-sm uppercase tracking-wide border-b border-primary/20 pb-2">Financial Overview</h5>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Original Cost</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(assetData.originalCost)}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Disposed Cost</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposedCost)}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Remaining Cost</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.remainingCost)}</span>
-                </div>
-              </div>
+        <div className="bg-white border-2 border-outline rounded-xl overflow-hidden shadow-sm">
+          {/* Table Body */}
+          <div>
+            {/* Financial Overview Section */}
+            <div className="bg-surfaceContainer/20 border-b-2 border-outline">
+              <table className="w-full">
+                <tbody>
+                  <tr className="border-b-2 border-outline">
+                    <td rowSpan={3} className="w-1/4 px-6 py-4 align-middle border-r-2 border-outline">
+                      <div className="flex items-center justify-center h-full">
+                        <span className="font-medium text-onBackground text-center">Financial Overview</span>
+                      </div>
+                    </td>
+                    <td className="w-1/2 px-6 py-3">
+                      <span className="text-onSurface">Original Cost</span>
+                    </td>
+                    <td className="w-1/4 px-6 py-3 text-right">
+                      <span className="font-semibold text-onBackground">{formatCurrency(assetData.originalCost)}</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b-2 border-outline">
+                    <td className="px-6 py-3">
+                      <span className="text-onSurface">Disposed Cost</span>
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposedCost)}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-3">
+                      <span className="text-onSurface">Remaining Cost</span>
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.remainingCost)}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            {/* Disposal Details */}
-            <div className="space-y-4">
-              <h5 className="font-medium text-primary text-sm uppercase tracking-wide border-b border-primary/20 pb-2">Disposal Details</h5>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Disposal Value</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposalValue)}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Proportion</span>
-                  <span className="font-semibold text-onBackground">{formatPercentage(calculationResults.proportion)}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Deemed Proceeds</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.deemedProceeds)}</span>
-                </div>
-              </div>
+            {/* Disposal Details Section */}
+            <div className="bg-surfaceContainer/20 border-b-2 border-outline">
+              <table className="w-full">
+                <tbody>
+                  <tr className="border-b-2 border-outline">
+                    <td rowSpan={3} className="w-1/4 px-6 py-4 align-middle border-r-2 border-outline">
+                      <div className="flex items-center justify-center h-full">
+                        <span className="font-medium text-onBackground text-center">Disposal Details</span>
+                      </div>
+                    </td>
+                    <td className="w-1/2 px-6 py-3">
+                      <span className="text-onSurface">Disposal Value</span>
+                    </td>
+                    <td className="w-1/4 px-6 py-3 text-right">
+                      <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposalValue)}</span>
+                    </td>
+                  </tr>
+                  <tr className="border-b-2 border-outline">
+                    <td className="px-6 py-3">
+                      <span className="text-onSurface">Proportion</span>
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <span className="font-semibold text-onBackground">{formatPercentage(calculationResults.proportion)}</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="px-6 py-3">
+                      <span className="text-onSurface">Deemed Proceeds</span>
+                    </td>
+                    <td className="px-6 py-3 text-right">
+                      <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.deemedProceeds)}</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
 
-            {/* Allowances */}
-            <div className="space-y-4">
-              <h5 className="font-medium text-primary text-sm uppercase tracking-wide border-b border-primary/20 pb-2">Allowances</h5>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Disposed QE</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposedQE)}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Disposed RE</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposedRE)}</span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-onSurface">Total CA Claimed</span>
-                  <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.totalCAClaimed)}</span>
-                </div>
-              </div>
+            {/* Allowances Section - Dynamic based on disposal type */}
+            <div className="bg-surfaceContainer/20">
+              <table className="w-full">
+                <tbody>
+                  {disposalType === 'agriculture' ? (
+                    <>
+                      <tr className="border-b-2 border-outline">
+                        <td rowSpan={3} className="w-1/4 px-6 py-4 align-middle border-r-2 border-outline">
+                          <div className="flex items-center justify-center h-full">
+                            <span className="font-medium text-onBackground text-center">Allowances</span>
+                          </div>
+                        </td>
+                        <td className="w-1/2 px-6 py-3">
+                          <span className="text-onSurface">Total CA Claimed</span>
+                        </td>
+                        <td className="w-1/4 px-6 py-3 text-right">
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.totalCAClaimed)}</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b-2 border-outline">
+                        <td className="px-6 py-3">
+                          <span className="text-onSurface">Annual Allowance</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.annualAllowance || 0)}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-3">
+                          <span className="text-onSurface">Apportioned Allowance</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.apportionedAllowance || 0)}</span>
+                        </td>
+                      </tr>
+                    </>
+                  ) : (
+                    <>
+                      <tr className="border-b-2 border-outline">
+                        <td rowSpan={3} className="w-1/4 px-6 py-4 align-middle border-r-2 border-outline">
+                          <div className="flex items-center justify-center h-full">
+                            <span className="font-medium text-onBackground text-center">Allowances</span>
+                          </div>
+                        </td>
+                        <td className="w-1/2 px-6 py-3">
+                          <span className="text-onSurface">Disposed QE</span>
+                        </td>
+                        <td className="w-1/4 px-6 py-3 text-right">
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposedQE)}</span>
+                        </td>
+                      </tr>
+                      <tr className="border-b-2 border-outline">
+                        <td className="px-6 py-3">
+                          <span className="text-onSurface">Disposed RE</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.disposedRE)}</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="px-6 py-3">
+                          <span className="text-onSurface">Total CA Claimed</span>
+                        </td>
+                        <td className="px-6 py-3 text-right">
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.totalCAClaimed)}</span>
+                        </td>
+                      </tr>
+                    </>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

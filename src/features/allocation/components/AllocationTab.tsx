@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Button, Card } from "@/components/ui/components";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationFilter, { type FilterOptions } from "./AllocationFilter";
-import AllocationTable from "./AllocationTable";
+import Table from "./Table";
 import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../types";
 
 interface AllocationTabProps {
@@ -142,7 +142,8 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
           </div>
         </div>
         <div className="flex-1 border-t border-outline">
-          <AllocationTable
+          <Table
+            variant="allocation"
             assets={assets}
             selectedAssetIds={selectedAssetIds}
             onSelectionChange={onSelectionChange}

@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui/components";
 import SummaryCards from "@/components/SummaryCards";
+import Table from "./Table";
 import { MOCK_RENTALS, MOCK_RENTAL_STATUS, MOCK_RENTAL_LOCATIONS } from "../mockData";
 import RentalFiltersPanel from "./RentalFilters.tsx";
-import RentalTable from "./RentalTable";
 import type { RentalFilters as RentalFiltersState, RentalRecord } from "../types";
 
 const DEFAULT_FILTERS: RentalFiltersState = {
@@ -118,7 +118,7 @@ const RentalsTab: React.FC = () => {
           </div>
         </div>
         <div className="flex-1 border-t border-outline">
-          <RentalTable rentals={rentalsForTable} />
+          <Table variant="rental" rentals={rentalsForTable} />
         </div>
       </Card>
     </div>

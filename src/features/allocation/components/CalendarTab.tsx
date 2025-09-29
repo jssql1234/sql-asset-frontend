@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
+import TabHeader from "@/components/TabHeader";
 import CalendarView from "./CalendarView";
 
 const ASSET_CATEGORIES = [
@@ -42,36 +43,50 @@ const CalendarTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-6 p-2 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="title-large font-semibold text-onSurface">Asset Calendar</h2>
-          <p className="body-medium text-onSurfaceVariant mt-1">
-            View asset assignments, reservations, and maintenance windows on a timeline.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-          <div className="flex gap-3">
-            <Input
-              placeholder="Search assets..."
-              value={searchTerm}
-              onChange={(event) => setSearchTerm(event.target.value)}
-              className="w-52"
-            />
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                label={
-                  ASSET_CATEGORIES.find((option) => option.value === assetFilter)?.label ??
-                  "All Assets"
-                }
-                className="w-48 justify-between"
+      <TabHeader
+        title="Asset Calendar"
+        subtitle="View asset assignments, reservations, and maintenance windows on a timeline."
+        className="p-2"
+        customActions={
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <div className="flex gap-3">
+              <Input
+                placeholder="Search assets..."
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                className="w-52"
               />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  label={
+                    ASSET_CATEGORIES.find((option) => option.value === assetFilter)?.label ??
+                    "All Assets"
+                  }
+                  className="w-48 justify-between"
+                />
+                <DropdownMenuContent matchTriggerWidth disablePortal>
+                  <DropdownMenuRadioGroup
+                    value={assetFilter}
+                    onValueChange={(value) => setAssetFilter(value)}
+                  >
+                    {ASSET_CATEGORIES.map((option) => (
+                      <DropdownMenuRadioItem key={option.value} value={option.value}>
+                        {option.label}
+                      </DropdownMenuRadioItem>
+                    ))}
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger label={activeViewLabel} className="w-44 justify-between" />
               <DropdownMenuContent matchTriggerWidth disablePortal>
                 <DropdownMenuRadioGroup
-                  value={assetFilter}
-                  onValueChange={(value) => setAssetFilter(value)}
+                  value={viewMode}
+                  onValueChange={(value) => setViewMode(value)}
                 >
-                  {ASSET_CATEGORIES.map((option) => (
+                  {VIEW_OPTIONS.map((option) => (
                     <DropdownMenuRadioItem key={option.value} value={option.value}>
                       {option.label}
                     </DropdownMenuRadioItem>
@@ -80,47 +95,31 @@ const CalendarTab = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+        }
+      />
 
-          <DropdownMenu>
-            <DropdownMenuTrigger label={activeViewLabel} className="w-44 justify-between" />
-            <DropdownMenuContent matchTriggerWidth disablePortal>
-              <DropdownMenuRadioGroup
-                value={viewMode}
-                onValueChange={(value) => setViewMode(value)}
-              >
-                {VIEW_OPTIONS.map((option) => (
-                  <DropdownMenuRadioItem key={option.value} value={option.value}>
-                    {option.label}
-                  </DropdownMenuRadioItem>
-                ))}
-              </DropdownMenuRadioGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
+      {activeFilters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 px-2">
+          <span className="body-small text-onSurfaceVariant">Active:</span>
+          {activeFilters.map((filter) => (
+            <FilterChip
+              key={filter.key}
+              selected
+              className="px-3 py-1"
+              onChange={(checked) => {
+                if (!checked) {
+                  setAssetFilter("");
+                }
+              }}
+            >
+              {filter.label}
+            </FilterChip>
+          ))}
+          <Button variant="link" size="sm" onClick={() => setAssetFilter("")}>
+            Reset asset filter
+          </Button>
         </div>
-
-        {activeFilters.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-2">
-            <span className="body-small text-onSurfaceVariant">Active:</span>
-            {activeFilters.map((filter) => (
-              <FilterChip
-                key={filter.key}
-                selected
-                className="px-3 py-1"
-                onChange={(checked) => {
-                  if (!checked) {
-                    setAssetFilter("");
-                  }
-                }}
-              >
-                {filter.label}
-              </FilterChip>
-            ))}
-            <Button variant="link" size="sm" onClick={() => setAssetFilter("")}>
-              Reset asset filter
-            </Button>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Calendar Legend */}
       <div className="bg-surfaceContainer border border-outline rounded-lg p-4">

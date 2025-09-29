@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
-import { CoverageTabHeader } from "@/features/coverage/components/CoverageTabHeader";
+import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
 import type {
@@ -82,11 +82,15 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <CoverageTabHeader
+      <TabHeader
         title="Warranty"
         subtitle="Track manufacturer warranty coverage and renewal windows"
-        actionLabel="Add Warranty"
-        onAction={onAddWarranty}
+        actions={[
+          {
+            label: "Add Warranty",
+            onAction: onAddWarranty,
+          },
+        ]}
       />
 
       <SummaryCards data={summaryCards} columns={4} />

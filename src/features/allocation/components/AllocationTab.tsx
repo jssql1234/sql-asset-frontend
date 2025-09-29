@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Button, Card } from "@/components/ui/components";
+import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationFilter, { type FilterOptions } from "./AllocationFilter";
 import Table from "./Table";
@@ -67,39 +68,32 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
 
   return (
     <div className="flex h-full flex-col gap-6 p-2">
-      <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="title-large font-semibold text-onSurface">Asset Allocation</h2>
-          <p className="body-medium text-onSurfaceVariant">
-            Monitor allocation status, utilization, and perform bulk actions.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!onOpenReturnModal}
-            onClick={() => onOpenReturnModal?.()}
-          >
-            Bulk Return
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!onOpenTransferModal}
-            onClick={() => onOpenTransferModal?.()}
-          >
-            Bulk Transfer
-          </Button>
-          <Button
-            size="sm"
-            disabled={!onOpenAllocationModal}
-            onClick={() => onOpenAllocationModal?.()}
-          >
-            Bulk Allocation
-          </Button>
-        </div>
-      </header>
+      <TabHeader
+        title="Asset Allocation"
+        subtitle="Monitor allocation status, utilization, and perform bulk actions."
+        actions={[
+          {
+            label: "Bulk Return",
+            onAction: () => onOpenReturnModal?.(),
+            variant: "outline",
+            size: "sm",
+            disabled: !onOpenReturnModal,
+          },
+          {
+            label: "Bulk Transfer",
+            onAction: () => onOpenTransferModal?.(),
+            variant: "outline",
+            size: "sm",
+            disabled: !onOpenTransferModal,
+          },
+          {
+            label: "Bulk Allocation",
+            onAction: () => onOpenAllocationModal?.(),
+            size: "sm",
+            disabled: !onOpenAllocationModal,
+          },
+        ]}
+      />
 
       <SummaryCards data={summaryCards} />
 

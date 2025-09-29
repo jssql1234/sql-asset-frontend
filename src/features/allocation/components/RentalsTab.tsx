@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui/components";
+import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import Table from "./Table";
 import { MOCK_RENTALS, MOCK_RENTAL_STATUS, MOCK_RENTAL_LOCATIONS } from "../mockData";
@@ -78,17 +79,16 @@ const RentalsTab: React.FC = () => {
 
   return (
     <div className="flex h-full flex-col gap-6 p-2">
-      <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="title-large font-semibold text-onSurface">Asset Rental</h2>
-          <p className="body-medium text-onSurfaceVariant">
-            Manage customer rentals, scheduling windows, and required assets.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button>Rent Asset</Button>
-        </div>
-      </header>
+      <TabHeader
+        title="Asset Rental"
+        subtitle="Manage customer rentals, scheduling windows, and required assets."
+        actions={[
+          {
+            label: "Rent Asset",
+            size: "sm",
+          },
+        ]}
+      />
 
       <SummaryCards data={summaryCards} columns={4} />
 

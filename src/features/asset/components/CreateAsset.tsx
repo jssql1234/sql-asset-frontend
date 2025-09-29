@@ -1,4 +1,4 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef } from "react";
+import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
@@ -19,6 +19,7 @@ import { ChevronDown } from "@/assets/icons";
 
 interface CreateAssetProps {
   onSuccess?: (data: CreateAssetFormData) => void;
+  onBack?: () => void;
 }
 
 interface CreateAssetRef {
@@ -28,7 +29,7 @@ interface CreateAssetRef {
 // Tab Components
 const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <div className="space-y-4">
+    <Card className="p-6 -mt-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">CA Asset Group</label>
@@ -124,13 +125,13 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <Input {...register("residualExpenditure")} placeholder="0.00" />
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
 const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <div className="space-y-4">
+    <Card className="p-6 -mt-2">
       <div className="flex items-center gap-2">
         <Option type="checkbox" {...register("hpCheck")} />
         <label className="body-small text-onSurfaceVariant">Hire Purchase</label>
@@ -185,13 +186,13 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch }) => {
           <Input {...register("hpFinance")} />
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
 const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <div className="space-y-4">
+    <Card className="p-6 -mt-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">Depreciation Method</label>
@@ -246,72 +247,14 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
           <Input {...register("totalDepreciation")} readOnly />
         </div>
       </div>
-    </div>
+    </Card>
   );
 };
 
-const DisposalTab: React.FC<any> = ({ register, setValue, watch }) => {
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Asset Code</label>
-          <Input {...register("disposalAssetCode")} placeholder="AS-0001" />
-        </div>
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Description</label>
-          <Input {...register("disposalAssetDescription")} placeholder="Asset description" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Original Cost</label>
-          <Input type="number" {...register("disposalOriginalCost", { valueAsNumber: true })} placeholder="0.00" step="0.01" />
-        </div>
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Qualifying Expenditure (QE)</label>
-          <Input type="number" {...register("disposalQualifyingExpenditure", { valueAsNumber: true })} placeholder="0.00" step="0.01" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Residual Expenditure (RE)</label>
-          <Input type="number" {...register("disposalResidualExpenditure", { valueAsNumber: true })} placeholder="0.00" step="0.01" />
-        </div>
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Total Capital Allowance Claimed</label>
-          <Input type="number" {...register("disposalTotalCaClaimed", { valueAsNumber: true })} placeholder="0.00" step="0.01" />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Purchase Date</label>
-          <SemiDatePicker
-            inputType="date"
-            {...register("disposalPurchaseDate")}
-            value={watch("disposalPurchaseDate")}
-            onChange={(date) => setValue("disposalPurchaseDate", date as string)}
-            className="border-none"
-          />
-        </div>
-        <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Disposal Date</label>
-          <SemiDatePicker
-            inputType="date"
-            {...register("disposalDisposalDate")}
-            value={watch("disposalDisposalDate")}
-            onChange={(date) => setValue("disposalDisposalDate", date as string)}
-            className="border-none"
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
 
 const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <div className="space-y-4">
+    <Card className="p-6 -mt-2">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">Branch</label>
@@ -414,7 +357,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
         <label className="body-small text-onSurfaceVariant block mb-1">Additional Notes</label>
         <TextArea {...register("allocationNotes")} placeholder="Any additional information about the asset allocation" rows={3} />
       </div>
-    </div>
+    </Card>
   );
 };
 
@@ -439,7 +382,7 @@ const SerialNoTab: React.FC<any> = ({ setValue, watch }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <Card className="p-6 -mt-2">
       <div className="flex justify-between items-center">
         <label className="body-small text-onSurfaceVariant">Serial Numbers</label>
         <Button type="button" onClick={addSerialNumber}>Add Serial Number</Button>
@@ -458,13 +401,13 @@ const SerialNoTab: React.FC<any> = ({ setValue, watch }) => {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   );
 };
 
 const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <div className="space-y-4">
+    <Card className="p-6 -mt-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">Warranty Provider</label>
@@ -495,12 +438,12 @@ const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
         <label className="body-small text-onSurfaceVariant block mb-1">Notes</label>
         <TextArea {...register("warrantyNotes")} rows={3} placeholder="Additional warranty notes" />
       </div>
-    </div>
+    </Card>
   );
 };
 
 const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) => {
-  const { onSuccess } = props;
+  const { onSuccess, onBack } = props;
   const [batchMode] = useState(false);
 
   const {
@@ -527,6 +470,15 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
   });
 
   const inactive = watch("inactive");
+
+  useEffect(() => {
+    if (inactive) {
+      const today = new Date().toISOString().split('T')[0];
+      setValue("inactiveStart", today);
+    } else {
+      setValue("inactiveStart", "");
+    }
+  }, [inactive, setValue]);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -565,11 +517,6 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
       content: <DepreciationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
     },
     {
-      label: "Disposal",
-      value: "disposal",
-      content: <DisposalTab register={register} setValue={setValue} watch={watch} errors={errors} />,
-    },
-    {
       label: "Allocation",
       value: "allocation",
       content: <AllocationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
@@ -588,10 +535,14 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
 
   return (
     <div className="bg-surface p-6 pt-0">
+      {onBack && <div className="mb-4"><Button onClick={onBack}>Back</Button></div>}
       <div className="max-w-4xl mx-auto">
         <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Inactive Section */}
-          <Card className="p-4">
+          {/* Main Form Fields */}
+          <Card className="p-6 -mt-2">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="px-4 pt-3 pb-2 col-span-2 w-fit justify-self-end m-0">
             <div className="flex justify-end gap-4">
               <div className="flex items-center gap-2">
                 <Option
@@ -601,34 +552,33 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                 />
                 <label className="body-small text-onSurfaceVariant">Inactive</label>
               </div>
-              {inactive && (
                 <div className="flex gap-4">
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">Start:</label>
+                    {/* <label className="body-small text-onSurfaceVariant block mb-1">Start:</label> */}
                     <SemiDatePicker
                       inputType="date"
                       value={watch("inactiveStart")}
                       onChange={(date) => setValue("inactiveStart", date as string)}
                       className="border-none"
+                      placeholder={"Start Date"}
+                      disabled={!inactive}
                     />
                   </div>
+                  <label className="body-small text-onSurfaceVariant self-center">to</label>
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">End:</label>
+                    {/* <label className="body-small text-onSurfaceVariant block mb-1">End:</label> */}
                     <SemiDatePicker
                       inputType="date"
                       value={watch("inactiveEnd")}
                       onChange={(date) => setValue("inactiveEnd", date as string)}
                       className="border-none"
+                      placeholder={"End Date  "}
+                      disabled={!inactive}
                     />
                   </div>
                 </div>
-              )}
             </div>
           </Card>
-
-          {/* Main Form Fields */}
-          <Card className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Batch ID - conditional */}
               {batchMode && (
                 <div>
@@ -654,13 +604,13 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
               </div>
 
               {/* Asset Group */}
-              <div>
+              <div className="grid">
                 <label className="body-small text-onSurfaceVariant block mb-1">
                   Asset Group <span className="text-error">*</span>
                 </label>
                 <DropdownMenu>
                   <DropdownMenuTrigger>
-                    <Button variant="outline" className="w-full justify-between">
+                    <Button variant="outline" className="size-full justify-between">
                       {assetGroups.find(g => g.value === watch("assetGroup"))?.label || "-- Choose Asset Group --"}
                       <ChevronDown className="w-4 h-4" />
                     </Button>
@@ -770,9 +720,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
           </Card>
 
           {/* Tabs */}
-          <Card className="p-6">
-            <Tabs tabs={tabs} />
-          </Card>
+          <Tabs tabs={tabs} variant={"underline"} className="m-0" />
         </form>
       </div>
     </div>

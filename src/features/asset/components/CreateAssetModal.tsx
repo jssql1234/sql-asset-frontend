@@ -50,7 +50,7 @@ export default function CreateAssetModal({ open, onOpenChange }: CreateAssetModa
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto flex flex-col bg-onPrimary py-0" dialogClose={false}>
-        <DialogHeader className="sticky z-50 top-0 flex flex-row items-center bg-onPrimary py-6 mb-4 border-b border-outline">
+        <DialogHeader className="sticky z-99 top-0 flex flex-row items-center bg-onPrimary py-6 mb-4 border-b border-outline">
           <DialogTitle className="title-medium text-onSurface m-0">Create Asset</DialogTitle>
           <DialogClose className="static"/>
         </DialogHeader>

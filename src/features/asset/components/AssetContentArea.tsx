@@ -5,7 +5,7 @@ import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTable } from "@/features/asset/components/ContentTable";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
-import CreateAssetModal from "./CreateAssetModal";
+import CreateAsset from "./CreateAsset";
 
 type AssetRow = {
   id: string;
@@ -263,7 +263,7 @@ const createColumns = (): CustomColumnDef<AssetRow>[] => [
 export default function AssetContentArea() {
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [view, setView] = useState<'list' | 'create'>('list');
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
@@ -295,72 +295,69 @@ export default function AssetContentArea() {
         </Card>
       </div> */}
 
-      {/* Unified Card wrapping header, controls, table and pagination (no border) */}
-      <Card className="p-3">
-        {/* Header actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
-            <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
-            onClick={() => setGroupByBatch(!groupByBatch)}>
-              <button
-                className={cn(
-                  "px-3 py-1 body-small",
-                  !groupByBatch && "bg-primary text-onPrimary"
-                )}
-              >
-                Asset
-              </button>
-              <button
-                className={cn(
-                  "px-3 py-1 body-small",
-                  groupByBatch && "bg-primary text-onPrimary"
-                )}
-              >
-                Batch
-              </button>
+      {view === 'list' ? (
+        <Card className="p-3">
+          {/* Header actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
+              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
+              onClick={() => setGroupByBatch(!groupByBatch)}>
+                <button
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    !groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Asset
+                </button>
+                <button
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Batch
+                </button>
+              </div>
+              <TableColumnVisibility
+                columns={allColumns}
+                visibleColumns={visibleColumns}
+                setVisibleColumns={setVisibleColumns}
+                className="size-32"
+              />
             </div>
-            <TableColumnVisibility
-              columns={allColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
-              className="size-32"
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={() => setView('create')}>
+                Add
+              </Button>
+              {selectedRowIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">Edit</Button>
+                  <Button variant="destructive" size="sm">Delete</Button>
+                  <Button variant="outline" size="sm">Dispose</Button>
+                  <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="mt-3">
+            <DataTable
+              columns={visibleColumns}
+              data={SAMPLE_ASSETS}
+              showPagination={true}
+              showCheckbox={true}
+              enableRowClickSelection={true}
+              onRowSelectionChange={handleRowSelectionChange}
+              selectedCount={selectedRowIds.length}
             />
           </div>
-          <div className="flex items-center gap-2">
-            <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
-              Add
-            </Button>
-            {selectedRowIds.length > 0 && (
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">Edit</Button>
-                <Button variant="destructive" size="sm">Delete</Button>
-                <Button variant="outline" size="sm">Dispose</Button>
-                <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="mt-3">
-          <DataTable
-            columns={visibleColumns}
-            data={SAMPLE_ASSETS}
-            showPagination={true}
-            showCheckbox={true}
-            enableRowClickSelection={true}
-            onRowSelectionChange={handleRowSelectionChange}
-            selectedCount={selectedRowIds.length}
-          />
-        </div>
-      </Card>
-
-      {/* Create Asset Modal */}
-      <CreateAssetModal
-        open={isCreateModalOpen}
-        onOpenChange={setIsCreateModalOpen}
-      />
+        </Card>
+      ) : (
+        <CreateAsset onBack={() => setView('list')} onSuccess={() => setView('list')} />
+      )}
 
     </div>
   );

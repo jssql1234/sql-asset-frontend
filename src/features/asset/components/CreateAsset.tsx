@@ -126,6 +126,7 @@ const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
                       inputType="date"
                       value={watch("inactiveStart")}
                       onChange={(date) => setValue("inactiveStart", date as string)}
+                      className="border-none"
                     />
                   </div>
                   <div>
@@ -134,6 +135,7 @@ const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
                       inputType="date"
                       value={watch("inactiveEnd")}
                       onChange={(date) => setValue("inactiveEnd", date as string)}
+                      className="border-none"
                     />
                   </div>
                 </div>
@@ -267,6 +269,7 @@ const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
                   inputType="date"
                   value={watch("purchaseDate")}
                   onChange={(date) => setValue("purchaseDate", date as string)}
+                  className="border-none"
                 />
               </div>
               <div>
@@ -277,6 +280,7 @@ const CreateAsset: React.FC<CreateAssetProps> = ({ onSuccess }) => {
                   inputType="date"
                   value={watch("acquireDate")}
                   onChange={(date) => setValue("acquireDate", date as string)}
+                  className="border-none"
                 />
               </div>
             </div>
@@ -416,6 +420,7 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch }) => {
             {...register("hpStartDate")}
             value={watch("hpStartDate")}
             onChange={(date) => setValue("hpStartDate", date as string)}
+            className="border-none"
           />
         </div>
         <div>
@@ -562,6 +567,7 @@ const DisposalTab: React.FC<any> = ({ register, setValue, watch }) => {
             {...register("disposalPurchaseDate")}
             value={watch("disposalPurchaseDate")}
             onChange={(date) => setValue("disposalPurchaseDate", date as string)}
+            className="border-none"
           />
         </div>
         <div>
@@ -571,6 +577,7 @@ const DisposalTab: React.FC<any> = ({ register, setValue, watch }) => {
             {...register("disposalDisposalDate")}
             value={watch("disposalDisposalDate")}
             onChange={(date) => setValue("disposalDisposalDate", date as string)}
+            className="border-none"
           />
         </div>
       </div>
@@ -746,6 +753,7 @@ const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
             {...register("warrantyStartDate")}
             value={watch("warrantyStartDate")}
             onChange={(date) => setValue("warrantyStartDate", date as string)}
+            className="border-none"
           />
         </div>
         <div>
@@ -755,6 +763,7 @@ const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
             {...register("warrantyEndDate")}
             value={watch("warrantyEndDate")}
             onChange={(date) => setValue("warrantyEndDate", date as string)}
+            className="border-none"
           />
         </div>
       </div>

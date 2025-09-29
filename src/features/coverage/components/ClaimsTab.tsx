@@ -1,22 +1,14 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
-import { Badge, Button, Card } from "@/components/ui/components";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/components/Table";
+import { Button } from "@/components/ui/components";
+import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
-import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type {
   ClaimFilters,
   ClaimSummaryMetrics,
   CoverageClaim,
 } from "@/features/coverage/types";
-import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
+import { formatCurrency } from "@/features/coverage/utils/formatters";
 
 interface ClaimsTabProps {
   claims: CoverageClaim[];
@@ -145,89 +137,11 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
         }
       />
 
-      <Card className="mt-0 p-0 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Claim</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Policy/Warranty</TableHead>
-              <TableHead>Assets</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Date Filed</TableHead>
-              <TableHead>Work Order</TableHead>
-              <TableHead className="w-[160px] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredClaims.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center text-onSurfaceVariant py-10">
-                  No claims match the current filters.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredClaims.map((claim) => (
-                <TableRow key={claim.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-onSurface">{claim.claimNumber}</span>
-                      <span className="body-small text-onSurfaceVariant">
-                        {claim.description}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{claim.type}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span>{claim.referenceName}</span>
-                      <span className="body-small text-onSurfaceVariant">
-                        {claim.referenceId}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {claim.assets.map((asset) => (
-                        <Badge
-                          key={asset.id}
-                          text={asset.name}
-                          variant="grey"
-                          className="h-7 px-3 py-1"
-                        />
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(claim.amount)}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={claim.status} />
-                  </TableCell>
-                  <TableCell>{formatDate(claim.dateFiled)}</TableCell>
-                  <TableCell>{claim.workOrderId ?? "—"}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        disabled={claim.type !== "Warranty" || Boolean(claim.workOrderId)}
-                        onClick={() => onCreateWorkOrder(claim)}
-                      >
-                        Create Work Order
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+      <CoverageTable
+        variant="claims"
+        claims={filteredClaims}
+        onCreateWorkOrder={onCreateWorkOrder}
+      />
     </div>
   );
 };

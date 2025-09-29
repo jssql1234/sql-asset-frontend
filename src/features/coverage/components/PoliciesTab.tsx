@@ -1,22 +1,14 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
-import { Badge, Button, Card } from "@/components/ui/components";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/components/Table";
+import { Button } from "@/components/ui/components";
+import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
-import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type {
   CoveragePolicy,
   PolicyFilters,
   PolicySummaryMetrics,
 } from "@/features/coverage/types";
-import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
+import { formatCurrency } from "@/features/coverage/utils/formatters";
 
 interface PoliciesTabProps {
   policies: CoveragePolicy[];
@@ -159,82 +151,11 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
         }
       />
 
-      <Card className="mt-0 p-0 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Policy</TableHead>
-              <TableHead className="text-right">Available Coverage</TableHead>
-              <TableHead className="text-right">Annual Premium</TableHead>
-              <TableHead className="text-right">Total Claimed</TableHead>
-              <TableHead>Expiry Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Assets</TableHead>
-              <TableHead className="w-[140px] text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredPolicies.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center text-onSurfaceVariant py-10">
-                  No policies match the current filters.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredPolicies.map((policy) => (
-                <TableRow key={policy.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-onSurface">{policy.name}</span>
-                      <span className="body-small text-onSurfaceVariant">
-                        {policy.provider} • {policy.policyNumber}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(policy.remainingCoverage)}
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(policy.annualPremium)}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(policy.totalClaimed)}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span>{formatDate(policy.expiryDate)}</span>
-                      <span className="body-small text-onSurfaceVariant">
-                        {policy.status === "Expiring Soon" && "Renew within 30 days"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={policy.status} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {policy.assetsCovered.map((asset) => (
-                        <Badge
-                          key={asset.id}
-                          text={asset.name}
-                          variant="grey"
-                          className="h-7 px-3 py-1"
-                        />
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => onViewPolicy(policy)}>
-                        View
-                      </Button>
-                      <Button variant="secondary" size="sm">
-                        Edit
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+      <CoverageTable
+        variant="policies"
+        policies={filteredPolicies}
+        onViewPolicy={onViewPolicy}
+      />
     </div>
   );
 };

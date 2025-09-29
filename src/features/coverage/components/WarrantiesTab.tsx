@@ -1,22 +1,13 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
-import { Badge, Button, Card } from "@/components/ui/components";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/components/Table";
+import { Button } from "@/components/ui/components";
+import CoverageTable from "@/features/coverage/components/Table";
 import { FilterBar } from "@/features/coverage/components/FilterBar";
-import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type {
   CoverageWarranty,
   WarrantyFilters,
   WarrantySummaryMetrics,
 } from "@/features/coverage/types";
-import { formatDate } from "@/features/coverage/utils/formatters";
 
 interface WarrantiesTabProps {
   warranties: CoverageWarranty[];
@@ -144,67 +135,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
         }
       />
 
-      <Card className="mt-0 p-0 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Warranty</TableHead>
-              <TableHead>Provider</TableHead>
-              <TableHead>Coverage</TableHead>
-              <TableHead>Expiry Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Assets</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredWarranties.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-onSurfaceVariant py-10">
-                  No warranties match the current filters.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredWarranties.map((warranty) => (
-                <TableRow key={warranty.id}>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      <span className="font-semibold text-onSurface">{warranty.name}</span>
-                      <span className="body-small text-onSurfaceVariant">
-                        {warranty.warrantyNumber}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{warranty.provider}</TableCell>
-                  <TableCell>{warranty.coverage}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span>{formatDate(warranty.expiryDate)}</span>
-                      <span className="body-small text-onSurfaceVariant">
-                        {warranty.status === "Expiring Soon" && "Renew within 30 days"}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={warranty.status} />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {warranty.assetsCovered.map((asset) => (
-                        <Badge
-                          key={asset.id}
-                          text={asset.name}
-                          variant="grey"
-                          className="h-7 px-3 py-1"
-                        />
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </Card>
+      <CoverageTable variant="warranties" warranties={filteredWarranties} />
     </div>
   );
 };

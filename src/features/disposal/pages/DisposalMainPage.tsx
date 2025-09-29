@@ -8,8 +8,8 @@ import MFRS5DisposalForm from '../components/MFRS5DisposalForm';
 import GiftDisposalForm from '../components/GiftDisposalForm';
 import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
 import DisposalHistoryTable from '../components/DisposalHistoryTable';
+import DisposalResults from '../components/DisposalResults';
 import { Button } from '@/components/ui/components';
-import Card from '@/components/ui/components/Card';
 
 // Interface definitions based on the disposal process
 interface AssetData {
@@ -30,6 +30,13 @@ interface DisposalCalculationResults {
   taxTreatment: string;
   clawbackAmount?: number;
   netTaxEffect: number;
+  disposedCost: number;
+  disposalValue: number;
+  remainingCost: number;
+  proportion: number;
+  disposedQE: number;
+  disposedRE: number;
+  deemedProceeds: number;
 }
 
 interface WizardStep {
@@ -47,6 +54,7 @@ const DisposalMainPage: React.FC = () => {
   const [selectedDisposalType, setSelectedDisposalType] = useState('');
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [disposalConfirmed, setDisposalConfirmed] = useState(false);
+  const [isClawbackApplicable, setIsClawbackApplicable] = useState(false);
 
   // Asset data state
   const [assetData, setAssetData] = useState<AssetData>({
@@ -105,6 +113,13 @@ const DisposalMainPage: React.FC = () => {
     writtenDownValue: 0,
     taxTreatment: '',
     netTaxEffect: 0,
+    disposedCost: 0,
+    disposalValue: 0,
+    remainingCost: 0,
+    proportion: 0,
+    disposedQE: 0,
+    disposedRE: 0,
+    deemedProceeds: 0,
   });
 
   // Disposal history - using the correct interface from DisposalHistoryTable
@@ -278,39 +293,37 @@ const DisposalMainPage: React.FC = () => {
     }));
   };
 
-  // Helper function to format disposal type display
-  const formatDisposalType = (disposalType: string): string => {
-    switch (disposalType) {
-      case 'partial':
-        return 'Normal';
-      case 'mfrs5':
-        return 'MFRS5';
-      case 'gift':
-        return 'Gift';
-      case 'agriculture':
-        return 'Agriculture';
-      default:
-        return disposalType.charAt(0).toUpperCase() + disposalType.slice(1);
-    }
-  };
-
-  // Calculate disposal results directly based on disposal type and asset data
+  // Hardcoded disposal results
   const calculateDisposalResults = (disposalType: string, assetData: AssetData): DisposalCalculationResults => {
     if (disposalType === 'gift') {
       return {
         balancingAllowance: 0,
         balancingCharge: 0,
         writtenDownValue: 0,
-        taxTreatment: 'Gift Disposal - No BA/BC',
+        taxTreatment: 'Balancing Charge',
         netTaxEffect: 0,
+        disposedCost: 0,
+        disposalValue: 0,
+        remainingCost: 0,
+        proportion: 0,
+        disposedQE: 0,
+        disposedRE: 0,
+        deemedProceeds: 0,
       };
     } else if (disposalType === 'agriculture') {
       return {
         balancingAllowance: 0,
         balancingCharge: 0,
         writtenDownValue: agricultureDisposalData.disposalValue,
-        taxTreatment: 'Agriculture Disposal - No Tax Impact',
+        taxTreatment: 'Balancing Allowance',
         netTaxEffect: 0,
+        disposedCost: 0,
+        disposalValue: 0,
+        remainingCost: 0,
+        proportion: 0,
+        disposedQE: 0,
+        disposedRE: 0,
+        deemedProceeds: 0,
       };
     } else {
       // Normal disposal calculations
@@ -328,6 +341,13 @@ const DisposalMainPage: React.FC = () => {
           writtenDownValue: wdv,
           taxTreatment: 'Balancing Charge',
           netTaxEffect: -balancingCharge,
+          disposedCost: 0,
+          disposalValue: 0,
+          remainingCost: 0,
+          proportion: 0,
+          disposedQE: 0,
+          disposedRE: 0,
+          deemedProceeds: 0,
         };
       } else {
         // Balancing allowance
@@ -338,6 +358,13 @@ const DisposalMainPage: React.FC = () => {
           writtenDownValue: wdv,
           taxTreatment: 'Balancing Allowance',
           netTaxEffect: balancingAllowance,
+          disposedCost: 0,
+          disposalValue: 0,
+          remainingCost: 0,
+          proportion: 0,
+          disposedQE: 0,
+          disposedRE: 0,
+          deemedProceeds: 0,
         };
       }
     }
@@ -461,72 +488,28 @@ const DisposalMainPage: React.FC = () => {
         }
 
       case 3: {
-        // Show final results for all disposal types
         const results = calculateDisposalResults(selectedDisposalType, assetData);
         
         return (
-          <Card className="space-y-6">
-            <div className="border-b border-outlineVariant pb-4">
-              <h3 className="text-lg font-semibold text-onBackground">Disposal Results</h3>
-              <p className="text-onSurface mt-1">Review and confirm disposal results</p>
-            </div>
-            
-            <div className="bg-surfaceContainer rounded-lg p-6">
-              <h4 className="font-medium text-onBackground mb-4">Calculation Summary</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div className="flex justify-between py-2 px-3 border border-outline rounded-md bg-white">
-                  <span className="text-onSurface">Asset ID:</span>
-                  <span className="font-medium text-onBackground">{assetData.assetCode}</span>
-                </div>
-                <div className="flex justify-between py-2 px-3 border border-outline rounded-md bg-white">
-                  <span className="text-onSurface">Disposal Type:</span>
-                  <span className="font-medium text-onBackground">{formatDisposalType(selectedDisposalType)}</span>
-                </div>
-                <div className="flex justify-between py-2 px-3 border border-outline rounded-md bg-white">
-                  <span className="text-onSurface">Written Down Value:</span>
-                  <span className="font-medium text-onBackground">RM {results.writtenDownValue.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between py-2 px-3 border border-outline rounded-md bg-white">
-                  <span className="text-onSurface">Tax Treatment:</span>
-                  <span className="font-medium text-onBackground">{results.taxTreatment}</span>
-                </div>
-                {results.balancingAllowance > 0 && (
-                  <div className="flex justify-between py-2 px-3 border border-outline rounded-md bg-white">
-                    <span className="text-onSurface">Balancing Allowance:</span>
-                    <span className="font-medium text-green">RM {results.balancingAllowance.toFixed(2)}</span>
-                  </div>
-                )}
-                {results.balancingCharge > 0 && (
-                  <div className="flex justify-between py-2 px-3 border border-outline rounded-md bg-white">
-                    <span className="text-onSurface">Balancing Charge:</span>
-                    <span className="font-medium text-error">RM {results.balancingCharge.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className={`flex pt-4 ${disposalConfirmed ? 'justify-end' : 'justify-between'}`}>
-              {!disposalConfirmed && (
-                <Button variant="outline" onClick={handlePreviousStep}>Previous</Button>
-              )}
-              <Button
-                onClick={() => {
-                  if (!disposalConfirmed) {
-                    setCalculationResults(results);
-                    handleConfirmDisposal();
-                  }
-                }}
-                disabled={disposalConfirmed}
-              >
-                {disposalConfirmed ? 'Confirmed' : 'Confirm Disposal'}
-              </Button>
-            </div>
-          </Card>
+          <DisposalResults
+            assetData={assetData}
+            disposalType={selectedDisposalType}
+            calculationResults={results}
+            isClawbackApplicable={isClawbackApplicable}
+            onClawbackChange={setIsClawbackApplicable}
+            onConfirm={() => {
+              if (!disposalConfirmed) {
+                setCalculationResults(results);
+                handleConfirmDisposal();
+              }
+            }}
+            onPrevious={handlePreviousStep}
+            isConfirmed={disposalConfirmed}
+            readOnly={false}
+          />
         );
       }
-
-
-
+      
       default:
         return null;
     }

@@ -86,6 +86,17 @@ export {
   IconHistory as History,
   IconShieldCheck as ShieldCheck,
   IconSettings as Settings,
+  IconHomeFilled as HomeFilled,
+  IconCalculatorFilled as CalculatorFilled,
+  IconLayoutDashboardFilled as LayoutDashboardFilled,
+  IconCalendarEventFilled as CalendarEventFilled,
+  IconClipboardListFilled as OrderDetailsFilled,
+  IconClockFilled as ClockFilled,
+  IconGaugeFilled as GaugeFilled,
+  IconShieldLockFilled as RolesFilled,
+  IconMapPinFilled as LocationFilled,
+  IconSettingsFilled as SettingsFilled,
+  IconShieldCheckFilled as ShieldCheckFilled,
 
   IconFiles as FileStack,
 } from "@tabler/icons-react"

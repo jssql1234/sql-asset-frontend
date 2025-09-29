@@ -8,7 +8,7 @@ import ProcessCAPage from "./features/asset/pages/ProcessCAPage";
 import DashboardPage from "./features/asset/pages/DashboardPage";
 import MaintenanceSchedulePage from "./features/asset/pages/MaintenanceSchedulePage";
 import WorkRequestPage from "./features/work-request/pages/WorkRequestPage";
-// import DowntimeTrackingPage from "./features/asset/pages/DowntimeTrackingPage";
+import DowntimeTrackingPage from "./features/downtime/pages/DowntimeTrackingPage";
 import InsurancePage from "./features/asset/pages/InsurancePage";
 import MeterPage from "./features/meter/pages/MeterPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
@@ -40,7 +40,7 @@ function AppRoutes() {
       <Route path="/maintenance-schedule" element={<MaintenanceSchedulePage />} />
       <Route path="/work-request" element={<WorkRequestPage />} />
       <Route path="/allocation" element={<Allocation />} />
-      {/* <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} /> */}
+      <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
       <Route path="/insurance" element={<InsurancePage />} />
       <Route path="/meter-reading" element={<MeterPage />} />
       

@@ -51,7 +51,7 @@ interface SidebarItemProps {
 
 const SidebarItemComponent: React.FC<SidebarItemProps> = ({ item, isActive, onClick }) => {
   const navigate = useNavigate();
-  const IconComponent = item.icon;
+  const IconComponent = isActive && item.filledIcon ? item.filledIcon : item.icon;
 
   const handleClick = () => {
     onClick(item);

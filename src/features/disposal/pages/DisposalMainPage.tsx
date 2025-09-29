@@ -26,7 +26,7 @@ interface AssetData {
 interface DisposalCalculationResults {
   balancingAllowance: number;
   balancingCharge: number;
-  writtenDownValue: number;
+  totalCAClaimed: number;
   taxTreatment: string;
   clawbackAmount?: number;
   netTaxEffect: number;
@@ -110,7 +110,7 @@ const DisposalMainPage: React.FC = () => {
   const [calculationResults, setCalculationResults] = useState<DisposalCalculationResults>({
     balancingAllowance: 0,
     balancingCharge: 0,
-    writtenDownValue: 0,
+    totalCAClaimed: 0,
     taxTreatment: '',
     netTaxEffect: 0,
     disposedCost: 0,
@@ -299,7 +299,7 @@ const DisposalMainPage: React.FC = () => {
       return {
         balancingAllowance: 0,
         balancingCharge: 0,
-        writtenDownValue: 0,
+        totalCAClaimed: 0,
         taxTreatment: 'Balancing Charge',
         netTaxEffect: 0,
         disposedCost: 0,
@@ -314,7 +314,7 @@ const DisposalMainPage: React.FC = () => {
       return {
         balancingAllowance: 0,
         balancingCharge: 0,
-        writtenDownValue: agricultureDisposalData.disposalValue,
+        totalCAClaimed: agricultureDisposalData.disposalValue,
         taxTreatment: 'Balancing Allowance',
         netTaxEffect: 0,
         disposedCost: 0,
@@ -338,7 +338,7 @@ const DisposalMainPage: React.FC = () => {
         return {
           balancingAllowance: 0,
           balancingCharge: balancingCharge,
-          writtenDownValue: wdv,
+          totalCAClaimed: wdv,
           taxTreatment: 'Balancing Charge',
           netTaxEffect: -balancingCharge,
           disposedCost: 0,
@@ -355,7 +355,7 @@ const DisposalMainPage: React.FC = () => {
         return {
           balancingAllowance: balancingAllowance,
           balancingCharge: 0,
-          writtenDownValue: wdv,
+          totalCAClaimed: wdv,
           taxTreatment: 'Balancing Allowance',
           netTaxEffect: balancingAllowance,
           disposedCost: 0,
@@ -379,7 +379,7 @@ const DisposalMainPage: React.FC = () => {
       assetCode: assetData.assetCode,
       disposalType: selectedDisposalType,
       disposalDate: assetData.disposalDate,
-      disposalValue: calculationResults.writtenDownValue,
+      disposalValue: calculationResults.disposalValue,
       balancingAllowance: calculationResults.balancingAllowance,
       balancingCharge: calculationResults.balancingCharge,
       taxTreatment: calculationResults.taxTreatment,
@@ -509,7 +509,7 @@ const DisposalMainPage: React.FC = () => {
           />
         );
       }
-      
+
       default:
         return null;
     }

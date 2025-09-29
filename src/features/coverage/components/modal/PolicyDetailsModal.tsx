@@ -21,14 +21,16 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
         {policy ? (
           <>
             <DialogHeader>
-              <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                <div>
+              <div className="flex flex-col md:flex-row md:items-start gap-4">
+                <div className="flex-1">
                   <DialogTitle>{policy.name}</DialogTitle>
                   <DialogDescription>
                     {policy.provider} • {policy.policyNumber}
                   </DialogDescription>
                 </div>
-                <StatusBadge status={policy.status} />
+                <div className="md:mr-11">
+                  <StatusBadge status={policy.status}/>
+                </div>
               </div>
             </DialogHeader>
 
@@ -65,12 +67,6 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
                     <div className="flex items-center justify-between">
                       <dt className="text-onSurfaceVariant">Expiry Date</dt>
                       <dd>{formatDate(policy.expiryDate)}</dd>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <dt className="text-onSurfaceVariant">Status</dt>
-                      <dd>
-                        <StatusBadge status={policy.status} />
-                      </dd>
                     </div>
                   </dl>
                 </div>

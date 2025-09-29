@@ -28,7 +28,9 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
                     {claim.type} claim • {claim.referenceName} ({claim.referenceId})
                   </DialogDescription>
                 </div>
-                <StatusBadge status={claim.status} />
+                <div className="md:mr-11">
+                    <StatusBadge status={claim.status} />
+                </div>
               </div>
             </DialogHeader>
 
@@ -52,24 +54,12 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
                     <dd className="font-semibold">{formatCurrency(claim.amount)}</dd>
                   </div>
                   <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Work Order</dt>
-                    <dd>{claim.workOrderId ?? "Not created"}</dd>
-                  </div>
-                </dl>
-              </section>
-
-              <section className="rounded-md border border-outline bg-surfaceContainer p-4">
-                <h3 className="title-small font-semibold text-onSurface mb-3">Timeline</h3>
-                <dl className="space-y-3 body-medium text-onSurface">
-                  <div className="flex items-center justify-between">
                     <dt className="text-onSurfaceVariant">Filed On</dt>
                     <dd>{formatDate(claim.dateFiled)}</dd>
                   </div>
                   <div className="flex items-center justify-between">
-                    <dt className="text-onSurfaceVariant">Status</dt>
-                    <dd>
-                      <StatusBadge status={claim.status} />
-                    </dd>
+                    <dt className="text-onSurfaceVariant">Work Order</dt>
+                    <dd>{claim.workOrderId ?? "Not created"}</dd>
                   </div>
                 </dl>
               </section>

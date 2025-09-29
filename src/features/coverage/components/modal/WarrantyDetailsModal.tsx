@@ -36,7 +36,9 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
                     {warranty.provider} • {warranty.warrantyNumber}
                   </DialogDescription>
                 </div>
-                <StatusBadge status={warranty.status} />
+                <div className="md:mr-11">
+                    <StatusBadge status={warranty.status} />
+                </div>
               </div>
             </DialogHeader>
 

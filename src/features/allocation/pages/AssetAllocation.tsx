@@ -4,9 +4,9 @@ import Tabs from "@/components/ui/components/Tabs";
 import AllocationTab from "../components/AllocationTab";
 import CalendarTab from "../components/CalendarTab";
 import RentalsTab from "../components/RentalsTab";
-import AllocationModal from "../components/AllocationModal";
-import TransferModal from "../components/TransferModal";
-import ReturnModal from "../components/ReturnModal";
+import AllocationModal from "../components/modal/AllocationModal";
+import TransferModal from "../components/modal/TransferModal";
+import ReturnModal from "../components/modal/ReturnModal";
 import { MOCK_ASSETS, MOCK_LOCATIONS, MOCK_PICS, MOCK_STATUS } from "../mockData";
 import type { AllocationActionPayload, AllocationFilters, AllocationSummary, AssetRecord,} from "../types";
 

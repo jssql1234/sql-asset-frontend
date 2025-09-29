@@ -7,7 +7,7 @@ import AssetMainPage from "./features/asset/pages/AssetMainPage";
 import ProcessCAPage from "./features/asset/pages/ProcessCAPage";
 import DashboardPage from "./features/asset/pages/DashboardPage";
 import MaintenanceSchedulePage from "./features/asset/pages/MaintenanceSchedulePage";
-import WorkRequestPage from "./features/asset/pages/WorkRequestPage";
+import WorkRequestPage from "./features/work-request/pages/WorkRequestPage";
 import DowntimeTrackingPage from "./features/asset/pages/DowntimeTrackingPage";
 import InsurancePage from "./features/asset/pages/InsurancePage";
 /* import MeterPage from "./features/meter/pages/MeterPage"; */

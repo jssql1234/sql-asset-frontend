@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/components';
 
 // Interface definitions based on the disposal process
 interface AssetData {
-  assetCode: string;
+  assetId: string;
   assetDescription: string;
   originalCost: number;
   qualifyingExpenditure: number;
@@ -58,7 +58,7 @@ const DisposalMainPage: React.FC = () => {
 
   // Asset data state
   const [assetData, setAssetData] = useState<AssetData>({
-    assetCode: '',
+    assetId: 'AS-0001',
     assetDescription: '',
     originalCost: 0,
     qualifyingExpenditure: 0,
@@ -73,7 +73,7 @@ const DisposalMainPage: React.FC = () => {
   
   // Disposal type specific data
   const [normalDisposalData, setNormalDisposalData] = useState({
-    assetId: '',
+    assetId: 'AS-0001',
     acquireDate: '',
     disposalDate: '',
     disposalValue: 0,
@@ -83,21 +83,21 @@ const DisposalMainPage: React.FC = () => {
   });
 
   const [mfrs5DisposalData, setMfrs5DisposalData] = useState({
-    assetId: '',
+    assetId: 'AS-0001',
     classificationDate: '',
     disposalValue: 0,
     recipient: '',
   });
 
   const [giftDisposalData, setGiftDisposalData] = useState({
-    assetCode: '',
+    assetId: 'AS-0001',
     acquireDate: '',
     disposalDate: '',
     recipient: '',
   });
 
   const [agricultureDisposalData, setAgricultureDisposalData] = useState({
-    assetCode: '',
+    assetId: 'AS-0001',
     acquireDate: '',
     disposalDate: '',
     disposalValue: 0,
@@ -125,7 +125,7 @@ const DisposalMainPage: React.FC = () => {
   // Disposal history - using the correct interface from DisposalHistoryTable
   const [disposalHistory, setDisposalHistory] = useState<Array<{
     id: string;
-    assetCode: string;
+    assetId: string;
     disposalType: string;
     disposalDate: string;
     disposalValue: number;
@@ -144,7 +144,7 @@ const DisposalMainPage: React.FC = () => {
       if (existingData) {
         const parsedData = JSON.parse(existingData);
         const baseAssetData = {
-          assetCode: parsedData.main?.code || '',
+          assetId: parsedData.main?.code || '',
           assetDescription: parsedData.main?.description || '',
           originalCost: parsedData.allowance?.originalCost || 0,
           qualifyingExpenditure: parsedData.allowance?.qualifyingExpenditure || 0,
@@ -158,24 +158,24 @@ const DisposalMainPage: React.FC = () => {
         // Also populate disposal-type specific forms with basic asset info
         setNormalDisposalData(prev => ({
           ...prev,
-          assetId: baseAssetData.assetCode,
+          assetId: baseAssetData.assetId,
           acquireDate: baseAssetData.purchaseDate,
         }));
 
         setMfrs5DisposalData(prev => ({
           ...prev,
-          assetId: baseAssetData.assetCode,
+          assetId: baseAssetData.assetId,
         }));
 
         setGiftDisposalData(prev => ({
           ...prev,
-          assetCode: baseAssetData.assetCode,
+          assetId: baseAssetData.assetId,
           acquireDate: baseAssetData.purchaseDate,
         }));
         
         setAgricultureDisposalData(prev => ({
           ...prev,
-          assetCode: baseAssetData.assetCode,
+          assetId: baseAssetData.assetId,
           acquireDate: baseAssetData.purchaseDate,
         }));
         
@@ -376,7 +376,7 @@ const DisposalMainPage: React.FC = () => {
     // Add to disposal history
     const newHistoryItem = {
       id: Date.now().toString(),
-      assetCode: assetData.assetCode,
+      assetId: assetData.assetId,
       disposalType: selectedDisposalType,
       disposalDate: assetData.disposalDate,
       disposalValue: calculationResults.disposalValue,

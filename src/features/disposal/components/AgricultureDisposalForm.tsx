@@ -5,7 +5,7 @@ import Card from '@/components/ui/components/Card';
 
 interface AgricultureDisposalFormProps {
   data: {
-    assetCode: string;
+    assetId: string;
     acquireDate: string;
     disposalDate: string;
     disposalValue: number;
@@ -68,7 +68,7 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
           <Input
             id="agriculture-asset-code"
             type="text"
-            value={data.assetCode}
+            value={data.assetId}
             disabled={true}
             className="bg-surfaceContainer cursor-not-allowed"
           />

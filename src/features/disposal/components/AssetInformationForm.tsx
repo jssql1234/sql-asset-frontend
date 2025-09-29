@@ -5,7 +5,7 @@ import Card from '@/components/ui/components/Card';
 
 interface AssetInformationFormProps {
   data: {
-    assetCode: string;
+    assetId: string;
     assetDescription: string;
     originalCost: number;
     qualifyingExpenditure: number;
@@ -46,7 +46,7 @@ const AssetInformationForm: React.FC<AssetInformationFormProps> = ({
           <Input
             id="asset-code"
             type="text"
-            value={data.assetCode}
+            value={data.assetId}
             disabled={true}
             className="bg-surfaceContainer cursor-not-allowed"
           />

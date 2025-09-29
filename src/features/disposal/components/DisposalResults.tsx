@@ -4,7 +4,7 @@ import Card from '@/components/ui/components/Card';
 
 // Type definitions for disposal results
 interface AssetData {
-  assetCode: string;
+  assetId: string;
   assetDescription: string;
   originalCost: number;
   qualifyingExpenditure: number;
@@ -166,7 +166,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-onSurface text-sm mb-2">Asset ID</div>
-              <div className="font-semibold text-lg text-onBackground">{assetData.assetCode}</div>
+              <div className="font-semibold text-lg text-onBackground">{assetData.assetId}</div>
             </div>
             <div className="text-center">
               <div className="text-onSurface text-sm mb-2">Disposal Type</div>

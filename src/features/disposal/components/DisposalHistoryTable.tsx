@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/components';
 
 interface DisposalHistoryEntry {
   id: string;
-  assetCode: string;
+  assetId: string;
   disposalType: string;
   disposalDate: string;
   disposalValue: number;
@@ -159,7 +159,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
             {entries.map((entry) => (
               <tr key={entry.id} className="border-b border-outlineVariant hover:bg-surfaceContainer/50">
                 <td className="px-4 py-3">
-                  <div className="font-medium text-onSurface">{entry.assetCode}</div>
+                  <div className="font-medium text-onSurface">{entry.assetId}</div>
                   {entry.isMultipleAssets && (
                     <div className="text-xs text-outline">
                       +{entry.multipleAssets?.length || 0} assets

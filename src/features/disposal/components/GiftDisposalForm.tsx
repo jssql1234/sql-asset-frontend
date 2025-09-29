@@ -5,7 +5,7 @@ import Card from '@/components/ui/components/Card';
 
 interface GiftDisposalFormProps {
   data: {
-    assetCode: string;
+    assetId: string;
     acquireDate: string;
     disposalDate: string;
     recipient: string;
@@ -60,7 +60,7 @@ const GiftDisposalForm: React.FC<GiftDisposalFormProps> = ({
           <Input
             id="gift-asset-code"
             type="text"
-            value={data.assetCode}
+            value={data.assetId}
             disabled={true}
             className="bg-surfaceContainer cursor-not-allowed"
           />

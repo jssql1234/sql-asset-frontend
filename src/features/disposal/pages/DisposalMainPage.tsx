@@ -562,7 +562,7 @@ const DisposalMainPage: React.FC = () => {
                 steps={getWizardSteps()}
                 onStepClick={handleStepClick}
                 showProgressBar={true}
-                allowStepNavigation={true}
+                allowStepNavigation={!disposalConfirmed}
               />
             </div>
           )}

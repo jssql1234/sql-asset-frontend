@@ -190,21 +190,16 @@ const DisposalMainPage: React.FC = () => {
         current: currentStep === 2,
         disabled: currentStep < 2,
       },
-    ];
-
-    // Add conditional steps based on disposal type
-    if (selectedDisposalType) {
-      // All disposal types go directly to results after asset information
-      baseSteps.push({
+      {
         id: 'results',
         label: 'Final Results',
         description: 'Confirm disposal',
         completed: disposalConfirmed,
         current: currentStep === 3,
         disabled: currentStep < 3,
-      });
-    }
-
+      }
+    ];
+    
     return baseSteps;
   };
 

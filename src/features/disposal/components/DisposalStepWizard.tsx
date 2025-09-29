@@ -26,12 +26,7 @@ const DisposalStepWizard: React.FC<DisposalStepWizardProps> = ({
 }) => {
   const currentStepIndex = steps.findIndex(step => step.current);
   const completedSteps = steps.filter(step => step.completed).length;
-  
-  // Fix progress calculation to align with dots
-  // Progress should fill to the current step position, accounting for spacing
   const progressSteps = currentStepIndex >= 0 ? currentStepIndex : completedSteps;
-  // Calculate progress based on the position between dots
-  // For 3 steps: 0%, 50%, 100% (positions between the dots)
   const progressPercentage = steps.length > 1 ? (progressSteps / (steps.length - 1)) * 100 : 0;
 
   const handleStepClick = (step: WizardStep) => {

@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import sqlLogo from "@/assets/images/sqlasset_logo2.png";
+import sqlLogo from "@/assets/images/sqlasset_logo1.png";
 
 interface AssetLogoProps {
   className?: string;

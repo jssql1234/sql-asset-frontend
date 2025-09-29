@@ -224,7 +224,7 @@ interface ContentAreaProps {
 
 const ContentArea: React.FC<ContentAreaProps> = ({ children, className }) => (
   <div className={cn(
-    "flex-1 p-6 bg-background overflow-y-auto",
+    "flex-1 px-6 bg-background overflow-y-auto",
     className
   )}>
     {children}

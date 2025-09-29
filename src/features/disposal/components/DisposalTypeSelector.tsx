@@ -3,9 +3,7 @@ import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
 
 interface DisposalTypeSelectorProps {
-  selectedCase: 'special' | 'normal' | null;
   selectedDisposalType: string;
-  onCaseChange: (caseType: 'special' | 'normal') => void;
   onDisposalTypeChange: (disposalType: string) => void;
   onNext: () => void;
   onPrevious: () => void;
@@ -14,9 +12,7 @@ interface DisposalTypeSelectorProps {
 }
 
 const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
-  selectedCase,
   selectedDisposalType,
-  onCaseChange,
   onDisposalTypeChange,
   onNext,
   onPrevious,
@@ -42,73 +38,32 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
     },
   ];
 
-  const handleCaseChange = (caseType: 'special' | 'normal') => {
-    onCaseChange(caseType);
-    // Reset disposal type when case changes
-    onDisposalTypeChange('');
-  };
-
-  const isNextDisabled = !selectedCase || (selectedCase === 'normal' && !selectedDisposalType);
+  const isNextDisabled = !selectedDisposalType;
 
   return (
     <Card className="space-y-6">
       <div className="border-b border-outline pb-4">
-        <h3 className="text-lg font-semibold text-onBackground">Cases</h3>
+        <h3 className="text-lg font-semibold text-onBackground">Disposal Type</h3>
+        <p className="text-onSurface mt-1">Select the type of asset disposal</p>
       </div>
 
       <div className="space-y-4">
-        <div className="flex flex-col space-y-3">
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input
-              type="radio"
-              name="building-type"
-              value="toll-road"
-              checked={selectedCase === 'special'}
-              onChange={() => handleCaseChange('special')}
-              disabled={disabled}
-              className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
-            />
-            <span className="text-onBackground">Special Cases</span>
-          </label>
-
-          <label className="flex items-center space-x-3 cursor-pointer">
-            <input
-              type="radio"
-              name="building-type"
-              value="normal"
-              checked={selectedCase === 'normal'}
-              onChange={() => handleCaseChange('normal')}
-              disabled={disabled}
-              className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
-            />
-            <span className="text-onBackground">Normal Cases</span>
-          </label>
+        <div className="space-y-3">
+          {disposalTypes.map((type) => (
+            <label key={type.value} className="flex items-center space-x-3 cursor-pointer">
+              <input
+                type="radio"
+                name="disposal-type"
+                value={type.value}
+                checked={selectedDisposalType === type.value}
+                onChange={() => onDisposalTypeChange(type.value)}
+                disabled={disabled}
+                className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
+              />
+              <span className="text-onBackground text-sm">{type.label}</span>
+            </label>
+          ))}
         </div>
-
-        {selectedCase === 'normal' && (
-          <div className="mt-6 space-y-4 p-4 bg-surfaceContainer rounded-md">
-            <div className="border-b border-outline pb-2">
-              <h4 className="font-medium text-onBackground">Disposal Type</h4>
-            </div>
-
-            <div className="space-y-3">
-              {disposalTypes.map((type) => (
-                <label key={type.value} className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="disposal-type"
-                    value={type.value}
-                    checked={selectedDisposalType === type.value}
-                    onChange={() => onDisposalTypeChange(type.value)}
-                    disabled={disabled}
-                    className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
-                  />
-                  <span className="text-onBackground text-sm">{type.label}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="flex justify-between pt-4">

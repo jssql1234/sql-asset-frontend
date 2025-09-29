@@ -42,9 +42,8 @@ interface WizardStep {
 }
 
 const DisposalMainPage: React.FC = () => {
-  // State management - Start with step 1 (Cases & Disposal Type)
+  // State management - Start with step 1 (Disposal Type)
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedCase, setSelectedCase] = useState<'special' | 'normal' | null>(null);
   const [selectedDisposalType, setSelectedDisposalType] = useState('');
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [disposalConfirmed, setDisposalConfirmed] = useState(false);
@@ -177,7 +176,7 @@ const DisposalMainPage: React.FC = () => {
     const baseSteps = [
       {
         id: 'disposal-type',
-        label: 'Cases & Disposal Type',
+        label: 'Disposal Type',
         description: 'Select disposal type',
         completed: currentStep > 1,
         current: currentStep === 1,
@@ -194,7 +193,7 @@ const DisposalMainPage: React.FC = () => {
     ];
 
     // Add conditional steps based on disposal type
-    if (selectedCase === 'normal' && selectedDisposalType) {
+    if (selectedDisposalType) {
       // All disposal types go directly to results after asset information
       baseSteps.push({
         id: 'results',
@@ -245,12 +244,7 @@ const DisposalMainPage: React.FC = () => {
     }));
   };
 
-  // Case and disposal type handlers
-  const handleCaseChange = (caseType: 'special' | 'normal') => {
-    setSelectedCase(caseType);
-    setSelectedDisposalType('');
-  };
-
+  // Disposal type handler
   const handleDisposalTypeChange = (disposalType: string) => {
     setSelectedDisposalType(disposalType);
   };
@@ -410,9 +404,7 @@ const DisposalMainPage: React.FC = () => {
         return (
           <div className="space-y-6">
             <DisposalTypeSelector
-              selectedCase={selectedCase}
               selectedDisposalType={selectedDisposalType}
-              onCaseChange={handleCaseChange}
               onDisposalTypeChange={handleDisposalTypeChange}
               onNext={handleNextStep}
               onPrevious={handlePreviousStep}

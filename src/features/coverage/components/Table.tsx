@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge, Button } from "@/components/ui/components";
+import { Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type {
@@ -102,22 +102,8 @@ const PoliciesVariantTable = ({
         header: "Status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onViewPolicy(row.original)}>
-              View
-            </Button>
-          </div>
-        ),
-        meta: {
-          align: "right",
-        },
-      },
     ],
-    [onViewPolicy]
+    []
   );
 
   return (
@@ -125,6 +111,7 @@ const PoliciesVariantTable = ({
       columns={columns}
       data={policies}
       showPagination
+      onRowDoubleClick={onViewPolicy}
     />
   );
 };
@@ -165,22 +152,8 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
         header: "Status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onViewWarranty(row.original)}>
-              View
-            </Button>
-          </div>
-        ),
-        meta: {
-          align: "right",
-        },
-      },
     ],
-    [onViewWarranty]
+    []
   );
 
   return (
@@ -188,6 +161,7 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
       columns={columns}
       data={warranties}
       showPagination
+      onRowDoubleClick={onViewWarranty}
     />
   );
 };
@@ -279,22 +253,8 @@ const ClaimsVariantTable = ({
         header: "Work Order",
         cell: ({ row }) => row.original.workOrderId ?? "—",
       },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={() => onViewClaim(row.original)}>
-              View
-            </Button>
-          </div>
-        ),
-        meta: {
-          align: "right",
-        },
-      },
     ],
-    [onViewClaim]
+    []
   );
 
   return (
@@ -302,6 +262,7 @@ const ClaimsVariantTable = ({
       columns={columns}
       data={claims}
       showPagination
+      onRowDoubleClick={onViewClaim}
     />
   );
 };

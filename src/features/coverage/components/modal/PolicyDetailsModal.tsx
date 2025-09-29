@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/components";
 import type { CoveragePolicy } from "@/features/coverage/types";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";

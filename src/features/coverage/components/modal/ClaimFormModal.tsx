@@ -1,25 +1,8 @@
 import React, { useMemo, useState } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
-import type {
-  ClaimType,
-  CoverageClaim,
-  CoveragePolicy,
-  CoverageWarranty,
-} from "@/features/coverage/types";
+import type { ClaimType, CoverageClaim, CoveragePolicy, CoverageWarranty } from "@/features/coverage/types";
 
 interface ClaimFormModalProps {
   open: boolean;

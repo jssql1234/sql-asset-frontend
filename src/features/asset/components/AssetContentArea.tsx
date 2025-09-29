@@ -300,7 +300,7 @@ export default function AssetContentArea() {
         {/* Header actions */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="label-medium-bold text-onSurface">Asset Overview</div>
+            {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
             <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
             onClick={() => setGroupByBatch(!groupByBatch)}>
               <button
@@ -320,13 +320,14 @@ export default function AssetContentArea() {
                 Batch
               </button>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
             <TableColumnVisibility
               columns={allColumns}
               visibleColumns={visibleColumns}
               setVisibleColumns={setVisibleColumns}
+              className="size-32"
             />
+          </div>
+          <div className="flex items-center gap-2">
             <Button size="sm" onClick={() => setIsCreateModalOpen(true)}>
               Add
             </Button>

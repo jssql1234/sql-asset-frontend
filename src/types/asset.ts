@@ -1,5 +1,5 @@
 export interface Asset {
-  id: number;
+  id: string;
   name: string;
   batchId?: string;
   quantity: number;

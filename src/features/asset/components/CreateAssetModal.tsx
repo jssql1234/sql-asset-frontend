@@ -41,13 +41,13 @@ export default function CreateAssetModal({ open, onOpenChange }: CreateAssetModa
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="title-medium text-onSurface">Create Asset</DialogTitle>
-          <DialogClose />
+      <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto flex flex-col bg-onPrimary pt-0" dialogClose={false}>
+        <DialogHeader className="sticky z-50 top-0 flex flex-row items-center bg-onPrimary pt-6">
+          <DialogTitle className="title-medium text-onSurface m-0">Create Asset</DialogTitle>
+          <DialogClose className="static"/>
         </DialogHeader>
 
-        <div className="mt-4">
+        <div className="flex-grow">
           <CreateAsset onSuccess={handleSuccess} />
 
           {/* Fake submit button for testing */}

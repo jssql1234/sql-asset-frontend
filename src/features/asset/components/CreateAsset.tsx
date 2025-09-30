@@ -1,5 +1,5 @@
 import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
 import {
@@ -130,7 +130,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
   );
 };
 
-const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch }) => {
+const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) => {
   return (
     <Card className="p-6 -mt-2">
       <div className="flex items-center gap-2">
@@ -141,12 +141,25 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">HP Start Date</label>
-          <SemiDatePicker
-            inputType="date"
-            {...register("hpStartDate")}
-            value={watch("hpStartDate")}
-            onChange={(date) => setValue("hpStartDate", date as string)}
-            className="border-none"
+          <Controller
+            name="hpStartDate"
+            control={control}
+            render={({ field }) => (
+              <SemiDatePicker
+                inputType="date"
+                value={field.value}
+                onChange={(date) => {
+                  let formatted = '';
+                  if (typeof date === 'string') {
+                    formatted = date;
+                  } else if (date instanceof Date) {
+                    formatted = date.toISOString().split('T')[0];
+                  }
+                  field.onChange(formatted);
+                }}
+                className="border-none"
+              />
+            )}
           />
         </div>
         <div>
@@ -406,7 +419,7 @@ const SerialNoTab: React.FC<any> = ({ setValue, watch }) => {
   );
 };
 
-const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
+const WarrantyTab: React.FC<any> = ({ register, control }) => {
   return (
     <Card className="p-6 -mt-2">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -416,22 +429,48 @@ const WarrantyTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">Start Date</label>
-          <SemiDatePicker
-            inputType="date"
-            {...register("warrantyStartDate")}
-            value={watch("warrantyStartDate")}
-            onChange={(date) => setValue("warrantyStartDate", date as string)}
-            className="border-none"
+          <Controller
+            name="warrantyStartDate"
+            control={control}
+            render={({ field }) => (
+              <SemiDatePicker
+                inputType="date"
+                value={field.value}
+                onChange={(date) => {
+                  let formatted = '';
+                  if (typeof date === 'string') {
+                    formatted = date;
+                  } else if (date instanceof Date) {
+                    formatted = date.toISOString().split('T')[0];
+                  }
+                  field.onChange(formatted);
+                }}
+                className="border-none"
+              />
+            )}
           />
         </div>
         <div>
           <label className="body-small text-onSurfaceVariant block mb-1">End Date</label>
-          <SemiDatePicker
-            inputType="date"
-            {...register("warrantyEndDate")}
-            value={watch("warrantyEndDate")}
-            onChange={(date) => setValue("warrantyEndDate", date as string)}
-            className="border-none"
+          <Controller
+            name="warrantyEndDate"
+            control={control}
+            render={({ field }) => (
+              <SemiDatePicker
+                inputType="date"
+                value={field.value}
+                onChange={(date) => {
+                  let formatted = '';
+                  if (typeof date === 'string') {
+                    formatted = date;
+                  } else if (date instanceof Date) {
+                    formatted = date.toISOString().split('T')[0];
+                  }
+                  field.onChange(formatted);
+                }}
+                className="border-none"
+              />
+            )}
           />
         </div>
       </div>
@@ -454,6 +493,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetFormSchema),
@@ -484,7 +524,6 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
   }, [inactive, setValue]);
 
   const formRef = useRef<HTMLFormElement>(null);
-  const createAssetRef = useRef<CreateAssetRef>(null);
 
   useImperativeHandle(ref, () => ({
     submit: () => formRef.current?.requestSubmit(),
@@ -507,9 +546,11 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
         duration: 5000,
       });
       setIsSubmitting(false);
-      onSuccess?.({} as CreateAssetFormData);
+      onBack?.();
     }, 1000);
   };
+
+
 
   // Mock data for dropdowns
   const assetGroups = [
@@ -523,32 +564,32 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
     {
       label: "Allowance",
       value: "allowance",
-      content: <AllowanceTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+      content: <AllowanceTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
     },
     {
       label: "Hire Purchase",
       value: "hire-purchase",
-      content: <HirePurchaseTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+      content: <HirePurchaseTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
     },
     {
       label: "Depreciation",
       value: "depreciation",
-      content: <DepreciationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+      content: <DepreciationTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
     },
     {
       label: "Allocation",
       value: "allocation",
-      content: <AllocationTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+      content: <AllocationTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
     },
     {
       label: "Serial No",
       value: "serial-no",
-      content: <SerialNoTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+      content: <SerialNoTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
     },
     {
       label: "Warranty",
       value: "warranty",
-      content: <WarrantyTab register={register} setValue={setValue} watch={watch} errors={errors} />,
+      content: <WarrantyTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
     },
   ];
 
@@ -565,7 +606,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
         <div className="flex flex-row gap-6 items-stretch">
           {/* Left: Existing create asset forms */}
           <div className="flex-2">
-            <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit(onSubmit)} action="" className="space-y-6">
               {/* Main Form Fields */}
               <Card className="p-6">
 
@@ -586,7 +627,15 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                         <SemiDatePicker
                           inputType="date"
                           value={watch("inactiveStart")}
-                          onChange={(date) => setValue("inactiveStart", date as string)}
+                          onChange={(date) => {
+                            let formatted = '';
+                            if (typeof date === 'string') {
+                              formatted = date;
+                            } else if (date instanceof Date) {
+                              formatted = date.toISOString().split('T')[0];
+                            }
+                            setValue("inactiveStart", formatted);
+                          }}
                           className="border-none"
                           placeholder={"Start Date"}
                           disabled={!inactive}
@@ -598,7 +647,15 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                         <SemiDatePicker
                           inputType="date"
                           value={watch("inactiveEnd")}
-                          onChange={(date) => setValue("inactiveEnd", date as string)}
+                          onChange={(date) => {
+                            let formatted = '';
+                            if (typeof date === 'string') {
+                              formatted = date;
+                            } else if (date instanceof Date) {
+                              formatted = date.toISOString().split('T')[0];
+                            }
+                            setValue("inactiveEnd", formatted);
+                          }}
                           className="border-none"
                           placeholder={"End Date"}
                           disabled={!inactive}
@@ -726,22 +783,52 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                     <label className="body-small text-onSurfaceVariant block mb-1">
                       Purchase Date
                     </label>
-                    <SemiDatePicker
-                      inputType="date"
-                      value={watch("purchaseDate")}
-                      onChange={(date) => setValue("purchaseDate", date as string)}
-                      className="border-none"
+                    <Controller
+                      name="purchaseDate"
+                      control={control}
+                      render={({ field }) => (
+                        <SemiDatePicker
+                          inputType="date"
+                          value={field.value}
+                          onChange={(date) => {
+                            let formatted = '';
+                            if (typeof date === 'string') {
+                              formatted = date;
+                            } else if (date instanceof Date) {
+                              formatted = date.toISOString().split('T')[0];
+                            }
+                            field.onChange(formatted);
+                          }}
+                          className="border-none"
+                          errorMsg={errors.purchaseDate?.message}
+                        />
+                      )}
                     />
                   </div>
                   <div>
                     <label className="body-small text-onSurfaceVariant block mb-1">
                       Date First Used / Depreciation Start Date
                     </label>
-                    <SemiDatePicker
-                      inputType="date"
-                      value={watch("acquireDate")}
-                      onChange={(date) => setValue("acquireDate", date as string)}
-                      className="border-none"
+                    <Controller
+                      name="acquireDate"
+                      control={control}
+                      render={({ field }) => (
+                        <SemiDatePicker
+                          inputType="date"
+                          value={field.value}
+                          onChange={(date) => {
+                            let formatted = '';
+                            if (typeof date === 'string') {
+                              formatted = date;
+                            } else if (date instanceof Date) {
+                              formatted = date.toISOString().split('T')[0];
+                            }
+                            field.onChange(formatted);
+                          }}
+                          className="border-none"
+                          errorMsg={errors.acquireDate?.message}
+                        />
+                      )}
                     />
                   </div>
                 </div>
@@ -763,7 +850,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
         {/* Footer (Create Asset) */}
         <div className="mt-6 flex justify-end gap-6 sticky bottom-0 bg-surface p-4 border-t border-outline">
           <Button onClick={handleFakeSubmit} disabled={isSubmitting} className="bg-warning text-onWarning rounded-md hover:bg-warning/80">{isSubmitting ? "Creating..." : "Fake Submit (Test)"}</Button>
-          <Button onClick={() => createAssetRef.current?.submit()}>Create Asset</Button>
+          <Button onClick={() => formRef.current?.requestSubmit()}>Create Asset</Button>
         </div>
       </div>
     </div>

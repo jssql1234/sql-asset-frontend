@@ -11,10 +11,10 @@ export const createAssetFormSchema = z.object({
   assetName: z.string().min(1, "Asset Name is required"),
   quantity: z.number().min(1, "Quantity must be at least 1"),
   quantityPerUnit: z.number().min(1, "Quantity per Asset must be at least 1"),
-  cost: z.string().min(1, "Cost is required"),
+  cost: z.string().optional(),
   description: z.string().optional(),
   purchaseDate: z.string().optional(),
-  acquireDate: z.string().optional(),
+  acquireDate: z.string().min(1, "This Date is required"),
 
   // Allowance tab
   caAssetGroup: z.string().optional(),
@@ -39,17 +39,6 @@ export const createAssetFormSchema = z.object({
   residualValue: z.string().optional(),
   depreciationRate: z.string().optional(),
   totalDepreciation: z.string().optional(),
-
-  // Disposal tab (simplified)
-  disposalAssetCode: z.string().optional(),
-  disposalAssetDescription: z.string().optional(),
-  disposalOriginalCost: z.number().optional(),
-  disposalQualifyingExpenditure: z.number().optional(),
-  disposalResidualExpenditure: z.number().optional(),
-  disposalTotalCaClaimed: z.number().optional(),
-  disposalPurchaseDate: z.string().optional(),
-  disposalDisposalDate: z.string().optional(),
-  disposalType: z.string().optional(),
 
   // Allocation tab
   branch: z.string().optional(),

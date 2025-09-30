@@ -6,103 +6,12 @@ import { DataTable } from "@/features/asset/components/ContentTable";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
 import CreateAsset from "./CreateAsset";
+import type { Asset } from "@/types/assetType";
+import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
 
-type AssetRow = {
-  id: string;
-  batchId: string;
-  name: string;
-  group: string;
-  description: string;
-  acquireDate: string;
-  purchaseDate: string;
-  cost: number;
-  qty: number;
-  // qe: number;
-  // re: number;
-  // ia: number;
-  // aa: number;
-  // aca: boolean;
-  active: boolean;
-  // personalUsePct: number;
-};
-
-const SAMPLE_ASSETS: AssetRow[] = [
-  {
-    id: "AS-00001",
-    batchId: "B-2024-01",
-    name: "Production Line A12",
-    group: "Plant & Machinery",
-    description: "Block A",
-    acquireDate: "2021-01-15",
-    purchaseDate: "2021-01-01",
-    cost: 21500,
-    qty: 1,
-    // qe: 21500,
-    // re: 5000,
-    // ia: 20,
-    // aa: 10,
-    // aca: true,
-    active: true,
-    // personalUsePct: 0,
-  },
-  {
-    id: "AS-00002",
-    batchId: "B-2024-02",
-    name: "Block A Factory",
-    group: "Industrial Building",
-    description: "Block A",
-    acquireDate: "2021-05-20",
-    purchaseDate: "2021-05-15",
-    cost: 64500,
-    qty: 1,
-    // qe: 64500,
-    // re: 20000,
-    // ia: 20,
-    // aa: 20,
-    // aca: false,
-    active: true,
-    // personalUsePct: 10,
-  },
-  {
-    id: "AS-00003",
-    batchId: "B-2024-03",
-    name: "Block B Factory",
-    group: "Industrial Building",
-    description: "Block B",
-    acquireDate: "2021-05-20",
-    purchaseDate: "2021-05-15",
-    cost: 64500,
-    qty: 1,
-    // qe: 64500,
-    // re: 20000,
-    // ia: 20,
-    // aa: 20,
-    // aca: false,
-    active: true,
-    // personalUsePct: 10,
-  },
-  {
-    id: "AS-00004",
-    batchId: "B-2024-02",
-    name: "Printer A10",
-    group: "Plant & Machinery",
-    description: "Block B",
-    acquireDate: "2021-05-20",
-    purchaseDate: "2021-05-15",
-    cost: 64500,
-    qty: 1,
-    // qe: 64500,
-    // re: 20000,
-    // ia: 20,
-    // aa: 20,
-    // aca: false,
-    active: true,
-    // personalUsePct: 10,
-  },
-];
 
 // Column definitions for TanStack Table
-const createColumns = (): CustomColumnDef<AssetRow>[] => [
+const createColumns = (): CustomColumnDef<Asset>[] => [
   {
     id: "id",
     accessorKey: "id",
@@ -179,7 +88,7 @@ const createColumns = (): CustomColumnDef<AssetRow>[] => [
     meta: { label: "Qty" },
     cell: ({ getValue }) => {
       const value = getValue() as number;
-      return value.toLocaleString();
+      return (value ?? 0).toLocaleString();
     },
   },
   // {
@@ -264,13 +173,16 @@ export default function AssetContentArea() {
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [view, setView] = useState<'list' | 'create'>('list');
+
+  const { data: assets } = useGetAsset();
+  const createAssetMutation = useCreateAsset();
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
-  const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<AssetRow>[]>(allColumns);
+  const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
   // Handle row selection
-  const handleRowSelectionChange = (_rows: AssetRow[], rowIds: string[]) => {
+  const handleRowSelectionChange = (_rows: Asset[], rowIds: string[]) => {
     setSelectedRowIds(rowIds);
   };
 
@@ -346,7 +258,7 @@ export default function AssetContentArea() {
           <div className="mt-3">
             <DataTable
               columns={visibleColumns}
-              data={SAMPLE_ASSETS}
+              data={assets || []}
               showPagination={true}
               showCheckbox={true}
               enableRowClickSelection={true}
@@ -356,7 +268,25 @@ export default function AssetContentArea() {
           </div>
         </Card>
       ) : (
-        <CreateAsset onBack={() => setView('list')} onSuccess={() => setView('list')} />
+        <CreateAsset
+          onBack={() => setView('list')}
+          onSuccess={(data) => {
+            const asset: Asset = {
+              id: data.code,
+              batchId: data.batchID || '',
+              name: data.assetName,
+              group: data.assetGroup,
+              description: data.description || '',
+              acquireDate: data.acquireDate || '',
+              purchaseDate: data.purchaseDate || '',
+              cost: parseFloat(data.cost || '0') || 0,
+              qty: data.quantity,
+              active: !data.inactive,
+            };
+            createAssetMutation.mutate(asset);
+            setView('list');
+          }}
+        />
       )}
 
     </div>

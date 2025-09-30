@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import { WarrantySearchFilter } from "@/features/coverage/components/CoverageSearchFilters";
 import { WarrantySummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import type { CoverageWarranty, WarrantyFilters, WarrantySummaryMetrics } from "@/features/coverage/types";
 
@@ -59,45 +59,10 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
 
       <WarrantySummaryCards summary={summary} />
 
-      <CoverageSearchFilter
-        searchLabel="Search"
-        searchPlaceholder="Warranty name, provider, or asset"
-        searchValue={filters.search}
-        onSearchChange={(value: string) => onFiltersChange({ search: value })}
-        dropdowns={[
-          {
-            id: "status",
-            label: "Status",
-            value: filters.status,
-            placeholder: "All Status",
-            options: [
-              { label: "All Status", value: "" },
-              { label: "Active", value: "Active" },
-              { label: "Expiring Soon", value: "Expiring Soon" },
-              { label: "Expired", value: "Expired" },
-            ],
-            onSelect: (value: string) =>
-              onFiltersChange({ status: value as WarrantyFilters["status"] }),
-          },
-          {
-            id: "provider",
-            label: "Provider",
-            value: filters.provider,
-            placeholder: "All Providers",
-            options: [
-              { label: "All Providers", value: "" },
-              ...providers.map((provider) => ({ label: provider, value: provider })),
-            ],
-            onSelect: (value: string) => onFiltersChange({ provider: value }),
-          },
-        ]}
-        onClear={() =>
-          onFiltersChange({
-            search: "",
-            status: "",
-            provider: "",
-          })
-        }
+      <WarrantySearchFilter
+        filters={filters}
+        providers={providers}
+        onFiltersChange={onFiltersChange}
       />
 
       <CoverageTable variant="warranties" warranties={filteredWarranties} onViewWarranty={onViewWarranty} />

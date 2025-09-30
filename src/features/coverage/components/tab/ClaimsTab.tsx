@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import { ClaimSearchFilter } from "@/features/coverage/components/CoverageSearchFilters";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import type { ClaimFilters, ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
 
@@ -57,47 +57,9 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 
       <ClaimSummaryCards summary={summary} />
 
-      <CoverageSearchFilter
-        searchLabel="Search"
-        searchPlaceholder="Claim number, asset, or policy"
-        searchValue={filters.search}
-        onSearchChange={(value: string) => onFiltersChange({ search: value })}
-        dropdowns={[
-          {
-            id: "type",
-            label: "Claim Type",
-            value: filters.type,
-            placeholder: "All Types",
-            options: [
-              { label: "All Types", value: "" },
-              { label: "Insurance", value: "Insurance" },
-              { label: "Warranty", value: "Warranty" },
-            ],
-            onSelect: (value: string) => onFiltersChange({ type: value as ClaimFilters["type"] }),
-          },
-          {
-            id: "status",
-            label: "Status",
-            value: filters.status,
-            placeholder: "All Status",
-            options: [
-              { label: "All Status", value: "" },
-              { label: "Filed", value: "Filed" },
-              { label: "Approved", value: "Approved" },
-              { label: "Settled", value: "Settled" },
-              { label: "Rejected", value: "Rejected" },
-            ],
-            onSelect: (value: string) =>
-              onFiltersChange({ status: value as ClaimFilters["status"] }),
-          },
-        ]}
-        onClear={() =>
-          onFiltersChange({
-            search: "",
-            type: "",
-            status: "",
-          })
-        }
+      <ClaimSearchFilter
+        filters={filters}
+        onFiltersChange={onFiltersChange}
       />
 
       <CoverageTable

@@ -2,7 +2,7 @@ import React from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
-import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
+import { DetailModalSection } from "@/features/coverage/components/DetailModal";
 import type { CoverageClaim } from "@/features/coverage/types";
 
 interface WorkOrderFromClaimModalProps {

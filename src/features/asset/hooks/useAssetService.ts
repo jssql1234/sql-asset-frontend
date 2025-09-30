@@ -13,7 +13,7 @@ export function useGetAsset() {
   });
 }
 
-export function useCreateAsset() {
+export function useCreateAsset(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -30,6 +30,7 @@ export function useCreateAsset() {
         description: "Asset has been created successfully.",
         duration: 5000,
       });
+      onSuccess?.();
     },
 
     onError: (_error: Error) => {

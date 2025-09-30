@@ -3,7 +3,7 @@ import { mockAssets } from "../assetMockData";
 
 export const fetchAssetList = async (): Promise<Asset[]> => {
   // Mock implementation
-  return Promise.resolve(mockAssets);
+  return Promise.resolve([...mockAssets]);
 };
 
 export const createAsset = async (payload: Asset): Promise<void> => {

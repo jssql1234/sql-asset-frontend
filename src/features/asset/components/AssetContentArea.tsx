@@ -175,7 +175,7 @@ export default function AssetContentArea() {
   const [view, setView] = useState<'list' | 'create'>('list');
 
   const { data: assets } = useGetAsset();
-  const createAssetMutation = useCreateAsset();
+  const createAssetMutation = useCreateAsset(() => setView('list'));
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
@@ -284,7 +284,6 @@ export default function AssetContentArea() {
               active: !data.inactive,
             };
             createAssetMutation.mutate(asset);
-            setView('list');
           }}
         />
       )}

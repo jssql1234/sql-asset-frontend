@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Badge, Button } from "@/components/ui/components";
+import { Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { type ColumnDef } from "@tanstack/react-table";
 import type { DowntimeIncident, FilterState } from "@/features/downtime/types";
@@ -58,6 +58,16 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
 
           return <Badge text={priority} variant={variant} className="h-6 px-3" />;
         },
+        filterFn: "multiSelect",
+        enableColumnFilter: true,
+        meta: {
+          filterOptions: [
+            { label: "Low", value: "Low" },
+            { label: "Medium", value: "Medium" },
+            { label: "High", value: "High" },
+            { label: "Critical", value: "Critical" },
+          ],
+        },
       },
       {
         accessorKey: "startTime",
@@ -86,23 +96,8 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
           );
         },
       },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEditIncident(row.original)}
-            >
-              Edit
-            </Button>
-          </div>
-        ),
-      },
     ],
-    [onEditIncident]
+    []
   );
 
   return (
@@ -118,6 +113,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         data={filteredIncidents}
         showPagination={true}
         className="border border-outline"
+        onRowDoubleClick={onEditIncident}
       />
     </div>
   );

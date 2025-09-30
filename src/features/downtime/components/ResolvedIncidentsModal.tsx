@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { type ColumnDef } from "@tanstack/react-table";
-import SearchBar from "@/components/SearchBar";
+import SearchFilter from "@/components/SearchFilter";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/components/DowntimeTable";
 import { resolvedIncidents } from "@/features/downtime/mockData";
@@ -112,12 +112,15 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         
         {/* Search */}
         <div className="flex-shrink-0 mb-4">
-          <SearchBar
-            value={searchValue}
+          <SearchFilter
+            searchValue={searchValue}
             onSearch={setSearchValue}
-            placeholder="Search resolved incidents..."
-            live={true}
-            className="max-w-md"
+            searchPlaceholder="Search resolved incidents..."
+            live
+            className="gap-0"
+            contentClassName="gap-0"
+            inputWrapperClassName="max-w-md"
+            inputClassName="rounded"
           />
         </div>
 

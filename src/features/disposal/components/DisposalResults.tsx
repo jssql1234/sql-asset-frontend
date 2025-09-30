@@ -38,10 +38,11 @@ interface DisposalResultsProps {
   calculationResults: DisposalCalculationResults;
   isClawbackApplicable?: boolean;
   onClawbackChange?: (isApplicable: boolean) => void;
+  isSpreadBalancingCharge?: boolean;
+  onSpreadBalancingChargeChange?: (isSpread: boolean) => void;
   onConfirm: () => void;
   onPrevious: () => void;
   isConfirmed?: boolean;
-  readOnly?: boolean;
 }
 
 const DisposalResults: React.FC<DisposalResultsProps> = ({
@@ -50,10 +51,11 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
   calculationResults,
   isClawbackApplicable = false,
   onClawbackChange,
+  isSpreadBalancingCharge = false,
+  onSpreadBalancingChargeChange,
   onConfirm,
   onPrevious,
   isConfirmed = false,
-  readOnly = false,
 }) => {
   // Helper function to format disposal type display
   const formatDisposalType = (type: string): string => {
@@ -285,7 +287,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
         </h4>
         
         <div className="bg-white border border-outline rounded-xl p-6 shadow-sm">
-          <div className="space-y-6">
+          <div className="space-y-1">
             {/* Tax Treatment */}
             <div className="bg-surfaceContainer rounded-lg p-4">
               <div className="flex justify-between items-center">
@@ -317,9 +319,9 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
             </div>
 
             {/* Clawback Checkbox */}
-            {!readOnly && onClawbackChange && (
-              <div className="bg-surfaceContainer rounded-lg p-4">
-                <div className="flex items-center space-x-3 mb-3">
+            {onClawbackChange && (
+              <div className="bg-surfaceContainer rounded-lg p-4 space-y-4">
+                <div className="flex items-center space-x-3">
                   <input
                     type="checkbox"
                     id="clawback-applicable"
@@ -331,11 +333,67 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
                     Clawback: Asset disposed within {disposalType === 'agriculture' ? '5' : '2'} years of acquisition
                   </label>
                 </div>
-                {isClawbackApplicable && calculationResults.clawbackAmount && (
+
+                {/* Spread Balancing Charge Checkbox - Only shows for agriculture disposal when clawback is applicable */}
+                {disposalType === 'agriculture' && isClawbackApplicable && onSpreadBalancingChargeChange && (
+                  <div className="flex items-center space-x-3 pl-8">
+                    <input
+                      type="checkbox"
+                      id="spread-balancing-charge"
+                      checked={isSpreadBalancingCharge}
+                      onChange={(e) => onSpreadBalancingChargeChange(e.target.checked)}
+                      className="w-5 h-5 text-primary border-outlineVariant focus:ring-primary rounded"
+                    />
+                    <label htmlFor="spread-balancing-charge" className="font-medium text-onBackground">
+                      Spread Balancing Charge over Years of Assessment
+                    </label>
+                  </div>
+                )}
+                
+                <div className="pt-4 border-t border-outline">
+                  <div className="flex justify-between items-center">
+                    <span className="text-onSurface font-medium">Balancing Charge</span>
+                    <span className="font-bold text-lg text-red-600">0</span>
+                  </div>
+                </div>
+
+                {/* Spread Details Table - Only shows for agriculture disposal when spread is enabled */}
+                {disposalType === 'agriculture' && isSpreadBalancingCharge && (
                   <div className="mt-4 pt-4 border-t border-outline">
-                    <div className="flex justify-between items-center">
-                      <span className="text-onSurface font-medium">Clawback Amount</span>
-                      <span className="font-bold text-lg text-red-600">{formatCurrency(calculationResults.clawbackAmount)}</span>
+                    <h5 className="text-sm font-semibold text-onBackground mb-3">Spread Details</h5>
+                    <div className="overflow-hidden rounded-lg border-2 border-outline">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="bg-surfaceContainer">
+                            <th className="px-4 py-3 text-left font-medium text-onBackground border-b-2 border-r-2 border-outline">
+                              Year of Assessment
+                            </th>
+                            <th className="px-4 py-3 text-center font-medium text-onBackground border-b-2 border-r-2 border-outline">
+                              Annual Allowance
+                            </th>
+                            <th className="px-4 py-3 text-right font-medium text-onBackground border-b-2 border-outline">
+                              Balancing Charge
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-surface">
+                          <tr className="border-b-2 border-outline">
+                            <td className="px-4 py-3 text-onBackground border-r-2 border-outline">YA 2023</td>
+                            <td className="px-4 py-3 text-center text-onBackground border-r-2 border-outline">RM 137,500</td>
+                            <td className="px-4 py-3 text-right text-onBackground">RM 99,556</td>
+                          </tr>
+                          <tr className="border-b-2 border-outline">
+                            <td className="px-4 py-3 text-onBackground border-r-2 border-outline">YA 2024</td>
+                            <td className="px-4 py-3 text-center text-onBackground border-r-2 border-outline">RM 61,612</td>
+                            <td className="px-4 py-3 text-right text-onBackground">RM 99,556</td>
+                          </tr>
+                          <tr className="bg-surfaceContainer font-semibold">
+                            <td className="px-4 py-3 text-onBackground border-r-2 border-outline">Total:</td>
+                            <td className="px-4 py-3 text-center text-onBackground border-r-2 border-outline">RM 199,112</td>
+                            <td className="px-4 py-3 text-right text-onBackground">RM 199,112</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 )}
@@ -346,22 +404,20 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
       </div>
 
       {/* Action Buttons */}
-      {!readOnly && (
-        <div className={`flex pt-6 ${isConfirmed ? 'justify-end' : 'justify-between'}`}>
-          {!isConfirmed && (
-            <Button variant="outline" onClick={onPrevious} className="px-8 py-3">
-              Previous
-            </Button>
-          )}
-          <Button
-            onClick={onConfirm}
-            disabled={isConfirmed}
-            className={`px-8 py-3 ${isConfirmed ? 'bg-green-600 text-white' : ''}`}
-          >
-            {isConfirmed ? 'Confirmed' : 'Confirm Disposal'}
+      <div className={`flex pt-6 ${isConfirmed ? 'justify-end' : 'justify-between'}`}>
+        {!isConfirmed && (
+          <Button variant="outline" onClick={onPrevious} className="px-8 py-3">
+            Previous
           </Button>
-        </div>
-      )}
+        )}
+        <Button
+          onClick={onConfirm}
+          disabled={isConfirmed}
+          className={`px-8 py-3 ${isConfirmed ? 'bg-green-600 text-white' : ''}`}
+        >
+          {isConfirmed ? 'Confirmed' : 'Confirm Disposal'}
+        </Button>
+      </div>
     </Card>
   );
 };

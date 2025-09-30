@@ -57,6 +57,7 @@ const DisposalMainPage: React.FC = () => {
   const [isViewingHistory, setIsViewingHistory] = useState(false);
   const [disposalConfirmed, setDisposalConfirmed] = useState(false);
   const [isClawbackApplicable, setIsClawbackApplicable] = useState(false);
+  const [isSpreadBalancingCharge, setIsSpreadBalancingCharge] = useState(false);
 
   // Asset data state
   const [assetData, setAssetData] = useState<AssetData>({
@@ -299,8 +300,7 @@ const DisposalMainPage: React.FC = () => {
   };
 
   // Hardcoded disposal results
-  const calculateDisposalResults = (disposalType: string, assetData: AssetData): DisposalCalculationResults => {
-    if (disposalType === 'gift') {
+  const calculateDisposalResults = (): DisposalCalculationResults => {
       return {
         balancingAllowance: 0,
         balancingCharge: 0,
@@ -315,67 +315,6 @@ const DisposalMainPage: React.FC = () => {
         disposedRE: 0,
         deemedProceeds: 0,
       };
-    } else if (disposalType === 'agriculture') {
-
-      return {
-        balancingAllowance: 0,
-        balancingCharge: 0,
-        totalCAClaimed: 0,
-        taxTreatment: 'Balancing Allowance',
-        netTaxEffect: 0,
-        disposedCost: 0,
-        disposalValue: 0,
-        remainingCost: 0,
-        proportion: 0,
-        disposedQE: 0,
-        disposedRE: 0,
-        deemedProceeds: 0,
-        annualAllowance: 0,
-        apportionedAllowance: 0,
-      };
-    } else {
-      // Normal disposal calculations
-      const originalCost = assetData.originalCost;
-      const totalCAClaimed = assetData.totalCAClaimed;
-      const wdv = originalCost - totalCAClaimed;
-      const disposalValue = originalCost * 0.85; // Simulated disposal value
-      
-      if (disposalValue > wdv) {
-        // Balancing charge
-        const balancingCharge = disposalValue - wdv;
-        return {
-          balancingAllowance: 0,
-          balancingCharge: balancingCharge,
-          totalCAClaimed: wdv,
-          taxTreatment: 'Balancing Charge',
-          netTaxEffect: -balancingCharge,
-          disposedCost: 0,
-          disposalValue: 0,
-          remainingCost: 0,
-          proportion: 0,
-          disposedQE: 0,
-          disposedRE: 0,
-          deemedProceeds: 0,
-        };
-      } else {
-        // Balancing allowance
-        const balancingAllowance = wdv - disposalValue;
-        return {
-          balancingAllowance: balancingAllowance,
-          balancingCharge: 0,
-          totalCAClaimed: wdv,
-          taxTreatment: 'Balancing Allowance',
-          netTaxEffect: balancingAllowance,
-          disposedCost: 0,
-          disposalValue: 0,
-          remainingCost: 0,
-          proportion: 0,
-          disposedQE: 0,
-          disposedRE: 0,
-          deemedProceeds: 0,
-        };
-      }
-    }
   };
 
   // Final confirmation
@@ -496,7 +435,7 @@ const DisposalMainPage: React.FC = () => {
         }
 
       case 3: {
-        const results = calculateDisposalResults(selectedDisposalType, assetData);
+        const results = calculateDisposalResults();
         
         return (
           <DisposalResults
@@ -505,6 +444,8 @@ const DisposalMainPage: React.FC = () => {
             calculationResults={results}
             isClawbackApplicable={isClawbackApplicable}
             onClawbackChange={setIsClawbackApplicable}
+            isSpreadBalancingCharge={isSpreadBalancingCharge}
+            onSpreadBalancingChargeChange={setIsSpreadBalancingCharge}
             onConfirm={() => {
               if (!disposalConfirmed) {
                 setCalculationResults(results);
@@ -513,7 +454,6 @@ const DisposalMainPage: React.FC = () => {
             }}
             onPrevious={handlePreviousStep}
             isConfirmed={disposalConfirmed}
-            readOnly={false}
           />
         );
       }

@@ -88,6 +88,35 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
         <p className="text-onSurface mt-2">Review and confirm disposal results</p>
       </div>
 
+    {/* Asset Information Section */}
+    <div className="space-y-6">
+        <h4 className="text-xl font-semibold text-onBackground flex items-center">
+          <div className="w-1 h-6 bg-primary mr-3 rounded-full"></div>
+          Asset Information
+        </h4>
+        
+        <div className="bg-white border border-outline rounded-xl p-6 shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="text-center">
+              <div className="text-onSurface text-sm mb-2">Asset ID</div>
+              <div className="font-semibold text-lg text-onBackground">{assetData.assetId}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-onSurface text-sm mb-2">Disposal Type</div>
+              <div className="font-semibold text-lg text-onBackground">{formatDisposalType(disposalType)}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-onSurface text-sm mb-2">Acquire Date</div>
+              <div className="font-semibold text-lg text-onBackground">{assetData.purchaseDate || 'N/A'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-onSurface text-sm mb-2">Disposal Date</div>
+              <div className="font-semibold text-lg text-onBackground">{assetData.disposalDate || 'N/A'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Calculation Summary Section */}
       <div className="space-y-6">
         <h4 className="text-xl font-semibold text-onBackground flex items-center">
@@ -248,35 +277,6 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
         </div>
       </div>
 
-      {/* Asset Information Section */}
-      <div className="space-y-6">
-        <h4 className="text-xl font-semibold text-onBackground flex items-center">
-          <div className="w-1 h-6 bg-primary mr-3 rounded-full"></div>
-          Asset Information
-        </h4>
-        
-        <div className="bg-white border border-outline rounded-xl p-6 shadow-sm">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="text-onSurface text-sm mb-2">Asset ID</div>
-              <div className="font-semibold text-lg text-onBackground">{assetData.assetId}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-onSurface text-sm mb-2">Disposal Type</div>
-              <div className="font-semibold text-lg text-onBackground">{formatDisposalType(disposalType)}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-onSurface text-sm mb-2">Acquire Date</div>
-              <div className="font-semibold text-lg text-onBackground">{assetData.purchaseDate || 'N/A'}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-onSurface text-sm mb-2">Disposal Date</div>
-              <div className="font-semibold text-lg text-onBackground">{assetData.disposalDate || 'N/A'}</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Tax Impact Section */}
       <div className="space-y-6">
         <h4 className="text-xl font-semibold text-onBackground flex items-center">
@@ -358,7 +358,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
             disabled={isConfirmed}
             className={`px-8 py-3 ${isConfirmed ? 'bg-green-600 text-white' : ''}`}
           >
-            {isConfirmed ? 'Confirmed ✓' : 'Confirm Disposal'}
+            {isConfirmed ? 'Confirmed' : 'Confirm Disposal'}
           </Button>
         </div>
       )}

@@ -3,7 +3,7 @@ import SearchFilterBase, { type FilterConfig } from "@/components/SearchFilter";
 import { Card } from "@/components/ui/components";
 import { cn } from "@/utils/utils";
 
-interface SearchFilterProps {
+interface CoverageSearchFilterProps {
   searchLabel: string;
   searchPlaceholder: string;
   searchValue: string;
@@ -20,7 +20,7 @@ interface SearchFilterProps {
   className?: string;
 }
 
-export const SearchFilter: React.FC<SearchFilterProps> = ({
+export const CoverageSearchFilter: React.FC<CoverageSearchFilterProps> = ({
   searchLabel,
   searchPlaceholder,
   searchValue,

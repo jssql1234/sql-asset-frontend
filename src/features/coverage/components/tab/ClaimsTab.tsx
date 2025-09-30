@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
-import CoverageTable from "@/features/coverage/components/Table";
-import { SearchFilter } from "@/features/coverage/components/SearchFilter";
+import CoverageTable from "@/features/coverage/components/CoverageTable";
+import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
 import type { ClaimFilters, ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
 import { formatCurrency } from "@/features/coverage/utils/formatters";
 
@@ -89,7 +89,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <SearchFilter
+      <CoverageSearchFilter
         searchLabel="Search"
         searchPlaceholder="Claim number, asset, or policy"
         searchValue={filters.search}

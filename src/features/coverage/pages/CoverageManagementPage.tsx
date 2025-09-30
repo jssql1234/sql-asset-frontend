@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 import { Tabs } from "@/components/ui/components";
-import { PoliciesTab } from "@/features/coverage/components/PoliciesTab";
-import { WarrantiesTab } from "@/features/coverage/components/WarrantiesTab";
-import { ClaimsTab } from "@/features/coverage/components/ClaimsTab";
+import { PoliciesTab } from "@/features/coverage/components/tab/PoliciesTab";
+import { WarrantiesTab } from "@/features/coverage/components/tab/WarrantiesTab";
+import { ClaimsTab } from "@/features/coverage/components/tab/ClaimsTab";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
 import { PolicyDetailsModal } from "@/features/coverage/components/modal/PolicyDetailsModal";

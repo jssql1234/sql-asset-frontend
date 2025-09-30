@@ -1,41 +1,57 @@
 import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
-import CoverageTable from "@/features/coverage/components/Table";
-import { SearchFilter } from "@/features/coverage/components/SearchFilter";
-import type { CoverageWarranty, WarrantyFilters, WarrantySummaryMetrics } from "@/features/coverage/types";
+import CoverageTable from "@/features/coverage/components/CoverageTable";
+import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import type { CoveragePolicy, PolicyFilters, PolicySummaryMetrics } from "@/features/coverage/types";
+import { formatCurrency } from "@/features/coverage/utils/formatters";
 
-interface WarrantiesTabProps {
-  warranties: CoverageWarranty[];
-  summary: WarrantySummaryMetrics;
+interface PoliciesTabProps {
+  policies: CoveragePolicy[];
+  summary: PolicySummaryMetrics;
   providers: string[];
-  filters: WarrantyFilters;
-  onFiltersChange: (filters: Partial<WarrantyFilters>) => void;
-  onAddWarranty: () => void;
-  onViewWarranty: (warranty: CoverageWarranty) => void;
+  filters: PolicyFilters;
+  onFiltersChange: (filters: Partial<PolicyFilters>) => void;
+  onAddPolicy: () => void;
+  onViewPolicy: (policy: CoveragePolicy) => void;
 }
 
-export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
-  warranties,
+export const PoliciesTab: React.FC<PoliciesTabProps> = ({
+  policies,
   summary,
   providers,
   filters,
   onFiltersChange,
-  onAddWarranty,
-  onViewWarranty,
+  onAddPolicy,
+  onViewPolicy,
 }) => {
   const summaryCards: SummaryCardItem[] = useMemo(
     () => [
       {
-        label: "Active Warranties",
-        value: summary.activeWarranties,
-        description: "Currently in coverage",
-        tone: summary.activeWarranties > 0 ? "success" : "default",
+        label: "Active Policies",
+        value: summary.activePolicies,
+        description: "In-force coverage",
+        tone: summary.activePolicies > 0 ? "success" : "default",
+      },
+      {
+        label: "Total Coverage",
+        value: formatCurrency(summary.totalCoverage),
+        description: "Aggregate limit",
+      },
+      {
+        label: "Remaining Coverage",
+        value: formatCurrency(summary.remainingCoverage),
+        description: "Available balance",
+      },
+      {
+        label: "Annual Premiums",
+        value: formatCurrency(summary.annualPremiums),
+        description: "Per fiscal year",
       },
       {
         label: "Assets Covered",
         value: summary.assetsCovered,
-        description: "Equipment protected",
+        description: "Across all policies",
       },
       {
         label: "Assets Not Covered",
@@ -48,7 +64,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
         tone: summary.expiringSoon > 0 ? "warning" : "success",
       },
       {
-        label: "Expired Warranties",
+        label: "Expired Policies",
         value: summary.expired,
         tone: summary.expired > 0 ? "danger" : "success",
       },
@@ -56,44 +72,43 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
     [summary]
   );
 
-  const filteredWarranties = useMemo(() => {
-    return warranties.filter((warranty) => {
+  const filteredPolicies = useMemo(() => {
+    return policies.filter((policy) => {
       const matchesSearch = filters.search
         ? [
-            warranty.name,
-            warranty.provider,
-            warranty.warrantyNumber,
-            warranty.coverage,
-            ...warranty.assetsCovered.map((asset) => `${asset.id} ${asset.name}`),
+            policy.name,
+            policy.provider,
+            policy.policyNumber,
+            ...policy.assetsCovered.map((asset) => `${asset.id} ${asset.name}`),
           ]
             .join(" ")
             .toLowerCase()
             .includes(filters.search.toLowerCase())
         : true;
-      const matchesStatus = filters.status ? warranty.status === filters.status : true;
-      const matchesProvider = filters.provider ? warranty.provider === filters.provider : true;
+      const matchesStatus = filters.status ? policy.status === filters.status : true;
+      const matchesProvider = filters.provider ? policy.provider === filters.provider : true;
       return matchesSearch && matchesStatus && matchesProvider;
     });
-  }, [warranties, filters]);
+  }, [policies, filters]);
 
   return (
     <div className="flex flex-col gap-6">
       <TabHeader
-        title="Warranty"
-        subtitle="Track manufacturer warranty coverage and renewal windows"
+        title="Insurance Policy"
+        subtitle="Monitor coverage limits, premiums, and asset protection"
         actions={[
           {
-            label: "Add Warranty",
-            onAction: onAddWarranty,
+            label: "Add Policy",
+            onAction: onAddPolicy,
           },
         ]}
       />
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <SearchFilter
+      <CoverageSearchFilter
         searchLabel="Search"
-        searchPlaceholder="Warranty name, provider, or asset"
+        searchPlaceholder="Policy name, provider, or asset"
         searchValue={filters.search}
         onSearchChange={(value: string) => onFiltersChange({ search: value })}
         dropdowns={[
@@ -108,8 +123,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
               { label: "Expiring Soon", value: "Expiring Soon" },
               { label: "Expired", value: "Expired" },
             ],
-            onSelect: (value: string) =>
-              onFiltersChange({ status: value as WarrantyFilters["status"] }),
+            onSelect: (value: string) => onFiltersChange({ status: value as PolicyFilters["status"] }),
           },
           {
             id: "provider",
@@ -132,7 +146,11 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
         }
       />
 
-      <CoverageTable variant="warranties" warranties={filteredWarranties} onViewWarranty={onViewWarranty} />
+      <CoverageTable
+        variant="policies"
+        policies={filteredPolicies}
+        onViewPolicy={onViewPolicy}
+      />
     </div>
   );
 };

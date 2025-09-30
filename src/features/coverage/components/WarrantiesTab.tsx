@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
-import { FilterBar } from "@/features/coverage/components/FilterBar";
+import { SearchFilter } from "@/features/coverage/components/SearchFilter";
 import type { CoverageWarranty, WarrantyFilters, WarrantySummaryMetrics } from "@/features/coverage/types";
 
 interface WarrantiesTabProps {
@@ -91,11 +91,11 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <FilterBar
+      <SearchFilter
         searchLabel="Search"
         searchPlaceholder="Warranty name, provider, or asset"
         searchValue={filters.search}
-        onSearchChange={(value) => onFiltersChange({ search: value })}
+        onSearchChange={(value: string) => onFiltersChange({ search: value })}
         dropdowns={[
           {
             id: "status",
@@ -108,7 +108,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
               { label: "Expiring Soon", value: "Expiring Soon" },
               { label: "Expired", value: "Expired" },
             ],
-            onSelect: (value) =>
+            onSelect: (value: string) =>
               onFiltersChange({ status: value as WarrantyFilters["status"] }),
           },
           {
@@ -120,7 +120,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
               { label: "All Providers", value: "" },
               ...providers.map((provider) => ({ label: provider, value: provider })),
             ],
-            onSelect: (value) => onFiltersChange({ provider: value }),
+            onSelect: (value: string) => onFiltersChange({ provider: value }),
           },
         ]}
         onClear={() =>

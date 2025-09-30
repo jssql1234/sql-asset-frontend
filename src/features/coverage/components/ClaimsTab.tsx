@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
-import { FilterBar } from "@/features/coverage/components/FilterBar";
+import { SearchFilter } from "@/features/coverage/components/SearchFilter";
 import type { ClaimFilters, ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
 import { formatCurrency } from "@/features/coverage/utils/formatters";
 
@@ -89,11 +89,11 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <FilterBar
+      <SearchFilter
         searchLabel="Search"
         searchPlaceholder="Claim number, asset, or policy"
         searchValue={filters.search}
-        onSearchChange={(value) => onFiltersChange({ search: value })}
+        onSearchChange={(value: string) => onFiltersChange({ search: value })}
         dropdowns={[
           {
             id: "type",
@@ -105,7 +105,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
               { label: "Insurance", value: "Insurance" },
               { label: "Warranty", value: "Warranty" },
             ],
-            onSelect: (value) => onFiltersChange({ type: value as ClaimFilters["type"] }),
+            onSelect: (value: string) => onFiltersChange({ type: value as ClaimFilters["type"] }),
           },
           {
             id: "status",
@@ -119,7 +119,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
               { label: "Settled", value: "Settled" },
               { label: "Rejected", value: "Rejected" },
             ],
-            onSelect: (value) =>
+            onSelect: (value: string) =>
               onFiltersChange({ status: value as ClaimFilters["status"] }),
           },
         ]}

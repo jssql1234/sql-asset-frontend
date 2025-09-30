@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/Table";
-import { FilterBar } from "@/features/coverage/components/FilterBar";
+import { SearchFilter } from "@/features/coverage/components/SearchFilter";
 import type { CoveragePolicy, PolicyFilters, PolicySummaryMetrics } from "@/features/coverage/types";
 import { formatCurrency } from "@/features/coverage/utils/formatters";
 
@@ -106,11 +106,11 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <FilterBar
+      <SearchFilter
         searchLabel="Search"
         searchPlaceholder="Policy name, provider, or asset"
         searchValue={filters.search}
-        onSearchChange={(value) => onFiltersChange({ search: value })}
+        onSearchChange={(value: string) => onFiltersChange({ search: value })}
         dropdowns={[
           {
             id: "status",
@@ -123,7 +123,7 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
               { label: "Expiring Soon", value: "Expiring Soon" },
               { label: "Expired", value: "Expired" },
             ],
-            onSelect: (value) => onFiltersChange({ status: value as PolicyFilters["status"] }),
+            onSelect: (value: string) => onFiltersChange({ status: value as PolicyFilters["status"] }),
           },
           {
             id: "provider",
@@ -134,7 +134,7 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
               { label: "All Providers", value: "" },
               ...providers.map((provider) => ({ label: provider, value: provider })),
             ],
-            onSelect: (value) => onFiltersChange({ provider: value }),
+            onSelect: (value: string) => onFiltersChange({ provider: value }),
           },
         ]}
         onClear={() =>

@@ -1,9 +1,9 @@
 import React from "react";
-import SearchFilter, { type FilterConfig } from "@/components/SearchFilter";
+import SearchFilterBase, { type FilterConfig } from "@/components/SearchFilter";
 import { Card } from "@/components/ui/components";
 import { cn } from "@/utils/utils";
 
-interface FilterBarProps {
+interface SearchFilterProps {
   searchLabel: string;
   searchPlaceholder: string;
   searchValue: string;
@@ -20,7 +20,7 @@ interface FilterBarProps {
   className?: string;
 }
 
-export const FilterBar: React.FC<FilterBarProps> = ({
+export const SearchFilter: React.FC<SearchFilterProps> = ({
   searchLabel,
   searchPlaceholder,
   searchValue,
@@ -45,7 +45,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         className
       )}
     >
-      <SearchFilter
+      <SearchFilterBase
         searchLabel={searchLabel}
         searchPlaceholder={searchPlaceholder}
         searchValue={searchValue}

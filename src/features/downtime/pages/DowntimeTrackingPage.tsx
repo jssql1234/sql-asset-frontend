@@ -5,9 +5,9 @@ import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from 
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
 import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedIncidentsModal";
-import { SearchFilter } from "@/features/downtime/components/SearchFilter";
+import { DowntimeSearchFilter } from "@/features/downtime/components/DowntimeSearchFilter";
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
-import { SummaryCard } from "@/features/downtime/components/SummaryCard";
+import { DowntimeSummaryCard } from "@/features/downtime/components/DowntimeSummaryCard";
 import { mockIncidents, mockSummary } from "@/features/downtime/mockData";
 
 const DowntimeTrackingPage: React.FC = () => {
@@ -63,10 +63,10 @@ const DowntimeTrackingPage: React.FC = () => {
         />
 
         {/* Summary Cards */}
-        <SummaryCard summary={summary} />
+        <DowntimeSummaryCard summary={summary} />
 
         {/* Filters */}
-        <SearchFilter
+        <DowntimeSearchFilter
           filters={filters}
           onFiltersChange={handleFilterChange}
         />

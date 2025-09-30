@@ -29,7 +29,7 @@ const STATUS_OPTIONS: Array<{ value: FilterState["status"]; label: string }> = [
   { value: "Resolved", label: "Resolved" },
 ];
 
-export const SearchFilter: React.FC<DowntimeSearchFilterProps> = ({
+export const DowntimeSearchFilter: React.FC<DowntimeSearchFilterProps> = ({
   filters,
   onFiltersChange,
 }) => {
@@ -85,4 +85,4 @@ export const SearchFilter: React.FC<DowntimeSearchFilterProps> = ({
   );
 };
 
-export default SearchFilter;
+export default DowntimeSearchFilter;

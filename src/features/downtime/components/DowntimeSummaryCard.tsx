@@ -2,11 +2,11 @@ import React, { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import type { DowntimeSummary } from "@/features/downtime/types";
 
-interface SummaryCardProps {
+interface DowntimeSummaryCardProps {
   summary: DowntimeSummary;
 }
 
-export const SummaryCard: React.FC<SummaryCardProps> = ({ summary }) => {
+export const DowntimeSummaryCard: React.FC<DowntimeSummaryCardProps> = ({ summary }) => {
   const summaryCardsData: SummaryCardItem[] = useMemo(
     () => [
       {

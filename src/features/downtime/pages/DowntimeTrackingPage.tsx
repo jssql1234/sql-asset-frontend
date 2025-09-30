@@ -1,13 +1,13 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 import { TabHeader } from "@/components/TabHeader";
-import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
 import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedIncidentsModal";
 import { SearchFilter } from "@/features/downtime/components/SearchFilter";
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
+import { SummaryCard } from "@/features/downtime/components/SummaryCard";
 import { mockIncidents, mockSummary } from "@/features/downtime/mockData";
 
 const DowntimeTrackingPage: React.FC = () => {
@@ -25,37 +25,6 @@ const DowntimeTrackingPage: React.FC = () => {
     resolvedIncidents: false,
   });
   const [selectedIncident, setSelectedIncident] = useState<DowntimeIncident | null>(null);
-
-  // Summary cards data
-  const summaryCardsData: SummaryCardItem[] = useMemo(
-    () => [
-      {
-        label: "Active Incidents",
-        value: summary.activeIncidents,
-        description: "Currently unresolved",
-        tone: summary.activeIncidents > 0 ? "danger" : "success",
-      },
-      {
-        label: "Total Incidents",
-        value: summary.totalIncidents,
-        description: "All time recorded",
-        tone: "default",
-      },
-      {
-        label: "Total Resolved", 
-        value: summary.totalResolved,
-        description: "Successfully fixed",
-        tone: "success",
-      },
-      {
-        label: "Total Downtime",
-        value: summary.totalDowntime,
-        description: "Cumulative duration",
-        tone: "warning",
-      },
-    ],
-    [summary]
-  );
 
   const handleEditIncident = (incident: DowntimeIncident) => {
     setSelectedIncident(incident);
@@ -94,7 +63,7 @@ const DowntimeTrackingPage: React.FC = () => {
         />
 
         {/* Summary Cards */}
-        <SummaryCards data={summaryCardsData} columns={4} />
+        <SummaryCard summary={summary} />
 
         {/* Filters */}
         <SearchFilter

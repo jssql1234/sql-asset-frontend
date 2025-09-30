@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
-import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import { WarrantySummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import type { CoverageWarranty, WarrantyFilters, WarrantySummaryMetrics } from "@/features/coverage/types";
 
 interface WarrantiesTabProps {
@@ -24,38 +24,6 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
   onAddWarranty,
   onViewWarranty,
 }) => {
-  const summaryCards: SummaryCardItem[] = useMemo(
-    () => [
-      {
-        label: "Active Warranties",
-        value: summary.activeWarranties,
-        description: "Currently in coverage",
-        tone: summary.activeWarranties > 0 ? "success" : "default",
-      },
-      {
-        label: "Assets Covered",
-        value: summary.assetsCovered,
-        description: "Equipment protected",
-      },
-      {
-        label: "Assets Not Covered",
-        value: summary.assetsNotCovered,
-        tone: summary.assetsNotCovered > 0 ? "warning" : "success",
-      },
-      {
-        label: "Expiring Soon (30d)",
-        value: summary.expiringSoon,
-        tone: summary.expiringSoon > 0 ? "warning" : "success",
-      },
-      {
-        label: "Expired Warranties",
-        value: summary.expired,
-        tone: summary.expired > 0 ? "danger" : "success",
-      },
-    ],
-    [summary]
-  );
-
   const filteredWarranties = useMemo(() => {
     return warranties.filter((warranty) => {
       const matchesSearch = filters.search
@@ -89,7 +57,7 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
         ]}
       />
 
-      <SummaryCards data={summaryCards} columns={4} />
+      <WarrantySummaryCards summary={summary} />
 
       <CoverageSearchFilter
         searchLabel="Search"

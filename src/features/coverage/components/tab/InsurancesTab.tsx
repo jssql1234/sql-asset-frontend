@@ -1,10 +1,9 @@
 import React, { useMemo } from "react";
-import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import { InsuranceSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import type { CoverageInsurance, InsuranceFilters, InsuranceSummaryMetrics } from "@/features/coverage/types";
-import { formatCurrency } from "@/features/coverage/utils/formatters";
 
 interface InsurancesTabProps {
   insurances: CoverageInsurance[];
@@ -25,53 +24,6 @@ export const InsurancesTab: React.FC<InsurancesTabProps> = ({
   onAddPolicy,
   onViewInsurance,
 }) => {
-  const summaryCards: SummaryCardItem[] = useMemo(
-    () => [
-      {
-        label: "Active Policies",
-        value: summary.activeInsurances,
-        description: "In-force coverage",
-        tone: summary.activeInsurances > 0 ? "success" : "default",
-      },
-      {
-        label: "Total Coverage",
-        value: formatCurrency(summary.totalCoverage),
-        description: "Aggregate limit",
-      },
-      {
-        label: "Remaining Coverage",
-        value: formatCurrency(summary.remainingCoverage),
-        description: "Available balance",
-      },
-      {
-        label: "Annual Premiums",
-        value: formatCurrency(summary.annualPremiums),
-        description: "Per fiscal year",
-      },
-      {
-        label: "Assets Covered",
-        value: summary.assetsCovered,
-        description: "Across all policies",
-      },
-      {
-        label: "Assets Not Covered",
-        value: summary.assetsNotCovered,
-        tone: summary.assetsNotCovered > 0 ? "warning" : "success",
-      },
-      {
-        label: "Expiring Soon (30d)",
-        value: summary.expiringSoon,
-        tone: summary.expiringSoon > 0 ? "warning" : "success",
-      },
-      {
-        label: "Expired Policies",
-        value: summary.expired,
-        tone: summary.expired > 0 ? "danger" : "success",
-      },
-    ],
-    [summary]
-  );
-
   const filteredPolicies = useMemo(() => {
     return insurances.filter((insurance) => {
       const matchesSearch = filters.search
@@ -104,7 +56,7 @@ export const InsurancesTab: React.FC<InsurancesTabProps> = ({
         ]}
       />
 
-      <SummaryCards data={summaryCards} columns={4} />
+      <InsuranceSummaryCards summary={summary} />
 
       <CoverageSearchFilter
         searchLabel="Search"

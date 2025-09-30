@@ -1,10 +1,9 @@
 import React, { useMemo } from "react";
-import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import type { ClaimFilters, ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
-import { formatCurrency } from "@/features/coverage/utils/formatters";
 
 interface ClaimsTabProps {
   claims: CoverageClaim[];
@@ -23,37 +22,6 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   onAddClaim,
   onViewClaim,
 }) => {
-  const summaryCards: SummaryCardItem[] = useMemo(
-    () => [
-      {
-        label: "Total Claims",
-        value: summary.totalClaims,
-        description: "Across policies & warranties",
-      },
-      {
-        label: "Pending Claims",
-        value: summary.pendingClaims,
-        tone: summary.pendingClaims > 0 ? "warning" : "success",
-      },
-      {
-        label: "Settled Claims",
-        value: summary.settledClaims,
-        tone: summary.settledClaims > 0 ? "success" : "default",
-      },
-      {
-        label: "Total Settlement Amount",
-        value: formatCurrency(summary.totalSettlementAmount),
-        description: "Approved payouts",
-      },
-      {
-        label: "Rejected Claims",
-        value: summary.rejectedClaims,
-        tone: summary.rejectedClaims > 0 ? "danger" : "success",
-      },
-    ],
-    [summary]
-  );
-
   const filteredClaims = useMemo(() => {
     return claims.filter((claim) => {
       const matchesSearch = filters.search
@@ -87,7 +55,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
         ]}
       />
 
-      <SummaryCards data={summaryCards} columns={4} />
+      <ClaimSummaryCards summary={summary} />
 
       <CoverageSearchFilter
         searchLabel="Search"

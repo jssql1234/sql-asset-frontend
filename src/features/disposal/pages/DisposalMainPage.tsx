@@ -59,6 +59,14 @@ const DisposalMainPage: React.FC = () => {
   const [isClawbackApplicable, setIsClawbackApplicable] = useState(false);
   const [isSpreadBalancingCharge, setIsSpreadBalancingCharge] = useState(false);
 
+  // Handler for clawback change - auto-untick spread when clawback is unticked
+  const handleClawbackChange = (isApplicable: boolean) => {
+    setIsClawbackApplicable(isApplicable);
+    if (!isApplicable) {
+      setIsSpreadBalancingCharge(false);
+    }
+  };
+
   // Asset data state
   const [assetData, setAssetData] = useState<AssetData>({
     assetId: 'AS-0001',
@@ -443,7 +451,7 @@ const DisposalMainPage: React.FC = () => {
             disposalType={selectedDisposalType}
             calculationResults={results}
             isClawbackApplicable={isClawbackApplicable}
-            onClawbackChange={setIsClawbackApplicable}
+            onClawbackChange={handleClawbackChange}
             isSpreadBalancingCharge={isSpreadBalancingCharge}
             onSpreadBalancingChargeChange={setIsSpreadBalancingCharge}
             onConfirm={() => {

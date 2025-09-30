@@ -21,7 +21,6 @@ const priorityOptions = [
 
 const statusOptions = [
   { value: "Active", label: "Active" },
-  { value: "In Progress", label: "In Progress" },
   { value: "Resolved", label: "Resolved" },
 ];
 

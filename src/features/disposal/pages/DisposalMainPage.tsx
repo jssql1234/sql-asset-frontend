@@ -106,6 +106,9 @@ const DisposalMainPage: React.FC = () => {
     recipient: '',
     assetScrapped: false,
     controlledDisposal: false,
+    allowanceApportionment: false,
+    annualAllowance: 137500,
+    apportionedAllowance: 61612,
   });
   
   // Calculation results

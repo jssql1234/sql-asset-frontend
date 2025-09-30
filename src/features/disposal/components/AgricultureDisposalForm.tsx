@@ -12,6 +12,9 @@ interface AgricultureDisposalFormProps {
     recipient: string;
     assetScrapped: boolean;
     controlledDisposal: boolean;
+    allowanceApportionment: boolean;
+    annualAllowance: number;
+    apportionedAllowance: number;
   };
   onChange: (field: string, value: string | number | boolean) => void;
   onNext: () => void;
@@ -163,7 +166,46 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
             Controlled Disposal (≥50% control)
           </label>
         </div>
+
+        <div className="flex items-center space-x-3">
+          <input
+            type="checkbox"
+            id="agriculture-allowance-apportionment"
+            checked={data.allowanceApportionment}
+            onChange={handleCheckboxChange('allowanceApportionment')}
+            disabled={disabled}
+            className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
+          />
+          <label htmlFor="agriculture-allowance-apportionment" className="text-sm text-onBackground">
+            Allowance Apportionment
+          </label>
+        </div>
       </div>
+
+      {/* Allowance Group - Display Only */}
+      {data.allowanceApportionment && (
+        <div className="bg-surfaceContainer border border-outline rounded-lg p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-surface rounded-lg p-3 border border-outlineVariant">
+              <div className="text-xs font-medium text-onSurfaceVariant uppercase tracking-wide mb-1">
+                Annual Allowance
+              </div>
+              <div className="text-lg font-semibold text-onSurface">
+                RM {data.annualAllowance ? data.annualAllowance.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '137,500'}
+              </div>
+            </div>
+
+            <div className="bg-surface rounded-lg p-3 border border-outlineVariant">
+              <div className="text-xs font-medium text-onSurfaceVariant uppercase tracking-wide mb-1">
+                Apportioned Allowance
+              </div>
+              <div className="text-lg font-semibold text-onSurface">
+                RM {data.apportionedAllowance ? data.apportionedAllowance.toLocaleString('en-MY', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '61,612'}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-between pt-4">
         <Button

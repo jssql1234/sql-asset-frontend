@@ -1,21 +1,21 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 import { Tabs } from "@/components/ui/components";
-import { PoliciesTab } from "@/features/coverage/components/tab/PoliciesTab";
+import { InsurancesTab } from "@/features/coverage/components/tab/InsurancesTab";
 import { WarrantiesTab } from "@/features/coverage/components/tab/WarrantiesTab";
 import { ClaimsTab } from "@/features/coverage/components/tab/ClaimsTab";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
-import { PolicyDetailsModal } from "@/features/coverage/components/modal/PolicyDetailsModal";
-import { PolicyFormModal } from "@/features/coverage/components/modal/PolicyFormModal";
+import { InsuranceDetailsModal } from "@/features/coverage/components/modal/InsuranceDetailsModal";
+import { InsuranceFormModal } from "@/features/coverage/components/modal/InsuranceFormModal";
 import { WarrantyDetailsModal } from "@/features/coverage/components/modal/WarrantyDetailsModal";
 import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
-import { coverageClaims, coveragePolicies, coverageWarranties, claimSummary, policyProviders, policySummary, warrantyProviders, warrantySummary } from "@/features/coverage/mockData";
-import type { ClaimFilters, CoverageClaim, CoverageModalsState, CoverageWarranty, PolicyFilters, WarrantyFilters } from "@/features/coverage/types";
+import { coverageClaims, coverageInsurances, coverageWarranties, claimSummary, insuranceProviders, insuranceSummary, warrantyProviders, warrantySummary } from "@/features/coverage/mockData";
+import type { ClaimFilters, CoverageClaim, CoverageModalsState, CoverageWarranty, InsuranceFilters, WarrantyFilters } from "@/features/coverage/types";
 
 const CoverageManagementPage: React.FC = () => {
-  const [policyFilters, setPolicyFilters] = useState<PolicyFilters>({
+  const [insuranceFilters, setInsuranceFilters] = useState<InsuranceFilters>({
     search: "",
     status: "",
     provider: "",
@@ -34,8 +34,8 @@ const CoverageManagementPage: React.FC = () => {
   });
 
   const [modals, setModals] = useState<CoverageModalsState>({
-    policyForm: false,
-    policyDetails: null,
+    insuranceForm: false,
+    insuranceDetails: null,
     warrantyForm: false,
     warrantyDetails: null,
     claimForm: false,
@@ -44,20 +44,20 @@ const CoverageManagementPage: React.FC = () => {
     claimDetails: null,
   });
 
-  const handleViewPolicy = useCallback(
-    (policy: CoverageModalsState["policyDetails"]) => {
+  const handleViewInsurance = useCallback(
+    (insurance: CoverageModalsState["insuranceDetails"]) => {
       setModals((prev) => ({
         ...prev,
-        policyDetails: policy,
+        insuranceDetails: insurance,
       }));
     },
     [setModals]
   );
 
-  const handleClosePolicyDetails = useCallback(() => {
+  const handleCloseInsuranceDetails = useCallback(() => {
     setModals((prev) => ({
       ...prev,
-      policyDetails: null,
+      insuranceDetails: null,
     }));
   }, [setModals]);
 
@@ -109,18 +109,18 @@ const CoverageManagementPage: React.FC = () => {
         label: "Insurance Policies",
         value: "policies",
         content: (
-          <PoliciesTab
-            policies={coveragePolicies}
-            summary={policySummary}
-            providers={policyProviders}
-            filters={policyFilters}
+          <InsurancesTab
+            insurances={coverageInsurances}
+            summary={insuranceSummary}
+            providers={insuranceProviders}
+            filters={insuranceFilters}
             onFiltersChange={(filters) =>
-              setPolicyFilters((prev) => ({ ...prev, ...filters }))
+              setInsuranceFilters((prev) => ({ ...prev, ...filters }))
             }
             onAddPolicy={() =>
               setModals((prev) => ({ ...prev, policyForm: true }))
             }
-            onViewPolicy={handleViewPolicy}
+            onViewInsurance={handleViewInsurance}
           />
         ),
       },
@@ -165,12 +165,12 @@ const CoverageManagementPage: React.FC = () => {
     [
       claimFilters,
       handleViewClaim,
-      handleViewPolicy,
+      handleViewInsurance,
       handleViewWarranty,
-      policyFilters,
+      insuranceFilters,
       setClaimFilters,
       setModals,
-      setPolicyFilters,
+      setInsuranceFilters,
       setWarrantyFilters,
       warrantyFilters,
     ]
@@ -182,20 +182,20 @@ const CoverageManagementPage: React.FC = () => {
         <Tabs tabs={tabs} defaultValue="policies" contentClassName="mt-6" />
       </div>
 
-      <PolicyFormModal
-        open={modals.policyForm}
+      <InsuranceFormModal
+        open={modals.insuranceForm}
         onOpenChange={(open) =>
-          setModals((prev) => ({ ...prev, policyForm: open }))
+          setModals((prev) => ({ ...prev, insuranceForm: open }))
         }
-        providers={policyProviders}
+        providers={insuranceProviders}
       />
 
-      <PolicyDetailsModal
-        open={Boolean(modals.policyDetails)}
-        policy={modals.policyDetails}
+      <InsuranceDetailsModal
+        open={Boolean(modals.insuranceDetails)}
+        insurance={modals.insuranceDetails}
         onOpenChange={(open) => {
           if (!open) {
-            handleClosePolicyDetails();
+            handleCloseInsuranceDetails();
           }
         }}
       />
@@ -223,7 +223,7 @@ const CoverageManagementPage: React.FC = () => {
         onOpenChange={(open) =>
           setModals((prev) => ({ ...prev, claimForm: open }))
         }
-        policies={coveragePolicies}
+        policies={coverageInsurances}
         warranties={coverageWarranties}
       />
 

@@ -2,12 +2,12 @@ import React, { useMemo, useState } from "react";
 import { Button, Card, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
-import type { ClaimType, CoverageClaim, CoveragePolicy, CoverageWarranty } from "@/features/coverage/types";
+import type { ClaimType, CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
 
 interface ClaimFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  policies: CoveragePolicy[];
+  policies: CoverageInsurance[];
   warranties: CoverageWarranty[];
   initialClaim?: CoverageClaim;
 }

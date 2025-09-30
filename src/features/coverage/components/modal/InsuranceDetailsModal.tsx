@@ -1,37 +1,36 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/components";
-import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
 import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
-import type { CoveragePolicy } from "@/features/coverage/types";
+import type { CoverageInsurance } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
 
-interface PolicyDetailsModalProps {
-  policy: CoveragePolicy | null;
+interface InsuranceDetailsModalProps {
+  insurance: CoverageInsurance | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
-  policy,
+export const InsuranceDetailsModal: React.FC<InsuranceDetailsModalProps> = ({
+  insurance,
   open,
   onOpenChange,
 }) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
-        {policy ? (
+        {insurance ? (
           <>
             <DialogHeader>
               <div className="flex flex-col md:flex-row md:items-start gap-4">
                 <div className="flex-1">
-                  <DialogTitle>{policy.name}</DialogTitle>
+                  <DialogTitle>{insurance.name}</DialogTitle>
                   <DialogDescription>
-                    {policy.provider} • {policy.policyNumber}
+                    {insurance.provider} • {insurance.policyNumber}
                   </DialogDescription>
                 </div>
                 <div className="md:mr-11">
-                  <StatusBadge status={policy.status}/>
+                  <StatusBadge status={insurance.status}/>
                 </div>
               </div>
             </DialogHeader>
@@ -43,19 +42,19 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
                   items={[
                     {
                       label: "Coverage Amount",
-                      value: formatCurrency(policy.coverageAmount),
+                      value: formatCurrency(insurance.coverageAmount),
                     },
                     {
                       label: "Remaining Coverage",
-                      value: formatCurrency(policy.remainingCoverage)
+                      value: formatCurrency(insurance.remainingCoverage)
                     },
                     {
                       label: "Total Claimed",
-                      value: formatCurrency(policy.totalClaimed),
+                      value: formatCurrency(insurance.totalClaimed),
                     },
                     {
                       label: "Annual Premium",
-                      value: formatCurrency(policy.annualPremium),
+                      value: formatCurrency(insurance.annualPremium),
                     },
                   ]}
                 />
@@ -65,11 +64,11 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
                   items={[
                     {
                       label: "Start Date",
-                      value: formatDate(policy.startDate),
+                      value: formatDate(insurance.startDate),
                     },
                     {
                       label: "Expiry Date",
-                      value: formatDate(policy.expiryDate),
+                      value: formatDate(insurance.expiryDate),
                     },
                   ]}
                 />
@@ -77,23 +76,22 @@ export const PolicyDetailsModal: React.FC<PolicyDetailsModalProps> = ({
 
               <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
-                  {policy.description || "No additional description provided."}
+                  {insurance.description || "No additional description provided."}
                 </p>
               </DetailModalSection>
 
               <DetailModalSection
                 title="Assets Covered"
-                subtitle={`${policy.assetsCovered.length} assets`}
-              >
-                <CoverageAssetGrid
-                  assets={policy.assetsCovered}
-                  action={(asset) => (
+                subtitle={`${insurance.assetsCovered.length} assets`}
+                assetGrid={{
+                  assets: insurance.assetsCovered,
+                  action: (asset) => (
                     <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
                       View Asset
                     </Button>
-                  )}
-                />
-              </DetailModalSection>
+                  ),
+                }}
+              />
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

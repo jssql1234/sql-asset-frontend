@@ -1,13 +1,13 @@
 import type {
   CoverageClaim,
-  CoveragePolicy,
+  CoverageInsurance,
   CoverageWarranty,
   ClaimSummaryMetrics,
-  PolicySummaryMetrics,
+  InsuranceSummaryMetrics,
   WarrantySummaryMetrics,
 } from "./types";
 
-export const coveragePolicies: CoveragePolicy[] = [
+export const coverageInsurances: CoverageInsurance[] = [
   {
     id: "POL-001",
     name: "Comprehensive Equipment Protection",
@@ -69,15 +69,15 @@ export const coveragePolicies: CoveragePolicy[] = [
   },
 ];
 
-export const policySummary: PolicySummaryMetrics = {
-  activePolicies: coveragePolicies.filter(policy => policy.status === "Active").length,
-  totalCoverage: coveragePolicies.reduce((acc, policy) => acc + policy.coverageAmount, 0),
-  remainingCoverage: coveragePolicies.reduce((acc, policy) => acc + policy.remainingCoverage, 0),
-  annualPremiums: coveragePolicies.reduce((acc, policy) => acc + policy.annualPremium, 0),
-  assetsCovered: coveragePolicies.reduce((acc, policy) => acc + policy.assetsCovered.length, 0),
+export const insuranceSummary: InsuranceSummaryMetrics = {
+  activeInsurances: coverageInsurances.filter(insurance => insurance.status === "Active").length,
+  totalCoverage: coverageInsurances.reduce((acc, insurance) => acc + insurance.coverageAmount, 0),
+  remainingCoverage: coverageInsurances.reduce((acc, insurance) => acc + insurance.remainingCoverage, 0),
+  annualPremiums: coverageInsurances.reduce((acc, insurance) => acc + insurance.annualPremium, 0),
+  assetsCovered: coverageInsurances.reduce((acc, insurance) => acc + insurance.assetsCovered.length, 0),
   assetsNotCovered: 12,
-  expiringSoon: coveragePolicies.filter(policy => policy.status === "Expiring Soon").length,
-  expired: coveragePolicies.filter(policy => policy.status === "Expired").length,
+  expiringSoon: coverageInsurances.filter(insurance => insurance.status === "Expiring Soon").length,
+  expired: coverageInsurances.filter(insurance => insurance.status === "Expired").length,
 };
 
 export const coverageWarranties: CoverageWarranty[] = [
@@ -197,5 +197,5 @@ export const claimSummary: ClaimSummaryMetrics = {
   rejectedClaims: coverageClaims.filter(claim => claim.status === "Rejected").length,
 };
 
-export const policyProviders = Array.from(new Set(coveragePolicies.map(policy => policy.provider)));
+export const insuranceProviders = Array.from(new Set(coverageInsurances.map(insurance => insurance.provider)));
 export const warrantyProviders = Array.from(new Set(coverageWarranties.map(warranty => warranty.provider)));

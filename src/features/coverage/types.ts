@@ -1,10 +1,10 @@
-export type PolicyStatus = "Active" | "Expiring Soon" | "Expired";
+export type InsuranceStatus = "Active" | "Expiring Soon" | "Expired";
 export type WarrantyStatus = "Active" | "Expiring Soon" | "Expired";
 export type ClaimStatus = "Filed" | "Rejected" | "Settled" | "Approved";
 export type ClaimType = "Insurance" | "Warranty";
-export type CoverageStatus = PolicyStatus | WarrantyStatus | ClaimStatus;
+export type CoverageStatus = InsuranceStatus | WarrantyStatus | ClaimStatus;
 
-export interface CoveragePolicy {
+export interface CoverageInsurance {
   id: string;
   name: string;
   provider: string;
@@ -15,7 +15,7 @@ export interface CoveragePolicy {
   totalClaimed: number;
   startDate: string; // ISO date string
   expiryDate: string; // ISO date string
-  status: PolicyStatus;
+  status: InsuranceStatus;
   assetsCovered: Array<{
     id: string;
     name: string;
@@ -55,8 +55,8 @@ export interface CoverageClaim {
   description?: string;
 }
 
-export interface PolicySummaryMetrics {
-  activePolicies: number;
+export interface InsuranceSummaryMetrics {
+  activeInsurances: number;
   totalCoverage: number;
   remainingCoverage: number;
   annualPremiums: number;
@@ -82,9 +82,9 @@ export interface ClaimSummaryMetrics {
   rejectedClaims: number;
 }
 
-export interface PolicyFilters {
+export interface InsuranceFilters {
   search: string;
-  status: "" | PolicyStatus;
+  status: "" | InsuranceStatus;
   provider: string;
 }
 
@@ -101,8 +101,8 @@ export interface ClaimFilters {
 }
 
 export interface CoverageModalsState {
-  policyForm: boolean;
-  policyDetails: CoveragePolicy | null;
+  insuranceForm: boolean;
+  insuranceDetails: CoverageInsurance | null;
   warrantyForm: boolean;
   warrantyDetails: CoverageWarranty | null;
   claimForm: boolean;

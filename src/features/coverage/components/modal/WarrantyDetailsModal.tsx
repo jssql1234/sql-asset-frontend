@@ -1,6 +1,5 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
-import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
 import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageWarranty } from "@/features/coverage/types";
@@ -60,16 +59,15 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
               <DetailModalSection
                 title="Assets Covered"
                 subtitle={`${warranty.assetsCovered.length} assets`}
-              >
-                <CoverageAssetGrid
-                  assets={warranty.assetsCovered}
-                  action={(asset) => (
+                assetGrid={{
+                  assets: warranty.assetsCovered,
+                  action: (asset) => (
                     <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
                       View Asset
                     </Button>
-                  )}
-                />
-              </DetailModalSection>
+                  ),
+                }}
+              />
             </div>
 
             <DialogFooter className="flex justify-end gap-3">

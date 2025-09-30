@@ -3,13 +3,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
-import type { CoverageClaim, CoveragePolicy, CoverageWarranty } from "@/features/coverage/types";
+import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
 
-type PoliciesVariantProps = {
+type InsurancesVariantProps = {
   variant: "policies";
-  policies: CoveragePolicy[];
-  onViewPolicy: (policy: CoveragePolicy) => void;
+  policies: CoverageInsurance[];
+  onViewInsurance: (insurance: CoverageInsurance) => void;
 };
 
 type WarrantiesVariantProps = {
@@ -25,15 +25,15 @@ type ClaimsVariantProps = {
 };
 
 type CoverageTableProps =
-  | PoliciesVariantProps
+  | InsurancesVariantProps
   | WarrantiesVariantProps
   | ClaimsVariantProps;
 
 const PoliciesVariantTable = ({
   policies,
-  onViewPolicy,
-}: PoliciesVariantProps) => {
-  const columns = useMemo<ColumnDef<CoveragePolicy>[]>(
+  onViewInsurance,
+}: InsurancesVariantProps) => {
+  const columns = useMemo<ColumnDef<CoverageInsurance>[]>(
     () => [
       {
         accessorKey: "name",
@@ -103,11 +103,11 @@ const PoliciesVariantTable = ({
   );
 
   return (
-    <DataTable<CoveragePolicy, unknown>
+    <DataTable<CoverageInsurance, unknown>
       columns={columns}
       data={policies}
       showPagination
-      onRowDoubleClick={onViewPolicy}
+      onRowDoubleClick={onViewInsurance}
     />
   );
 };
@@ -265,8 +265,8 @@ const ClaimsVariantTable = ({
 
 const CoverageTable = (props: CoverageTableProps) => {
   if (props.variant === "policies") {
-    const { policies, onViewPolicy } = props;
-    return <PoliciesVariantTable variant="policies" policies={policies} onViewPolicy={onViewPolicy} />;
+    const { policies, onViewInsurance } = props;
+    return <PoliciesVariantTable variant="policies" policies={policies} onViewInsurance={onViewInsurance} />;
   }
 
   if (props.variant === "warranties") {
@@ -284,5 +284,5 @@ const CoverageTable = (props: CoverageTableProps) => {
   );
 };
 
-export type { PoliciesVariantProps, WarrantiesVariantProps, ClaimsVariantProps };
+export type { InsurancesVariantProps, WarrantiesVariantProps, ClaimsVariantProps };
 export default CoverageTable;

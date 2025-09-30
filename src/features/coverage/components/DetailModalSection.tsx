@@ -8,11 +8,23 @@ export interface DetailModalDefinitionItem {
   align?: "start" | "end";
 }
 
+interface AssetItem {
+  id: string;
+  name: string;
+}
+
+interface AssetGridConfig {
+  assets: AssetItem[];
+  action?: (asset: AssetItem) => ReactNode;
+  footer?: ReactNode;
+}
+
 interface DetailModalSectionProps {
   title: string;
   subtitle?: string;
   action?: ReactNode;
   items?: DetailModalDefinitionItem[];
+  assetGrid?: AssetGridConfig;
   children?: ReactNode;
   className?: string;
   contentClassName?: string;
@@ -23,11 +35,13 @@ export const DetailModalSection = ({
   subtitle,
   action,
   items,
+  assetGrid,
   children,
   className,
   contentClassName,
 }: DetailModalSectionProps) => {
   const hasItems = Boolean(items?.length);
+  const hasAssetGrid = Boolean(assetGrid?.assets?.length);
   const hasChildren = Boolean(children);
 
   return (
@@ -41,7 +55,7 @@ export const DetailModalSection = ({
         </div>
         {action ? <div className="md:self-start">{action}</div> : null}
       </div>
-      {(hasItems || hasChildren) ? (
+      {(hasItems || hasAssetGrid || hasChildren) ? (
         <div className={cn("space-y-3", contentClassName)}>
           {hasItems ? (
             <dl className="space-y-3 body-medium text-onSurface">
@@ -52,6 +66,25 @@ export const DetailModalSection = ({
                 </div>
               ))}
             </dl>
+          ) : null}
+          {hasAssetGrid ? (
+            <div className="space-y-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {assetGrid!.assets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="flex items-center justify-between rounded-md border border-outlineVariant bg-surfaceContainerLowest px-3 py-2"
+                  >
+                    <div className="flex flex-col">
+                      <span className="font-medium text-onSurface">{asset.name}</span>
+                      <span className="body-small text-onSurfaceVariant">{asset.id}</span>
+                    </div>
+                    {assetGrid!.action ? assetGrid!.action(asset) : null}
+                  </div>
+                ))}
+              </div>
+              {assetGrid!.footer}
+            </div>
           ) : null}
           {children}
         </div>

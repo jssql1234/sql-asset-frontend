@@ -2,22 +2,22 @@ import React, { useMemo } from "react";
 import { Button, Card, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
-import type { CoveragePolicy } from "@/features/coverage/types";
+import type { CoverageInsurance } from "@/features/coverage/types";
 
-interface PolicyFormModalProps {
+interface InsuranceFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   providers?: string[];
-  initialPolicy?: CoveragePolicy;
+  initialInsurance?: CoverageInsurance;
 }
 
-export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
+export const InsuranceFormModal: React.FC<InsuranceFormModalProps> = ({
   open,
   onOpenChange,
   providers = [],
-  initialPolicy,
+  initialInsurance,
 }) => {
-  const isEditing = Boolean(initialPolicy);
+  const isEditing = Boolean(initialInsurance);
 
   const headerTitle = isEditing ? "Edit Insurance Policy" : "Add Insurance Policy";
 
@@ -61,21 +61,21 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Policy Name *</label>
                   <Input
-                    defaultValue={initialPolicy?.name}
+                    defaultValue={initialInsurance?.name}
                     placeholder="e.g. Comprehensive Equipment Protection"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Insurance Provider *</label>
                   <Input
-                    defaultValue={initialPolicy?.provider}
+                    defaultValue={initialInsurance?.provider}
                     placeholder="Enter provider name"
                     list="policy-provider-suggestions"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Policy Number *</label>
-                  <Input defaultValue={initialPolicy?.policyNumber} placeholder="e.g. AIB-CEQ-2025-01" />
+                  <Input defaultValue={initialInsurance?.policyNumber} placeholder="e.g. AIB-CEQ-2025-01" />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Annual Premium *</label>
@@ -83,7 +83,7 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
                     type="number"
                     min={0}
                     step="0.01"
-                    defaultValue={initialPolicy?.annualPremium}
+                    defaultValue={initialInsurance?.annualPremium}
                     placeholder="Enter annual premium"
                   />
                 </div>
@@ -93,7 +93,7 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
                     type="number"
                     min={0}
                     step="0.01"
-                    defaultValue={initialPolicy?.coverageAmount}
+                    defaultValue={initialInsurance?.coverageAmount}
                     placeholder="Enter coverage amount"
                   />
                 </div>
@@ -103,17 +103,17 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
                     type="number"
                     min={0}
                     step="0.01"
-                    defaultValue={initialPolicy?.remainingCoverage}
+                    defaultValue={initialInsurance?.remainingCoverage}
                     placeholder="Auto calculated"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Start Date *</label>
-                  <Input type="date" defaultValue={initialPolicy?.startDate} />
+                  <Input type="date" defaultValue={initialInsurance?.startDate} />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Expiry Date *</label>
-                  <Input type="date" defaultValue={initialPolicy?.expiryDate} />
+                  <Input type="date" defaultValue={initialInsurance?.expiryDate} />
                 </div>
               </div>
               {providerSuggestions}
@@ -136,7 +136,7 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
               <TextArea
                 rows={3}
                 placeholder="Provide additional coverage notes, deductibles, or asset-specific clauses"
-                defaultValue={initialPolicy?.description}
+                defaultValue={initialInsurance?.description}
               />
             </div>
           </Card>
@@ -154,8 +154,8 @@ export const PolicyFormModal: React.FC<PolicyFormModalProps> = ({
               </div>
               <Input placeholder="Search assets by name or ID" disabled />
               <div className="min-h-[96px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
-                {initialPolicy?.assetsCovered?.length ? (
-                  initialPolicy.assetsCovered.map((asset) => (
+                {initialInsurance?.assetsCovered?.length ? (
+                  initialInsurance.assetsCovered.map((asset) => (
                     <span
                       key={asset.id}
                       className="flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 body-small text-primary"

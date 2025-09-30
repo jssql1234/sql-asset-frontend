@@ -2,7 +2,6 @@ import React from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
-import { CoverageAssetGrid } from "@/features/coverage/components/CoverageAssetGrid";
 import { DetailModalSection } from "@/features/coverage/components/DetailModalSection";
 import type { CoverageClaim } from "@/features/coverage/types";
 
@@ -64,16 +63,15 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
               <DetailModalSection
                 title="Assets"
                 subtitle="Asset linkage is read-only for warranty-originated work orders."
-              >
-                <CoverageAssetGrid
-                  assets={claim.assets}
-                  action={(asset) => (
+                assetGrid={{
+                  assets: claim.assets,
+                  action: (asset) => (
                     <Button variant="link" size="sm" disabled aria-label={`${asset.name} locked`}>
                       Locked
                     </Button>
-                  )}
-                />
-              </DetailModalSection>
+                  ),
+                }}
+              />
 
               <DetailModalSection title="Work Order Details">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

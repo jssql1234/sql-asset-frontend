@@ -3,35 +3,35 @@ import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { CoverageSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
-import type { CoveragePolicy, PolicyFilters, PolicySummaryMetrics } from "@/features/coverage/types";
+import type { CoverageInsurance, InsuranceFilters, InsuranceSummaryMetrics } from "@/features/coverage/types";
 import { formatCurrency } from "@/features/coverage/utils/formatters";
 
-interface PoliciesTabProps {
-  policies: CoveragePolicy[];
-  summary: PolicySummaryMetrics;
+interface InsurancesTabProps {
+  insurances: CoverageInsurance[];
+  summary: InsuranceSummaryMetrics;
   providers: string[];
-  filters: PolicyFilters;
-  onFiltersChange: (filters: Partial<PolicyFilters>) => void;
+  filters: InsuranceFilters;
+  onFiltersChange: (filters: Partial<InsuranceFilters>) => void;
   onAddPolicy: () => void;
-  onViewPolicy: (policy: CoveragePolicy) => void;
+  onViewInsurance: (insurance: CoverageInsurance) => void;
 }
 
-export const PoliciesTab: React.FC<PoliciesTabProps> = ({
-  policies,
+export const InsurancesTab: React.FC<InsurancesTabProps> = ({
+  insurances,
   summary,
   providers,
   filters,
   onFiltersChange,
   onAddPolicy,
-  onViewPolicy,
+  onViewInsurance,
 }) => {
   const summaryCards: SummaryCardItem[] = useMemo(
     () => [
       {
         label: "Active Policies",
-        value: summary.activePolicies,
+        value: summary.activeInsurances,
         description: "In-force coverage",
-        tone: summary.activePolicies > 0 ? "success" : "default",
+        tone: summary.activeInsurances > 0 ? "success" : "default",
       },
       {
         label: "Total Coverage",
@@ -73,23 +73,23 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
   );
 
   const filteredPolicies = useMemo(() => {
-    return policies.filter((policy) => {
+    return insurances.filter((insurance) => {
       const matchesSearch = filters.search
         ? [
-            policy.name,
-            policy.provider,
-            policy.policyNumber,
-            ...policy.assetsCovered.map((asset) => `${asset.id} ${asset.name}`),
+            insurance.name,
+            insurance.provider,
+            insurance.policyNumber,
+            ...insurance.assetsCovered.map((asset) => `${asset.id} ${asset.name}`),
           ]
             .join(" ")
             .toLowerCase()
             .includes(filters.search.toLowerCase())
         : true;
-      const matchesStatus = filters.status ? policy.status === filters.status : true;
-      const matchesProvider = filters.provider ? policy.provider === filters.provider : true;
+      const matchesStatus = filters.status ? insurance.status === filters.status : true;
+      const matchesProvider = filters.provider ? insurance.provider === filters.provider : true;
       return matchesSearch && matchesStatus && matchesProvider;
     });
-  }, [policies, filters]);
+  }, [insurances, filters]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -123,7 +123,7 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
               { label: "Expiring Soon", value: "Expiring Soon" },
               { label: "Expired", value: "Expired" },
             ],
-            onSelect: (value: string) => onFiltersChange({ status: value as PolicyFilters["status"] }),
+            onSelect: (value: string) => onFiltersChange({ status: value as InsuranceFilters["status"] }),
           },
           {
             id: "provider",
@@ -149,7 +149,7 @@ export const PoliciesTab: React.FC<PoliciesTabProps> = ({
       <CoverageTable
         variant="policies"
         policies={filteredPolicies}
-        onViewPolicy={onViewPolicy}
+        onViewInsurance={onViewInsurance}
       />
     </div>
   );

@@ -30,10 +30,10 @@ interface CreateAssetRef {
 // Tab Components
 const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <Card className="p-6 -mt-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <Card className="p-6 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">CA Asset Group</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">CA Asset Group</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -49,7 +49,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Allowance Class</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Allowance Class</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -64,7 +64,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Sub Class</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Sub Class</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -80,29 +80,29 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">IA Rate</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">IA Rate</label>
           <Input {...register("iaRate")} readOnly />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">AA Rate</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">AA Rate</label>
           <Input {...register("aaRate")} readOnly />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 mt-7">
           <Option type="checkbox" {...register("aca")} checked={watch("aca")} />
           <label className="body-small text-onSurfaceVariant">ACA</label>
         </div>
       </div>
 
       {watch("caAssetGroup") === "vehicles" && (
-        <div className="space-y-2">
+        <div className="space-y-3 mt-6">
           <div className="flex items-center gap-2">
             <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} />
             <label className="body-small text-onSurfaceVariant">Motor Vehicle</label>
           </div>
           {watch("extraCheckbox") && (
-            <div className="ml-6 space-y-2">
+            <div className="ml-6 space-y-3">
               <div className="flex items-center gap-2">
                 <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} />
                 <label className="body-small text-onSurfaceVariant">Commercial Use</label>
@@ -116,13 +116,13 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Qualify Amount (QE)</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Qualify Amount (QE)</label>
           <Input {...register("qeValue")} readOnly />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Controlled Transfer In RE</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Controlled Transfer In RE</label>
           <Input {...register("residualExpenditure")} placeholder="0.00" />
         </div>
       </div>
@@ -132,15 +132,15 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
 
 const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) => {
   return (
-    <Card className="p-6 -mt-2">
-      <div className="flex items-center gap-2">
+    <Card className="p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-6">
         <Option type="checkbox" {...register("hpCheck")} />
         <label className="body-small text-onSurfaceVariant">Hire Purchase</label>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">HP Start Date</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">HP Start Date</label>
           <Controller
             name="hpStartDate"
             control={control}
@@ -163,7 +163,7 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
           />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">No. Instalment (months)</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">No. Instalment (months)</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -183,21 +183,21 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
         </div>
         {watch("hpInstalment") === "other" && (
           <div>
-            <label className="body-small text-onSurfaceVariant block mb-1">Custom Instalment</label>
+            <label className="body-small text-onSurfaceVariant block mb-2">Custom Instalment</label>
             <Input type="number" {...register("hpInstalmentUser")} />
           </div>
         )}
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Deposit Amount</label>
-          <Input {...register("hpDeposit")} />
+          <label className="body-small text-onSurfaceVariant block mb-2">Deposit Amount</label>
+          <Input {...register("hpDeposit")} placeholder="0.00" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Interest Rate (%)</label>
-          <Input type="number" {...register("hpInterest")} min="0" max="100" />
+          <label className="body-small text-onSurfaceVariant block mb-2">Interest Rate (%)</label>
+          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Finance</label>
-          <Input {...register("hpFinance")} />
+          <label className="body-small text-onSurfaceVariant block mb-2">Finance</label>
+          <Input {...register("hpFinance")} placeholder="0.00" />
         </div>
       </div>
     </Card>
@@ -206,10 +206,10 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
 
 const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <Card className="p-6 -mt-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card className="p-6 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Depreciation Method</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Depreciation Method</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -224,7 +224,7 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Frequency</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Frequency</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -233,31 +233,31 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "yearly")}>Yearly</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "monthly")}>Monthly</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "Yearly")}>Yearly</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "Monthly")}>Monthly</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Useful Life (Years)</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Useful Life (Years)</label>
           <Input type="number" {...register("usefulLife", { valueAsNumber: true })} min="1" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Residual Value</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Residual Value</label>
           <Input {...register("residualValue")} placeholder="0.00" />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Depreciation Rate</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Depreciation Rate</label>
           <Input {...register("depreciationRate")} readOnly />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Total Depreciation</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Total Depreciation</label>
           <Input {...register("totalDepreciation")} readOnly />
         </div>
       </div>
@@ -268,10 +268,10 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
 
 const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
-    <Card className="p-6 -mt-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card className="p-6 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Branch</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Branch</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -291,7 +291,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Department</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Department</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -312,9 +312,9 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Location</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Location</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -342,7 +342,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Person in Charge</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Person in Charge</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -367,8 +367,8 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
       </div>
-      <div>
-        <label className="body-small text-onSurfaceVariant block mb-1">Additional Notes</label>
+      <div className="mt-6">
+        <label className="body-small text-onSurfaceVariant block mb-2">Additional Notes</label>
         <TextArea {...register("allocationNotes")} placeholder="Any additional information about the asset allocation" rows={3} />
       </div>
     </Card>
@@ -396,18 +396,22 @@ const SerialNoTab: React.FC<any> = ({ setValue, watch }) => {
   };
 
   return (
-    <Card className="p-6 -mt-2">
-      <div className="flex justify-between items-center">
-        <label className="body-small text-onSurfaceVariant">Serial Numbers</label>
-        <Button type="button" onClick={addSerialNumber}>Add Serial Number</Button>
+    <Card className="p-6 shadow-sm">
+      <div className="flex justify-between items-center mb-4">
+        <label className="body-medium text-onSurface">Serial Numbers</label>
+        <Button type="button" onClick={addSerialNumber} variant="outline">Add Serial Number</Button>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
+        {serialNumbers.length === 0 && (
+          <p className="body-small text-onSurfaceVariant text-center py-8">No serial numbers added yet. Click "Add Serial Number" to get started.</p>
+        )}
         {serialNumbers.map((serial, index) => (
-          <div key={index} className="flex gap-2">
+          <div key={index} className="flex gap-3">
             <Input
               value={serial}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSerialNumber(index, e.target.value)}
-              placeholder="Enter serial number"
+              placeholder={`Serial number ${index + 1}`}
+              className="flex-1"
             />
             <Button type="button" variant="destructive" onClick={() => removeSerialNumber(index)}>
               Remove
@@ -421,14 +425,14 @@ const SerialNoTab: React.FC<any> = ({ setValue, watch }) => {
 
 const WarrantyTab: React.FC<any> = ({ register, control }) => {
   return (
-    <Card className="p-6 -mt-2">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <Card className="p-6 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Warranty Provider</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Warranty Provider</label>
           <Input {...register("warrantyProvider")} placeholder="Enter warranty provider" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">Start Date</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">Start Date</label>
           <Controller
             name="warrantyStartDate"
             control={control}
@@ -451,7 +455,7 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
           />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-1">End Date</label>
+          <label className="body-small text-onSurfaceVariant block mb-2">End Date</label>
           <Controller
             name="warrantyEndDate"
             control={control}
@@ -469,13 +473,14 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
                   field.onChange(formatted);
                 }}
                 className="border-none"
+                placeholder="Select date"
               />
             )}
           />
         </div>
       </div>
-      <div>
-        <label className="body-small text-onSurfaceVariant block mb-1">Notes</label>
+      <div className="mt-6">
+        <label className="body-small text-onSurfaceVariant block mb-2">Notes</label>
         <TextArea {...register("warrantyNotes")} rows={3} placeholder="Additional warranty notes" />
       </div>
     </Card>
@@ -595,36 +600,34 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
   ];
 
   return (
-    <div className="bg-surface px-6">
-      <div className="mx-auto">
+    <div className="bg-surface min-h-screen">
+      <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
-        <div className="mb-4 flex items-center justify-between sticky top-0 bg-surface z-10 py-4 border-b border-outline">
-          <h2 className="title-medium text-onSurface">Create Asset</h2>
-          {onBack && <Button onClick={onBack}>Back</Button>}
+        <div className="mb-6 flex items-center justify-between sticky top-0 bg-surface z-10 py-4 px-6 border-b border-outline shadow-sm">
+          <h2 className="title-large text-onSurface">Create Asset</h2>
+          {onBack && <Button onClick={onBack} variant="outline">Back</Button>}
         </div>
 
         {/* Split into left and right */}
-        <div className="flex flex-row gap-6 items-stretch">
+        <div className="flex flex-row gap-6 items-stretch px-6 pb-20">
           {/* Left: Existing create asset forms */}
-          <div className="flex-2">
+          <div className="flex-1 min-w-0">
             <form ref={formRef} onSubmit={handleSubmit(onSubmit)} action="" className="space-y-6">
               {/* Main Form Fields */}
               <Card className="p-6">
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="px-4 pt-3 pb-2 col-span-2 w-fit justify-self-end m-0">
-                <div className="flex justify-end gap-4">
-                  <div className="flex items-center gap-2">
-                    <Option
-                      type="checkbox"
-                      {...register("inactive")}
-                      checked={inactive}
-                    />
-                    <label className="body-small text-onSurfaceVariant">Inactive</label>
-                  </div>
-                    <div className="flex gap-4">
-                      <div>
-                        {/* <label className="body-small text-onSurfaceVariant block mb-1">Start:</label> */}
+                {/* Inactive Status Section - Compact */}
+                <div className="flex justify-end mb-6">
+                  <Card className="px-3 py-2 m-0 bg-surfaceContainerLowest">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
+                        <Option
+                          type="checkbox"
+                          {...register("inactive")}
+                          checked={inactive}
+                        />
+                        <label className="body-small text-onSurfaceVariant whitespace-nowrap">Inactive</label>
+                      </div>
+                      <div className="flex items-center gap-2">
                         <SemiDatePicker
                           inputType="date"
                           value={watch("inactiveStart")}
@@ -637,14 +640,11 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                             }
                             setValue("inactiveStart", formatted);
                           }}
-                          className="border-none"
-                          placeholder={"Start Date"}
+                          className="border-none w-36"
+                          placeholder="Start Date"
                           disabled={!inactive}
                         />
-                      </div>
-                      <label className="body-small text-onSurfaceVariant self-center">to</label>
-                      <div>
-                        {/* <label className="body-small text-onSurfaceVariant block mb-1">End:</label> */}
+                        <span className="body-small text-onSurfaceVariant">to</span>
                         <SemiDatePicker
                           inputType="date"
                           value={watch("inactiveEnd")}
@@ -657,46 +657,60 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                             }
                             setValue("inactiveEnd", formatted);
                           }}
-                          className="border-none"
-                          placeholder={"End Date"}
+                          className="border-none w-36"
+                          placeholder="End Date"
                           disabled={!inactive}
                         />
                       </div>
                     </div>
+                  </Card>
                 </div>
-              </Card>
-                  {/* Batch ID - conditional */}
-                  {batchMode && (
-                    <div>
-                      <label className="body-small text-onSurfaceVariant block mb-1">
-                        Batch ID <span className="text-error">*</span>
-                      </label>
-                      <Input {...register("batchID")} placeholder="Enter Batch ID" />
-                      {errors.batchID && (
-                        <span className="body-small text-error">{errors.batchID.message}</span>
-                      )}
-                    </div>
-                  )}
 
+                {/* Batch ID - conditional */}
+                {batchMode && (
+                  <div className="mb-6">
+                    <label className="body-small text-onSurfaceVariant block mb-2">
+                      Batch ID <span className="text-error">*</span>
+                    </label>
+                    <Input {...register("batchID")} placeholder="Enter Batch ID" />
+                    {errors.batchID && (
+                      <span className="body-small text-error mt-1 block">{errors.batchID.message}</span>
+                    )}
+                  </div>
+                )}
+
+                {/* First Row: Asset ID, Asset Group, Asset Name */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {/* Asset ID */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">
+                    <label className="body-small text-onSurfaceVariant block mb-2">
                       Asset ID <span className="text-error">*</span>
                     </label>
                     <Input {...register("code")} placeholder="Enter Asset ID" />
                     {errors.code && (
-                      <span className="body-small text-error">{errors.code.message}</span>
+                      <span className="body-small text-error mt-1 block">{errors.code.message}</span>
+                    )}
+                  </div>
+
+                  {/* Asset Name */}
+                  <div>
+                    <label className="body-small text-onSurfaceVariant block mb-2">
+                      Asset Name <span className="text-error">*</span>
+                    </label>
+                    <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
+                    {errors.assetName && (
+                      <span className="body-small text-error mt-1 block">{errors.assetName.message}</span>
                     )}
                   </div>
 
                   {/* Asset Group */}
-                  <div className="grid">
-                    <label className="body-small text-onSurfaceVariant block mb-1">
+                  <div>
+                    <label className="body-small text-onSurfaceVariant block mb-2">
                       Asset Group <span className="text-error">*</span>
                     </label>
                     <DropdownMenu>
                       <DropdownMenuTrigger>
-                        <Button variant="outline" className="size-full justify-between">
+                        <Button variant="outline" className="w-full justify-between">
                           {assetGroups.find(g => g.value === watch("assetGroup"))?.label || "-- Choose Asset Group --"}
                           <ChevronDown className="w-4 h-4" />
                         </Button>
@@ -713,76 +727,53 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                       </DropdownMenuContent>
                     </DropdownMenu>
                     {errors.assetGroup && (
-                      <span className="body-small text-error">{errors.assetGroup.message}</span>
+                      <span className="body-small text-error mt-1 block">{errors.assetGroup.message}</span>
                     )}
                   </div>
+                </div>
 
-                  {/* Asset Name */}
+                {/* Second Row: Units per Asset, Total Cost */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {/* Units per Asset (Quantity per Asset) */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">
-                      Asset Name <span className="text-error">*</span>
-                    </label>
-                    <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
-                    {errors.assetName && (
-                      <span className="body-small text-error">{errors.assetName.message}</span>
-                    )}
-                  </div>
-
-                  {/* Quantity in Batch */}
-                  <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">
-                      Quantity in Batch <span className="text-error">*</span>
+                    <label className="body-small text-onSurfaceVariant block mb-2">
+                      {batchMode ? "Quantity per Asset" : "Units per Asset"} <span className="text-error">*</span>
                     </label>
                     <Input
                       type="number"
-                      {...register("quantity", { valueAsNumber: true })}
+                      {...register("quantityPerUnit", { valueAsNumber: true })}
                       min="1"
                       max="999"
                     />
-                    {errors.quantity && (
-                      <span className="body-small text-error">{errors.quantity.message}</span>
+                    {errors.quantityPerUnit && (
+                      <span className="body-small text-error mt-1 block">{errors.quantityPerUnit.message}</span>
                     )}
                   </div>
 
-                  {/* Quantity per Asset - conditional */}
-                  {batchMode && (
-                    <div>
-                      <label className="body-small text-onSurfaceVariant block mb-1">
-                        Quantity per Asset <span className="text-error">*</span>
-                      </label>
-                      <Input
-                        type="number"
-                        {...register("quantityPerUnit", { valueAsNumber: true })}
-                        min="1"
-                        max="999"
-                      />
-                      {errors.quantityPerUnit && (
-                        <span className="body-small text-error">{errors.quantityPerUnit.message}</span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Cost */}
+                  {/* Total Cost */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">Cost:</label>
+                    <label className="body-small text-onSurfaceVariant block mb-2">Total Cost</label>
                     <Input {...register("cost")} placeholder="0.00" />
                     {errors.cost && (
-                      <span className="body-small text-error">{errors.cost.message}</span>
+                      <span className="body-small text-error mt-1 block">{errors.cost.message}</span>
                     )}
                   </div>
                 </div>
 
                 {/* Description */}
-                <div className="mt-4">
-                  <label className="body-small text-onSurfaceVariant block mb-1">Description</label>
-                  <TextArea {...register("description")} placeholder="Tin mining industry" />
+                <div className="mb-6">
+                  <label className="body-small text-onSurfaceVariant block mb-2">Description</label>
+                  <TextArea {...register("description")} placeholder="Enter description" rows={3} />
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">
+                    <label className="body-small text-onSurfaceVariant mb-2 flex items-center gap-1">
                       Purchase Date
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-onSurfaceVariant opacity-60">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                      </svg>
                     </label>
                     <Controller
                       name="purchaseDate"
@@ -802,13 +793,17 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                           }}
                           className="border-none"
                           errorMsg={errors.purchaseDate?.message}
+                          placeholder="dd/mm/yyyy"
                         />
                       )}
                     />
                   </div>
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-1">
+                    <label className="body-small text-onSurfaceVariant mb-2 flex items-center gap-1">
                       Date First Used / Depreciation Start Date
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 text-onSurfaceVariant opacity-60">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clipRule="evenodd" />
+                      </svg>
                     </label>
                     <Controller
                       name="acquireDate"
@@ -828,6 +823,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                           }}
                           className="border-none"
                           errorMsg={errors.acquireDate?.message}
+                          placeholder="dd/mm/yyyy"
                         />
                       )}
                     />
@@ -842,8 +838,9 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
 
           {/* Right: Reserved section - Only show when Depreciation tab is active */}
           {activeTab === "depreciation" && (
-            <div className="flex-1">
-              <Card className="p-6 h-[calc(100%-var(--spacing)*2)]">
+            <div className="flex-1 max-w-md">
+              <Card className="p-6 sticky top-24 shadow-md">
+                <h3 className="title-small text-onSurface mb-2">Depreciation Schedule</h3>
                 <p className="body-medium text-onSurfaceVariant">Work in Progress</p>
               </Card>
             </div>
@@ -851,9 +848,9 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
         </div>
 
         {/* Footer (Create Asset) */}
-        <div className="mt-6 flex justify-end gap-6 sticky bottom-0 bg-surface p-4 border-t border-outline">
-          <Button onClick={handleFakeSubmit} disabled={isSubmitting} className="bg-warning text-onWarning rounded-md hover:bg-warning/80">{isSubmitting ? "Creating..." : "Fake Submit (Test)"}</Button>
-          <Button onClick={() => formRef.current?.requestSubmit()}>Create Asset</Button>
+        <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg">
+          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">{isSubmitting ? "Creating..." : "Fake Submit (Test)"}</Button>
+          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>Create Asset</Button>
         </div>
       </div>
     </div>

@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 import Tabs from "@/components/ui/components/Tabs";
-import AllocationTab from "../components/AllocationTab";
-import CalendarTab from "../components/CalendarTab";
-import RentalsTab from "../components/RentalsTab";
+import AllocationTab from "../components/tab/AllocationTab";
+import CalendarTab from "../components/tab/CalendarTab";
+import RentalsTab from "../components/tab/RentalsTab";
 import AllocationModal from "../components/modal/AllocationModal";
 import TransferModal from "../components/modal/TransferModal";
 import ReturnModal from "../components/modal/ReturnModal";
@@ -17,7 +17,7 @@ const DEFAULT_FILTERS: AllocationFilters = {
   status: "",
 };
 
-const AssetAllocationPage: React.FC = () => {
+const AllocationPage: React.FC = () => {
   const [filters, setFilters] = useState<AllocationFilters>(DEFAULT_FILTERS);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
@@ -165,4 +165,4 @@ const AssetAllocationPage: React.FC = () => {
   );
 };
 
-export default AssetAllocationPage;
+export default AllocationPage;

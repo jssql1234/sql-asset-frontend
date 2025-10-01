@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui/components";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
-import Table from "./Table";
-import { MOCK_RENTALS, MOCK_RENTAL_STATUS, MOCK_RENTAL_LOCATIONS } from "../mockData";
-import RentalFiltersPanel from "./RentalFilters.tsx";
-import type { RentalFilters as RentalFiltersState, RentalRecord } from "../types";
+import Table from "../Table.tsx";
+import { MOCK_RENTALS, MOCK_RENTAL_STATUS, MOCK_RENTAL_LOCATIONS } from "../../mockData.ts";
+import RentalFiltersPanel from "../RentalFilters.tsx";
+import type { RentalFilters as RentalFiltersState, RentalRecord } from "../../types.ts";
 
 const DEFAULT_FILTERS: RentalFiltersState = {
   search: "",

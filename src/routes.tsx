@@ -15,11 +15,11 @@ import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
-const AssetAllocationPage = lazy(
-  () => import("@/features/allocation/pages/AssetAllocation")
+const AllocationPage = lazy(
+  () => import("@/features/allocation/pages/AllocationPage")
 );
 
-const Allocation = () => <AssetAllocationPage />;
+const Allocation = () => <AllocationPage />;
 
 export function Home() {
   return <Button>Hello</Button>;

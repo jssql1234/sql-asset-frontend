@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { Button, Card } from "@/components/ui/components";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
-import AllocationFilter, { type FilterOptions } from "./AllocationFilter";
-import Table from "./Table";
-import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../types";
+import AllocationFilter, { type FilterOptions } from "../AllocationFilter";
+import Table from "../Table";
+import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../../types";
 
 interface AllocationTabProps {
   assets: AssetRecord[];

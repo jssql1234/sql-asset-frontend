@@ -487,6 +487,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
   const [batchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState("allowance");
 
   const {
     register,
@@ -835,16 +836,18 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
               </Card>
 
               {/* Tabs */}
-              <Tabs tabs={tabs} variant={"underline"} className="m-0" />
+              <Tabs tabs={tabs} variant={"underline"} className="m-0" onValueChange={setActiveTab} />
             </form>
           </div>
 
-          {/* Right: Reserved section */}
-          <div className="flex-1">
-            <Card className="p-6 h-[calc(100%-var(--spacing)*2)]">
-              <p className="body-medium text-onSurfaceVariant">Work in Progress</p>
-            </Card>
-          </div>
+          {/* Right: Reserved section - Only show when Depreciation tab is active */}
+          {activeTab === "depreciation" && (
+            <div className="flex-1">
+              <Card className="p-6 h-[calc(100%-var(--spacing)*2)]">
+                <p className="body-medium text-onSurfaceVariant">Work in Progress</p>
+              </Card>
+            </div>
+          )}
         </div>
 
         {/* Footer (Create Asset) */}

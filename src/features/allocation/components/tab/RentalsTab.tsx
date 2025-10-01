@@ -5,6 +5,7 @@ import SummaryCards from "@/components/SummaryCards";
 import Table from "../Table.tsx";
 import { MOCK_RENTALS, MOCK_RENTAL_STATUS, MOCK_RENTAL_LOCATIONS } from "../../mockData.ts";
 import RentalFiltersPanel from "../RentalFilters.tsx";
+import { getRentalSummaryCards } from "../AllocationSummaryCards.tsx";
 import type { RentalFilters as RentalFiltersState, RentalRecord } from "../../types.ts";
 
 const DEFAULT_FILTERS: RentalFiltersState = {
@@ -28,44 +29,10 @@ const RentalsTab: React.FC = () => {
     });
   }, [filters]);
 
-  const summaryCards = useMemo(() => {
-    const stats = filteredRentals.reduce(
-      (acc, rental) => {
-        acc.total += 1;
-        acc[rental.status] = (acc[rental.status] ?? 0) + 1;
-        acc.totalIncome += rental.quantity * 50; // Assume $50 per unit
-        return acc;
-      },
-      { total: 0, totalIncome: 0 } as Record<string, number>
-    );
-
-    return [
-      {
-        label: "Active Rentals",
-        value: stats.Active ?? 0,
-        description: "Currently in progress",
-        tone: "success" as const,
-      },
-      {
-        label: "Scheduled Rentals",
-        value: stats.Scheduled ?? 0,
-        description: "Upcoming reservations",
-        tone: "warning" as const,
-      },
-      {
-        label: "Completed Rentals",
-        value: stats.Completed ?? 0,
-        description: "Successfully finished",
-        tone: "default" as const,
-      },
-      {
-        label: "Total Income",
-        value: `RM ${stats.totalIncome.toLocaleString()}`,
-        description: "From all rentals",
-        tone: "success" as const,
-      },
-    ];
-  }, [filteredRentals]);
+  const summaryCards = useMemo(
+    () => getRentalSummaryCards(filteredRentals),
+    [filteredRentals]
+  );
 
   const handleFilterChange = (next: RentalFiltersState) => {
     setFilters(next);

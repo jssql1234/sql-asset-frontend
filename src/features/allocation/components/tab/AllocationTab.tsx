@@ -4,6 +4,7 @@ import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationFilter, { type FilterOptions } from "../AllocationFilter";
 import Table from "../Table";
+import { getAllocationSummaryCards } from "../AllocationSummaryCards";
 import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../../types";
 
 interface AllocationTabProps {
@@ -36,33 +37,7 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
   onInspectAsset,
 }) => {
   const summaryCards = useMemo(
-    () => [
-      {
-        label: "Total Asset Quantity",
-        value: summary.totalAssets.toLocaleString(),
-        description: "Across all categories",
-      },
-      {
-        label: "Utilised Quantity",
-        value: summary.allocatedAssets.toLocaleString(),
-        description: "Currently assigned",
-        tone: "warning" as const,
-      },
-      {
-        label: "Available Quantity",
-        value: summary.availableAssets.toLocaleString(),
-        description: "Ready for deployment",
-        tone: "success" as const,
-      },
-      {
-        label: "Utilization Rate",
-        value: `${summary.utilizationRate}%`,
-        description: "Allocation efficiency",
-        tone: (summary.utilizationRate > 75 ? "warning" : "default") as
-          | "warning"
-          | "default",
-      },
-    ],
+    () => getAllocationSummaryCards(summary),
     [summary]
   );
 

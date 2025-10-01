@@ -8,6 +8,7 @@ import { cn } from "@/utils/utils";
 import CreateAsset from "./CreateAsset";
 import type { Asset } from "@/types/assetType";
 import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
+import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 
 
 // Column definitions for TanStack Table
@@ -186,26 +187,31 @@ export default function AssetContentArea() {
     setSelectedRowIds(rowIds);
   };
 
+  // Summary cards data
+  const summaryCardsData: SummaryCardItem[] = [
+    {
+      label: "Initial Allowance",
+      value: "RM 21.5K",
+      description: "Current year",
+    },
+    {
+      label: "Annual Allowance",
+      value: "RM 64.5K",
+      description: "Current year",
+    },
+    {
+      label: "Total Depreciation",
+      value: "RM 21.4K",
+      description: "Current year",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-4">
-      {/* Stat cards */}
-      {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <Card className="bg-surface border border-outline p-4">
-          <div className="label-medium text-onSurface">Initial Allowance</div>
-          <div className="title-small text-onSurface mt-1">RM 21.5K</div>
-          <div className="body-small text-onSurfaceVariant">Current year</div>
-        </Card>
-        <Card className="bg-surface border border-outline p-4">
-          <div className="label-medium text-onSurface">Annual Allowance</div>
-          <div className="title-small text-onSurface mt-1">RM 64.5K</div>
-          <div className="body-small text-onSurfaceVariant">Current year</div>
-        </Card>
-        <Card className="bg-surface border border-outline p-4">
-          <div className="label-medium text-onSurface">Total Depreciation</div>
-          <div className="title-small text-onSurface mt-1">RM 21.4K</div>
-          <div className="body-small text-onSurfaceVariant">Current year</div>
-        </Card>
-      </div> */}
+      {/* Summary Cards */}
+      {view === 'list' && (
+        <SummaryCards data={summaryCardsData} columns={3} />
+      )}
 
       {view === 'list' ? (
         <Card className="p-3">
@@ -247,7 +253,6 @@ export default function AssetContentArea() {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">Edit</Button>
                   <Button variant="destructive" size="sm">Delete</Button>
-                  <Button variant="outline" size="sm">Dispose</Button>
                   <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
                 </div>
               )}

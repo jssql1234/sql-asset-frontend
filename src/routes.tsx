@@ -28,7 +28,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Root path */}
-      <Route path="/asset" element={<AssetMainPage />} />
+      <Route path="/" element={<AssetMainPage />} />
       <Route path="/testing" element={<Testing />} />
       <Route path="/tabledemo" element={<TableDemo />} />
       

@@ -3,7 +3,7 @@ import { Button, Card } from "@/components/ui/components";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationFilter, { type FilterOptions } from "../AllocationFilter";
-import Table from "../Table";
+import AllocationTable from "../AllocationTable";
 import { getAllocationSummaryCards } from "../AllocationSummaryCards";
 import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../../types";
 
@@ -111,7 +111,7 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
           </div>
         </div>
         <div className="flex-1 border-t border-outline">
-          <Table
+          <AllocationTable
             variant="allocation"
             assets={assets}
             selectedAssetIds={selectedAssetIds}

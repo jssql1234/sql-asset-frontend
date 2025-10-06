@@ -1,4 +1,4 @@
-import type { Asset } from "@/types/assetType";
+import type { Asset } from "@/types/asset";
 import { mockAssets } from "../assetMockData";
 
 export const fetchAssetList = async (): Promise<Asset[]> => {

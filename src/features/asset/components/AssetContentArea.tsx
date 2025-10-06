@@ -6,7 +6,7 @@ import { DataTable } from "@/features/asset/components/ContentTable";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
 import CreateAsset from "./CreateAsset";
-import type { Asset } from "@/types/assetType";
+import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 

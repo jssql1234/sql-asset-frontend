@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/components";
 import { cn } from "@/utils/utils";
-import type { Asset } from "../types/asset";
+import type { Asset } from "@/types/asset";
 
 const chipBaseClasses =
   "inline-flex items-center gap-2 rounded-full border border-outlineVariant bg-tertiaryContainer px-3 py-1 text-xs font-semibold text-onTertiaryContainer";

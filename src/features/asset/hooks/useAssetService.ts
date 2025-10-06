@@ -1,7 +1,7 @@
 import { useDataQuery } from "@/hooks/useDataQuery";
-import type { Asset } from "@/types/assetType";
+import type { Asset } from "@/types/asset";
 import { t } from "i18next";
-import { createAsset, fetchAssetList } from "../services/asset";
+import { createAsset, fetchAssetList } from "../services/assetService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 

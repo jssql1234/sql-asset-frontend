@@ -9,10 +9,10 @@ import { WarrantyDetailsModal } from "@/features/coverage/components/modal/Warra
 import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
 import { coverageInsurances, insuranceProviders, warrantyProviders, coverageWarranties } from "@/features/coverage/mockData";
-import { useCoverageTabs } from "@/features/coverage/components/CoverageTabs";
+import { useCoverageTabs } from "@/features/coverage/hooks/useCoverageTabs";
 import { useCoverageState } from "@/features/coverage/hooks/useCoverageState";
 
-const CoverageManagementPage: React.FC = () => {
+const CoveragePage: React.FC = () => {
   const {
     insuranceFilters,
     setInsuranceFilters,
@@ -118,4 +118,4 @@ const CoverageManagementPage: React.FC = () => {
   );
 };
 
-export default CoverageManagementPage;
+export default CoveragePage;

@@ -50,16 +50,13 @@ const DowntimeTrackingPage: React.FC = () => {
           onLogDowntime={() => setModals((prev: ModalState) => ({ ...prev, logDowntime: true }))}
         />
 
-        {/* Summary Cards */}
         <DowntimeSummaryCard summary={summary} />
 
-        {/* Filters */}
         <DowntimeSearchFilter
           filters={filters}
           onFiltersChange={handleFilterChange}
         />
 
-        {/* Data Table */}
         <DowntimeTable
           incidents={incidents}
           filters={filters}
@@ -67,7 +64,6 @@ const DowntimeTrackingPage: React.FC = () => {
         />
       </div>
 
-      {/* Modals */}
       <LogDowntimeModal
         open={modals.logDowntime}
         onClose={() => handleModalClose("logDowntime")}

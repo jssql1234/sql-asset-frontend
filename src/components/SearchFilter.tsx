@@ -1,13 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/components/Input";
-import {
-  Button,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
+import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { Search, X, Check } from "@/assets/icons";
 import { cn } from "@/utils/utils";
 
@@ -21,117 +15,36 @@ export interface FilterOption<TValue extends Primitive = string> {
 }
 
 export interface FilterConfig<TValue extends Primitive = string> {
-  /**
-   * Unique identifier for the filter. Used as the React key and data-testid hook.
-   */
-  id: string;
-  /**
-   * Display label rendered above the dropdown trigger.
-   */
-  label: string;
-  /**
-   * Currently selected value for the filter.
-   */
-  value: TValue;
-  /**
-   * Placeholder text shown when no option is selected.
-   */
-  placeholder?: string;
-  /**
-   * Options rendered inside the dropdown menu.
-   */
-  options: Array<FilterOption<TValue>>;
-  /**
-   * Callback triggered when the user selects a new option.
-   */
-  onSelect: (value: TValue, option: FilterOption<TValue>) => void;
-  /**
-   * Optional tailwind class names applied to the dropdown trigger button.
-   */
-  triggerClassName?: string;
-  /**
-   * Optional tailwind class names applied to the dropdown menu container.
-   */
-  menuClassName?: string;
-  /**
-   * Optional tailwind class names applied to each dropdown item.
-   */
-  itemClassName?: string;
-  /**
-   * Optional min-width utility class for the dropdown container.
-   */
-  minWidthClassName?: string;
+  id: string; // Unique identifier for the filter. Used as the React key and data-testid hook.
+  label: string; // Display label rendered above the dropdown trigger.
+  value: TValue; // Currently selected value for the filter.
+  placeholder?: string; // Placeholder text shown when no option is selected.
+  options: Array<FilterOption<TValue>>; // Options rendered inside the dropdown menu.
+  onSelect: (value: TValue, option: FilterOption<TValue>) => void; // Callback triggered when the user selects a new option.
+  triggerClassName?: string; // Optional tailwind class names applied to the dropdown trigger button.
+  menuClassName?: string; // Optional tailwind class names applied to the dropdown menu container.
+  itemClassName?: string; // Optional tailwind class names applied to each dropdown item.
+  minWidthClassName?: string; // Optional min-width utility class for the dropdown container.
 }
 
 export interface SearchFilterProps<TValue extends Primitive = string> {
-  /**
-   * Current search input value.
-   */
-  searchValue?: string;
-  /**
-   * Placeholder text for the search input.
-   */
-  searchPlaceholder?: string;
-  /**
-   * Optional label rendered above the search input.
-   */
-  searchLabel?: string;
-  /**
-   * Invoked when the user submits or updates the search term.
-   */
-  onSearch: (value: string) => void;
-  /**
-   * Renders the search in "live" mode, triggering onSearch on every keystroke.
-   */
-  live?: boolean;
-  /**
-   * Disables the search input and optional submit button.
-   */
-  disabled?: boolean;
-  /**
-   * Optional array of dropdown filter configurations.
-   */
-  filters?: Array<FilterConfig<TValue>>;
-  /**
-   * Optional callback invoked when the Clear Filters button is pressed.
-   */
-  onClearFilters?: () => void;
-  /**
-   * Custom label for the Clear Filters button.
-   */
-  clearLabel?: string;
-  /**
-   * Controls whether the clear button is shown when an onClearFilters handler is provided.
-   */
-  hideClearButton?: boolean;
-  /**
-   * Tailwind class names applied to the outer wrapper.
-   */
-  className?: string;
-  /**
-   * Tailwind class names applied to the inner flex container.
-   */
-  contentClassName?: string;
-  /**
-   * Tailwind class names applied to the search input wrapper.
-   */
-  inputWrapperClassName?: string;
-  /**
-   * Tailwind class names applied directly to the input element.
-   */
-  inputClassName?: string;
-  /**
-   * When true, renders the live search icon (magnifier) inside the input when in live mode.
-   */
-  showLiveSearchIcon?: boolean;
-  /**
-   * Optional submit button label for non-live mode.
-   */
-  submitLabel?: string;
-  /**
-   * Optional class names applied to the clear button.
-   */
-  clearButtonClassName?: string;
+  searchValue?: string; // Current search input value.
+  searchPlaceholder?: string; // Placeholder text for the search input.
+  searchLabel?: string; // Optional label rendered above the search input.
+  onSearch: (value: string) => void; // Invoked when the user submits or updates the search term.
+  live?: boolean; // Renders the search in "live" mode, triggering onSearch on every keystroke.
+  disabled?: boolean; // Disables the search input and optional submit button.
+  filters?: Array<FilterConfig<TValue>>; // Optional array of dropdown filter configurations.
+  onClearFilters?: () => void; // Optional callback invoked when the Clear Filters button is pressed.
+  clearLabel?: string; // Custom label for the Clear Filters button.
+  hideClearButton?: boolean; // Controls whether the clear button is shown when an onClearFilters handler is provided.
+  className?: string; // Tailwind class names applied to the outer wrapper.
+  contentClassName?: string; // Tailwind class names applied to the inner flex container.
+  inputWrapperClassName?: string; // Tailwind class names applied to the search input wrapper.
+  inputClassName?: string; // Tailwind class names applied directly to the input element.
+  showLiveSearchIcon?: boolean; // When true, renders the live search icon (magnifier) inside the input when in live mode.
+  submitLabel?: string; // Optional submit button label for non-live mode.
+  clearButtonClassName?: string; // Optional class names applied to the clear button.
 }
 
 const getSelectedLabel = <TValue extends Primitive>(filter: FilterConfig<TValue>) => {

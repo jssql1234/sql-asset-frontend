@@ -34,7 +34,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">CA Asset Group</label>
+          <label className="block text-sm font-medium text-onSurface">CA Asset Group</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -50,7 +50,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Allowance Class</label>
+          <label className="block text-sm font-medium text-onSurface">Allowance Class</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -65,7 +65,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Sub Class</label>
+          <label className="block text-sm font-medium text-onSurface">Sub Class</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -83,11 +83,11 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">IA Rate</label>
+          <label className="block text-sm font-medium text-onSurface">IA Rate</label>
           <Input {...register("iaRate")} readOnly />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">AA Rate</label>
+          <label className="block text-sm font-medium text-onSurface">AA Rate</label>
           <Input {...register("aaRate")} readOnly />
         </div>
         <div className="flex items-center gap-2 mt-7">
@@ -119,11 +119,11 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Qualify Amount (QE)</label>
+          <label className="block text-sm font-medium text-onSurface">Qualify Amount (QE)</label>
           <Input {...register("qeValue")} readOnly />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Controlled Transfer In RE</label>
+          <label className="block text-sm font-medium text-onSurface">Controlled Transfer In RE</label>
           <Input {...register("residualExpenditure")} placeholder="0.00" />
         </div>
       </div>
@@ -141,7 +141,7 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">HP Start Date</label>
+          <label className="block text-sm font-medium text-onSurface">HP Start Date</label>
           <Controller
             name="hpStartDate"
             control={control}
@@ -164,7 +164,7 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
           />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">No. Instalment (months)</label>
+          <label className="block text-sm font-medium text-onSurface">No. Instalment (months)</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -184,20 +184,20 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
         </div>
         {watch("hpInstalment") === "other" && (
           <div>
-            <label className="body-small text-onSurfaceVariant block mb-2">Custom Instalment</label>
+            <label className="block text-sm font-medium text-onSurface">Custom Instalment</label>
             <Input type="number" {...register("hpInstalmentUser")} />
           </div>
         )}
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Deposit Amount</label>
+          <label className="block text-sm font-medium text-onSurface">Deposit Amount</label>
           <Input {...register("hpDeposit")} placeholder="0.00" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Interest Rate (%)</label>
+          <label className="block text-sm font-medium text-onSurface">Interest Rate (%)</label>
           <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Finance</label>
+          <label className="block text-sm font-medium text-onSurface">Finance</label>
           <Input {...register("hpFinance")} placeholder="0.00" />
         </div>
       </div>
@@ -210,7 +210,7 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Depreciation Method</label>
+          <label className="block text-sm font-medium text-onSurface">Depreciation Method</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -225,7 +225,7 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Frequency</label>
+          <label className="block text-sm font-medium text-onSurface">Frequency</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -243,22 +243,22 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Useful Life (Years)</label>
+          <label className="block text-sm font-medium text-onSurface">Useful Life (Years)</label>
           <Input type="number" {...register("usefulLife", { valueAsNumber: true })} min="1" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Residual Value</label>
+          <label className="block text-sm font-medium text-onSurface">Residual Value</label>
           <Input {...register("residualValue")} placeholder="0.00" />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Depreciation Rate</label>
+          <label className="block text-sm font-medium text-onSurface">Depreciation Rate</label>
           <Input {...register("depreciationRate")} readOnly />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Total Depreciation</label>
+          <label className="block text-sm font-medium text-onSurface">Total Depreciation</label>
           <Input {...register("totalDepreciation")} readOnly />
         </div>
       </div>
@@ -272,7 +272,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Branch</label>
+          <label className="block text-sm font-medium text-onSurface">Branch</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -292,7 +292,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Department</label>
+          <label className="block text-sm font-medium text-onSurface">Department</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -315,7 +315,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Location</label>
+          <label className="block text-sm font-medium text-onSurface">Location</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -343,7 +343,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Person in Charge</label>
+          <label className="block text-sm font-medium text-onSurface">Person in Charge</label>
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
@@ -369,7 +369,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
       </div>
       <div className="mt-6">
-        <label className="body-small text-onSurfaceVariant block mb-2">Additional Notes</label>
+        <label className="block text-sm font-medium text-onSurface">Additional Notes</label>
         <TextArea {...register("allocationNotes")} placeholder="Any additional information about the asset allocation" rows={3} />
       </div>
     </Card>
@@ -429,11 +429,11 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Warranty Provider</label>
+          <label className="block text-sm font-medium text-onSurface">Warranty Provider</label>
           <Input {...register("warrantyProvider")} placeholder="Enter warranty provider" />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">Start Date</label>
+          <label className="block text-sm font-medium text-onSurface">Start Date</label>
           <Controller
             name="warrantyStartDate"
             control={control}
@@ -456,7 +456,7 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
           />
         </div>
         <div>
-          <label className="body-small text-onSurfaceVariant block mb-2">End Date</label>
+          <label className="block text-sm font-medium text-onSurface">End Date</label>
           <Controller
             name="warrantyEndDate"
             control={control}
@@ -481,7 +481,7 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
         </div>
       </div>
       <div className="mt-6">
-        <label className="body-small text-onSurfaceVariant block mb-2">Notes</label>
+        <label className="block text-sm font-medium text-onSurface">Notes</label>
         <TextArea {...register("warrantyNotes")} rows={3} placeholder="Additional warranty notes" />
       </div>
     </Card>
@@ -670,7 +670,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                 {/* Batch ID - conditional */}
                 {batchMode && (
                   <div className="mb-6">
-                    <label className="body-small text-onSurfaceVariant block mb-2">
+                    <label className="block text-sm font-medium text-onSurface">
                       Batch ID <span className="text-error">*</span>
                     </label>
                     <Input {...register("batchID")} placeholder="Enter Batch ID" />
@@ -684,7 +684,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {/* Asset ID */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-2">
+                    <label className="block text-sm font-medium text-onSurface">
                       Asset ID <span className="text-error">*</span>
                     </label>
                     <Input {...register("code")} placeholder="Enter Asset ID" />
@@ -695,7 +695,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
 
                   {/* Asset Name */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-2">
+                    <label className="block text-sm font-medium text-onSurface">
                       Asset Name <span className="text-error">*</span>
                     </label>
                     <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
@@ -706,7 +706,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
 
                   {/* Asset Group */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-2">
+                    <label className="block text-sm font-medium text-onSurface">
                       Asset Group <span className="text-error">*</span>
                     </label>
                     <DropdownMenu>
@@ -737,7 +737,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   {/* Units per Asset (Quantity per Asset) */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-2">
+                    <label className="block text-sm font-medium text-onSurface">
                       {batchMode ? "Quantity per Asset" : "Units per Asset"} <span className="text-error">*</span>
                     </label>
                     <Input
@@ -753,7 +753,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
 
                   {/* Total Cost */}
                   <div>
-                    <label className="body-small text-onSurfaceVariant block mb-2">Total Cost</label>
+                    <label className="block text-sm font-medium text-onSurface">Total Cost</label>
                     <Input {...register("cost")} placeholder="0.00" />
                     {errors.cost && (
                       <span className="body-small text-error mt-1 block">{errors.cost.message}</span>
@@ -763,14 +763,14 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
 
                 {/* Description */}
                 <div className="mb-6">
-                  <label className="body-small text-onSurfaceVariant block mb-2">Description</label>
+                  <label className="block text-sm font-medium text-onSurface">Description</label>
                   <TextArea {...register("description")} placeholder="Enter description" rows={3} />
                 </div>
 
                 {/* Dates */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="body-small text-onSurfaceVariant mb-2 flex items-center gap-1">
+                    <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
                       Purchase Date
                       <Tooltip 
                         text="The date on the purchase invoice. Used for accounting records."
@@ -802,7 +802,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                     />
                   </div>
                   <div>
-                    <label className="body-small text-onSurfaceVariant mb-2 flex items-center gap-1">
+                    <label className="text-sm font-medium  text-onSurface mb-2 flex items-center gap-1">
                       Date First Used / Depreciation Start Date
                       <Tooltip 
                         text="The date the asset is ready and first used in the business. Used for Capital Allowance calculation. Also indicates the start of depreciation."

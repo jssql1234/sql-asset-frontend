@@ -36,10 +36,10 @@ export const SIDEBAR_SECTIONS = [
     title: "Asset Maintenance",
     items: [
       { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, filledIcon: LayoutDashboardFilled, href: "/dashboard" },
-      { id: "maintenance-schedule", label: "Maintenance Schedule", icon: CalendarEvent, filledIcon: CalendarEventFilled, href: "/maintenance-schedule" },
-      { id: "work-request", label: "Work Requests", icon: Tool, href: "/work-request" },
       { id: "allocation", label: "Allocation", icon: OrderDetails, filledIcon: OrderDetailsFilled, href: "/allocation" },
       { id: "downtime-tracking", label: "Downtime Tracking", icon: Clock, filledIcon: ClockFilled, href: "/downtime-tracking" },
+      { id: "work-request", label: "Work Requests", icon: Tool, href: "/work-request" },
+      { id: "maintenance-schedule", label: "Maintenance Schedule", icon: CalendarEvent, filledIcon: CalendarEventFilled, href: "/maintenance-schedule" },
       { id: "insurance", label: "Insurance & Warranty Claims", icon: ShieldCheck, filledIcon: ShieldCheckFilled, href: "/insurance" },
       { id: "meter-reading", label: "Meter Reading", icon: Gauge, filledIcon: GaugeFilled, href: "/meter-reading" },
     ],

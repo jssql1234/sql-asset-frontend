@@ -7,7 +7,7 @@ import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/featu
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
 
 type InsurancesVariantProps = {
-  variant: "policies";
+  variant: "insurances";
   policies: CoverageInsurance[];
   onViewInsurance: (insurance: CoverageInsurance) => void;
 };
@@ -29,7 +29,7 @@ type CoverageTableProps =
   | WarrantiesVariantProps
   | ClaimsVariantProps;
 
-const PoliciesVariantTable = ({
+const InsurancesVariantTable = ({
   policies,
   onViewInsurance,
 }: InsurancesVariantProps) => {
@@ -264,9 +264,9 @@ const ClaimsVariantTable = ({
 };
 
 const CoverageTable = (props: CoverageTableProps) => {
-  if (props.variant === "policies") {
+  if (props.variant === "insurances") {
     const { policies, onViewInsurance } = props;
-    return <PoliciesVariantTable variant="policies" policies={policies} onViewInsurance={onViewInsurance} />;
+    return <InsurancesVariantTable variant="insurances" policies={policies} onViewInsurance={onViewInsurance} />;
   }
 
   if (props.variant === "warranties") {

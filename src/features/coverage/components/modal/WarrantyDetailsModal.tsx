@@ -1,6 +1,6 @@
 import React from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
-import { DetailModalSection } from "@/features/coverage/components/DetailModal";
+import { DetailModalSection } from "@/features/coverage/components/modal/DetailModal";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageWarranty } from "@/features/coverage/types";
 import { formatDate } from "@/features/coverage/utils/formatters";

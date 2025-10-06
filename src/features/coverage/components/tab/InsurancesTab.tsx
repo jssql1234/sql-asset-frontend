@@ -65,7 +65,7 @@ export const InsurancesTab: React.FC<InsurancesTabProps> = ({
       />
 
       <CoverageTable
-        variant="policies"
+        variant="insurances"
         policies={filteredPolicies}
         onViewInsurance={onViewInsurance}
       />

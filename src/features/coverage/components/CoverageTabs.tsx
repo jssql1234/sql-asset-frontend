@@ -34,7 +34,7 @@ export const useCoverageTabs = ({
     () => [
       {
         label: "Insurance Policies",
-        value: "policies",
+        value: "insurances",
         content: (
           <InsurancesTab
             insurances={coverageInsurances}

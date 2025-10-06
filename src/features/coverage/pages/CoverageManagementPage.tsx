@@ -47,7 +47,7 @@ const CoverageManagementPage: React.FC = () => {
   return (
     <AssetLayout activeSidebarItem="insurance">
       <div className="flex flex-col gap-2">
-        <Tabs tabs={tabs} defaultValue="policies" contentClassName="mt-6" />
+        <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />
       </div>
 
       <InsuranceFormModal

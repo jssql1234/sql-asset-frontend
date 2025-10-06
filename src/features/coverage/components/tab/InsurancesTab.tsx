@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import { InsuranceSearchFilter } from "@/features/coverage/components/CoverageSearchFilters";
+import { InsuranceSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
 import { InsuranceSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import type { CoverageInsurance, InsuranceFilters, InsuranceSummaryMetrics } from "@/features/coverage/types";
 

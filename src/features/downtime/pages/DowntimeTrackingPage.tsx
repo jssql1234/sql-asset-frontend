@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
-import { TabHeader } from "@/components/TabHeader";
 import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
@@ -8,6 +7,7 @@ import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedI
 import { DowntimeSearchFilter } from "@/features/downtime/components/DowntimeSearchFilter";
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
 import { DowntimeSummaryCard } from "@/features/downtime/components/DowntimeSummaryCard";
+import { DowntimeTabHeader } from "@/features/downtime/components/DowntimeTabHeader";
 import { mockIncidents, mockSummary } from "@/features/downtime/mockData";
 
 const DowntimeTrackingPage: React.FC = () => {
@@ -45,21 +45,9 @@ const DowntimeTrackingPage: React.FC = () => {
   return (
     <AssetLayout activeSidebarItem="downtime-tracking">
       <div className="flex flex-col gap-6 p-1">
-        <TabHeader
-          title="Downtime Tracking"
-          subtitle="Monitor and manage asset downtime incidents"
-          actions={[
-            {
-              label: "View Resolved",
-              onAction: () => setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true })),
-              variant: "outline",
-            },
-            {
-              label: "Log Downtime",
-              onAction: () => setModals((prev: ModalState) => ({ ...prev, logDowntime: true })),
-              variant: "default",
-            },
-          ]}
+        <DowntimeTabHeader
+          onViewResolved={() => setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true }))}
+          onLogDowntime={() => setModals((prev: ModalState) => ({ ...prev, logDowntime: true }))}
         />
 
         {/* Summary Cards */}

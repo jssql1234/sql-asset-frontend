@@ -24,15 +24,6 @@ const AllocationPage: React.FC = () => {
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 
-  const filterOptions = useMemo(
-    () => ({
-      locations: MOCK_LOCATIONS,
-      pics: MOCK_PICS,
-      statuses: MOCK_STATUS,
-    }),
-    []
-  );
-
   const filteredAssets = useMemo(() => {
     const normalizedSearch = filters.search.trim().toLowerCase();
 
@@ -92,10 +83,6 @@ const AllocationPage: React.FC = () => {
     setFilters(nextFilters);
   };
 
-  const handleResetFilters = () => {
-    setFilters(DEFAULT_FILTERS);
-  };
-
   const handleSelectionChange = (selected: AssetRecord[]) => {
     setSelectedAssetIds(selected.map((asset) => asset.id));
   };
@@ -121,10 +108,11 @@ const AllocationPage: React.FC = () => {
           assets={filteredAssets}
           filters={filters}
           summary={summary}
-          filterOptions={filterOptions}
+          locations={MOCK_LOCATIONS}
+          pics={MOCK_PICS}
+          statuses={MOCK_STATUS}
           selectedAssetIds={selectedAssetIds}
           onFilterChange={handleFilterChange}
-          onResetFilters={handleResetFilters}
           onSelectionChange={handleSelectionChange}
           onOpenAllocationModal={openAllocationModal}
           onOpenTransferModal={openTransferModal}

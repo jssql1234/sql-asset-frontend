@@ -2,19 +2,20 @@ import { useMemo } from "react";
 import { Button, Card } from "@/components/ui/components";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
-import AllocationFilter, { type FilterOptions } from "../AllocationFilter";
+import { AllocationFilter } from "../AllocationSearchFilter";
 import AllocationTable from "../AllocationTable";
 import { getAllocationSummaryCards } from "../AllocationSummaryCards";
-import type { AllocationFilters, AllocationSummary, AssetRecord,} from "../../types";
+import type { AllocationFilters, AllocationSummary, AssetRecord, AssetStatus } from "../../types";
 
 interface AllocationTabProps {
   assets: AssetRecord[];
   filters: AllocationFilters;
   summary: AllocationSummary;
-  filterOptions: FilterOptions;
+  locations: string[];
+  pics: string[];
+  statuses: AssetStatus[];
   selectedAssetIds: string[];
   onFilterChange: (filters: AllocationFilters) => void;
-  onResetFilters: () => void;
   onSelectionChange: (assets: AssetRecord[]) => void;
   onOpenAllocationModal?: () => void;
   onOpenTransferModal?: () => void;
@@ -26,10 +27,11 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
   assets,
   filters,
   summary,
-  filterOptions,
+  locations,
+  pics,
+  statuses,
   selectedAssetIds,
   onFilterChange,
-  onResetFilters,
   onSelectionChange,
   onOpenAllocationModal,
   onOpenTransferModal,
@@ -74,9 +76,12 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
 
       <AllocationFilter
         filters={filters}
-        options={filterOptions}
-        onFilterChange={onFilterChange}
-        onResetFilters={onResetFilters}
+        locations={locations}
+        pics={pics}
+        statuses={statuses}
+        onFiltersChange={(partialFilters) =>
+          onFilterChange({ ...filters, ...partialFilters })
+        }
       />
 
       <Card className="flex flex-1 flex-col gap-4 border border-outline bg-surfaceContainer p-0">

@@ -4,7 +4,7 @@ import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationTable from "../AllocationTable";
 import { MOCK_RENTALS, MOCK_RENTAL_STATUS, MOCK_RENTAL_LOCATIONS } from "../../mockData.ts";
-import RentalFiltersPanel from "../RentalFilters.tsx";
+import { RentalFilter } from "../AllocationSearchFilter";
 import { getRentalSummaryCards } from "../AllocationSummaryCards.tsx";
 import type { RentalFilters as RentalFiltersState, RentalRecord } from "../../types.ts";
 
@@ -34,14 +34,6 @@ const RentalsTab: React.FC = () => {
     [filteredRentals]
   );
 
-  const handleFilterChange = (next: RentalFiltersState) => {
-    setFilters(next);
-  };
-
-  const handleResetFilters = () => {
-    setFilters(DEFAULT_FILTERS);
-  };
-
   const rentalsForTable: RentalRecord[] = filteredRentals;
 
   return (
@@ -59,12 +51,13 @@ const RentalsTab: React.FC = () => {
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <RentalFiltersPanel
+      <RentalFilter
         filters={filters}
         statuses={MOCK_RENTAL_STATUS}
         locations={MOCK_RENTAL_LOCATIONS}
-        onFilterChange={handleFilterChange}
-        onResetFilters={handleResetFilters}
+        onFiltersChange={(partialFilters) =>
+          setFilters((prev) => ({ ...prev, ...partialFilters }))
+        }
       />
 
       <Card className="flex flex-1 flex-col gap-4 border border-outline bg-surfaceContainer p-0">

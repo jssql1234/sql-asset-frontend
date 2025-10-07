@@ -14,25 +14,43 @@ const UserAccessRightsPage: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set([]));
+  const [draftPermissions, setDraftPermissions] = useState<Record<string, Record<string, boolean>>>({});
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  const handleGroupPermissionChange = (
-    groupId: string,
-    feature: string,
-    action: string,
-    value: boolean
-  ) => {
+  // Initialize draft permissions when group changes
+  const initializeDraftPermissions = (groupId: string) => {
     const group = groups.find(g => g.id === groupId);
     if (group) {
-      const updatedPermissions = {
-        ...group.defaultPermissions,
-        [feature]: {
-          ...group.defaultPermissions[feature],
-          [action]: value
-        }
-      };
-      updateGroup(groupId, { defaultPermissions: updatedPermissions });
+      setDraftPermissions({ ...group.defaultPermissions });
+      setHasUnsavedChanges(false);
     }
   };
+
+  // Update draft permissions
+  const updateDraftPermission = (feature: string, action: string, value: boolean) => {
+    setDraftPermissions(prev => ({
+      ...prev,
+      [feature]: {
+        ...prev[feature],
+        [action]: value
+      }
+    }));
+    setHasUnsavedChanges(true);
+  };
+
+  // Save draft permissions to actual group
+  const savePermissions = () => {
+    if (!selectedGroup) return;
+    updateGroup(selectedGroup, { defaultPermissions: { ...draftPermissions } });
+    setHasUnsavedChanges(false);
+  };
+
+  // Reset draft permissions to last saved state
+  const resetPermissions = () => {
+    if (!selectedGroup) return;
+    initializeDraftPermissions(selectedGroup);
+  };
+
 
   const togglePermissionSelection = (permissionKey: string) => {
     const newSelection = new Set(selectedPermissions);
@@ -56,10 +74,8 @@ const UserAccessRightsPage: React.FC = () => {
 
   const grantSelectedPermissions = () => {
     if (!selectedGroup) return;
-    const group = groups.find(g => g.id === selectedGroup);
-    if (!group) return;
 
-    const updatedPermissions = { ...group.defaultPermissions };
+    const updatedPermissions = { ...draftPermissions };
 
     selectedPermissions.forEach(permissionKey => {
       const item = PERMISSION_ITEMS.find(p => p.key === permissionKey);
@@ -73,15 +89,14 @@ const UserAccessRightsPage: React.FC = () => {
       }
     });
 
-    updateGroup(selectedGroup, { defaultPermissions: updatedPermissions });
+    setDraftPermissions(updatedPermissions);
+    setHasUnsavedChanges(true);
   };
 
   const revokeSelectedPermissions = () => {
     if (!selectedGroup) return;
-    const group = groups.find(g => g.id === selectedGroup);
-    if (!group) return;
 
-    const updatedPermissions = { ...group.defaultPermissions };
+    const updatedPermissions = { ...draftPermissions };
 
     selectedPermissions.forEach(permissionKey => {
       const item = PERMISSION_ITEMS.find(p => p.key === permissionKey);
@@ -95,15 +110,14 @@ const UserAccessRightsPage: React.FC = () => {
       }
     });
 
-    updateGroup(selectedGroup, { defaultPermissions: updatedPermissions });
+    setDraftPermissions(updatedPermissions);
+    setHasUnsavedChanges(true);
   };
 
   const grantAllPermissions = () => {
     if (!selectedGroup) return;
-    const group = groups.find(g => g.id === selectedGroup);
-    if (!group) return;
 
-    const updatedPermissions = { ...group.defaultPermissions };
+    const updatedPermissions = { ...draftPermissions };
 
     PERMISSION_ITEMS.forEach(item => {
       if (!updatedPermissions[item.key]) {
@@ -114,15 +128,14 @@ const UserAccessRightsPage: React.FC = () => {
       });
     });
 
-    updateGroup(selectedGroup, { defaultPermissions: updatedPermissions });
+    setDraftPermissions(updatedPermissions);
+    setHasUnsavedChanges(true);
   };
 
   const revokeAllPermissions = () => {
     if (!selectedGroup) return;
-    const group = groups.find(g => g.id === selectedGroup);
-    if (!group) return;
 
-    const updatedPermissions = { ...group.defaultPermissions };
+    const updatedPermissions = { ...draftPermissions };
 
     PERMISSION_ITEMS.forEach(item => {
       if (!updatedPermissions[item.key]) {
@@ -133,7 +146,8 @@ const UserAccessRightsPage: React.FC = () => {
       });
     });
 
-    updateGroup(selectedGroup, { defaultPermissions: updatedPermissions });
+    setDraftPermissions(updatedPermissions);
+    setHasUnsavedChanges(true);
   };
 
   return (
@@ -188,7 +202,10 @@ const UserAccessRightsPage: React.FC = () => {
                 {groups.map(group => (
                   <DropdownMenuItem
                     key={group.id}
-                    onClick={() => setSelectedGroup(group.id)}
+                    onClick={() => {
+                      setSelectedGroup(group.id);
+                      initializeDraftPermissions(group.id);
+                    }}
                     className="cursor-pointer"
                   >
                     <div className="font-medium">{group.name}</div>
@@ -202,9 +219,16 @@ const UserAccessRightsPage: React.FC = () => {
         {/* Group Permission Editor */}
         {selectedGroup && (
           <Card className="p-4">
-            <h2 className="text-lg font-semibold mb-4">
-              Edit Permissions for Group: {groups.find(g => g.id === selectedGroup)?.name}
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">
+                Edit Permissions for Group: {groups.find(g => g.id === selectedGroup)?.name}
+              </h2>
+              {hasUnsavedChanges && (
+                <div className="text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded">
+                  ⚠️ You have unsaved changes
+                </div>
+              )}
+            </div>
 
             <Table>
               <TableHeader>
@@ -253,7 +277,6 @@ const UserAccessRightsPage: React.FC = () => {
 
                       {/* Permission Rows */}
                       {isExpanded && groupPermissions.map(item => {
-                        const group = groups.find(g => g.id === selectedGroup);
                         const isSelected = selectedPermissions.has(item.key);
 
                         return (
@@ -266,203 +289,101 @@ const UserAccessRightsPage: React.FC = () => {
                               {PERMISSION_DISPLAY_NAMES[item.key]}
                             </TableCell>
                             {/* Execute */}
-                            <TableCell
-                              className="text-center cursor-pointer hover:bg-gray-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.execute !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.execute ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'execute', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center">
                               {item.permissions.execute !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.execute ?? false}
+                                  checked={draftPermissions?.[item.key]?.execute ?? false}
                                   onChange={(e) => {
                                     e.stopPropagation();
-                                    handleGroupPermissionChange(
-                                      selectedGroup,
-                                      item.key,
-                                      'execute',
-                                      e.target.checked
-                                    );
+                                    updateDraftPermission(item.key, 'execute', e.target.checked);
                                   }}
                                 />
                               ) : null}
                             </TableCell>
                             {/* Entry Actions */}
-                            <TableCell
-                              className="text-center bg-blue-50/30 cursor-pointer hover:bg-blue-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.entryNew !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.entryNew ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'entryNew', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-blue-50/30">
                               {item.permissions.entryNew !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.entryNew ?? false}
+                                  checked={draftPermissions?.[item.key]?.entryNew ?? false}
                                   onChange={(e) => {
                                     e.stopPropagation();
-                                    handleGroupPermissionChange(
-                                      selectedGroup,
-                                      item.key,
-                                      'entryNew',
-                                      e.target.checked
-                                    );
+                                    updateDraftPermission(item.key, 'entryNew', e.target.checked);
                                   }}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell
-                              className="text-center bg-blue-50/30 cursor-pointer hover:bg-blue-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.entryEdit !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.entryEdit ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'entryEdit', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-blue-50/30">
                               {item.permissions.entryEdit !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.entryEdit ?? false}
-                                  onChange={(e) => handleGroupPermissionChange(
-                                    selectedGroup,
-                                    item.key,
-                                    'entryEdit',
-                                    e.target.checked
-                                  )}
+                                  checked={draftPermissions?.[item.key]?.entryEdit ?? false}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateDraftPermission(item.key, 'entryEdit', e.target.checked);
+                                  }}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell
-                              className="text-center bg-blue-50/30 cursor-pointer hover:bg-blue-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.entryDelete !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.entryDelete ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'entryDelete', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-blue-50/30">
                               {item.permissions.entryDelete !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.entryDelete ?? false}
-                                  onChange={(e) => handleGroupPermissionChange(
-                                    selectedGroup,
-                                    item.key,
-                                    'entryDelete',
-                                    e.target.checked
-                                  )}
+                                  checked={draftPermissions?.[item.key]?.entryDelete ?? false}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateDraftPermission(item.key, 'entryDelete', e.target.checked);
+                                  }}
                                 />
                               ) : null}
                             </TableCell>
                             {/* Report Actions */}
-                            <TableCell
-                              className="text-center bg-green-50/30 cursor-pointer hover:bg-green-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.reportProcess !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.reportProcess ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'reportProcess', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-green-50/30">
                               {item.permissions.reportProcess !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.reportProcess ?? false}
-                                  onChange={(e) => handleGroupPermissionChange(
-                                    selectedGroup,
-                                    item.key,
-                                    'reportProcess',
-                                    e.target.checked
-                                  )}
+                                  checked={draftPermissions?.[item.key]?.reportProcess ?? false}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateDraftPermission(item.key, 'reportProcess', e.target.checked);
+                                  }}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell
-                              className="text-center bg-green-50/30 cursor-pointer hover:bg-green-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.reportPrint !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.reportPrint ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'reportPrint', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-green-50/30">
                               {item.permissions.reportPrint !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.reportPrint ?? false}
-                                  onChange={(e) => handleGroupPermissionChange(
-                                    selectedGroup,
-                                    item.key,
-                                    'reportPrint',
-                                    e.target.checked
-                                  )}
+                                  checked={draftPermissions?.[item.key]?.reportPrint ?? false}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateDraftPermission(item.key, 'reportPrint', e.target.checked);
+                                  }}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell
-                              className="text-center bg-green-50/30 cursor-pointer hover:bg-green-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.reportPreview !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.reportPreview ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'reportPreview', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-green-50/30">
                               {item.permissions.reportPreview !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.reportPreview ?? false}
-                                  onChange={(e) => handleGroupPermissionChange(
-                                    selectedGroup,
-                                    item.key,
-                                    'reportPreview',
-                                    e.target.checked
-                                  )}
+                                  checked={draftPermissions?.[item.key]?.reportPreview ?? false}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateDraftPermission(item.key, 'reportPreview', e.target.checked);
+                                  }}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell
-                              className="text-center bg-green-50/30 cursor-pointer hover:bg-green-50"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const target = e.target as HTMLElement;
-                                if (target.tagName !== 'INPUT' && item.permissions.reportExport !== undefined) {
-                                  const currentValue = group?.defaultPermissions?.[item.key]?.reportExport ?? false;
-                                  handleGroupPermissionChange(selectedGroup, item.key, 'reportExport', !currentValue);
-                                }
-                              }}
-                            >
+                            <TableCell className="text-center bg-green-50/30">
                               {item.permissions.reportExport !== undefined ? (
                                 <input
                                   type="checkbox"
-                                  checked={group?.defaultPermissions?.[item.key]?.reportExport ?? false}
-                                  onChange={(e) => handleGroupPermissionChange(
-                                    selectedGroup,
-                                    item.key,
-                                    'reportExport',
-                                    e.target.checked
-                                  )}
+                                  checked={draftPermissions?.[item.key]?.reportExport ?? false}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    updateDraftPermission(item.key, 'reportExport', e.target.checked);
+                                  }}
                                 />
                               ) : null}
                             </TableCell>
@@ -476,27 +397,45 @@ const UserAccessRightsPage: React.FC = () => {
             </Table>
 
             {/* Action Buttons */}
-            <div className="sticky bottom-0 bg-white border-t p-4 flex gap-2 justify-end">
-              <Button
-                onClick={grantSelectedPermissions}
-                disabled={selectedPermissions.size === 0}
-                variant="secondary"
-              >
-                Grant Selected
-              </Button>
-              <Button
-                onClick={revokeSelectedPermissions}
-                disabled={selectedPermissions.size === 0}
-                variant="secondary"
-              >
-                Revoke Selected
-              </Button>
-              <Button onClick={grantAllPermissions} variant="primary">
-                Grant All
-              </Button>
-              <Button onClick={revokeAllPermissions} variant="outline">
-                Revoke All
-              </Button>
+            <div className="sticky bottom-0 bg-white border-t pt-4 flex justify-between">
+              <div className="flex gap-2">
+                <Button
+                  onClick={grantSelectedPermissions}
+                  disabled={selectedPermissions.size === 0}
+                  variant="secondary"
+                >
+                  Grant
+                </Button>
+                <Button
+                  onClick={revokeSelectedPermissions}
+                  disabled={selectedPermissions.size === 0}
+                  variant="secondary"
+                >
+                  Revoke
+                </Button>
+                <Button onClick={grantAllPermissions} variant="primary">
+                  Grant All
+                </Button>
+                <Button onClick={revokeAllPermissions} variant="outline">
+                  Revoke All
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={resetPermissions}
+                  disabled={!hasUnsavedChanges}
+                >
+                  Reset
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={savePermissions}
+                  disabled={!hasUnsavedChanges}
+                >
+                  Save
+                </Button>
+              </div>
             </div>
           </Card>
         )}

@@ -10,6 +10,7 @@ import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import PermissionGuard from "@/components/PermissionGuard";
+import { useNavigate } from "react-router-dom";
 
 
 // Column definitions for TanStack Table
@@ -175,7 +176,7 @@ export default function AssetContentArea() {
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [view, setView] = useState<'list' | 'create'>('list');
-
+  const navigate = useNavigate();
   const { data: assets } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => setView('list'));
   
@@ -257,6 +258,7 @@ export default function AssetContentArea() {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">Edit</Button>
                   <Button variant="destructive" size="sm">Delete</Button>
+                  <Button variant="destructive" size="sm" onClick={() => navigate('/disposal')}>Dispose</Button>
                   <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
                 </div>
               )}

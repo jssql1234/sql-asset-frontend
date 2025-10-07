@@ -13,6 +13,12 @@ export interface PermissionItem {
   permissions: Record<string, boolean>;
 }
 
+export interface PermissionGroup {
+  id: string;
+  name: string;
+  permissions: string[]; // Array of permission keys
+}
+
 export const PERMISSION_ITEMS: PermissionItem[] = [
   {
     key: "maintainItem",
@@ -28,6 +34,12 @@ export const PERMISSION_ITEMS: PermissionItem[] = [
     }
   },
   {
+    key: "viewItemCategory",
+    permissions: {
+      execute: true
+    }
+  },
+  {
     key: "maintainUser",
     permissions: {
       execute: false,
@@ -39,12 +51,24 @@ export const PERMISSION_ITEMS: PermissionItem[] = [
       reportPreview: false,
       reportExport: false
     }
+  }
+];
+
+export const PERMISSION_GROUPS: PermissionGroup[] = [
+  {
+    id: 'groupA',
+    name: 'Asset Management',
+    permissions: ['maintainItem', 'viewItemCategory']
   },
   {
-    key: "viewItemCategory",
-    permissions: {
-      execute: true
-    }
+    id: 'groupB',
+    name: 'User Management',
+    permissions: ['maintainUser']
+  },
+  {
+    id: 'groupC',
+    name: 'Reporting',
+    permissions: [] // Empty for now
   }
 ];
 

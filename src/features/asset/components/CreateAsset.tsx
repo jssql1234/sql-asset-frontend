@@ -35,7 +35,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">CA Asset Group</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
                 {watch("caAssetGroup") || "-- Choose Group --"}
@@ -51,7 +51,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Allowance Class</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
                 {watch("allowanceClass") || "-- Choose Code --"}
@@ -66,7 +66,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Sub Class</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="outline" className="w-full justify-between">
                 {watch("subClass") || "-- Choose Type --"}
@@ -618,7 +618,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
               <Card className="p-6">
                 {/* Inactive Status Section - Compact */}
                 <div className="flex justify-end mb-6">
-                  <Card className="px-3 py-2 m-0 bg-surfaceContainerLowest">
+                  <Card className="px-3 py-1 m-0 bg-surfaceContainerLowest">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center gap-2">
                         <Option
@@ -680,7 +680,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                   </div>
                 )}
 
-                {/* First Row: Asset ID, Asset Group, Asset Name */}
+                {/* First Row: Asset ID, Asset Name, Asset Group */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {/* Asset ID */}
                   <div>

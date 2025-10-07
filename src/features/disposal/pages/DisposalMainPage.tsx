@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AssetLayout } from '@/layout/AssetSidebar';
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
@@ -7,6 +8,7 @@ import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
 import DisposalHistoryTable from '../components/DisposalHistoryTable';
 import DisposalResults from '../components/DisposalResults';
 import { Button } from '@/components/ui/components';
+import TabHeader from '@/components/TabHeader';
 
 // Interface definitions based on the disposal process
 interface AssetData {
@@ -40,6 +42,8 @@ interface DisposalCalculationResults {
 
 
 const DisposalMainPage: React.FC = () => {
+  const navigate = useNavigate();
+  
   // State management - Start with step 1 (Disposal Type)
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedDisposalType, setSelectedDisposalType] = useState('');
@@ -363,20 +367,17 @@ const DisposalMainPage: React.FC = () => {
       <div className="h-full flex flex-col">
         {/* Header */}
         <div className="bg-surface border-b border-outlineVariant px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-onBackground">Asset Disposal</h1>
-              <p className="text-onSurface">Manage asset disposal processes and calculations</p>
-            </div>
-            <div className="space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsViewingHistory(!isViewingHistory)}
-              >
-                {isViewingHistory ? 'New Disposal' : 'View History'}
-              </Button>
-            </div>
-          </div>
+          <TabHeader title="Asset Disposal" 
+            subtitle="Manage asset disposal processes and calculations"
+            actions={[
+              {
+                label: isViewingHistory ? "New Disposal" : "View History",
+                onAction: isViewingHistory ? () => navigate('/asset') : () => setIsViewingHistory(true),
+                variant: "outline",
+                size: "default",
+              },
+            ]}
+            />
         </div>
 
         {/* Main Content */}

@@ -3,7 +3,7 @@ import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "../sidebar"
+} from "./sidebar"
 import { AppSidebar } from "./app-sidebar"
 import sqlLogo from "@/assets/images/sqlasset_logo1.png"
 

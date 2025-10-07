@@ -1,4 +1,4 @@
-import './buttonStyles';
+import './menuIcon';
 import './dropdownStyles';
 import './dialogStyles';
 import './tableColumnVisibilityStyles';

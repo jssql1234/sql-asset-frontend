@@ -25,7 +25,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
-} from "@/components/sidebar"
+} from "./sidebar"
 
 // This is sample data.
 const data = {

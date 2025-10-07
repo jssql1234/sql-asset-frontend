@@ -3,45 +3,36 @@ import { AssetLayout } from "@/layout/AssetSidebar";
 import { useContext } from "react";
 import { UserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS, PERMISSION_DISPLAY_NAMES } from "@/types/permission";
+import { Button } from "@/components/ui/components";
 import { Card } from "@/components/ui/components";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
+import { ChevronDown } from "@/assets/icons";
 
 const UserAccessRightsPage: React.FC = () => {
-  const { users, groups, updateUser, updateGroup } = useContext(UserContext);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const { users, groups, assignUserToGroup, updateGroup } = useContext(UserContext);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
-  const handlePermissionChange = (
-    targetId: string,
+  const handleGroupPermissionChange = (
+    groupId: string,
     feature: string,
     action: string,
-    value: boolean,
-    isGroup: boolean
+    value: boolean
   ) => {
-    if (isGroup) {
-      const group = groups.find(g => g.id === targetId);
-      if (group) {
-        const updatedPermissions = {
-          ...group.defaultPermissions,
-          [feature]: {
-            ...group.defaultPermissions[feature],
-            [action]: value
-          }
-        };
-        updateGroup(targetId, { defaultPermissions: updatedPermissions });
-      }
-    } else {
-      const user = users.find(u => u.id === targetId);
-      if (user) {
-        const updatedOverrides = {
-          ...user.permissionOverrides,
-          [feature]: {
-            ...user.permissionOverrides?.[feature],
-            [action]: value
-          }
-        };
-        updateUser(targetId, { permissionOverrides: updatedOverrides });
-      }
+    const group = groups.find(g => g.id === groupId);
+    if (group) {
+      const updatedPermissions = {
+        ...group.defaultPermissions,
+        [feature]: {
+          ...group.defaultPermissions[feature],
+          [action]: value
+        }
+      };
+      updateGroup(groupId, { defaultPermissions: updatedPermissions });
     }
+  };
+
+  const handleUserGroupChange = (userId: string, newGroupId: string) => {
+    assignUserToGroup(userId, newGroupId);
   };
 
   return (
@@ -53,19 +44,32 @@ const UserAccessRightsPage: React.FC = () => {
           {/* Users Section */}
           <Card className="p-4">
             <h2 className="text-lg font-semibold mb-4">Users</h2>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {users.map(user => (
-                <div
-                  key={user.id}
-                  className={`p-3 border rounded cursor-pointer ${
-                    selectedUser === user.id ? 'border-primary bg-primary/10' : 'border-outline'
-                  }`}
-                  onClick={() => setSelectedUser(user.id)}
-                >
-                  <div className="font-medium">{user.name}</div>
-                  <div className="text-sm text-onSurfaceVariant">
-                    Group: {groups.find(g => g.id === user.groupId)?.name || user.groupId}
+                <div key={user.id} className="flex items-center justify-between p-3 border rounded">
+                  <div>
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-sm text-onSurfaceVariant">
+                      Current Group: {groups.find(g => g.id === user.groupId)?.name || user.groupId}
+                    </div>
                   </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <Button variant="outline" size="small">
+                        Change Group <ChevronDown className="w-4 h-4 ml-1" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {groups.map(group => (
+                        <DropdownMenuItem
+                          key={group.id}
+                          onClick={() => handleUserGroupChange(user.id, group.id)}
+                        >
+                          {group.name}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               ))}
             </div>
@@ -91,14 +95,11 @@ const UserAccessRightsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Permission Editor */}
-        {(selectedUser || selectedGroup) && (
+        {/* Group Permission Editor */}
+        {selectedGroup && (
           <Card className="p-4">
             <h2 className="text-lg font-semibold mb-4">
-              Edit Permissions for {selectedUser ?
-                users.find(u => u.id === selectedUser)?.name :
-                groups.find(g => g.id === selectedGroup)?.name
-              }
+              Edit Permissions for Group: {groups.find(g => g.id === selectedGroup)?.name}
             </h2>
 
             <div className="space-y-4">
@@ -107,25 +108,19 @@ const UserAccessRightsPage: React.FC = () => {
                   <h3 className="font-medium mb-2">{PERMISSION_DISPLAY_NAMES[item.key]}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {Object.entries(item.permissions).map(([action, _]) => {
-                      const targetId = selectedUser || selectedGroup || '';
-                      const isGroup = !!selectedGroup;
-                      const currentPermissions = isGroup
-                        ? groups.find(g => g.id === targetId)?.defaultPermissions
-                        : users.find(u => u.id === targetId)?.permissionOverrides;
-
-                      const currentValue = currentPermissions?.[item.key]?.[action] ?? false;
+                      const group = groups.find(g => g.id === selectedGroup);
+                      const currentValue = group?.defaultPermissions?.[item.key]?.[action] ?? false;
 
                       return (
                         <label key={action} className="flex items-center space-x-2">
                           <input
                             type="checkbox"
                             checked={currentValue}
-                            onChange={(e) => handlePermissionChange(
-                              targetId,
+                            onChange={(e) => handleGroupPermissionChange(
+                              selectedGroup,
                               item.key,
                               action,
-                              e.target.checked,
-                              isGroup
+                              e.target.checked
                             )}
                           />
                           <span className="text-sm capitalize">{action}</span>

@@ -19,7 +19,7 @@ export function usePermissions() {
     const group = getUserGroup(currentUser.groupId);
     if (!group) return false;
 
-    return hasPermission(currentUser, group, feature, action);
+    return hasPermission(group, feature, action);
   };
 
   const hasAnyPermission = (permissions: Array<{ feature: string; action: PermissionAction }>): boolean => {

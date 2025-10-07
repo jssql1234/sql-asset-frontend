@@ -78,6 +78,7 @@ interface UserContextType {
   getUserGroup: (groupId: string) => UserGroup | undefined;
   updateUser: (userId: string, updates: Partial<User>) => void;
   updateGroup: (groupId: string, updates: Partial<UserGroup>) => void;
+  assignUserToGroup: (userId: string, groupId: string) => void;
 }
 
 export const UserContext = createContext<UserContextType>({
@@ -88,6 +89,7 @@ export const UserContext = createContext<UserContextType>({
   getUserGroup: () => undefined,
   updateUser: () => {},
   updateGroup: () => {},
+  assignUserToGroup: () => {},
 });
 
 interface UserProviderProps {
@@ -139,6 +141,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     ));
   };
 
+  const assignUserToGroup = (userId: string, groupId: string) => {
+    updateUser(userId, { groupId });
+  };
+
   const value: UserContextType = {
     currentUser,
     users,
@@ -147,6 +153,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     getUserGroup,
     updateUser,
     updateGroup,
+    assignUserToGroup,
   };
 
   return (

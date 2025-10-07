@@ -19,6 +19,7 @@ import { Tooltip } from "@/components/ui/components/Tooltip";
 import { ChevronDown } from "@/assets/icons";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
+import { SerialNumberTab } from "./SerialNumberTab";
 
 interface CreateAssetProps {
   onSuccess?: (data: CreateAssetFormData) => void;
@@ -377,53 +378,6 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
   );
 };
 
-const SerialNoTab: React.FC<any> = ({ setValue, watch }) => {
-  const [serialNumbers, setSerialNumbers] = useState<string[]>(watch("serialNumbers") || []);
-
-  const addSerialNumber = () => {
-    setSerialNumbers([...serialNumbers, ""]);
-  };
-
-  const updateSerialNumber = (index: number, value: string) => {
-    const updated = [...serialNumbers];
-    updated[index] = value;
-    setSerialNumbers(updated);
-    setValue("serialNumbers", updated);
-  };
-
-  const removeSerialNumber = (index: number) => {
-    const updated = serialNumbers.filter((_, i) => i !== index);
-    setSerialNumbers(updated);
-    setValue("serialNumbers", updated);
-  };
-
-  return (
-    <Card className="p-6 shadow-sm">
-      <div className="flex justify-between items-center mb-4">
-        <label className="body-medium text-onSurface">Serial Numbers</label>
-        <Button type="button" onClick={addSerialNumber} variant="outline">Add Serial Number</Button>
-      </div>
-      <div className="space-y-3">
-        {serialNumbers.length === 0 && (
-          <p className="body-small text-onSurfaceVariant text-center py-8">No serial numbers added yet. Click "Add Serial Number" to get started.</p>
-        )}
-        {serialNumbers.map((serial, index) => (
-          <div key={index} className="flex gap-3">
-            <Input
-              value={serial}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSerialNumber(index, e.target.value)}
-              placeholder={`Serial number ${index + 1}`}
-              className="flex-1"
-            />
-            <Button type="button" variant="destructive" onClick={() => removeSerialNumber(index)}>
-              Remove
-            </Button>
-          </div>
-        ))}
-      </div>
-    </Card>
-  );
-};
 
 const WarrantyTab: React.FC<any> = ({ register, control }) => {
   return (
@@ -495,7 +449,7 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
 
 const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) => {
   const { onSuccess, onBack } = props;
-  const [batchMode] = useState(false);
+  const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("allowance");
@@ -514,13 +468,20 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
       quantity: 1,
       quantityPerUnit: 1,
       depreciationMethod: "Straight Line",
-      depreciationFrequency: "yearly",
+      depreciationFrequency: "Yearly",
       usefulLife: 10,
       aca: false,
       extraCheckbox: false,
       extraCommercial: false,
       extraNewVehicle: false,
       serialNumbers: [],
+      code: "",
+      assetName: "",
+      assetGroup: "",
+      cost: "",
+      description: "",
+      purchaseDate: "",
+      acquireDate: "",
     },
   });
 
@@ -596,7 +557,15 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
     {
       label: "Serial No",
       value: "serial-no",
-      content: <SerialNoTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
+      content: (
+        <SerialNumberTab
+          quantity={watch("quantity")}
+          quantityPerUnit={watch("quantityPerUnit")}
+          isBatchMode={batchMode}
+          serialNumbers={watch("serialNumbers")}
+          onSerialNumbersChange={(serialNumbers) => setValue("serialNumbers", serialNumbers)}
+        />
+      ),
     },
     {
       label: "Warranty",
@@ -610,7 +579,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
       <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
         <div className="flex h-full flex-col gap-6 p-2 md:p-6">
-          <TabHeader title="Create Asset" 
+          <TabHeader title="Create Asset"
           subtitle="Fill in the details to create a new asset."
           actions={[
             {
@@ -621,6 +590,16 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
             },
             ]}
             />
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setBatchMode(!batchMode)}
+              variant={batchMode ? "destructive" : "default"}
+              className="has-tooltip"
+              data-tooltip={batchMode ? "Exit batch mode" : "Enter batch mode"}
+            >
+              {batchMode ? "Exit Batch" : "Batch"}
+            </Button>
+          </div>
         </div>
 
         {/* Split into left and right */}
@@ -681,21 +660,20 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                   </Card>
                 </div>
 
-                {/* Batch ID - conditional */}
-                {batchMode && (
-                  <div className="mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {/* Batch ID */}
+                  {batchMode ? (
+                  <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Batch ID <span className="text-error">*</span>
                     </label>
-                    <Input {...register("batchID")} placeholder="Enter Batch ID" />
-                    {errors.batchID && (
-                      <span className="body-small text-error mt-1 block">{errors.batchID.message}</span>
+                    <Input {...register("code")} placeholder="Enter Batch ID" />
+                    {errors.code && (
+                      <span className="body-small text-error mt-1 block">{errors.code.message}</span>
                     )}
                   </div>
-                )}
-
-                {/* First Row: Asset ID, Asset Name, Asset Group */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  ) : (
+                  <>
                   {/* Asset ID */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
@@ -704,8 +682,10 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                     <Input {...register("code")} placeholder="Enter Asset ID" />
                     {errors.code && (
                       <span className="body-small text-error mt-1 block">{errors.code.message}</span>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </>
+                  )}
 
                   {/* Asset Name */}
                   <div>
@@ -747,9 +727,25 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                   </div>
                 </div>
 
-                {/* Second Row: Units per Asset, Total Cost */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  {/* Units per Asset (Quantity per Asset) */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {batchMode && (
+                  <div>
+                    <label className="block text-sm font-medium text-onSurface">
+                      Assets in Batch<span className="text-error">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      {...register("quantity", { valueAsNumber: true })}
+                      min="1"
+                      max="999"
+                    />
+                    {errors.quantity && (
+                      <span className="body-small text-error mt-1 block">{errors.quantity.message}</span>
+                    )}
+                  </div>
+                  )}
+
+                  {/* Units per Asset */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       {batchMode ? "Quantity per Asset" : "Units per Asset"} <span className="text-error">*</span>

@@ -48,7 +48,10 @@ export const createAssetFormSchema = z.object({
   allocationNotes: z.string().optional(),
 
   // Serial No tab
-  serialNumbers: z.array(z.string()),
+  serialNumbers: z.array(z.object({
+    serial: z.string(),
+    remark: z.string(),
+  })),
 
   // Warranty tab
   warrantyProvider: z.string().optional(),

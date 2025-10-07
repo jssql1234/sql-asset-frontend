@@ -18,6 +18,7 @@ import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { Tooltip } from "@/components/ui/components/Tooltip";
 import { ChevronDown } from "@/assets/icons";
 import { useToast } from "@/components/ui/components/Toast/useToast";
+import TabHeader from "@/components/TabHeader";
 
 interface CreateAssetProps {
   onSuccess?: (data: CreateAssetFormData) => void;
@@ -608,9 +609,18 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
     <div className="bg-surface min-h-screen">
       <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
-        <div className="mb-6 flex items-center justify-between sticky top-0 bg-surface z-10 py-4 px-6 border-b border-outline shadow-sm">
-          <h2 className="title-large text-onSurface">Create Asset</h2>
-          {onBack && <Button onClick={onBack} variant="outline">Back</Button>}
+        <div className="flex h-full flex-col gap-6 p-2 md:p-6">
+          <TabHeader title="Create Asset" 
+          subtitle="Fill in the details to create a new asset."
+          actions={[
+            {
+              label: "Back",
+              onAction: onBack,
+              variant: "outline",
+              size: "default",
+            },
+            ]}
+            />
         </div>
 
         {/* Split into left and right */}

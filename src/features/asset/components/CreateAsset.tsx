@@ -709,9 +709,9 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                     <label className="block text-sm font-medium text-onSurface">
                       Asset Group <span className="text-error">*</span>
                     </label>
-                    <DropdownMenu>
+                    <DropdownMenu className="w-full">
                       <DropdownMenuTrigger>
-                        <Button variant="outline" className="w-full justify-between">
+                        <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                           {assetGroups.find(g => g.value === watch("assetGroup"))?.label || "-- Choose Asset Group --"}
                           <ChevronDown className="w-4 h-4" />
                         </Button>

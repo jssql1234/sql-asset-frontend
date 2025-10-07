@@ -782,7 +782,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className={`grid grid-cols-1 gap-4 ${activeTab === "depreciation" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
                   <div>
                     <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
                       Purchase Date

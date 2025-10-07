@@ -283,13 +283,28 @@ const UserAccessRightsPage: React.FC = () => {
                           <TableRow
                             key={item.key}
                             className={`cursor-pointer ${isSelected ? 'bg-blue-100' : 'hover:bg-gray-50'}`}
-                            onClick={() => togglePermissionSelection(item.key)}
+                            onClick={(e) => {
+                              const target = e.target as HTMLElement;
+                              const cell = target.closest('td');
+                              // Don't trigger row selection if clicking in a cell that contains a checkbox
+                              if (cell && !cell.querySelector('input[type="checkbox"]')) {
+                                togglePermissionSelection(item.key);
+                              }
+                            }}
                           >
                             <TableCell className="font-medium pl-8">
                               {PERMISSION_DISPLAY_NAMES[item.key]}
                             </TableCell>
                             {/* Execute */}
-                            <TableCell className="text-center">
+                            <TableCell
+                              className="text-center cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.execute !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.execute ?? false;
+                                  updateDraftPermission(item.key, 'execute', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.execute !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -298,11 +313,20 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'execute', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
                             {/* Entry Actions */}
-                            <TableCell className="text-center bg-blue-50/30">
+                            <TableCell
+                              className="text-center bg-blue-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.entryNew !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.entryNew ?? false;
+                                  updateDraftPermission(item.key, 'entryNew', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.entryNew !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -311,10 +335,19 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'entryNew', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell className="text-center bg-blue-50/30">
+                            <TableCell
+                              className="text-center bg-blue-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.entryEdit !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.entryEdit ?? false;
+                                  updateDraftPermission(item.key, 'entryEdit', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.entryEdit !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -323,10 +356,19 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'entryEdit', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell className="text-center bg-blue-50/30">
+                            <TableCell
+                              className="text-center bg-blue-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.entryDelete !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.entryDelete ?? false;
+                                  updateDraftPermission(item.key, 'entryDelete', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.entryDelete !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -335,11 +377,20 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'entryDelete', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
                             {/* Report Actions */}
-                            <TableCell className="text-center bg-green-50/30">
+                            <TableCell
+                              className="text-center bg-green-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.reportProcess !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.reportProcess ?? false;
+                                  updateDraftPermission(item.key, 'reportProcess', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.reportProcess !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -348,10 +399,19 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'reportProcess', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell className="text-center bg-green-50/30">
+                            <TableCell
+                              className="text-center bg-green-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.reportPrint !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.reportPrint ?? false;
+                                  updateDraftPermission(item.key, 'reportPrint', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.reportPrint !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -360,10 +420,19 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'reportPrint', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell className="text-center bg-green-50/30">
+                            <TableCell
+                              className="text-center bg-green-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.reportPreview !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.reportPreview ?? false;
+                                  updateDraftPermission(item.key, 'reportPreview', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.reportPreview !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -372,10 +441,19 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'reportPreview', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>
-                            <TableCell className="text-center bg-green-50/30">
+                            <TableCell
+                              className="text-center bg-green-50/30 cursor-pointer"
+                              onClick={() => {
+                                if (item.permissions.reportExport !== undefined) {
+                                  const currentValue = draftPermissions?.[item.key]?.reportExport ?? false;
+                                  updateDraftPermission(item.key, 'reportExport', !currentValue);
+                                }
+                              }}
+                            >
                               {item.permissions.reportExport !== undefined ? (
                                 <input
                                   type="checkbox"
@@ -384,6 +462,7 @@ const UserAccessRightsPage: React.FC = () => {
                                     e.stopPropagation();
                                     updateDraftPermission(item.key, 'reportExport', e.target.checked);
                                   }}
+                                  onClick={(e) => e.stopPropagation()}
                                 />
                               ) : null}
                             </TableCell>

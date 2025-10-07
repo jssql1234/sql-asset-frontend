@@ -7,7 +7,7 @@ registerButtonTheme({
     outline: "border border-outline bg-surfaceContainer text-onSurface hover:bg-hover",
     secondary: "bg-secondary text-onSurface hover:bg-secondary/80",
     link: "text-primary hover:underline bg-transparent hover:bg-transparent",
-    dropdown: "border border-outlineVariant bg-surfaceContainerHighest text-onSurface hover:bg-hover",
+    dropdown: "border border-gray-300 bg-surfaceContainerHighest text-onSurface hover:bg-hover",
     dialog: "bg-transparent hover:bg-hover text-onSurfaceVariant",
   },
   sizes: {

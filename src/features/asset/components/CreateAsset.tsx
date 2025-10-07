@@ -37,7 +37,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <label className="block text-sm font-medium text-onSurface">CA Asset Group</label>
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("caAssetGroup") || "-- Choose Group --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -53,7 +53,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <label className="block text-sm font-medium text-onSurface">Allowance Class</label>
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("allowanceClass") || "-- Choose Code --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -68,7 +68,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <label className="block text-sm font-medium text-onSurface">Sub Class</label>
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("subClass") || "-- Choose Type --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -117,7 +117,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Qualify Amount (QE)</label>
           <Input {...register("qeValue")} readOnly />
@@ -165,9 +165,9 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">No. Instalment (months)</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("hpInstalment") || "- Choose No. of Instalment -"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -211,9 +211,9 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Depreciation Method</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button  variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("depreciationMethod")}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -226,14 +226,14 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Frequency</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
-                {watch("depreciationFrequency")}
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
+                {watch("depreciationFrequency") || "- Choose Frequency -"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent className="w-fit">
               <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "Yearly")}>Yearly</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "Monthly")}>Monthly</DropdownMenuItem>
             </DropdownMenuContent>
@@ -270,12 +270,12 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
 const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
   return (
     <Card className="p-6 shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Branch</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("branch") || "-- Select Branch --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -293,9 +293,9 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Department</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("department") || "-- Select Department --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -313,12 +313,12 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           </DropdownMenu>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Location</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("location") || "-- Select Location --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -344,9 +344,9 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Person in Charge</label>
-          <DropdownMenu>
+          <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
-              <Button variant="outline" className="w-full justify-between">
+              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
                 {watch("personInCharge") || "-- Select Person --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
@@ -432,7 +432,10 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
           <label className="block text-sm font-medium text-onSurface">Warranty Provider</label>
           <Input {...register("warrantyProvider")} placeholder="Enter warranty provider" />
         </div>
-        <div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+          <div>
           <label className="block text-sm font-medium text-onSurface">Start Date</label>
           <Controller
             name="warrantyStartDate"
@@ -479,7 +482,8 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
             )}
           />
         </div>
-      </div>
+        </div>
+      
       <div className="mt-6">
         <label className="block text-sm font-medium text-onSurface">Notes</label>
         <TextArea {...register("warrantyNotes")} rows={3} placeholder="Additional warranty notes" />
@@ -768,7 +772,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                 </div>
 
                 {/* Dates */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
                       Purchase Date

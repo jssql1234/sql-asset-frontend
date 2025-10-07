@@ -262,15 +262,7 @@ const DisposalMainPage: React.FC = () => {
     if (isViewingHistory) {
       return (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-onBackground">Disposal History</h2>
-            <Button
-              variant="outline"
-              onClick={() => setIsViewingHistory(false)}
-            >
-              Back to Disposal Process
-            </Button>
-          </div>
+          <h2 className="text-xl font-semibold text-onBackground">Disposal History</h2>
           <DisposalHistoryTable
             entries={disposalHistory}
             onView={(item) => console.log('View details:', item)}
@@ -369,10 +361,23 @@ const DisposalMainPage: React.FC = () => {
         <div className="bg-surface border-b border-outlineVariant px-6 py-4">
           <TabHeader title="Asset Disposal" 
             subtitle="Manage asset disposal processes and calculations"
-            actions={[
+            actions={isViewingHistory ? [
               {
-                label: isViewingHistory ? "New Disposal" : "View History",
-                onAction: isViewingHistory ? () => navigate('/asset') : () => setIsViewingHistory(true),
+                label: "New Disposal",
+                onAction: () => navigate('/asset'),
+                variant: "outline",
+                size: "default",
+              },
+              {
+                label: "Back to Disposal Process",
+                onAction: () => setIsViewingHistory(false),
+                variant: "outline",
+                size: "default",
+              },
+            ] : [
+              {
+                label: "View History",
+                onAction: () => setIsViewingHistory(true),
                 variant: "outline",
                 size: "default",
               },

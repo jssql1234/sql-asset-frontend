@@ -25,14 +25,6 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
       label: 'Normal / Partial / Controlled / Written Off Disposal',
     },
     {
-      value: 'mfrs5',
-      label: 'MFRS 5 Held-for-Sale',
-    },
-    {
-      value: 'gift',
-      label: 'Gift to Approved Institutions',
-    },
-    {
       value: 'agriculture',
       label: 'Agriculture Disposal',
     },

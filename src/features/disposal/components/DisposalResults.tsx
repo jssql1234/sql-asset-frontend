@@ -62,10 +62,6 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
     switch (type) {
       case 'partial':
         return 'Normal';
-      case 'mfrs5':
-        return 'MFRS5';
-      case 'gift':
-        return 'Gift';
       case 'agriculture':
         return 'Agriculture';
       default:

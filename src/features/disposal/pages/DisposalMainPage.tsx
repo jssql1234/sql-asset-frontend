@@ -4,8 +4,6 @@ import DisposalStepWizard from '../components/DisposalStepWizard';
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
 import NormalDisposalForm from '../components/NormalDisposalForm';
-import MFRS5DisposalForm from '../components/MFRS5DisposalForm';
-import GiftDisposalForm from '../components/GiftDisposalForm';
 import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
 import DisposalHistoryTable from '../components/DisposalHistoryTable';
 import DisposalResults from '../components/DisposalResults';
@@ -79,7 +77,7 @@ const DisposalMainPage: React.FC = () => {
     disposalDate: '',
   });
 
-  // Multiple assets data for MFRS5 and partial disposal  
+  // Multiple assets data for normal disposal  
   // const [multipleAssetsData, setMultipleAssetsData] = useState<unknown[]>([]);
   
   // Disposal type specific data
@@ -91,20 +89,6 @@ const DisposalMainPage: React.FC = () => {
     recipient: '',
     isAssetScrapped: false,
     isControlledDisposal: false,
-  });
-
-  const [mfrs5DisposalData, setMfrs5DisposalData] = useState({
-    assetId: 'AS-0001',
-    classificationDate: '',
-    disposalValue: 0,
-    recipient: '',
-  });
-
-  const [giftDisposalData, setGiftDisposalData] = useState({
-    assetId: 'AS-0001',
-    acquireDate: '',
-    disposalDate: '',
-    recipient: '',
   });
 
   const [agricultureDisposalData, setAgricultureDisposalData] = useState({
@@ -171,17 +155,6 @@ const DisposalMainPage: React.FC = () => {
         
         // Also populate disposal-type specific forms with basic asset info
         setNormalDisposalData(prev => ({
-          ...prev,
-          assetId: baseAssetData.assetId,
-          acquireDate: baseAssetData.purchaseDate,
-        }));
-
-        setMfrs5DisposalData(prev => ({
-          ...prev,
-          assetId: baseAssetData.assetId,
-        }));
-
-        setGiftDisposalData(prev => ({
           ...prev,
           assetId: baseAssetData.assetId,
           acquireDate: baseAssetData.purchaseDate,
@@ -286,20 +259,6 @@ const DisposalMainPage: React.FC = () => {
     }));
   };
 
-  const handleMfrs5DisposalChange = (field: string, value: string | number) => {
-    setMfrs5DisposalData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleGiftDisposalChange = (field: string, value: string) => {
-    setGiftDisposalData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   const handleAgricultureDisposalChange = (field: string, value: string | number | boolean) => {
     setAgricultureDisposalData(prev => ({
       ...prev,
@@ -398,24 +357,6 @@ const DisposalMainPage: React.FC = () => {
             <NormalDisposalForm
               data={normalDisposalData}
               onChange={handleNormalDisposalChange}
-              onNext={handleNextStep}
-              onPrevious={handlePreviousStep}
-            />
-          );
-        } else if (selectedDisposalType === 'mfrs5') {
-          return (
-            <MFRS5DisposalForm
-              data={mfrs5DisposalData}
-              onChange={handleMfrs5DisposalChange}
-              onNext={handleNextStep}
-              onPrevious={handlePreviousStep}
-            />
-          );
-        } else if (selectedDisposalType === 'gift') {
-          return (
-            <GiftDisposalForm
-              data={giftDisposalData}
-              onChange={handleGiftDisposalChange}
               onNext={handleNextStep}
               onPrevious={handlePreviousStep}
             />

@@ -58,8 +58,6 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
   const getDisposalTypeLabel = (type: string): string => {
     const typeLabels: Record<string, string> = {
       'partial': 'Partial Disposal',
-      'mfrs5': 'MFRS 5 Held-for-Sale',
-      'gift': 'Gift to Approved Institutions',
       'agriculture': 'Agriculture Disposal',
       'normal': 'Normal Disposal',
       'controlled': 'Controlled Disposal',

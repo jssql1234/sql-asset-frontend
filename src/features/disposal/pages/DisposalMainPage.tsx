@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { AssetLayout } from '@/layout/AssetSidebar';
-import DisposalStepWizard from '../components/DisposalStepWizard';
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
 import NormalDisposalForm from '../components/NormalDisposalForm';
@@ -39,14 +38,6 @@ interface DisposalCalculationResults {
   apportionedAllowance?: number;
 }
 
-interface WizardStep {
-  id: string;
-  label: string;
-  description?: string;
-  completed: boolean;
-  current: boolean;
-  disabled?: boolean;
-}
 
 const DisposalMainPage: React.FC = () => {
   // State management - Start with step 1 (Disposal Type)
@@ -173,38 +164,6 @@ const DisposalMainPage: React.FC = () => {
     }
   }, []); // Dependencies are intentionally empty - only run once on mount
 
-  // Define wizard steps based on the disposal process (correct order)
-  const getWizardSteps = (): WizardStep[] => {
-    const baseSteps = [
-      {
-        id: 'disposal-type',
-        label: 'Disposal Type',
-        description: 'Select disposal type',
-        completed: currentStep > 1,
-        current: currentStep === 1,
-        disabled: false,
-      },
-      {
-        id: 'asset-info',
-        label: 'Asset Information',
-        description: 'Enter asset details',
-        completed: currentStep > 2,
-        current: currentStep === 2,
-        disabled: currentStep < 2,
-      },
-      {
-        id: 'results',
-        label: 'Final Results',
-        description: 'Confirm disposal',
-        completed: disposalConfirmed,
-        current: currentStep === 3 && !disposalConfirmed,
-        disabled: currentStep < 3,
-      }
-    ];
-    
-    return baseSteps;
-  };
-
   // Step navigation handlers
   const handleNextStep = () => {
     const maxStep = 4; // All disposal types now have same number of steps
@@ -219,19 +178,6 @@ const DisposalMainPage: React.FC = () => {
     }
   };
 
-  const handleStepClick = (stepId: string) => {
-    // All disposal types now have same step structure
-    const stepMap = {
-      'disposal-type': 1,
-      'asset-info': 2,
-      'results': 3,
-    };
-    
-    const targetStep = stepMap[stepId as keyof typeof stepMap];
-    if (targetStep && targetStep <= currentStep + 1) {
-      setCurrentStep(targetStep);
-    }
-  };
 
   // Asset data handlers
   const handleAssetDataChange = (field: string, value: string | number) => {
@@ -435,18 +381,6 @@ const DisposalMainPage: React.FC = () => {
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Sidebar with Wizard */}
-          {!isViewingHistory && (
-            <div className="w-80 bg-surfaceContainer border-r border-outlineVariant p-6 overflow-y-auto">
-              <DisposalStepWizard
-                steps={getWizardSteps()}
-                onStepClick={handleStepClick}
-                showProgressBar={true}
-                allowStepNavigation={!disposalConfirmed}
-              />
-            </div>
-          )}
-
           {/* Content Area */}
           <div className="flex-1 overflow-y-auto p-6">
             {renderStepContent()}

@@ -10,7 +10,7 @@ import { ChevronDown } from "@/assets/icons";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/components/Table";
 
 const UserAccessRightsPage: React.FC = () => {
-  const { users, groups, assignUserToGroup, updateGroup } = useContext(UserContext);
+  const { groups, updateGroup } = useContext(UserContext);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set([]));
@@ -32,10 +32,6 @@ const UserAccessRightsPage: React.FC = () => {
       };
       updateGroup(groupId, { defaultPermissions: updatedPermissions });
     }
-  };
-
-  const handleUserGroupChange = (userId: string, newGroupId: string) => {
-    assignUserToGroup(userId, newGroupId);
   };
 
   const togglePermissionSelection = (permissionKey: string) => {

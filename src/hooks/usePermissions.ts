@@ -1,0 +1,38 @@
+import { useContext } from 'react';
+import { UserContext } from '@/context/UserContext';
+import { hasPermission } from '@/utils/permissionUtils';
+import type { PermissionAction } from '@/types/permission';
+
+/**
+ * Hook to check user permissions
+ */
+export function usePermissions() {
+  const context = useContext(UserContext);
+  if (!context) {
+    throw new Error('usePermissions must be used within a UserProvider');
+  }
+  const { currentUser, getUserGroup } = context as NonNullable<typeof context>;
+
+  const checkPermission = (feature: string, action: PermissionAction): boolean => {
+    if (!currentUser) return false;
+
+    const group = getUserGroup(currentUser.groupId);
+    if (!group) return false;
+
+    return hasPermission(currentUser, group, feature, action);
+  };
+
+  const hasAnyPermission = (permissions: Array<{ feature: string; action: PermissionAction }>): boolean => {
+    return permissions.some(({ feature, action }) => checkPermission(feature, action));
+  };
+
+  const hasAllPermissions = (permissions: Array<{ feature: string; action: PermissionAction }>): boolean => {
+    return permissions.every(({ feature, action }) => checkPermission(feature, action));
+  };
+
+  return {
+    hasPermission: checkPermission,
+    hasAnyPermission,
+    hasAllPermissions,
+  };
+}

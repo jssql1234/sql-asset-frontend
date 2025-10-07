@@ -11,6 +11,7 @@ import DowntimeTrackingPage from "./features/downtime/pages/DowntimeTrackingPage
 import CoveragePage from "./features/coverage/pages/CoveragePage";
 import MeterPage from "./features/meter/pages/MeterPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
+import UserAccessRightsPage from "./features/user/pages/UserAccessRightsPage";
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
@@ -43,6 +44,9 @@ function AppRoutes() {
       <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
       <Route path="/insurance" element={<CoveragePage />} />
       <Route path="/meter-reading" element={<MeterPage />} />
+
+      {/* User Management Routes */}
+      <Route path="/user-access-rights" element={<UserAccessRightsPage />} />
 
       {/* Catch-all (404 redirect) */}
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -9,6 +9,7 @@ import CreateAsset from "./CreateAsset";
 import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
+import PermissionGuard from "@/components/PermissionGuard";
 
 
 // Column definitions for TanStack Table
@@ -246,9 +247,12 @@ export default function AssetContentArea() {
               />
             </div>
             <div className="flex items-center gap-2">
+              <PermissionGuard feature="maintainItem" action="entryNew">
+          
               <Button size="sm" onClick={() => setView('create')}>
                 Add
               </Button>
+              </PermissionGuard>
               {selectedRowIds.length > 0 && (
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">Edit</Button>

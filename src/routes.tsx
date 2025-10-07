@@ -5,7 +5,7 @@ import { lazy } from "react";
 import AssetMainPage from "./features/asset/pages/AssetMainPage";
 import ProcessCAPage from "./features/asset/pages/ProcessCAPage";
 import DashboardPage from "./features/asset/pages/DashboardPage";
-import MaintenanceSchedulePage from "./features/asset/pages/MaintenanceSchedulePage";
+import WorkOrdersPage from "./features/work-order/pages/WorkOrderPage";
 import WorkRequestPage from "./features/work-request/pages/WorkRequestPage";
 import DowntimeTrackingPage from "./features/downtime/pages/DowntimeTrackingPage";
 import CoveragePage from "./features/coverage/pages/CoveragePage";
@@ -47,7 +47,7 @@ function AppRoutes() {
       <Route path="/process-ca" element={<ProcessCAPage />} />
       <Route path="/disposal" element={<DisposalMainPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />
-      <Route path="/maintenance-schedule" element={<MaintenanceSchedulePage />} />
+      <Route path="/work-orders" element={<WorkOrdersPage />} />
       <Route path="/work-request" element={<WorkRequestPage />} />
       <Route path="/allocation" element={<Allocation />} />
       <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />

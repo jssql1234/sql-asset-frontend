@@ -170,6 +170,7 @@ const UserAccessRightsPage: React.FC = () => {
               onRevokeSelected={revokeSelectedPermissions}
               onGrantAll={grantAllPermissions}
               onRevokeAll={revokeAllPermissions}
+              isAdminGroup={selectedGroup === 'admin'}
             />
           </Card>
         )}

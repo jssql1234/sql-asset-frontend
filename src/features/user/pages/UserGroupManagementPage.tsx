@@ -1,14 +1,19 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/components';
 import { AssetLayout } from '@/layout/AssetSidebar';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
+import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
 import { useUserGroupManagement } from '../hooks/useUserGroupManagement';
 import { UserGroupService } from '../services/userGroupService';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { ExportFile, Upload } from '@/assets/icons';
+import { useContext } from 'react';
+import { UserContext } from '@/context/UserContext';
+import type { UserGroup } from '@/types/user-group';
 
 const UserGroupManagementPage: React.FC = () => {
+  const { addGroup } = useContext(UserContext);
   const {
     groups,
     isModalOpen,
@@ -17,12 +22,31 @@ const UserGroupManagementPage: React.FC = () => {
     handleEditGroup,
     handleDeleteGroup,
     handleSaveGroup,
-    handleToggleDefault,
     handleCloseModal,
   } = useUserGroupManagement();
 
   const { addToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<UserGroup | null>(null);
+
+  const handleDeleteClick = (group: UserGroup) => {
+    setGroupToDelete(group);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (groupToDelete) {
+      handleDeleteGroup(groupToDelete.id);
+      setDeleteDialogOpen(false);
+      setGroupToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setGroupToDelete(null);
+  };
 
   const handleExportCSV = () => {
     try {
@@ -71,13 +95,43 @@ const UserGroupManagementPage: React.FC = () => {
         return;
       }
 
-      // Note: In a real implementation, you would call an API to bulk create groups
-      // For now, we'll just show success
-      addToast({
-        variant: 'success',
-        title: 'Import Successful',
-        description: `Imported ${result.groups.length} groups`,
-      });
+      // Actually import the groups to the system
+      let successCount = 0;
+      let errorMessages: string[] = [];
+
+      for (const groupData of result.groups) {
+        try {
+          // Check if group with this ID already exists
+          const existingGroup = groups.find(g => g.id === groupData.id);
+          if (existingGroup) {
+            errorMessages.push(`Group with ID "${groupData.id}" already exists`);
+            continue;
+          }
+
+          // Add the group to the system
+          addGroup(groupData);
+          successCount++;
+        } catch (error) {
+          errorMessages.push(`Failed to add group "${groupData.id}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      if (successCount > 0) {
+        addToast({
+          variant: 'success',
+          title: 'Import Successful',
+          description: `Successfully imported ${successCount} group${successCount > 1 ? 's' : ''}`,
+        });
+      }
+
+      if (errorMessages.length > 0) {
+        addToast({
+          variant: 'warning',
+          title: 'Import Completed with Warnings',
+          description: errorMessages.join(', '),
+        });
+      }
+
     } catch (error) {
       addToast({
         variant: 'error',
@@ -141,8 +195,7 @@ const UserGroupManagementPage: React.FC = () => {
           <UserGroupTable
             groups={groups}
             onEdit={handleEditGroup}
-            onDelete={handleDeleteGroup}
-            onToggleDefault={handleToggleDefault}
+            onDelete={handleDeleteClick}
           />
         </div>
 
@@ -152,6 +205,14 @@ const UserGroupManagementPage: React.FC = () => {
           onOpenChange={handleCloseModal}
           editingGroup={editingGroup}
           onSave={handleSaveGroup}
+        />
+
+        {/* Delete Confirmation Dialog */}
+        <DeleteGroupConfirmationDialog
+          isOpen={deleteDialogOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          groupName={groupToDelete?.name || ''}
         />
       </div>
     </AssetLayout>

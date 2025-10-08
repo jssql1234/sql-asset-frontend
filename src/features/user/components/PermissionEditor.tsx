@@ -14,6 +14,7 @@ interface PermissionEditorProps {
   onRevokeSelected: () => void;
   onGrantAll: () => void;
   onRevokeAll: () => void;
+  isAdminGroup?: boolean;
 }
 
 const PermissionEditor: React.FC<PermissionEditorProps> = ({
@@ -27,6 +28,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
   onRevokeSelected,
   onGrantAll,
   onRevokeAll,
+  isAdminGroup = false,
 }) => {
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set([]));
@@ -55,6 +57,11 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
 
   return (
     <div className="space-y-4">
+      {isAdminGroup && (
+        <div className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded border border-blue-200">
+          🔒 Admin group permissions cannot be modified. This group has full system access and is managed automatically.
+        </div>
+      )}
       {hasUnsavedChanges && (
         <div className="text-sm text-orange-600 bg-orange-50 px-3 py-1 rounded">
           ⚠️ You have unsaved changes
@@ -135,6 +142,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.execute ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'execute', e.target.checked);
@@ -157,6 +165,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.entryNew ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'entryNew', e.target.checked);
@@ -178,6 +187,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.entryEdit ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'entryEdit', e.target.checked);
@@ -199,6 +209,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.entryDelete ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'entryDelete', e.target.checked);
@@ -221,6 +232,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.reportProcess ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportProcess', e.target.checked);
@@ -242,6 +254,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.reportPrint ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportPrint', e.target.checked);
@@ -263,6 +276,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.reportPreview ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportPreview', e.target.checked);
@@ -284,6 +298,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                           <input
                             type="checkbox"
                             checked={draftPermissions?.[item.key]?.reportExport ?? false}
+                            disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportExport', e.target.checked);
@@ -306,22 +321,22 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
         <div className="flex gap-2">
           <Button
             onClick={onGrantSelected}
-            disabled={selectedPermissions.size === 0}
+            disabled={selectedPermissions.size === 0 || isAdminGroup}
             variant="secondary"
           >
             Grant
           </Button>
           <Button
             onClick={onRevokeSelected}
-            disabled={selectedPermissions.size === 0}
+            disabled={selectedPermissions.size === 0 || isAdminGroup}
             variant="secondary"
           >
             Revoke
           </Button>
-          <Button onClick={onGrantAll} variant="primary">
+          <Button onClick={onGrantAll} variant="primary" disabled={isAdminGroup}>
             Grant All
           </Button>
-          <Button onClick={onRevokeAll} variant="outline">
+          <Button onClick={onRevokeAll} variant="outline" disabled={isAdminGroup}>
             Revoke All
           </Button>
         </div>
@@ -329,14 +344,14 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
           <Button
             variant="outline"
             onClick={onReset}
-            disabled={!hasUnsavedChanges}
+            disabled={!hasUnsavedChanges || isAdminGroup}
           >
             Reset
           </Button>
           <Button
             variant="primary"
             onClick={onSave}
-            disabled={!hasUnsavedChanges}
+            disabled={!hasUnsavedChanges || isAdminGroup}
           >
             Save
           </Button>

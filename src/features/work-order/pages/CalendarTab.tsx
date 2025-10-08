@@ -6,12 +6,14 @@ interface CalendarTabProps {
   workOrders: WorkOrder[];
   onEventClick?: (workOrder: WorkOrder) => void;
   onDateSelect?: (selectInfo: any) => void;
+  onEventChange?: (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => void;
 }
 
 export const CalendarTab: React.FC<CalendarTabProps> = ({
   workOrders,
   onEventClick,
   onDateSelect,
+  onEventChange,
 }) => {
   return (
     <div className="flex flex-col gap-6 p-2 overflow-auto">
@@ -21,16 +23,14 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
           Visual overview of work orders and maintenance schedule. Click on events to view details, or select dates to create new work orders.
         </p>
       </div>
-
-      <Card className="border border-outline bg-surfaceContainer p-4">
         <WorkOrderCalendar
           workOrders={workOrders}
           onEventClick={onEventClick}
           onDateSelect={onDateSelect}
+          onEventChange={onEventChange}
           selectable={true}
-          editable={false}
+          editable={true}
         />
-      </Card>
     </div>
   );
 };

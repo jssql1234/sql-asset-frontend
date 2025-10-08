@@ -67,6 +67,16 @@ const WorkOrdersPage: React.FC = () => {
     selectInfo.view.calendar.unselect();
   };
 
+  const handleCalendarEventChange = (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => {
+    console.log("Event changed:", workOrder);
+    console.log("New start date:", newStart);
+    console.log("New end date:", newEnd);
+    
+    // TODO: Update work order in backend
+    // For now, just log the change
+    console.log(`Work Order ${workOrder.workOrderNumber} moved to ${newStart.toISOString()}`);
+  };
+
   // Tabs configuration
   const tabs = [
     {
@@ -93,6 +103,7 @@ const WorkOrdersPage: React.FC = () => {
           workOrders={workOrders}
           onEventClick={handleCalendarEventClick}
           onDateSelect={handleCalendarDateSelect}
+          onEventChange={handleCalendarEventChange}
         />
       ),
     },

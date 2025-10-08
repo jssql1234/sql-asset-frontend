@@ -11,7 +11,8 @@ import "@/styles/Calendar.css";
 import type { 
   DateSelectArg, 
   EventClickArg,
-  EventContentArg 
+  EventContentArg,
+  EventChangeArg
 } from "@fullcalendar/core";
 import type { WorkOrder } from "../types";
 
@@ -24,6 +25,9 @@ export interface WorkOrderCalendarProps {
   
   /** Callback when a work order event is clicked */
   onEventClick?: (workOrder: WorkOrder) => void;
+  
+  /** Callback when an event is moved or resized */
+  onEventChange?: (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => void;
   
   /** Initial view */
   initialView?: "dayGridMonth" | "timeGridWeek" | "timeGridDay" | "listWeek";
@@ -79,6 +83,7 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
   workOrders,
   onDateSelect,
   onEventClick,
+  onEventChange,
   initialView = "dayGridMonth",
   selectable = false,
   editable = false,
@@ -160,6 +165,17 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
     }
   }, [onDateSelect]);
 
+  // Handle event change (drag/drop or resize)
+  const handleEventChange = useCallback((changeInfo: EventChangeArg) => {
+    const workOrder = changeInfo.event.extendedProps.workOrder as WorkOrder;
+    const newStart = changeInfo.event.start;
+    const newEnd = changeInfo.event.end;
+    
+    if (onEventChange && newStart) {
+      onEventChange(workOrder, newStart, newEnd);
+    }
+  }, [onEventChange]);
+
   return (
     <div className="work-order-calendar">
       <Calendar
@@ -176,6 +192,7 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
         }}
         onDateSelect={handleDateSelect}
         onEventClick={handleEventClick}
+        onEventChange={handleEventChange}
         eventContent={renderEventContent}
         nowIndicator={true}
         selectMirror={true}

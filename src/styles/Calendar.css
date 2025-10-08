@@ -144,6 +144,38 @@
   font-weight: 500;
 }
 
+/* Event Resize Handles */
+.fc-event-resizer {
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 8px !important;
+}
+
+.fc-event-resizer:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.fc-event-resizer-start,
+.fc-event-resizer-end {
+  cursor: ew-resize !important;
+}
+
+/* Event being dragged */
+.fc-event-dragging {
+  opacity: 0.75 !important;
+  cursor: move !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  z-index: 999 !important;
+}
+
+/* Event drag cursor */
+.fc-event:not(.fc-event-dragging) {
+  cursor: grab;
+}
+
+.fc-event:not(.fc-event-dragging):active {
+  cursor: grabbing;
+}
+
 /* Event Colors - Default Palette */
 .fc-event.fc-event-priority-normal {
   background-color: #90caf9;

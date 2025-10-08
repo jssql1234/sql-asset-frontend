@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SidebarLayout } from "@/components/sidebar";
+import { SidebarLayout } from "@/layout/sidebar";
 import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
@@ -45,7 +45,7 @@ const DowntimeTrackingPage: React.FC = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "Asset Maintenance", href: "/" },
+        { label: "Asset", href: "/" },
         { label: "Downtime Tracking" },
       ]}
     >

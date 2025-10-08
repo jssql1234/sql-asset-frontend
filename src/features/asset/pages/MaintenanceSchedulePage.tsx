@@ -1,5 +1,5 @@
 import React from "react";
-import { SidebarLayout } from "@/components/sidebar";
+import { SidebarLayout } from "@/layout/sidebar";
 
 const MaintenanceSchedulePage: React.FC = () => {
   return (

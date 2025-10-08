@@ -1,51 +1,112 @@
-"use client"
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { Separator as SeparatorPrimitive } from "@radix-ui/react-separator"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"
-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/utils/utils"
-import { Button } from "@/components/ui/components"
-import { Skeleton } from "@/components/ui/components"
+import { Button, Skeleton } from "@/components/ui/components"
+import { Input } from "@/components/ui/components/Input"
 
-// Minimal Separator component
-const Separator = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("shrink-0 bg-gray-200 dark:bg-gray-700 h-[1px] w-full", className)} {...props} />
-)
+const Separator = React.forwardRef<
+  React.ElementRef<typeof SeparatorPrimitive>,
+  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive>
+>(({ className, orientation = "horizontal", ...props }, ref) => (
+  <SeparatorPrimitive
+    ref={ref}
+    orientation={orientation}
+    className={cn(
+      "shrink-0 bg-outline",
+      orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
+      className,
+    )}
+    {...props}
+  />
+))
+Separator.displayName = "Separator"
 
-// Minimal Input component
-const Input = ({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) => (
-  <input className={cn("", className)} {...props} />
-)
+// Sheet components built on top of Radix dialog primitives
+const Sheet = DialogPrimitive.Root
 
-// Sheet components (minimal implementation)
-const Sheet = ({ children, open, onOpenChange }: { children: React.ReactNode; open?: boolean; onOpenChange?: (open: boolean) => void }) => {
-  if (!open) return null
-  return (
-    <div className="fixed inset-0 z-50" onClick={() => onOpenChange?.(false)}>
+const SheetPortal = DialogPrimitive.Portal
+
+const SheetOverlay = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Overlay>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Overlay
+    ref={ref}
+    className={cn(
+      "fixed inset-0 z-40 bg-scrim/70 backdrop-blur-sm transition-opacity duration-200",
+      "data-[state=open]:opacity-100 data-[state=closed]:opacity-0",
+      className,
+    )}
+    {...props}
+  />
+))
+SheetOverlay.displayName = DialogPrimitive.Overlay.displayName
+
+type SheetContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  side?: "left" | "right"
+}
+
+const SheetContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  SheetContentProps
+>(({ className, children, side = "right", ...props }, ref) => (
+  <SheetPortal>
+    <SheetOverlay />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        "fixed inset-y-0 z-50 flex w-[min(90vw,18rem)] flex-col bg-surface text-onSurface shadow-lg",
+        "focus:outline-none transition-transform duration-200 ease-in-out",
+        side === "left"
+          ? "left-0 data-[state=closed]:-translate-x-full data-[state=open]:translate-x-0"
+          : "right-0 data-[state=closed]:translate-x-full data-[state=open]:translate-x-0",
+        className,
+      )}
+      {...props}
+    >
       {children}
-    </div>
-  )
-}
-const SheetContent = ({ children, className, style, ...props }: { children: React.ReactNode; className?: string; side?: string; style?: React.CSSProperties }) => (
-  <div className={cn("fixed inset-y-0 right-0 z-50 bg-background p-6 shadow-lg", className)} style={style} onClick={(e) => e.stopPropagation()} {...props}>
-    {children}
-  </div>
-)
-const SheetDescription = ({ children }: { children: React.ReactNode }) => <div>{children}</div>
-const SheetHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => <div className={className}>{children}</div>
-const SheetTitle = ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>
+    </DialogPrimitive.Content>
+  </SheetPortal>
+))
+SheetContent.displayName = "SheetContent"
 
-// Tooltip components (minimal implementation)
-const TooltipProvider = ({ children }: { children: React.ReactNode; delayDuration?: number }) => <>{children}</>
-const Tooltip = ({ children }: { children: React.ReactNode }) => <div className="relative inline-block">{children}</div>
-const TooltipTrigger = ({ children }: { children: React.ReactNode; asChild?: boolean }) => <>{children}</>
-const TooltipContent = ({ children, side, align, hidden, className, ...props }: any) => {
-  if (hidden) return null
-  return <div className={cn("absolute z-50 bg-popover text-popover-foreground px-3 py-1.5 text-sm rounded-md shadow-md", className)} {...props}>{children}</div>
-}
+const SheetHeader = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={cn("mb-4 mt-2 px-4", className)}>{children}</div>
+)
+
+const SheetTitle = DialogPrimitive.Title
+const SheetDescription = DialogPrimitive.Description
+
+// Tooltip components built on Radix primitives for accessibility
+const TooltipProvider = TooltipPrimitive.Provider
+
+const Tooltip = TooltipPrimitive.Root
+
+const TooltipTrigger = TooltipPrimitive.Trigger
+
+const TooltipContent = React.forwardRef<
+  React.ElementRef<typeof TooltipPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
+>(({ className, side = "right", align = "center", ...props }, ref) => (
+  <TooltipPrimitive.Content
+    ref={ref}
+    side={side}
+    align={align}
+    className={cn(
+      "rounded-md bg-inverseSurface px-3 py-1.5 text-sm text-inverseOnSurface shadow-md",
+      "data-[state=delayed-open]:animate-fade-in",
+      className,
+    )}
+    {...props}
+  />
+))
+TooltipContent.displayName = TooltipPrimitive.Content.displayName
 
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -93,6 +154,10 @@ function SidebarProvider({
 
   // Helper function to get cookie value
   const getCookieValue = (name: string): string | null => {
+    if (typeof document === "undefined") {
+      return null
+    }
+
     const value = `; ${document.cookie}`
     const parts = value.split(`; ${name}=`)
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null
@@ -119,7 +184,9 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      if (typeof document !== "undefined") {
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      }
     },
     [setOpenProp, open]
   )
@@ -558,25 +625,21 @@ function SidebarMenuButton({
     />
   )
 
-  if (!tooltip) {
+  if (!tooltip || state !== "collapsed" || isMobile) {
     return button
   }
 
-  if (typeof tooltip === "string") {
-    tooltip = {
-      children: tooltip,
-    }
-  }
+  const tooltipProps =
+    typeof tooltip === "string"
+      ? ({
+          children: tooltip,
+        } satisfies React.ComponentProps<typeof TooltipContent>)
+      : tooltip
 
   return (
-    <Tooltip>
+    <Tooltip delayDuration={200}>
       <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent
-        side="right"
-        align="center"
-        hidden={state !== "collapsed" || isMobile}
-        {...tooltip}
-      />
+      <TooltipContent side="right" align="center" {...tooltipProps} />
     </Tooltip>
   )
 }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/layout/sidebar";
 import { useContext } from "react";
 import { UserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";
@@ -121,7 +121,11 @@ const UserAccessRightsPage: React.FC = () => {
   };
 
   return (
-    <AssetLayout activeSidebarItem="user-access-rights">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "User Access Rights" },
+      ]}
+    >
       <div className="space-y-6">
         {/* Group Selection */}
         <Card className="p-4 flex flex-start gap-4">
@@ -175,7 +179,7 @@ const UserAccessRightsPage: React.FC = () => {
           </Card>
         )}
       </div>
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

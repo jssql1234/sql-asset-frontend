@@ -1,31 +1,50 @@
 import * as React from "react"
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "./sidebar"
+import { Link } from "react-router-dom"
+import { SidebarInset, SidebarProvider, SidebarSeparator, SidebarTrigger } from "./sidebar"
 import { AppSidebar } from "./app-sidebar"
-import sqlLogo from "@/assets/images/sqlasset_logo1.png"
 
 // Simple breadcrumb components
 function Breadcrumb({ children }: { children: React.ReactNode }) {
-  return <nav aria-label="breadcrumb">{children}</nav>
+  return (
+    <nav aria-label="Breadcrumb" className="text-sm text-onSurfaceVariant">
+      {children}
+    </nav>
+  )
 }
 
 function BreadcrumbList({ children }: { children: React.ReactNode }) {
-  return <ol className="flex items-center gap-2 text-sm">{children}</ol>
+  return <ol className="flex items-center gap-2">{children}</ol>
 }
 
 function BreadcrumbItem({ children, className }: { children: React.ReactNode, className?: string }) {
   return <li className={className}>{children}</li>
 }
 
-function BreadcrumbLink({ href, children }: { href: string, children: React.ReactNode }) {
-  return <a href={href} className="hover:text-foreground transition-colors">{children}</a>
+function BreadcrumbLink({ to, children }: { to: string, children: React.ReactNode }) {
+  return (
+    <Link
+      to={to}
+      className="text-onSurface transition-colors hover:text-primary"
+    >
+      {children}
+    </Link>
+  )
 }
 
 function BreadcrumbPage({ children }: { children: React.ReactNode }) {
-  return <span className="font-medium text-foreground">{children}</span>
+  return (
+    <span className="font-medium text-onSurface" aria-current="page">
+      {children}
+    </span>
+  )
 }
 
 function BreadcrumbSeparator({ className }: { className?: string }) {
-  return <span className={`text-muted-foreground ${className || ''}`}>/</span>
+  return (
+    <span className={`text-onSurfaceVariant ${className || ""}`} aria-hidden>
+      /
+    </span>
+  )
 }
 
 interface SidebarLayoutProps {
@@ -42,9 +61,12 @@ export function SidebarLayout({ children, breadcrumbs }: SidebarLayoutProps) {
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4 flex-1">
+          <div className="flex flex-1 items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
-            <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mr-2" />
+            <SidebarSeparator
+              orientation="vertical"
+              className="mx-0 h-6 w-px bg-sidebar-border"
+            />
             {breadcrumbs && breadcrumbs.length > 0 && (
               <Breadcrumb>
                 <BreadcrumbList>
@@ -53,7 +75,7 @@ export function SidebarLayout({ children, breadcrumbs }: SidebarLayoutProps) {
                       {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
                       <BreadcrumbItem className="hidden md:block">
                         {crumb.href ? (
-                          <BreadcrumbLink href={crumb.href}>
+                          <BreadcrumbLink to={crumb.href}>
                             {crumb.label}
                           </BreadcrumbLink>
                         ) : (
@@ -67,7 +89,7 @@ export function SidebarLayout({ children, breadcrumbs }: SidebarLayoutProps) {
             )}
           </div>
           <div className="px-4">
-            <img src={sqlLogo} alt="SQL Asset Logo" className="h-8 w-auto object-contain" />
+            <img src="src/assets/images/sqlasset_logo1.png" alt="SQL Asset Logo" className="h-8 w-auto object-contain" />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-4">

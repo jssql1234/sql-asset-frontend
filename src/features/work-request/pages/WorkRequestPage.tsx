@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { SidebarLayout } from "@/components/sidebar";
+import { SidebarLayout } from "@/layout/sidebar";
 import { useToast } from "@/components/ui/components/Toast";
 import WorkRequestTab from "./WorkRequestTab";
 import { CreateWorkRequestModal } from "../components/CreateWorkRequestModal";

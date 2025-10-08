@@ -1,4 +1,4 @@
-import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
+import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
 import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/modal/AllocationModal";
 import TransferModal from "../components/modal/TransferModal";
@@ -48,7 +48,7 @@ const AllocationPage: React.FC = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "Asset Maintenance", href: "/" },
+        { label: "Asset Maintenance" },
         { label: "Allocation" },
       ]}
     >

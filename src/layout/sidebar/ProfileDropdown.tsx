@@ -1,8 +1,8 @@
 import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./shared-components"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./sidebar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./SidebarHelper"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./SidebarCN"
 
-export function NavUser({
+export function ProfileDropdown({
   user,
 }: {
   user: {

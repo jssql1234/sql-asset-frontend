@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
+import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
 import { Button, Tabs } from "@/components/ui/components";
 import MeterGroupsView from "./MeterGroupsTab";
 import MeterReadingsView from "./MeterReadingsTab";
@@ -85,7 +85,7 @@ const MeterPage = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "Asset Maintenance", href: "/" },
+        { label: "Asset Maintenance" },
         { label: "Meter Reading" },
       ]}
     >

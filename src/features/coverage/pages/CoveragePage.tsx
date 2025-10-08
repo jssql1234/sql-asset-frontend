@@ -1,5 +1,5 @@
 import React from "react";
-import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
+import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
 import { Tabs } from "@/components/ui/components";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
@@ -47,7 +47,7 @@ const CoveragePage: React.FC = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "Asset Maintenance", href: "/" },
+        { label: "Asset Maintenance" },
         { label: "Insurance & Warranty" },
       ]}
     >

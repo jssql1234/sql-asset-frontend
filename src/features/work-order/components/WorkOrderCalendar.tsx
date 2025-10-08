@@ -7,7 +7,7 @@
 
 import { useCallback, useMemo } from "react";
 import { Calendar, type CalendarEvent } from "@/components/Calendar";
-import "@/components/Calendar.css";
+import "@/styles/Calendar.css";
 import type { 
   DateSelectArg, 
   EventClickArg,

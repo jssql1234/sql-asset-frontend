@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useContext } from 'react';
+import { use } from 'react';
 import { UserContext } from '@/context/UserContext';
 import { Button } from '@/components/ui/components';
 
@@ -12,7 +12,7 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
   onEditUser,
   onEditGroup
 }) => {
-  const { users, groups } = useContext(UserContext);
+  const { users, groups } = use(UserContext);
   const [activeTab, setActiveTab] = useState<'users' | 'groups'>('users');
 
   return (
@@ -20,13 +20,13 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
       <div className="flex gap-2">
         <Button
           variant={activeTab === 'users' ? 'primary' : 'secondary'}
-          onClick={() => setActiveTab('users')}
+          onClick={() => {setActiveTab('users')}}
         >
           Users
         </Button>
         <Button
           variant={activeTab === 'groups' ? 'primary' : 'secondary'}
-          onClick={() => setActiveTab('groups')}
+          onClick={() => {setActiveTab('groups')}}
         >
           Groups
         </Button>
@@ -39,7 +39,7 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
               <div>
                 <div className="font-medium">{user.name}</div>
                 <div className="text-sm text-gray-600">
-                  Group: {groups.find(g => g.id === user.groupId)?.name || user.groupId}
+                  Group: {groups.find(g => g.id === user.groupId)?.name ?? user.groupId}
                 </div>
               </div>
               <Button

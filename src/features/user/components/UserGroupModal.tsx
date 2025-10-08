@@ -90,7 +90,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
             </label>
             <Input
               value={formData.id}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, id: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData(prev => ({ ...prev, id: e.target.value }))}}
               placeholder="Enter group ID"
               disabled={!!editingGroup} // Can't change ID when editing any group
             />
@@ -105,7 +105,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
             </label>
             <Input
               value={formData.name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData(prev => ({ ...prev, name: e.target.value }))}}
               placeholder="Enter group name"
             />
             {errors.name && (
@@ -119,7 +119,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
             </label>
             <TextArea
               value={formData.description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {setFormData(prev => ({ ...prev, description: e.target.value }))}}
               placeholder="Enter group description"
               rows={3}
             />

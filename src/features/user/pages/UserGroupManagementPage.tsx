@@ -5,7 +5,7 @@ import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
 import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
 import { useUserGroupManagement } from '../hooks/useUserGroupManagement';
-import { UserGroupService } from '../services/userGroupService';
+import * as UserGroupService from '../services/userGroupService';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { ExportFile, Upload } from '@/assets/icons';
 import { useContext } from 'react';
@@ -56,7 +56,7 @@ const UserGroupManagementPage: React.FC = () => {
         title: 'Export Successful',
         description: 'User groups exported to CSV',
       });
-    } catch (error) {
+    } catch {
       addToast({
         variant: 'error',
         title: 'Export Failed',
@@ -97,7 +97,7 @@ const UserGroupManagementPage: React.FC = () => {
 
       // Actually import the groups to the system
       let successCount = 0;
-      let errorMessages: string[] = [];
+      const errorMessages: string[] = [];
 
       for (const groupData of result.groups) {
         try {
@@ -120,7 +120,7 @@ const UserGroupManagementPage: React.FC = () => {
         addToast({
           variant: 'success',
           title: 'Import Successful',
-          description: `Successfully imported ${successCount} group${successCount > 1 ? 's' : ''}`,
+          description: `Successfully imported ${successCount.toFixed(0)} group${successCount > 1 ? 's' : ''}`,
         });
       }
 
@@ -132,7 +132,7 @@ const UserGroupManagementPage: React.FC = () => {
         });
       }
 
-    } catch (error) {
+    } catch {
       addToast({
         variant: 'error',
         title: 'Import Failed',
@@ -217,7 +217,7 @@ const UserGroupManagementPage: React.FC = () => {
           isOpen={deleteDialogOpen}
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
-          groupName={groupToDelete?.name || ''}
+          groupName={groupToDelete?.name ?? ''}
         />
       </div>
     </SidebarLayout>

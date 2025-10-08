@@ -1,11 +1,11 @@
 import { useState, useCallback } from 'react';
-import { useContext } from 'react';
+import { use } from 'react';
 import { UserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 
 export const useUserGroupManagement = () => {
-  const { groups, addGroup, updateGroup, deleteGroup } = useContext(UserContext);
+  const { groups, addGroup, updateGroup, deleteGroup } = use(UserContext);
   const { addToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
@@ -58,7 +58,7 @@ export const useUserGroupManagement = () => {
       }
       setIsModalOpen(() => false);
       setEditingGroup(() => null);
-    } catch (error) {
+    } catch {
       addToast({
         variant: 'error',
         title: 'Error',

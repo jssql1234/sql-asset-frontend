@@ -30,8 +30,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
   onRevokeAll,
   isAdminGroup = false,
 }) => {
-  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set([]));
+  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(() => (new Set([])));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => (new Set([])));
 
   const togglePermissionSelection = (permissionKey: string) => {
     const newSelection = new Set(selectedPermissions);
@@ -98,7 +98,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                 {/* Group Header Row */}
                 <TableRow
                   className={`cursor-pointer hover:bg-gray-50 ${selectedPermissions.size > 0 && groupPermissions.some(item => selectedPermissions.has(item.key)) ? 'bg-blue-50' : ''}`}
-                  onClick={() => toggleGroupExpansion(permGroup.id)}
+                  onClick={() => {toggleGroupExpansion(permGroup.id)}}
                 >
                   <TableCell colSpan={9} className="font-medium">
                     <div className="flex items-center justify-start gap-2">
@@ -131,9 +131,9 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       {/* Execute */}
                       <TableCell
                         className="text-center cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.execute !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.execute ?? false;
+                            const currentValue = draftPermissions?.[item.key].execute ?? false;
                             onUpdatePermission(item.key, 'execute', !currentValue);
                           }
                         }}
@@ -147,14 +147,14 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'execute', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       {/* Entry Actions */}
                       <TableCell
                         className="text-center bg-blue-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.entryNew !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.entryNew ?? false;
                             onUpdatePermission(item.key, 'entryNew', !currentValue);
@@ -170,13 +170,13 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'entryNew', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       <TableCell
                         className="text-center bg-blue-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.entryEdit !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.entryEdit ?? false;
                             onUpdatePermission(item.key, 'entryEdit', !currentValue);
@@ -192,13 +192,13 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'entryEdit', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       <TableCell
                         className="text-center bg-blue-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.entryDelete !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.entryDelete ?? false;
                             onUpdatePermission(item.key, 'entryDelete', !currentValue);
@@ -214,14 +214,14 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'entryDelete', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       {/* Report Actions */}
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.reportProcess !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.reportProcess ?? false;
                             onUpdatePermission(item.key, 'reportProcess', !currentValue);
@@ -237,13 +237,13 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportProcess', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.reportPrint !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.reportPrint ?? false;
                             onUpdatePermission(item.key, 'reportPrint', !currentValue);
@@ -259,13 +259,13 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportPrint', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.reportPreview !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.reportPreview ?? false;
                             onUpdatePermission(item.key, 'reportPreview', !currentValue);
@@ -281,13 +281,13 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportPreview', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
-                        onClick={(_e) => {
+                        onClick={() => {
                           if (item.permissions.reportExport !== undefined) {
                             const currentValue = draftPermissions?.[item.key]?.reportExport ?? false;
                             onUpdatePermission(item.key, 'reportExport', !currentValue);
@@ -303,7 +303,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                               e.stopPropagation();
                               onUpdatePermission(item.key, 'reportExport', e.target.checked);
                             }}
-                            onClick={(e) => e.stopPropagation()}
+                            onClick={(e) => {e.stopPropagation()}}
                           />
                         ) : null}
                       </TableCell>

@@ -17,7 +17,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const columns: ColumnDef<UserGroup, any>[] = [
+  const columns: ColumnDef<UserGroup>[] = [
     {
       accessorKey: 'id',
       header: 'ID',
@@ -51,7 +51,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onEdit(group)}
+              onClick={() => {onEdit(group)}}
               className="h-8 w-8 p-0"
             >
               <Edit className="h-4 w-4" />
@@ -71,7 +71,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => onDelete(group)}
+                onClick={() => {onDelete(group)}}
                 className="h-8 w-8 p-0 text-error hover:text-error hover:bg-error/10"
               >
                 <Delete className="h-4 w-4" />

@@ -21,7 +21,7 @@ export function hasPermission(
 
   // Check group permissions
   const groupPermission = group.defaultPermissions[feature]?.[action];
-  return groupPermission === true;
+  return groupPermission;
 }
 
 /**

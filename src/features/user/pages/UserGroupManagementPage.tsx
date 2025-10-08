@@ -145,7 +145,7 @@ const UserGroupManagementPage: React.FC = () => {
   };
 
   return (
-    <SidebarLayout activeSidebarItem="user-group-management">
+    <SidebarLayout>
       <div className="flex flex-col h-full">
         {/* Header Actions */}
         <div className="flex items-center justify-between mb-6">

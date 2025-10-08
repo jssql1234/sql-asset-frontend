@@ -729,7 +729,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                   {batchMode && (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
-                      Assets in Batch<span className="text-error">*</span>
+                      Assets in Batch <span className="text-error">*</span>
                     </label>
                     <Input
                       type="number"
@@ -746,7 +746,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                   {/* Units per Asset */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
-                      {batchMode ? "Quantity per Asset" : "Units per Asset"} <span className="text-error">*</span>
+                      Units per Asset <span className="text-error">*</span>
                     </label>
                     <Input
                       type="number"

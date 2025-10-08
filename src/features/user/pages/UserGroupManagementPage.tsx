@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/components';
-import { AssetLayout } from '@/layout/AssetSidebar';
+import { SidebarLayout } from '@/layout/sidebar/SidebarLayout';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
 import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
@@ -145,7 +145,7 @@ const UserGroupManagementPage: React.FC = () => {
   };
 
   return (
-    <AssetLayout activeSidebarItem="user-group-management">
+    <SidebarLayout activeSidebarItem="user-group-management">
       <div className="flex flex-col h-full">
         {/* Header Actions */}
         <div className="flex items-center justify-between mb-6">
@@ -215,7 +215,7 @@ const UserGroupManagementPage: React.FC = () => {
           groupName={groupToDelete?.name || ''}
         />
       </div>
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect } from "react";
+import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
@@ -20,6 +20,11 @@ import { ChevronDown } from "@/assets/icons";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
+
+interface SerialNumberData {
+  serial: string;
+  remark: string;
+}
 
 interface CreateAssetProps {
   onSuccess?: (data: CreateAssetFormData) => void;
@@ -485,6 +490,11 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
     },
   });
 
+  // Memoize the serial numbers change handler to prevent unnecessary re-renders
+  const handleSerialNumbersChange = useCallback((serialNumbers: SerialNumberData[]) => {
+    setValue("serialNumbers", serialNumbers);
+  }, [setValue]);
+
   const inactive = watch("inactive");
 
   useEffect(() => {
@@ -563,7 +573,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
           quantityPerUnit={watch("quantityPerUnit")}
           isBatchMode={batchMode}
           serialNumbers={watch("serialNumbers")}
-          onSerialNumbersChange={(serialNumbers) => setValue("serialNumbers", serialNumbers)}
+          onSerialNumbersChange={handleSerialNumbersChange}
         />
       ),
     },

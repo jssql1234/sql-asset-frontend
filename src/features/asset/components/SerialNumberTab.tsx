@@ -32,9 +32,8 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
   // Initialize serial data based on quantity
   useEffect(() => {
-    const totalSerialFields = isBatchMode
-      ? quantity * quantityPerUnit
-      : quantity;
+    const assetsInBatch = isBatchMode ? quantity : 1;
+    const totalSerialFields = assetsInBatch * quantityPerUnit;
 
     // Initialize or expand serial data array
     const newSerialData = [...serialData];
@@ -57,7 +56,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   // Notify parent of changes
   useEffect(() => {
     onSerialNumbersChange?.(serialData);
-  }, [serialData, onSerialNumbersChange]);
+  }, [serialData]);
 
   const updateSerialNumber = useCallback((index: number, field: 'serial' | 'remark', value: string) => {
     setSerialData(prevData => {
@@ -135,32 +134,113 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     return serialData.filter(item => !item.serial.trim()).length;
   }, [serialData]);
 
-  if (isBatchMode) {
-    return (
-      <Card className="p-6 shadow-sm">
-        <BatchModeSerialNumbers
-          quantity={quantity}
-          quantityPerUnit={quantityPerUnit}
-          serialData={serialData}
-          onUpdateSerialNumber={updateSerialNumber}
-          onGenerateClick={() => setIsGenerationModalOpen(true)}
+  const renderSerialNumberInputs = () => {
+    const assetsInBatch = isBatchMode ? quantity : 1;
+    const showGroupedView = isBatchMode || assetsInBatch > 1;
+
+    if (showGroupedView) {
+      const assetIDs = [];
+      for (let i = 0; i < assetsInBatch; i++) {
+        assetIDs.push(`AS-${String(i + 1).padStart(4, '0')}`);
+      }
+
+      return assetIDs.map((assetID, assetIndex) => {
+        const startIndex = assetIndex * quantityPerUnit;
+        const endIndex = startIndex + quantityPerUnit;
+        const assetSerialData = serialData.slice(startIndex, endIndex);
+
+        const filledCount = assetSerialData.filter(item => item.serial.trim()).length;
+        const emptyCount = assetSerialData.filter(item => !item.serial.trim()).length;
+
+        return (
+          <div key={assetIndex} className="border border-outline rounded-lg p-4 bg-surface">
+            {/* Batch mode specific: Asset header with generate button */}
+            <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline">
+              <div className="flex items-center gap-3">
+                <span className="label-medium text-onSurface">Asset ID: {assetID}</span>
+                <span className="body-small text-onSurfaceVariant">
+                  {filledCount} filled, {emptyCount} empty
+                </span>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsGenerationModalOpen(true)}
+                className="text-xs"
+              >
+                Generate <span>{emptyCount}</span>
+              </Button>
+            </div>
+
+            <div className="grid gap-3">
+              {assetSerialData.map((item, serialIndex) => {
+                const globalIndex = startIndex + serialIndex;
+                return (
+                  <SerialNumberInputRow
+                    key={serialIndex}
+                    item={item}
+                    index={globalIndex}
+                    serialIndex={serialIndex}
+                    validation={validation}
+                    onUpdate={updateSerialNumber}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        );
+      });
+    } else {
+
+      return serialData.map((item, index) => (
+        <SerialNumberInputRow
+          key={index}
+          item={item}
+          index={index}
+          serialIndex={index}
           validation={validation}
+          onUpdate={updateSerialNumber}
         />
-        <SerialNumberGenerationModal
-          isOpen={isGenerationModalOpen}
-          onClose={() => setIsGenerationModalOpen(false)}
-          emptyFieldsCount={getEmptySerialFieldsCount}
-          nextAvailableNumber={getNextAvailableSerialNumber}
-          onGenerate={generateSerialNumbers}
+      ));
+    }
+  };
+
+  // Reusable component for serial number input rows
+  const SerialNumberInputRow: React.FC<{
+    item: SerialNumberData;
+    index: number;
+    serialIndex: number;
+    validation: { isValid: boolean; message: string; errors: Record<number, string> };
+    onUpdate: (index: number, field: 'serial' | 'remark', value: string) => void;
+  }> = ({ item, index, serialIndex, validation, onUpdate }) => (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="relative">
+        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-onSurfaceVariant">#</span>
+        <Input
+          value={item.serial}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate(index, 'serial', e.target.value)}
+          placeholder={`Serial number ${serialIndex + 1}`}
+          className="pl-8"
         />
-      </Card>
-    );
-  }
+        {validation.errors[index] && (
+          <span className="body-small text-error mt-1 block">{validation.errors[index]}</span>
+        )}
+      </div>
+      <Input
+        value={item.remark}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate(index, 'remark', e.target.value)}
+        placeholder="Enter remark"
+      />
+    </div>
+  );
 
   return (
     <Card className="p-6 shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <label className="body-medium text-onSurface">Serial Numbers</label>
+        <label className="body-medium text-onSurface">
+          Serial Numbers {isBatchMode ? "(Batch Mode)" : ""}
+        </label>
         <Button
           type="button"
           onClick={() => setIsGenerationModalOpen(true)}
@@ -177,34 +257,14 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         </div>
       )}
 
-      <div className="space-y-3">
+      <div className={isBatchMode ? "space-y-6" : "space-y-3"}>
         {serialData.length === 0 && (
           <p className="body-small text-onSurfaceVariant text-center py-8">
             No serial numbers to display. Adjust quantity to add serial number fields.
           </p>
         )}
 
-        {serialData.map((item, index) => (
-          <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-onSurfaceVariant">#</span>
-              <Input
-                value={item.serial}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSerialNumber(index, 'serial', e.target.value)}
-                placeholder={`Serial number ${index + 1}`}
-                className="pl-8"
-              />
-              {validation.errors[index] && (
-                <span className="body-small text-error mt-1 block">{validation.errors[index]}</span>
-              )}
-            </div>
-            <Input
-              value={item.remark}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateSerialNumber(index, 'remark', e.target.value)}
-              placeholder="Enter remark"
-            />
-          </div>
-        ))}
+        {renderSerialNumberInputs()}
       </div>
 
       <SerialNumberGenerationModal
@@ -218,114 +278,5 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   );
 };
 
-// Batch Mode Component
-interface BatchModeSerialNumbersProps {
-  quantity: number;
-  quantityPerUnit: number;
-  serialData: SerialNumberData[];
-  onUpdateSerialNumber: (index: number, field: 'serial' | 'remark', value: string) => void;
-  onGenerateClick: () => void;
-  validation: { isValid: boolean; message: string; errors: Record<number, string> };
-}
-
-const BatchModeSerialNumbers: React.FC<BatchModeSerialNumbersProps> = ({
-  quantity,
-  quantityPerUnit,
-  serialData,
-  onUpdateSerialNumber,
-  onGenerateClick,
-  validation,
-}) => {
-  const assetIDs = useMemo(() => {
-    // Generate asset IDs similar to the sub-window.js logic
-    const ids: string[] = [];
-    for (let i = 0; i < quantity; i++) {
-      ids.push(`AS-${String(i + 1).padStart(4, '0')}`);
-    }
-    return ids;
-  }, [quantity]);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <label className="body-medium text-onSurface">Serial Numbers (Batch Mode)</label>
-        <Button
-          type="button"
-          onClick={onGenerateClick}
-          variant="outline"
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          Generate SN
-        </Button>
-      </div>
-
-      <div className="space-y-6">
-        {!validation.isValid && validation.message && (
-          <div className="p-3 bg-errorContainer text-onErrorContainer rounded-md">
-            <p className="body-small font-medium">{validation.message}</p>
-          </div>
-        )}
-
-        {assetIDs.map((assetID, assetIndex) => {
-          const startIndex = assetIndex * quantityPerUnit;
-          const endIndex = startIndex + quantityPerUnit;
-          const assetSerialData = serialData.slice(startIndex, endIndex);
-
-          const filledCount = assetSerialData.filter(item => item.serial.trim()).length;
-          const emptyCount = assetSerialData.filter(item => !item.serial.trim()).length;
-
-          return (
-            <div key={assetIndex} className="border border-outline rounded-lg p-4 bg-surface">
-              <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline">
-                <div className="flex items-center gap-3">
-                  <span className="label-medium text-onSurface">Asset ID: {assetID}</span>
-                  <span className="body-small text-onSurfaceVariant">
-                    {filledCount} filled, {emptyCount} empty
-                  </span>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={onGenerateClick}
-                  className="text-xs"
-                >
-                  Generate <span>{emptyCount}</span>
-                </Button>
-              </div>
-
-              <div className="grid gap-3">
-                {assetSerialData.map((item, serialIndex) => {
-                  const globalIndex = startIndex + serialIndex;
-                  return (
-                    <div key={serialIndex} className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-onSurfaceVariant">#</span>
-                        <Input
-                          value={item.serial}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdateSerialNumber(globalIndex, 'serial', e.target.value)}
-                          placeholder={`Serial number ${serialIndex + 1}`}
-                          className="pl-8"
-                        />
-                        {validation.errors[globalIndex] && (
-                          <span className="body-small text-error mt-1 block">{validation.errors[globalIndex]}</span>
-                        )}
-                      </div>
-                      <Input
-                        value={item.remark}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdateSerialNumber(globalIndex, 'remark', e.target.value)}
-                        placeholder="Enter remark"
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
 
 export default SerialNumberTab;

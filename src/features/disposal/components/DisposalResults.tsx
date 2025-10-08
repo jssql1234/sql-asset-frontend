@@ -223,7 +223,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
                           <span className="text-onSurface">Annual Allowance</span>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.annualAllowance || 0)}</span>
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.annualAllowance ?? 0)}</span>
                         </td>
                       </tr>
                       <tr>
@@ -231,7 +231,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
                           <span className="text-onSurface">Apportioned Allowance</span>
                         </td>
                         <td className="px-6 py-3 text-right">
-                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.apportionedAllowance || 0)}</span>
+                          <span className="font-semibold text-onBackground">{formatCurrency(calculationResults.apportionedAllowance ?? 0)}</span>
                         </td>
                       </tr>
                     </>
@@ -322,7 +322,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
                     type="checkbox"
                     id="clawback-applicable"
                     checked={isClawbackApplicable}
-                    onChange={(e) => onClawbackChange(e.target.checked)}
+                    onChange={(e) => { onClawbackChange(e.target.checked); }}
                     className="w-5 h-5 text-primary border-outlineVariant focus:ring-primary rounded"
                   />
                   <label htmlFor="clawback-applicable" className="font-medium text-onBackground">
@@ -337,7 +337,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
                       type="checkbox"
                       id="spread-balancing-charge"
                       checked={isSpreadBalancingCharge}
-                      onChange={(e) => onSpreadBalancingChargeChange(e.target.checked)}
+                      onChange={(e) => { onSpreadBalancingChargeChange(e.target.checked); }}
                       className="w-5 h-5 text-primary border-outlineVariant focus:ring-primary rounded"
                     />
                     <label htmlFor="spread-balancing-charge" className="font-medium text-onBackground">

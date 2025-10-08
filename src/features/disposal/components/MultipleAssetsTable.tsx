@@ -86,7 +86,7 @@ const MultipleAssetsTable: React.FC<MultipleAssetsTableProps> = ({
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => onRemoveAsset(asset.id)}
+            onClick={() => { onRemoveAsset(asset.id); }}
             className="text-xs px-2 py-1 h-auto"
           >
             ×

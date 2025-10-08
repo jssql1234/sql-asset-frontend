@@ -12,12 +12,12 @@ interface DisposalHistoryEntry {
   taxTreatment: string;
   notes: string;
   isMultipleAssets?: boolean;
-  multipleAssets?: Array<{
+  multipleAssets?: {
     assetId: string;
     disposalValue: number;
     balancingAllowance: number;
     balancingCharge: number;
-  }>;
+  }[];
   createdAt: string;
   status: 'completed' | 'draft' | 'cancelled';
 }
@@ -73,7 +73,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
       cancelled: { bg: 'bg-errorContainer', text: 'text-error', label: 'Cancelled' },
     };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.completed;
+    const config = statusConfig[status as keyof typeof statusConfig];
 
     return (
       <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
@@ -160,7 +160,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
                   <div className="font-medium text-onSurface">{entry.assetId}</div>
                   {entry.isMultipleAssets && (
                     <div className="text-xs text-outline">
-                      +{entry.multipleAssets?.length || 0} assets
+                      +{entry.multipleAssets?.length ?? 0} assets
                     </div>
                   )}
                 </td>
@@ -203,7 +203,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => onView(entry)}
+                      onClick={() => { onView(entry); }}
                       className="text-xs"
                     >
                       View
@@ -212,7 +212,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => onEdit(entry)}
+                        onClick={() => { onEdit(entry); }}
                         className="text-xs"
                       >
                         Edit
@@ -221,7 +221,7 @@ const DisposalHistoryTable: React.FC<DisposalHistoryTableProps> = ({
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => onDelete(entry.id)}
+                      onClick={() => { onDelete(entry.id); }}
                       className="text-xs"
                     >
                       Delete

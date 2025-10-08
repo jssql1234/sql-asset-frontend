@@ -173,9 +173,9 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
            <MultipleAssetsTable
              assets={[]}
              disposalType="normal"
-             onAssetChange={() => {}}
-             onAddAsset={() => {}}
-             onRemoveAsset={() => {}}
+             onAssetChange={() => { /* empty */ }}
+             onAddAsset={() => { /* empty */ }}
+             onRemoveAsset={() => { /* empty */ }}
              availableAssetIds={['AS-0001', 'AS-0002', 'AS-0004', 'AS-0005']}
              readOnly={readOnly}
            />

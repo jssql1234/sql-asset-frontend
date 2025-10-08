@@ -48,7 +48,7 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
                 name="disposal-type"
                 value={type.value}
                 checked={selectedDisposalType === type.value}
-                onChange={() => onDisposalTypeChange(type.value)}
+                onChange={() => { onDisposalTypeChange(type.value); }}
                 disabled={disabled}
                 className="w-4 h-4 text-primary border-outlineVariant focus:ring-primary"
               />

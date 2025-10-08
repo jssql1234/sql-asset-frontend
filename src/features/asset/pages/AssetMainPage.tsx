@@ -6,7 +6,6 @@ const AssetMainPage: React.FC = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "Asset Management", href: "/" },
         { label: "Assets" },
       ]}
     >

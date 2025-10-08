@@ -1,16 +1,17 @@
 "use client"
 
-import {
-  type LucideIcon,
-} from "lucide-react"
+import { Link, useLocation } from "react-router-dom"
+import { type LucideIcon } from "lucide-react"
 
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "./sidebar"
+import { SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./sidebar"
+
+const isPathActive = (currentPath: string, targetPath: string) => {
+  if (targetPath === "/") {
+    return currentPath === targetPath
+  }
+
+  return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)
+}
 
 export function NavProjects({
   navigationSections,
@@ -24,6 +25,8 @@ export function NavProjects({
     }[]
   }[]
 }) {
+  const location = useLocation()
+
   return (
     <>
       {navigationSections.map((section) => (
@@ -32,11 +35,14 @@ export function NavProjects({
           <SidebarMenu className="gap-0 px-2">
             {section.items.map((item) => (
               <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton asChild>
-                  <a href={item.url}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isPathActive(location.pathname, item.url)}
+                >
+                  <Link to={item.url} className="flex items-center gap-2">
                     <item.icon />
                     <span>{item.name}</span>
-                  </a>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}

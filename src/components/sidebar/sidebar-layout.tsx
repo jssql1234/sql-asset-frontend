@@ -1,9 +1,5 @@
 import * as React from "react"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "./sidebar"
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "./sidebar"
 import { AppSidebar } from "./app-sidebar"
 import sqlLogo from "@/assets/images/sqlasset_logo1.png"
 
@@ -56,7 +52,7 @@ export function SidebarLayout({ children, breadcrumbs }: SidebarLayoutProps) {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
+            <Separator orientation="vertical" className="mr-2 h-3" />
             {breadcrumbs && breadcrumbs.length > 0 && (
               <Breadcrumb>
                 <BreadcrumbList>

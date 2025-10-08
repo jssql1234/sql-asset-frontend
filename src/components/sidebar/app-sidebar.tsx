@@ -2,30 +2,11 @@
 
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
-import {
-  Calculator,
-  LayoutDashboard,
-  Calendar,
-  Wrench,
-  Clock,
-  Shield,
-  Activity,
-  FileStack,
-  Home,
-} from "lucide-react"
+import { Calculator, LayoutDashboard, Calendar, Wrench, Clock, Shield, Activity, FileStack, Home } from "lucide-react"
 
 import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarRail,
-} from "./sidebar"
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail } from "./sidebar"
 
 // This is sample data.
 const data = {

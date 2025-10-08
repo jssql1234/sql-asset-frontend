@@ -21,9 +21,14 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     assignedTo: "John Smith",
     requestedDate: "2025-09-20",
     scheduledDate: "2025-09-30",
+    scheduledStartDateTime: "2025-09-30T08:00",
+    scheduledEndDateTime: "2025-09-30T16:00",
+    actualStartDateTime: "2025-09-30T08:15",
     startDate: "2025-09-30",
     estimatedCost: 3500.0,
+    actualCost: 3200.0,
     progress: 65,
+    notes: "Track tension was significantly off. Replaced damaged links and adjusted alignment.",
     partsUsed: [
       {
         id: "P-001",
@@ -103,7 +108,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     description: "Annual calibration and certification",
     type: "Upgrade/Modify",
     priority: "Normal",
-    status: "Scheduled",
+    status: "Pending",
     serviceBy: "Outsourced",
     assignedTo: "Precision Calibration Inc",
     requestedDate: "2025-09-22",
@@ -121,7 +126,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     description: "Repair faulty control panel under warranty",
     type: "Corrective",
     priority: "Critical",
-    status: "Scheduled",
+    status: "Pending",
     serviceBy: "Outsourced",
     assignedTo: "Cummins Service Center",
     requestedDate: "2025-09-28",
@@ -193,7 +198,7 @@ export const PRIORITY_LEVELS = ["Normal", "Critical", "Emergency"];
 
 // Status Options
 export const STATUS_OPTIONS = [
-  "Scheduled",
+  "Pending",
   "In Progress",
   "Completed",
   "Overdue",

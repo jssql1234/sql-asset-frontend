@@ -1,6 +1,5 @@
 import WorkOrderCalendar from "../components/WorkOrderCalendar";
 import type { WorkOrder } from "../types";
-import { Card } from "@/components/ui/components";
 
 interface CalendarTabProps {
   workOrders: WorkOrder[];

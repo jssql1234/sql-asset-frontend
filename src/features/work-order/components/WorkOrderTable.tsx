@@ -17,7 +17,7 @@ const STATUS_BADGE_VARIANT: Record<
   WorkOrder["status"],
   "primary" | "red" | "green" | "yellow" | "blue" | "grey"
 > = {
-  Scheduled: "blue",
+  Pending: "blue",
   'In Progress': "yellow",
   Completed: "green",
   Overdue: "red",
@@ -172,24 +172,6 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
       {
-        accessorKey: "progress",
-        header: "Progress",
-        cell: ({ getValue }) => {
-          const progress = getValue() as number;
-          return (
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-16 overflow-hidden rounded-full bg-surfaceVariant">
-                <div
-                  className="h-full bg-primary transition-all"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <span className="label-small text-onSurfaceVariant">{progress}%</span>
-            </div>
-          );
-        },
-      },
-      {
         accessorKey: "status",
         header: "Status",
         cell: ({ getValue }) => {
@@ -202,6 +184,28 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
     [onViewDetails]
   );
 
+  // Handle row double click
+  const handleTableDoubleClick = (e: React.MouseEvent) => {
+    console.log("Double click detected on table");
+    // Find the closest table row (tr element)
+    const row = (e.target as HTMLElement).closest('tr');
+    console.log("Found row:", row);
+    if (row) {
+      // Get row index from the data array
+      const rows = document.querySelectorAll('.work-order-table tbody tr');
+      const rowIndex = Array.from(rows).indexOf(row);
+      console.log("Row index:", rowIndex);
+      
+      if (rowIndex >= 0 && rowIndex < filteredWorkOrders.length) {
+        const workOrder = filteredWorkOrders[rowIndex];
+        console.log("Found work order:", workOrder);
+        if (workOrder && onEditWorkOrder) {
+          onEditWorkOrder(workOrder);
+        }
+      }
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -210,12 +214,24 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         </h2>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={filteredWorkOrders}
-        showPagination={true}
-        className="border border-outline"
-      />
+      <style>{`
+        .work-order-table tbody tr {
+          cursor: pointer;
+          user-select: none;
+        }
+        .work-order-table tbody tr:hover {
+          background-color: rgba(var(--color-primary-rgb, 33, 150, 243), 0.08);
+        }
+      `}</style>
+
+      <div className="work-order-table" onDoubleClick={handleTableDoubleClick}>
+        <DataTable
+          columns={columns}
+          data={filteredWorkOrders}
+          showPagination={true}
+          className="border border-outline"
+        />
+      </div>
     </div>
   );
 };

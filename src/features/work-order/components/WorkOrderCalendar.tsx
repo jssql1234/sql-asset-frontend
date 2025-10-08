@@ -44,32 +44,14 @@ export interface WorkOrderCalendarProps {
  */
 const getPriorityColor = (priority: WorkOrder["priority"]): { bg: string; text: string } => {
   switch (priority) {
-    case "Critical":
-      return { bg: "#f44336", text: "#ffffff" };
-    case "Emergency":
-      return { bg: "#ef9a9a", text: "#b71c1c" };
     case "Normal":
-      return { bg: "#fff59d", text: "#f57f17" };
+      return { bg: "#2196f3", text: "#ffffff" }; // Blue
+    case "Critical":
+      return { bg: "#ffc107", text: "#000000" }; // Yellow
+    case "Emergency":
+      return { bg: "#f44336", text: "#ffffff" }; // Red
     default:
-      return { bg: "#e0e0e0", text: "#424242" };
-  }
-};
-
-/**
- * Get color based on status
- */
-const getStatusColor = (status: WorkOrder["status"]): { bg: string; text: string } => {
-  switch (status) {
-    case "Completed":
-      return { bg: "#81c784", text: "#1b5e20" };
-    case "In Progress":
-      return { bg: "#64b5f6", text: "#0d47a1" };
-    case "Scheduled":
-      return { bg: "#9fa8da", text: "#1a237e" };
-    case "Overdue":
-      return { bg: "#e57373", text: "#b71c1c" };
-    default:
-      return { bg: "#e0e0e0", text: "#424242" };
+      return { bg: "#9e9e9e", text: "#ffffff" }; // Grey
   }
 };
 
@@ -92,17 +74,46 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     return workOrders.map((workOrder) => {
       const priorityColor = getPriorityColor(workOrder.priority);
-      const statusColor = getStatusColor(workOrder.status);
       
-      // Use priority color for background, status color for border
+      // Determine event dates and timing
+      // Priority: Use scheduledStartDateTime/scheduledEndDateTime if available
+      // Fallback: Use actualStartDateTime/actualEndDateTime for completed work
+      // Final fallback: Use scheduledDate as all-day event
+      let startDate: string;
+      let endDate: string | undefined;
+      let isAllDay = false;
+
+      if (workOrder.scheduledStartDateTime && workOrder.scheduledEndDateTime) {
+        // Use scheduled datetime fields (with time component)
+        startDate = workOrder.scheduledStartDateTime;
+        endDate = workOrder.scheduledEndDateTime;
+        isAllDay = false;
+      } else if (workOrder.actualStartDateTime && workOrder.actualEndDateTime) {
+        // Use actual datetime fields for completed work
+        startDate = workOrder.actualStartDateTime;
+        endDate = workOrder.actualEndDateTime;
+        isAllDay = false;
+      } else if (workOrder.scheduledDate) {
+        // Fallback to old date fields (all-day events)
+        startDate = workOrder.scheduledDate;
+        endDate = workOrder.completedDate || workOrder.scheduledDate;
+        isAllDay = true;
+      } else {
+        // Default fallback
+        startDate = new Date().toISOString().split('T')[0];
+        endDate = startDate;
+        isAllDay = true;
+      }
+      
+      // Use priority color for background only (no border)
       return {
         id: workOrder.id,
         title: workOrder.jobTitle,
-        start: workOrder.scheduledDate,
-        end: workOrder.completedDate || workOrder.scheduledDate,
-        allDay: !workOrder.startDate, // All day if no specific start time
+        start: startDate,
+        end: endDate,
+        allDay: isAllDay,
         backgroundColor: priorityColor.bg,
-        borderColor: statusColor.bg,
+        borderColor: "transparent",
         textColor: priorityColor.text,
         extendedProps: {
           workOrder,

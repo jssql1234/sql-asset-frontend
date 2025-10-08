@@ -8,7 +8,7 @@ export type MaintenanceType =
 export type MaintenancePriority = "Normal" | "Critical" | "Emergency";
 
 export type MaintenanceStatus = 
-  | "Scheduled" 
+  | "Pending"
   | "In Progress" 
   | "Completed" 
   | "Overdue";
@@ -30,11 +30,16 @@ export interface WorkOrder {
   assignedTo?: string;
   requestedDate: string;
   scheduledDate: string;
+  scheduledStartDateTime?: string;
+  scheduledEndDateTime?: string;
+  actualStartDateTime?: string;
+  actualEndDateTime?: string;
   startDate?: string;
   completedDate?: string;
   estimatedCost: number;
   actualCost?: number;
   progress: number;
+  notes?: string;
   partsUsed?: PartUsed[];
   logs?: MaintenanceLog[];
   warrantyId?: string;
@@ -122,10 +127,17 @@ export interface WorkOrderFormData {
   description: string;
   type: MaintenanceType;
   priority: MaintenancePriority;
+  status: MaintenanceStatus;
   scheduledDate: string;
+  scheduledStartDateTime?: string;
+  scheduledEndDateTime?: string;
+  actualStartDateTime?: string;
+  actualEndDateTime?: string;
   serviceBy: ServiceBy;
   assignedTo?: string;
   estimatedCost: number;
+  actualCost?: number;
+  notes?: string;
   warrantyId?: string;
 }
 

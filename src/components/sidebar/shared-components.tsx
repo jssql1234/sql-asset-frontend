@@ -229,7 +229,7 @@ export function DropdownMenuItem({
   return (
     <div
       onClick={onClick}
-      className={`relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground ${className || ''}`}
+      className={`relative flex cursor-default select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${className || ''}`}
     >
       {children}
     </div>

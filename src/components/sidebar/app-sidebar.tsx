@@ -2,11 +2,12 @@
 
 import * as React from "react"
 import { useNavigate } from "react-router-dom"
-import { Calculator, LayoutDashboard, Calendar, Wrench, Clock, Shield, Activity, FileStack, Home } from "lucide-react"
+import { Calculator, LayoutDashboard, Calendar, Wrench, Clock, Shield, Activity, FileStack, Home, MoreHorizontal, ArrowRightLeft } from "lucide-react"
 
 import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail } from "./sidebar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./shared-components"
 
 // This is sample data.
 const data = {
@@ -42,7 +43,7 @@ const data = {
         {
           name: "Allocation",
           url: "/allocation",
-          icon: Wrench,
+          icon: ArrowRightLeft,
         },
         {
           name: "Downtime Tracking",
@@ -101,6 +102,48 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavProjects navigationSections={data.navigationSections} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8"
+                >
+                  <span className="group-data-[collapsible=icon]:hidden">Tools</span>
+                  <MoreHorizontal className="ml-auto size-4 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                side="right"
+                align="end"
+                sideOffset={4}
+              >
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>Maintain Asset Group</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>Maintain User Group</DropdownMenuItem>
+                  <DropdownMenuItem>Maintain User</DropdownMenuItem>
+                  <DropdownMenuItem>User Access Right Assignment</DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>Maintain Location</DropdownMenuItem>
+                  <DropdownMenuItem>Maintain Department</DropdownMenuItem>
+                  <DropdownMenuItem>Maintain Customer</DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>Maintain Spare Part</DropdownMenuItem>
+                  <DropdownMenuItem>Maintain Service Provider</DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Asset History</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
+        </SidebarMenu>
         <NavUser user={data.user} />
       </SidebarFooter>
       <SidebarRail />

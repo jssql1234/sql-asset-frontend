@@ -588,18 +588,16 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
               variant: "outline",
               size: "default",
             },
+            {
+              label: batchMode ? "Exit Batch" : "Batch",
+              onAction: () => setBatchMode(!batchMode),
+              variant: batchMode ? "destructive" : "default",
+              size: "sm",
+              position: "inline",
+              tooltip: batchMode ? "Exit batch mode" : "Enter batch mode",
+            },
             ]}
             />
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setBatchMode(!batchMode)}
-              variant={batchMode ? "destructive" : "default"}
-              className="has-tooltip"
-              data-tooltip={batchMode ? "Exit batch mode" : "Enter batch mode"}
-            >
-              {batchMode ? "Exit Batch" : "Batch"}
-            </Button>
-          </div>
         </div>
 
         {/* Split into left and right */}

@@ -1,5 +1,5 @@
 import React from "react";
-import { SidebarLayout } from "@/layout/sidebar";
+import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
 import { Tabs } from "@/components/ui/components";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";

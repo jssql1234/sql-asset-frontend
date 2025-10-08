@@ -1,4 +1,4 @@
-import { SidebarLayout } from "@/layout/sidebar";
+import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
 import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/modal/AllocationModal";
 import TransferModal from "../components/modal/TransferModal";

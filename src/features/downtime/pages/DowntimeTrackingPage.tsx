@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SidebarLayout } from "@/layout/sidebar";
+import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
 import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";

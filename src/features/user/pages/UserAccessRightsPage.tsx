@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SidebarLayout } from "@/layout/sidebar";
+import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
 import { useContext } from "react";
 import { UserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";

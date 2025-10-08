@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SidebarLayout } from "@/layout/sidebar";
+import { SidebarLayout } from "@/layout/sidebar/sidebar-layout";
 import { Button, Tabs } from "@/components/ui/components";
 import MeterGroupsView from "./MeterGroupsTab";
 import MeterReadingsView from "./MeterReadingsTab";

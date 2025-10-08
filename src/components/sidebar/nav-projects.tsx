@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { Link, useLocation } from "react-router-dom"
 import { type LucideIcon } from "lucide-react"
 
@@ -29,25 +30,32 @@ export function NavProjects({
 
   return (
     <>
-      {navigationSections.map((section) => (
-        <SidebarGroup key={section.title} className="p-0">
-          <SidebarGroupLabel className="px-2 py-2">{section.title}</SidebarGroupLabel>
-          <SidebarMenu className="gap-0 px-2">
-            {section.items.map((item) => (
-              <SidebarMenuItem key={item.name}>
-                <SidebarMenuButton
-                  asChild
-                  isActive={isPathActive(location.pathname, item.url)}
-                >
-                  <Link to={item.url} className="flex items-center gap-2">
-                    <item.icon />
-                    <span>{item.name}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+      {navigationSections.map((section, index) => (
+        <React.Fragment key={section.title}>
+          <SidebarGroup className="p-0">
+            <SidebarGroupLabel className="px-2 py-2">{section.title}</SidebarGroupLabel>
+            <SidebarMenu className="gap-0 px-2">
+              {section.items.map((item) => (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isPathActive(location.pathname, item.url)}
+                  >
+                    <Link to={item.url} className="flex items-center gap-2">
+                      <item.icon />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+          {index === 0 && (
+            <div className="group-data-[collapsible=icon]:block hidden mx-2 my-1">
+              <div className="h-px bg-gray-300 dark:bg-gray-600" />
+            </div>
+          )}
+        </React.Fragment>
       ))}
     </>
   )

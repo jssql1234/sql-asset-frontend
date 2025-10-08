@@ -28,14 +28,6 @@ function BreadcrumbSeparator({ className }: { className?: string }) {
   return <span className={`text-muted-foreground ${className || ''}`}>/</span>
 }
 
-function Separator({ orientation, className }: { orientation?: 'vertical' | 'horizontal', className?: string }) {
-  return (
-    <div 
-      className={`bg-border ${orientation === 'vertical' ? 'h-full w-px' : 'h-px w-full'} ${className || ''}`}
-    />
-  )
-}
-
 interface SidebarLayoutProps {
   children: React.ReactNode
   breadcrumbs?: {
@@ -52,7 +44,7 @@ export function SidebarLayout({ children, breadcrumbs }: SidebarLayoutProps) {
         <header className="flex h-16 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4 flex-1">
             <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-3" />
+            <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mr-2" />
             {breadcrumbs && breadcrumbs.length > 0 && (
               <Breadcrumb>
                 <BreadcrumbList>

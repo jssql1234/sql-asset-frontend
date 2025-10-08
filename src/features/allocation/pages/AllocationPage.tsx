@@ -53,7 +53,7 @@ const AllocationPage: React.FC = () => {
       ]}
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
-        <Tabs tabs={tabs} defaultValue="allocation" scrollable />
+        <Tabs tabs={tabs} defaultValue="allocation" />
       </div>
 
       <AllocationModal

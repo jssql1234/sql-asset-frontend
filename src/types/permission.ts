@@ -10,7 +10,7 @@ export type PermissionAction =
 
 export interface PermissionItem {
   key: string;
-  permissions: Record<string, boolean>;
+  permissions: Partial<Record<PermissionAction, boolean>>;
 }
 
 export interface PermissionGroup {

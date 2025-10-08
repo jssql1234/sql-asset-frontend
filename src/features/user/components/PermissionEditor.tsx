@@ -5,7 +5,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@
 
 interface PermissionEditorProps {
   selectedGroup: string | null;
-  draftPermissions: Record<string, Record<string, boolean>>;
+  draftPermissions: Record<string, Partial<Record<string, boolean>>>;
   hasUnsavedChanges: boolean;
   onUpdatePermission: (feature: string, action: string, value: boolean) => void;
   onSave: () => void;
@@ -132,8 +132,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.execute !== undefined) {
-                            const currentValue = draftPermissions?.[item.key].execute ?? false;
+                          if (!isAdminGroup && item.permissions.execute !== undefined) {
+                            const currentValue = draftPermissions[item.key].execute;
                             onUpdatePermission(item.key, 'execute', !currentValue);
                           }
                         }}
@@ -141,7 +141,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.execute !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.execute ?? false}
+                            checked={draftPermissions[item.key].execute}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -155,8 +155,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-blue-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.entryNew !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.entryNew ?? false;
+                          if (!isAdminGroup && item.permissions.entryNew !== undefined) {
+                            const currentValue = draftPermissions[item.key].entryNew;
                             onUpdatePermission(item.key, 'entryNew', !currentValue);
                           }
                         }}
@@ -164,7 +164,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.entryNew !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.entryNew ?? false}
+                            checked={draftPermissions[item.key].entryNew}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -177,8 +177,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-blue-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.entryEdit !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.entryEdit ?? false;
+                          if (!isAdminGroup && item.permissions.entryEdit !== undefined) {
+                            const currentValue = draftPermissions[item.key].entryEdit;
                             onUpdatePermission(item.key, 'entryEdit', !currentValue);
                           }
                         }}
@@ -186,7 +186,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.entryEdit !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.entryEdit ?? false}
+                            checked={draftPermissions[item.key].entryEdit}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -199,8 +199,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-blue-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.entryDelete !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.entryDelete ?? false;
+                          if (!isAdminGroup && item.permissions.entryDelete !== undefined) {
+                            const currentValue = draftPermissions[item.key].entryDelete;
                             onUpdatePermission(item.key, 'entryDelete', !currentValue);
                           }
                         }}
@@ -208,7 +208,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.entryDelete !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.entryDelete ?? false}
+                            checked={draftPermissions[item.key].entryDelete}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -222,8 +222,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.reportProcess !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.reportProcess ?? false;
+                          if (!isAdminGroup && item.permissions.reportProcess !== undefined) {
+                            const currentValue = draftPermissions[item.key].reportProcess;
                             onUpdatePermission(item.key, 'reportProcess', !currentValue);
                           }
                         }}
@@ -231,7 +231,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.reportProcess !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.reportProcess ?? false}
+                            checked={draftPermissions[item.key].reportProcess}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -244,8 +244,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.reportPrint !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.reportPrint ?? false;
+                          if (!isAdminGroup && item.permissions.reportPrint !== undefined) {
+                            const currentValue = draftPermissions[item.key].reportPrint;
                             onUpdatePermission(item.key, 'reportPrint', !currentValue);
                           }
                         }}
@@ -253,7 +253,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.reportPrint !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.reportPrint ?? false}
+                            checked={draftPermissions[item.key].reportPrint}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -266,8 +266,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.reportPreview !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.reportPreview ?? false;
+                          if (!isAdminGroup && item.permissions.reportPreview !== undefined) {
+                            const currentValue = draftPermissions[item.key].reportPreview;
                             onUpdatePermission(item.key, 'reportPreview', !currentValue);
                           }
                         }}
@@ -275,7 +275,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.reportPreview !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.reportPreview ?? false}
+                            checked={draftPermissions[item.key].reportPreview}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();
@@ -288,8 +288,8 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                       <TableCell
                         className="text-center bg-green-50/30 cursor-pointer"
                         onClick={() => {
-                          if (item.permissions.reportExport !== undefined) {
-                            const currentValue = draftPermissions?.[item.key]?.reportExport ?? false;
+                          if (!isAdminGroup && item.permissions.reportExport !== undefined) {
+                            const currentValue = draftPermissions[item.key].reportExport;
                             onUpdatePermission(item.key, 'reportExport', !currentValue);
                           }
                         }}
@@ -297,7 +297,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
                         {item.permissions.reportExport !== undefined ? (
                           <input
                             type="checkbox"
-                            checked={draftPermissions?.[item.key]?.reportExport ?? false}
+                            checked={draftPermissions[item.key].reportExport}
                             disabled={isAdminGroup}
                             onChange={(e) => {
                               e.stopPropagation();

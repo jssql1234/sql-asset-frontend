@@ -1,31 +1,36 @@
-import MaintenanceCalendar from "../components/WokrOrderCalendar";
-import type { WorkOrders , WorkOrder } from "../types";
+import WorkOrderCalendar from "../components/WorkOrderCalendar";
+import type { WorkOrder } from "../types";
+import { Card } from "@/components/ui/components";
 
 interface CalendarTabProps {
-  schedules: WorkOrders[];
   workOrders: WorkOrder[];
-  onEventClick?: (event: any) => void;
+  onEventClick?: (workOrder: WorkOrder) => void;
+  onDateSelect?: (selectInfo: any) => void;
 }
 
 export const CalendarTab: React.FC<CalendarTabProps> = ({
-  schedules,
   workOrders,
   onEventClick,
+  onDateSelect,
 }) => {
   return (
     <div className="flex flex-col gap-6 p-2 overflow-auto">
       <div>
         <h2 className="title-large font-semibold text-onSurface">Calendar View</h2>
         <p className="body-medium text-onSurfaceVariant">
-          Visual overview of scheduled maintenance and work orders
+          Visual overview of work orders and maintenance schedule. Click on events to view details, or select dates to create new work orders.
         </p>
       </div>
 
-      <MaintenanceCalendar
-        schedules={schedules}
-        workOrders={workOrders}
-        onEventClick={onEventClick}
-      />
+      <Card className="border border-outline bg-surfaceContainer p-4">
+        <WorkOrderCalendar
+          workOrders={workOrders}
+          onEventClick={onEventClick}
+          onDateSelect={onDateSelect}
+          selectable={true}
+          editable={false}
+        />
+      </Card>
     </div>
   );
 };

@@ -1,19 +1,14 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { AssetLayout } from "@/layout/AssetSidebar";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
 import CalendarTab from "./CalendarTab";
 import {
-  MOCK_WORK_ORDERS_SCHEDULE,
   MOCK_WORK_ORDERS,
   MOCK_WORK_ORDER_SUMMARY,
-  MOCK_ASSETS,
-  MOCK_TECHNICIANS,
-  MOCK_VENDORS,
 } from "../mockData";
 import type {
   WorkOrderFilters,
-  WorkOrders,
   WorkOrder,
 } from "../types";
 import {
@@ -22,34 +17,10 @@ import {
 
 const WorkOrdersPage: React.FC = () => {
   // State
-  const [schedules] = useState<WorkOrders[]>(MOCK_WORK_ORDERS_SCHEDULE);
   const [workOrders] = useState<WorkOrder[]>(MOCK_WORK_ORDERS);
   const [workOrderFilters, setWorkOrderFilters] = useState<WorkOrderFilters>(
     DEFAULT_WORK_ORDER_FILTERS
   );
-
-  // Prepare asset options for dropdowns
-  const assetOptions = useMemo(
-    () =>
-      MOCK_ASSETS.map((asset) => ({
-        value: asset.id,
-        label: `${asset.name} (${asset.code})`,
-      })),
-    []
-  );
-
-  // Prepare technician options
-  const technicianOptions = useMemo(() => {
-    const technicians = MOCK_TECHNICIANS.map((tech) => ({
-      value: tech.name,
-      label: tech.name,
-    }));
-    const vendors = MOCK_VENDORS.map((vendor) => ({
-      value: vendor.name,
-      label: vendor.name,
-    }));
-    return [...technicians, ...vendors];
-  }, []);
 
   // Handlers
   const handleWorkOrderFilterChange = (filters: WorkOrderFilters) => {
@@ -76,9 +47,24 @@ const WorkOrdersPage: React.FC = () => {
     // TODO: Implement modal
   };
 
-  const handleCalendarEventClick = (event: any) => {
-    console.log("Calendar event clicked:", event);
+  const handleCalendarEventClick = (workOrder: WorkOrder) => {
+    console.log("Calendar event clicked:", workOrder);
+    handleViewWorkOrderDetails(workOrder);
     // TODO: Implement event details modal
+  };
+
+  const handleCalendarDateSelect = (selectInfo: any) => {
+    console.log("Date selected:", selectInfo);
+    console.log("Start date:", selectInfo.startStr);
+    console.log("End date:", selectInfo.endStr);
+    console.log("All day:", selectInfo.allDay);
+    
+    // TODO: Implement create work order modal with pre-filled dates
+    // For now, trigger the create work order handler
+    handleCreateWorkOrder();
+    
+    // Clear the selection after handling
+    selectInfo.view.calendar.unselect();
   };
 
   // Tabs configuration
@@ -104,9 +90,9 @@ const WorkOrdersPage: React.FC = () => {
       label: "Calendar View",
       content: (
         <CalendarTab
-          schedules={schedules}
           workOrders={workOrders}
           onEventClick={handleCalendarEventClick}
+          onDateSelect={handleCalendarDateSelect}
         />
       ),
     },

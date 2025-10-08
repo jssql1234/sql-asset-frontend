@@ -8,10 +8,9 @@ const PRIORITY_BADGE_VARIANT: Record<
   WorkOrder["priority"],
   "primary" | "red" | "green" | "yellow" | "blue" | "grey"
 > = {
-  Low: "blue",
-  Medium: "yellow",
-  High: "red",
-  Critical: "red",
+  Normal: "primary",
+  Emergency: "red",
+  Critical: "yellow",
 };
 
 const STATUS_BADGE_VARIANT: Record<
@@ -19,11 +18,9 @@ const STATUS_BADGE_VARIANT: Record<
   "primary" | "red" | "green" | "yellow" | "blue" | "grey"
 > = {
   Scheduled: "blue",
-  "In Progress": "yellow",
-  Pending: "grey",
+  'In Progress': "yellow",
   Completed: "green",
   Overdue: "red",
-  Cancelled: "grey",
 };
 
 interface WorkOrderTableProps {

@@ -3,42 +3,17 @@
 export type MaintenanceType = 
   | "Preventive" 
   | "Corrective" 
-  | "Predictive" 
-  | "Breakdown"
-  | "Warranty"
-  | "Calibration";
+  | "Upgrade/Modify";
 
-export type MaintenancePriority = "Low" | "Medium" | "High" | "Critical";
+export type MaintenancePriority = "Normal" | "Critical" | "Emergency";
 
 export type MaintenanceStatus = 
   | "Scheduled" 
   | "In Progress" 
-  | "Pending" 
   | "Completed" 
-  | "Overdue"
-  | "Cancelled";
+  | "Overdue";
 
 export type ServiceBy = "In-House" | "Outsourced";
-
-export interface WorkOrders {
-  id: string;
-  assetId: string;
-  assetName: string;
-  assetCode: string;
-  taskDescription: string;
-  type: MaintenanceType;
-  priority: MaintenancePriority;
-  status: MaintenanceStatus;
-  scheduledDate: string;
-  completedDate?: string;
-  serviceBy: ServiceBy;
-  assignedTechnician?: string;
-  estimatedCost: number;
-  actualCost?: number;
-  notes?: string;
-  frequency?: string;
-  nextDueDate?: string;
-}
 
 export interface WorkOrder {
   id: string;
@@ -62,7 +37,6 @@ export interface WorkOrder {
   progress: number;
   partsUsed?: PartUsed[];
   logs?: MaintenanceLog[];
-  rating?: number;
   warrantyId?: string;
 }
 

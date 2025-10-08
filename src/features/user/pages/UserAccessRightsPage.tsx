@@ -3,9 +3,8 @@ import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
 import { use } from "react";
 import { UserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";
-import { Button, Card } from "@/components/ui/components";
+import { Card } from "@/components/ui/components";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
-import { ChevronDown } from "@/assets/icons";
 import PermissionEditor from "../components/PermissionEditor";
 
 const UserAccessRightsPage: React.FC = () => {
@@ -132,12 +131,10 @@ const UserAccessRightsPage: React.FC = () => {
         <Card className="p-4 flex flex-start gap-4">
           <h2 className="text-lg font-semibold self-center">Select Group</h2>
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button className="flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 min-w-[200px]">
-                {selectedGroup ? groups.find(g => g.id === selectedGroup)?.name : 'Select a group...'}
-                <ChevronDown className="w-4 h-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              label={selectedGroup ? groups.find(g => g.id === selectedGroup)?.name : 'Select a group...'}
+              className="flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 min-w-[200px]"
+            />
             <DropdownMenuContent className="w-fit">
               {groups.map(group => (
                 <DropdownMenuItem

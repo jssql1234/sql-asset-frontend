@@ -178,6 +178,7 @@
 
 .fc .fc-timegrid-event {
   border-radius: 6px;
+  border-width: 3px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
@@ -236,7 +237,7 @@
 /* Selection (Date range selection) */
 .fc .fc-highlight {
   background-color: rgba(103, 80, 164, 0.15);
-  border: 2px dashed var(--color-primary, #6750a4);
+  border: 2px solid var(--color-primary, #6750a4);
   border-radius: 4px;
   /* animation: pulse-selection 1.5s ease-in-out infinite; */
 }
@@ -252,9 +253,7 @@
 } */
 
 /* Selectable dates - cursor feedback */
-.fc-daygrid-day.fc-day-past {
-  opacity: 0.6;
-}
+
 
 .fc-daygrid-day.fc-day-future,
 .fc-daygrid-day.fc-day-today {

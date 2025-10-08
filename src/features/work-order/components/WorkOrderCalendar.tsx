@@ -89,16 +89,16 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
       const priorityColor = getPriorityColor(workOrder.priority);
       const statusColor = getStatusColor(workOrder.status);
       
-      // Use priority color for border, status color for background
+      // Use priority color for background, status color for border
       return {
         id: workOrder.id,
         title: workOrder.jobTitle,
         start: workOrder.scheduledDate,
         end: workOrder.completedDate || workOrder.scheduledDate,
         allDay: !workOrder.startDate, // All day if no specific start time
-        backgroundColor: statusColor.bg,
-        borderColor: priorityColor.bg,
-        textColor: statusColor.text,
+        backgroundColor: priorityColor.bg,
+        borderColor: statusColor.bg,
+        textColor: priorityColor.text,
         extendedProps: {
           workOrder,
           priority: workOrder.priority,
@@ -122,7 +122,7 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
 
   // Custom event content renderer
   const renderEventContent = useCallback((eventInfo: EventContentArg) => {
-    const { workOrderNumber, assetName, priority, status, progress } = eventInfo.event.extendedProps;
+    const { workOrderNumber, assetName, status, progress } = eventInfo.event.extendedProps;
     
     return (
       <div className="flex flex-col gap-0.5 p-1 overflow-hidden">
@@ -130,11 +130,6 @@ export const WorkOrderCalendar: React.FC<WorkOrderCalendarProps> = ({
           <span className="font-semibold text-xs truncate">
             {eventInfo.event.title}
           </span>
-          {eventInfo.view.type === "dayGridMonth" && (
-            <span className="text-[10px] opacity-75">
-              {priority}
-            </span>
-          )}
         </div>
         
         {eventInfo.view.type !== "dayGridMonth" && (

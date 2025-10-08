@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Calculator, LayoutDashboard, Calendar, Wrench, Clock, Shield, Activity, FileStack, Home, MoreHorizontal, ArrowRightLeft } from "lucide-react";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, SidebarGroup, SidebarGroupLabel } from "./SidebarCN";
@@ -35,6 +35,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -115,21 +116,41 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 disablePortal={true}
               >
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>Maintain Asset Group</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-asset-group")}>
+                    Maintain Asset Group
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Maintain User Group</DropdownMenuItem>
-                  <DropdownMenuItem>Maintain User</DropdownMenuItem>
-                  <DropdownMenuItem>User Access Right Assignment</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-user-group")}>
+                    Maintain User Group
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-user")}>
+                    Maintain User
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/user-access-rights")}>
+                    User Access Right Assignment
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Maintain Location</DropdownMenuItem>
-                  <DropdownMenuItem>Maintain Department</DropdownMenuItem>
-                  <DropdownMenuItem>Maintain Customer</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-location")}>
+                    Maintain Location
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-department")}>
+                    Maintain Department
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-customer")}>
+                    Maintain Customer
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Maintain Spare Part</DropdownMenuItem>
-                  <DropdownMenuItem>Maintain Service Provider</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-spare-part")}>
+                    Maintain Spare Part
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/maintain-service-provider")}>
+                    Maintain Service Provider
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Asset History</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/asset-history")}>
+                  Asset History
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

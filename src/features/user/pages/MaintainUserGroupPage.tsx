@@ -12,7 +12,7 @@ import { useContext } from 'react';
 import { UserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 
-const UserGroupManagementPage: React.FC = () => {
+const MaintainUserGroupPage: React.FC = () => {
   const { addGroup } = useContext(UserContext);
   const {
     groups,
@@ -224,4 +224,4 @@ const UserGroupManagementPage: React.FC = () => {
   );
 };
 
-export default UserGroupManagementPage;
+export default MaintainUserGroupPage;

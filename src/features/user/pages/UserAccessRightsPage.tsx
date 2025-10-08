@@ -123,7 +123,8 @@ const UserAccessRightsPage: React.FC = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "User Access Rights" },
+        { label: "Tools" },
+        { label: "User Access Right Assignment" },
       ]}
     >
       <div className="space-y-6">

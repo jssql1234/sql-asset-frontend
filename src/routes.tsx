@@ -12,7 +12,15 @@ import CoveragePage from "./features/coverage/pages/CoveragePage";
 import MeterPage from "./features/meter/pages/MeterPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 import UserAccessRightsPage from "./features/user/pages/UserAccessRightsPage";
-import UserGroupManagementPage from "./features/user/pages/UserGroupManagementPage";
+import MaintainUserGroupPage from "./features/user/pages/MaintainUserGroupPage";
+import MaintainAssetGroupPage from "./features/maintain/pages/MaintainAssetGroupPage";
+import MaintainUserPage from "./features/maintain/pages/MaintainUserPage";
+import MaintainLocationPage from "./features/maintain/pages/MaintainLocationPage";
+import MaintainDepartmentPage from "./features/maintain/pages/MaintainDepartmentPage";
+import MaintainCustomerPage from "./features/maintain/pages/MaintainCustomerPage";
+import MaintainSparePartPage from "./features/maintain/pages/MaintainSparePartPage";
+import MaintainServiceProviderPage from "./features/maintain/pages/MaintainServiceProviderPage";
+import AssetHistoryPage from "./features/maintain/pages/AssetHistoryPage";
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
@@ -46,9 +54,19 @@ function AppRoutes() {
       <Route path="/insurance" element={<CoveragePage />} />
       <Route path="/meter-reading" element={<MeterPage />} />
 
-      {/* User Management Routes */}
+      {/* Maintenance Routes */}
       <Route path="/user-access-rights" element={<UserAccessRightsPage />} />
-      <Route path="/user-group-management" element={<UserGroupManagementPage />} />
+      <Route path="/maintain-user-group" element={<MaintainUserGroupPage />} />
+
+      {/* Maintenance Routes */}
+      <Route path="/maintain-asset-group" element={<MaintainAssetGroupPage />} />
+      <Route path="/maintain-user" element={<MaintainUserPage />} />
+      <Route path="/maintain-location" element={<MaintainLocationPage />} />
+      <Route path="/maintain-department" element={<MaintainDepartmentPage />} />
+      <Route path="/maintain-customer" element={<MaintainCustomerPage />} />
+      <Route path="/maintain-spare-part" element={<MaintainSparePartPage />} />
+      <Route path="/maintain-service-provider" element={<MaintainServiceProviderPage />} />
+      <Route path="/asset-history" element={<AssetHistoryPage />} />
 
       {/* Catch-all (404 redirect) */}
       <Route path="*" element={<Navigate to="/" replace />} />

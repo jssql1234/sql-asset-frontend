@@ -12,6 +12,7 @@ import CoveragePage from "./features/coverage/pages/CoveragePage";
 import MeterPage from "./features/meter/pages/MeterPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 import UserAccessRightsPage from "./features/user/pages/UserAccessRightsPage";
+import UserGroupManagementPage from "./features/user/pages/UserGroupManagementPage";
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
@@ -47,6 +48,7 @@ function AppRoutes() {
 
       {/* User Management Routes */}
       <Route path="/user-access-rights" element={<UserAccessRightsPage />} />
+      <Route path="/user-group-management" element={<UserGroupManagementPage />} />
 
       {/* Catch-all (404 redirect) */}
       <Route path="*" element={<Navigate to="/" replace />} />

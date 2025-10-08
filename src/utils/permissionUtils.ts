@@ -33,6 +33,27 @@ export function getApplicableActions(feature: string): string[] {
 }
 
 /**
+ * Creates a permission object with all permissions enabled
+ * This is future-proof - when new permissions are added to PERMISSION_ITEMS,
+ * they will automatically be included here
+ */
+export function createAllPermissionsEnabled(): Record<string, Record<string, boolean>> {
+  const allPermissions: Record<string, Record<string, boolean>> = {};
+
+  for (const permissionItem of PERMISSION_ITEMS) {
+    allPermissions[permissionItem.key] = {};
+
+    // Enable all actions that are defined for this permission item
+    for (const [action, isApplicable] of Object.entries(permissionItem.permissions)) {
+      // Only set to true if the action is applicable to this feature
+      allPermissions[permissionItem.key][action] = isApplicable;
+    }
+  }
+
+  return allPermissions;
+}
+
+/**
  * Validates permission structure
  */
 export function validatePermissions(permissions: Record<string, Record<string, boolean>>): boolean {

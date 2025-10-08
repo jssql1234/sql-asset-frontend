@@ -166,7 +166,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsGenerationModalOpen(true)}
+                onClick={() => setIsGenerationModalOpen(() => true)}
                 className="text-xs"
               >
                 Generate <span>{emptyCount}</span>
@@ -243,7 +243,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         </label>
         <Button
           type="button"
-          onClick={() => setIsGenerationModalOpen(true)}
+          onClick={() => setIsGenerationModalOpen(() => true)}
           variant="outline"
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
@@ -269,7 +269,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
       <SerialNumberGenerationModal
         isOpen={isGenerationModalOpen}
-        onClose={() => setIsGenerationModalOpen(false)}
+        onClose={() => setIsGenerationModalOpen(() => false)}
         emptyFieldsCount={getEmptySerialFieldsCount}
         nextAvailableNumber={getNextAvailableSerialNumber}
         onGenerate={generateSerialNumbers}

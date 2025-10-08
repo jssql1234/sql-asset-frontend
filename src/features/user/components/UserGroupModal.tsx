@@ -27,21 +27,21 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
 
   useEffect(() => {
     if (editingGroup) {
-      setFormData({
+      setFormData(() => ({
         id: editingGroup.id,
         name: editingGroup.name,
         description: editingGroup.description,
         defaultPermissions: editingGroup.defaultPermissions,
-      });
+      }));
     } else {
-      setFormData({
+      setFormData(() => ({
         id: '',
         name: '',
         description: '',
         defaultPermissions: {},
-      });
+      }));
     }
-    setErrors({});
+    setErrors(() => ({}));
   }, [editingGroup, open]);
 
   const validateForm = (): boolean => {
@@ -55,7 +55,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
       newErrors.name = 'Group name is required';
     }
 
-    setErrors(newErrors);
+    setErrors(() => newErrors);
     return Object.keys(newErrors).length === 0;
   };
 

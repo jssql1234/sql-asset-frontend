@@ -40,7 +40,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
     } else {
       newSelection.add(permissionKey);
     }
-    setSelectedPermissions(newSelection);
+    setSelectedPermissions(() => newSelection);
   };
 
   const toggleGroupExpansion = (groupId: string) => {
@@ -50,7 +50,7 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
     } else {
       newExpanded.add(groupId);
     }
-    setExpandedGroups(newExpanded);
+    setExpandedGroups(() => newExpanded);
   };
 
   if (!selectedGroup) return null;

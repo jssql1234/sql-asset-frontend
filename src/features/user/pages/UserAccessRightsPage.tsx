@@ -18,8 +18,8 @@ const UserAccessRightsPage: React.FC = () => {
   const initializeDraftPermissions = (groupId: string) => {
     const group = groups.find(g => g.id === groupId);
     if (group) {
-      setDraftPermissions({ ...group.defaultPermissions });
-      setHasUnsavedChanges(false);
+      setDraftPermissions(() => ({ ...group.defaultPermissions }));
+      setHasUnsavedChanges(() => false);
     }
   };
 
@@ -32,14 +32,14 @@ const UserAccessRightsPage: React.FC = () => {
         [action]: value
       }
     }));
-    setHasUnsavedChanges(true);
+    setHasUnsavedChanges(() => true);
   };
 
   // Save draft permissions to actual group
   const savePermissions = () => {
     if (!selectedGroup) return;
     updateGroup(selectedGroup, { defaultPermissions: { ...draftPermissions } });
-    setHasUnsavedChanges(false);
+    setHasUnsavedChanges(() => false);
   };
 
   // Reset draft permissions to last saved state
@@ -62,8 +62,8 @@ const UserAccessRightsPage: React.FC = () => {
       });
     });
 
-    setDraftPermissions(updatedPermissions);
-    setHasUnsavedChanges(true);
+    setDraftPermissions(() => updatedPermissions);
+    setHasUnsavedChanges(() => true);
   };
 
   const revokeSelectedPermissions = () => {
@@ -80,8 +80,8 @@ const UserAccessRightsPage: React.FC = () => {
       });
     });
 
-    setDraftPermissions(updatedPermissions);
-    setHasUnsavedChanges(true);
+    setDraftPermissions(() => updatedPermissions);
+    setHasUnsavedChanges(() => true);
   };
 
   const grantAllPermissions = () => {
@@ -98,8 +98,8 @@ const UserAccessRightsPage: React.FC = () => {
       });
     });
 
-    setDraftPermissions(updatedPermissions);
-    setHasUnsavedChanges(true);
+    setDraftPermissions(() => updatedPermissions);
+    setHasUnsavedChanges(() => true);
   };
 
   const revokeAllPermissions = () => {
@@ -116,8 +116,8 @@ const UserAccessRightsPage: React.FC = () => {
       });
     });
 
-    setDraftPermissions(updatedPermissions);
-    setHasUnsavedChanges(true);
+    setDraftPermissions(() => updatedPermissions);
+    setHasUnsavedChanges(() => true);
   };
 
   return (
@@ -143,7 +143,7 @@ const UserAccessRightsPage: React.FC = () => {
                 <DropdownMenuItem
                   key={group.id}
                   onClick={() => {
-                    setSelectedGroup(group.id);
+                    setSelectedGroup(() => group.id);
                     initializeDraftPermissions(group.id);
                   }}
                   className="cursor-pointer"

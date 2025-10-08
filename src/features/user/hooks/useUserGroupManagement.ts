@@ -11,13 +11,13 @@ export const useUserGroupManagement = () => {
   const [editingGroup, setEditingGroup] = useState<UserGroup | null>(null);
 
   const handleAddGroup = useCallback(() => {
-    setEditingGroup(null);
-    setIsModalOpen(true);
+    setEditingGroup(() => null);
+    setIsModalOpen(() => true);
   }, []);
 
   const handleEditGroup = useCallback((group: UserGroup) => {
-    setEditingGroup(group);
-    setIsModalOpen(true);
+    setEditingGroup(() => group);
+    setIsModalOpen(() => true);
   }, []);
 
   const handleDeleteGroup = useCallback((groupId: string) => {
@@ -56,8 +56,8 @@ export const useUserGroupManagement = () => {
           description: 'Group added successfully',
         });
       }
-      setIsModalOpen(false);
-      setEditingGroup(null);
+      setIsModalOpen(() => false);
+      setEditingGroup(() => null);
     } catch (error) {
       addToast({
         variant: 'error',
@@ -68,8 +68,8 @@ export const useUserGroupManagement = () => {
   }, [editingGroup, updateGroup, addGroup, addToast]);
 
   const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
-    setEditingGroup(null);
+    setIsModalOpen(() => false);
+    setEditingGroup(() => null);
   }, []);
 
   return {

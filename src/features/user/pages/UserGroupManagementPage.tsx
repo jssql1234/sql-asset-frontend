@@ -31,21 +31,21 @@ const UserGroupManagementPage: React.FC = () => {
   const [groupToDelete, setGroupToDelete] = useState<UserGroup | null>(null);
 
   const handleDeleteClick = (group: UserGroup) => {
-    setGroupToDelete(group);
-    setDeleteDialogOpen(true);
+    setGroupToDelete(() => group);
+    setDeleteDialogOpen(() => true);
   };
 
   const handleConfirmDelete = () => {
     if (groupToDelete) {
       handleDeleteGroup(groupToDelete.id);
-      setDeleteDialogOpen(false);
-      setGroupToDelete(null);
+      setDeleteDialogOpen(() => false);
+      setGroupToDelete(() => null);
     }
   };
 
   const handleCancelDelete = () => {
-    setDeleteDialogOpen(false);
-    setGroupToDelete(null);
+    setDeleteDialogOpen(() => false);
+    setGroupToDelete(() => null);
   };
 
   const handleExportCSV = () => {

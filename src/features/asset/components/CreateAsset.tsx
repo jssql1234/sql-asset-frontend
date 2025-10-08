@@ -519,7 +519,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
   };
 
   const handleFakeSubmit = () => {
-    setIsSubmitting(true);
+    setIsSubmitting(() => true);
     // Simulate API call
     setTimeout(() => {
       addToast({
@@ -528,7 +528,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
         description: "This is a fake submission for testing purposes.",
         duration: 5000,
       });
-      setIsSubmitting(false);
+      setIsSubmitting(() => false);
       onBack?.();
     }, 1000);
   };
@@ -600,7 +600,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
             },
             {
               label: batchMode ? "Exit Batch" : "Batch",
-              onAction: () => setBatchMode(!batchMode),
+              onAction: () => setBatchMode((prev) => !prev),
               variant: batchMode ? "destructive" : "default",
               size: "sm",
               position: "inline",

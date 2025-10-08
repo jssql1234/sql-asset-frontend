@@ -1,11 +1,16 @@
 import React from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 
 const DashboardPage: React.FC = () => {
   return (
-    <AssetLayout activeSidebarItem="dashboard">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Asset Maintenance", href: "/" },
+        { label: "Dashboard" },
+      ]}
+    >
       <></>
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

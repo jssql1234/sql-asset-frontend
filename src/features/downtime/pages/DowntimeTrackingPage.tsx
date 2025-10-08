@@ -45,7 +45,7 @@ const DowntimeTrackingPage: React.FC = () => {
   return (
     <SidebarLayout
       breadcrumbs={[
-        { label: "Dashboard", href: "/" },
+        { label: "Asset Maintenance", href: "/" },
         { label: "Downtime Tracking" },
       ]}
     >

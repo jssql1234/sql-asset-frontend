@@ -1,12 +1,17 @@
 import React from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 
-const AssetAllocationPage: React.FC = () => {
+const MaintenanceSchedulePage: React.FC = () => {
   return (
-    <AssetLayout activeSidebarItem="maintenance-schedule">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Asset Maintenance", href: "/" },
+        { label: "Maintenance Schedule" },
+      ]}
+    >
       <></>
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 
-export default AssetAllocationPage;
+export default MaintenanceSchedulePage;

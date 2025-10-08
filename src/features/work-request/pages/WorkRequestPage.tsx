@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 import { useToast } from "@/components/ui/components/Toast";
 import WorkRequestTab from "./WorkRequestTab";
 import { CreateWorkRequestModal } from "../components/CreateWorkRequestModal";
@@ -188,7 +188,12 @@ const WorkRequestPage: React.FC = () => {
 
 
   return (
-    <AssetLayout activeSidebarItem="work-request">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Asset Maintenance", href: "/" },
+        { label: "Work Requests" },
+      ]}
+    >
       <div className="flex flex-col gap-4 min-h-full overflow-auto">
         {/* User Controls */}
         <div className="flex items-center justify-between px-4 flex-shrink-0">
@@ -270,7 +275,7 @@ const WorkRequestPage: React.FC = () => {
         onSuccess={handleWorkRequestSuccess}
         onReject={() => {}}
       />
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

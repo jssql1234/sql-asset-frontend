@@ -1,11 +1,16 @@
 import React from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 
 const ProcessCAPage: React.FC = () => {
   return (
-    <AssetLayout activeSidebarItem="process-ca">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Tax Computation", href: "/" },
+        { label: "Process CA" },
+      ]}
+    >
       <></>
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 import { Tabs } from "@/components/ui/components";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
@@ -45,7 +45,12 @@ const CoveragePage: React.FC = () => {
   });
 
   return (
-    <AssetLayout activeSidebarItem="insurance">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Asset Maintenance", href: "/" },
+        { label: "Insurance & Warranty" },
+      ]}
+    >
       <div className="flex flex-col gap-2">
         <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />
       </div>
@@ -114,7 +119,7 @@ const CoveragePage: React.FC = () => {
         }
         claim={modals.claimForWorkOrder}
       />
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

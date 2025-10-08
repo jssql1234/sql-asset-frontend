@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AssetLayout } from '@/layout/AssetSidebar';
+import { SidebarLayout } from "@/components/sidebar";
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
 import NormalDisposalForm from '../components/NormalDisposalForm';
 import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
 import DisposalHistoryTable from '../components/DisposalHistoryTable';
 import DisposalResults from '../components/DisposalResults';
-import { Button } from '@/components/ui/components';
 import TabHeader from '@/components/TabHeader';
 
 // Interface definitions based on the disposal process
@@ -355,7 +354,12 @@ const DisposalMainPage: React.FC = () => {
   };
 
   return (
-    <AssetLayout activeSidebarItem="disposal">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Tax Computation", href: "/" },
+        { label: "Asset Disposal" },
+      ]}
+    >
       <div className="h-full flex flex-col">
         {/* Header */}
         <div className="bg-surface border-b border-outlineVariant px-6 py-4">
@@ -393,7 +397,7 @@ const DisposalMainPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

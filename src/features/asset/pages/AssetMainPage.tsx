@@ -1,12 +1,17 @@
 import React from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 import AssetContentArea from "@asset/components/AssetContentArea";
 
 const AssetMainPage: React.FC = () => {
   return (
-    <AssetLayout activeSidebarItem="asset">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Asset Management", href: "/" },
+        { label: "Assets" },
+      ]}
+    >
       <AssetContentArea />
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

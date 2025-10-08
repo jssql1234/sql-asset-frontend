@@ -1,4 +1,4 @@
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarLayout } from "@/components/sidebar";
 import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/modal/AllocationModal";
 import TransferModal from "../components/modal/TransferModal";
@@ -46,7 +46,12 @@ const AllocationPage: React.FC = () => {
   });
 
   return (
-    <AssetLayout activeSidebarItem="allocation">
+    <SidebarLayout
+      breadcrumbs={[
+        { label: "Asset Maintenance", href: "/" },
+        { label: "Allocation" },
+      ]}
+    >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <Tabs tabs={tabs} defaultValue="allocation" scrollable />
       </div>
@@ -62,7 +67,7 @@ const AllocationPage: React.FC = () => {
       />
       <TransferModal isOpen={isTransferModalOpen} onClose={closeTransferModal} />
       <ReturnModal isOpen={isReturnModalOpen} onClose={closeReturnModal} />
-    </AssetLayout>
+    </SidebarLayout>
   );
 };
 

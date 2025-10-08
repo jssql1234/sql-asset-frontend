@@ -28,7 +28,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
           onDateSelect={onDateSelect}
           onEventChange={onEventChange}
           selectable={true}
-          editable={true}
+          editable={false}
         />
     </div>
   );

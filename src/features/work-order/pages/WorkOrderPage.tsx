@@ -100,33 +100,11 @@ const WorkOrdersPage: React.FC = () => {
     selectInfo.view.calendar.unselect();
   };
 
-  const handleCalendarEventChange = (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => {
-    console.log("Event changed:", workOrder);
-    console.log("New start date:", newStart);
-    console.log("New end date:", newEnd);
-    
-    // Helper function to format date to datetime-local format
-    const formatDateTimeForStorage = (date: Date): string => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
-    };
-    
-    // Update work order with new dates
-    // Update both old date fields and new datetime fields for backward compatibility
-    const updatedWorkOrder: WorkOrder = {
-      ...workOrder,
-      scheduledDate: newStart.toISOString().split('T')[0],
-      scheduledStartDateTime: formatDateTimeForStorage(newStart),
-      scheduledEndDateTime: newEnd ? formatDateTimeForStorage(newEnd) : workOrder.scheduledEndDateTime,
-      completedDate: newEnd ? newEnd.toISOString().split('T')[0] : workOrder.completedDate,
-    };
-    
-    handleSubmitEditWorkOrder(updatedWorkOrder);
-  };
+  // Drag and drop functionality removed - events are now read-only
+  // Users must use the edit modal to change work order dates
+  // const handleCalendarEventChange = (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => {
+  //   ... removed for simplicity
+  // };
 
   // Form submission handlers
   const handleSubmitCreateWorkOrder = (formData: WorkOrderFormData) => {
@@ -205,7 +183,6 @@ const WorkOrdersPage: React.FC = () => {
           workOrders={workOrders}
           onEventClick={handleCalendarEventClick}
           onDateSelect={handleCalendarDateSelect}
-          onEventChange={handleCalendarEventChange}
         />
       ),
     },

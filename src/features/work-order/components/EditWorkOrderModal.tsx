@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
-import type { WorkOrder, MaintenanceType, MaintenancePriority, MaintenanceStatus, ServiceBy } from "../types";
+import { SearchableDropdown } from "@/components/SearchableDropdown";
+import type { WorkOrder, WorkOrderFormData, MaintenanceType, MaintenancePriority, MaintenanceStatus, ServiceBy } from "../types";
 import { MOCK_ASSETS, MOCK_TECHNICIANS, MOCK_VENDORS, MAINTENANCE_TYPES, PRIORITY_LEVELS, STATUS_OPTIONS } from "../mockData";
 
 interface EditWorkOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: WorkOrder) => void;
+  onSubmit: (data: WorkOrderFormData) => void;
   workOrder: WorkOrder | null;
 }
 
@@ -17,43 +18,148 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
   onSubmit,
   workOrder,
 }) => {
-  const [formData, setFormData] = useState<WorkOrder | null>(null);
+  const [formData, setFormData] = useState<WorkOrderFormData>({
+    workOrderNumber: "",
+    assetId: "",
+    assetName: "",
+    jobTitle: "",
+    description: "",
+    type: "Preventive",
+    priority: "Normal",
+    scheduledDate: "",
+    scheduledStartDateTime: "",
+    scheduledEndDateTime: "",
+    actualStartDateTime: "",
+    actualEndDateTime: "",
+    serviceBy: "In-House",
+    assignedTo: "",
+    estimatedCost: 0,
+    actualCost: 0,
+    notes: "",
+    status: "Pending",
+  });
+
+  const [selectedAssets, setSelectedAssets] = useState<Array<{ id: string; name: string; code: string }>>([]);
   const [assigneeOptions, setAssigneeOptions] = useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
 
-  // Initialize form data when work order changes
+  // Filter out already selected assets from the dropdown
+  const availableAssets = useMemo(() => {
+    const selectedAssetIds = new Set(selectedAssets.map(asset => asset.id));
+    return MOCK_ASSETS.filter(asset => !selectedAssetIds.has(asset.id));
+  }, [selectedAssets]);
+
+  // Populate form when workOrder changes
   useEffect(() => {
     if (workOrder) {
-      setFormData({ ...workOrder });
+      setFormData({
+        workOrderNumber: workOrder.workOrderNumber,
+        assetId: workOrder.assetId,
+        assetName: workOrder.assetName,
+        jobTitle: workOrder.jobTitle,
+        description: workOrder.description,
+        type: workOrder.type,
+        priority: workOrder.priority,
+        scheduledDate: workOrder.scheduledDate || "",
+        scheduledStartDateTime: workOrder.scheduledStartDateTime || "",
+        scheduledEndDateTime: workOrder.scheduledEndDateTime || "",
+        actualStartDateTime: workOrder.actualStartDateTime || "",
+        actualEndDateTime: workOrder.actualEndDateTime || "",
+        serviceBy: workOrder.serviceBy,
+        assignedTo: workOrder.assignedTo,
+        estimatedCost: workOrder.estimatedCost || 0,
+        actualCost: workOrder.actualCost || 0,
+        notes: workOrder.notes || "",
+        status: workOrder.status,
+      });
+
+      // Parse selected assets from workOrder
+      const assetIds = workOrder.assetId.split(',');
+      const assetNames = workOrder.assetName.split(',');
+      const assets = assetIds.map((id, index) => {
+        const asset = MOCK_ASSETS.find(a => a.id === id.trim());
+        return {
+          id: id.trim(),
+          name: assetNames[index]?.trim() || asset?.name || id.trim(),
+          code: asset?.code || id.trim(),
+        };
+      });
+      setSelectedAssets(assets);
     }
   }, [workOrder]);
 
   // Update assignee options based on service type
   useEffect(() => {
-    if (formData?.serviceBy === "In-House") {
+    if (formData.serviceBy === "In-House") {
       setAssigneeOptions(MOCK_TECHNICIANS);
-    } else if (formData?.serviceBy === "Outsourced") {
+    } else if (formData.serviceBy === "Outsourced") {
       setAssigneeOptions(MOCK_VENDORS);
     }
-  }, [formData?.serviceBy]);
+  }, [formData.serviceBy]);
 
-  if (!formData) return null;
-
-  const handleAssetChange = (assetId: string) => {
+  const handleAssetSelect = (assetId: string) => {
     const asset = MOCK_ASSETS.find(a => a.id === assetId);
-    setFormData(prev => prev ? {
+    if (asset && !selectedAssets.find(a => a.id === assetId)) {
+      const updatedAssets = [...selectedAssets, asset];
+      setSelectedAssets(updatedAssets);
+      
+      // Update form data
+      if (updatedAssets.length === 1) {
+        setFormData(prev => ({
+          ...prev,
+          assetId: asset.id,
+          assetName: asset.name,
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          assetId: updatedAssets.map(a => a.id).join(','),
+          assetName: updatedAssets.map(a => a.name).join(', '),
+        }));
+      }
+    }
+  };
+
+  const handleRemoveAsset = (assetId: string) => {
+    const updatedAssets = selectedAssets.filter(a => a.id !== assetId);
+    setSelectedAssets(updatedAssets);
+    
+    // Update form data
+    if (updatedAssets.length === 0) {
+      setFormData(prev => ({
+        ...prev,
+        assetId: "",
+        assetName: "",
+      }));
+    } else if (updatedAssets.length === 1) {
+      setFormData(prev => ({
+        ...prev,
+        assetId: updatedAssets[0].id,
+        assetName: updatedAssets[0].name,
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        assetId: updatedAssets.map(a => a.id).join(','),
+        assetName: updatedAssets.map(a => a.name).join(', '),
+      }));
+    }
+  };
+
+  const handleClearAllAssets = () => {
+    setSelectedAssets([]);
+    setFormData(prev => ({
       ...prev,
-      assetId,
-      assetName: asset?.name || "",
-      assetCode: asset?.code || "",
-    } : null);
+      assetId: "",
+      assetName: "",
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validation
-    if (!formData.assetId || !formData.jobTitle || !formData.scheduledStartDateTime || !formData.scheduledEndDateTime) {
-      alert("Please fill in all required fields");
+    if (selectedAssets.length === 0 || !formData.jobTitle || !formData.scheduledStartDateTime || !formData.scheduledEndDateTime) {
+      alert("Please fill in all required fields (at least one asset must be selected)");
       return;
     }
 
@@ -71,7 +177,7 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
       return;
     }
 
-    // Validate completed status requires actual end datetime
+    // If status is completed, require actual end datetime
     if (formData.status === "Completed" && !formData.actualEndDateTime) {
       alert("Actual end date & time is required for completed work orders");
       return;
@@ -82,17 +188,20 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
   };
 
   const handleClose = () => {
-    setFormData(null);
+    setSelectedAssets([]);
     onClose();
   };
 
+  if (!workOrder) return null;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogContent className="w-[900px] max-w-[90vw] max-h-[90vh] flex flex-col p-0">
+      <DialogContent className="w-[800px] max-w-[90vw] max-h-[90vh] flex flex-col p-0">
         {/* Header */}
         <div className="px-6 py-4 border-b border-outlineVariant">
-          <h2 className="headline-small font-semibold text-onSurface">Edit Work Order</h2>
-          <p className="body-small text-onSurfaceVariant mt-1">{formData.workOrderNumber}</p>
+          <h2 className="headline-small font-semibold text-onSurface">
+            Edit Work Order
+          </h2>
         </div>
 
         {/* Form */}
@@ -100,8 +209,10 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
           <div className="px-6 py-4 space-y-6">
             {/* Basic Information */}
             <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">Basic Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="title-medium font-semibold text-onSurface mb-4">
+                Basic Information
+              </h3>
+              <div className="space-y-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Work Order Number
@@ -109,33 +220,108 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                   <Input
                     value={formData.workOrderNumber}
                     disabled
-                    className="w-full bg-surfaceVariant"
+                    className="w-full"
                   />
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Asset <span className="text-error">*</span>
+                    Search Assets <span className="text-error">*</span>
                   </label>
-                  <select
-                    value={formData.assetId}
-                    onChange={(e) => handleAssetChange(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
-                  >
-                    <option value="">-- Select Asset --</option>
-                    {MOCK_ASSETS.map(asset => (
-                      <option key={asset.id} value={asset.id}>
-                        {asset.name} ({asset.code})
-                      </option>
-                    ))}
-                  </select>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <div className="flex-1">
+                        <SearchableDropdown
+                          items={availableAssets.map((asset) => ({
+                            id: asset.id,
+                            label: asset.name,
+                            sublabel: asset.code,
+                          }))}
+                          selectedId=""
+                          onSelect={handleAssetSelect}
+                          placeholder="Search asset by name or ID"
+                          emptyMessage={
+                            selectedAssets.length === MOCK_ASSETS.length
+                              ? "All assets have been selected"
+                              : "No assets found"
+                          }
+                          searchInDropdown={true}
+                        />
+                      </div>
+                      {selectedAssets.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearAllAssets}
+                          className="px-4 py-2 rounded bg-error text-onError hover:bg-error/90 transition-colors whitespace-nowrap label-large"
+                        >
+                          Clear All Assets
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Selected Assets */}
+                    <div>
+                      <label className="label-medium block mb-2 text-onSurfaceVariant">
+                        Selected Assets
+                      </label>
+                      <div className="h-40 overflow-y-auto border border-outlineVariant rounded p-2 bg-surfaceContainerLowest">
+                        {selectedAssets.length === 0 ? (
+                          <div className="flex items-center justify-center h-full">
+                            <p className="body-small text-onSurfaceVariant italic text-center">
+                              No assets selected. Use the search above to add
+                              assets.
+                            </p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {selectedAssets.map((asset) => (
+                              <div
+                                key={asset.id}
+                                className="flex items-center justify-between px-3 py-2 bg-surface rounded border border-outlineVariant hover:border-primary/40 transition-colors"
+                              >
+                                <div className="flex flex-col">
+                                  <span className="body-medium font-medium text-onSurface">
+                                    {asset.name}
+                                  </span>
+                                  <span className="body-small text-onSurfaceVariant">
+                                    {asset.code}
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveAsset(asset.id)}
+                                  className="ml-2 p-1 rounded hover:bg-errorContainer text-error transition-colors"
+                                  title="Remove asset"
+                                >
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M6 18L18 6M6 6l12 12"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* Work Details */}
             <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">Work Details</h3>
+              <h3 className="title-medium font-semibold text-onSurface mb-4">
+                Work Details
+              </h3>
               <div className="space-y-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
@@ -143,7 +329,12 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                   </label>
                   <Input
                     value={formData.jobTitle}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, jobTitle: e.target.value }) : null)}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        jobTitle: e.target.value,
+                      }))
+                    }
                     placeholder="Brief description of the work"
                     required
                     className="w-full"
@@ -155,8 +346,13 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                   </label>
                   <TextArea
                     value={formData.description}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, description: e.target.value }) : null)}
-                    placeholder="Detailed description of the work"
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
+                    placeholder="Detailed description of the work to be performed"
                     rows={3}
                     className="w-full"
                   />
@@ -168,12 +364,19 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     </label>
                     <select
                       value={formData.type}
-                      onChange={(e) => setFormData(prev => prev ? ({ ...prev, type: e.target.value as MaintenanceType }) : null)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          type: e.target.value as MaintenanceType,
+                        }))
+                      }
                       required
                       className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
                     >
-                      {MAINTENANCE_TYPES.map(type => (
-                        <option key={type} value={type}>{type}</option>
+                      {MAINTENANCE_TYPES.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -183,12 +386,19 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     </label>
                     <select
                       value={formData.priority}
-                      onChange={(e) => setFormData(prev => prev ? ({ ...prev, priority: e.target.value as MaintenancePriority }) : null)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          priority: e.target.value as MaintenancePriority,
+                        }))
+                      }
                       required
                       className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
                     >
-                      {PRIORITY_LEVELS.map(priority => (
-                        <option key={priority} value={priority}>{priority}</option>
+                      {PRIORITY_LEVELS.map((priority) => (
+                        <option key={priority} value={priority}>
+                          {priority}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -198,12 +408,19 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     </label>
                     <select
                       value={formData.status}
-                      onChange={(e) => setFormData(prev => prev ? ({ ...prev, status: e.target.value as MaintenanceStatus }) : null)}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          status: e.target.value as MaintenanceStatus,
+                        }))
+                      }
                       required
                       className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
                     >
-                      {STATUS_OPTIONS.map(status => (
-                        <option key={status} value={status}>{status}</option>
+                      {STATUS_OPTIONS.map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -211,17 +428,25 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
               </div>
             </section>
 
-            {/* Assignment */}
+            {/* Resource Assignment */}
             <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">Assignment</h3>
+              <h3 className="title-medium font-semibold text-onSurface mb-4">
+                Resource Assignment
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Service Type <span className="text-error">*</span>
+                    Service By <span className="text-error">*</span>
                   </label>
                   <select
                     value={formData.serviceBy}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, serviceBy: e.target.value as ServiceBy, assignedTo: "" }) : null)}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        serviceBy: e.target.value as ServiceBy,
+                        assignedTo: "", // Reset assignedTo when changing service type
+                      }))
+                    }
                     required
                     className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
                   >
@@ -231,16 +456,29 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Assigned To
+                    Assigned To <span className="text-error">*</span>
                   </label>
                   <select
                     value={formData.assignedTo}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, assignedTo: e.target.value }) : null)}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        assignedTo: e.target.value,
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
                   >
-                    <option value="">-- Select {formData.serviceBy === "In-House" ? "Technician" : "Vendor"} --</option>
-                    {assigneeOptions.map(option => (
-                      <option key={option.id} value={option.name}>{option.name}</option>
+                    <option value="">
+                      -- Select{" "}
+                      {formData.serviceBy === "In-House"
+                        ? "Technician"
+                        : "Vendor"}{" "}
+                      --
+                    </option>
+                    {assigneeOptions.map((option) => (
+                      <option key={option.id} value={option.name}>
+                        {option.name}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -249,28 +487,42 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
 
             {/* Schedule & Timeline */}
             <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">Schedule & Timeline</h3>
+              <h3 className="title-medium font-semibold text-onSurface mb-4">
+                Schedule & Timeline
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Scheduled Start Date & Time <span className="text-error">*</span>
+                    Scheduled Start Date & Time{" "}
+                    <span className="text-error">*</span>
                   </label>
                   <Input
                     type="datetime-local"
-                    value={formData.scheduledStartDateTime || ""}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, scheduledStartDateTime: e.target.value }) : null)}
+                    value={formData.scheduledStartDateTime}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        scheduledStartDateTime: e.target.value,
+                      }))
+                    }
                     required
                     className="w-full"
                   />
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Scheduled End Date & Time <span className="text-error">*</span>
+                    Scheduled End Date & Time{" "}
+                    <span className="text-error">*</span>
                   </label>
                   <Input
                     type="datetime-local"
-                    value={formData.scheduledEndDateTime || ""}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, scheduledEndDateTime: e.target.value }) : null)}
+                    value={formData.scheduledEndDateTime}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        scheduledEndDateTime: e.target.value,
+                      }))
+                    }
                     required
                     className="w-full"
                   />
@@ -281,30 +533,43 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                   </label>
                   <Input
                     type="datetime-local"
-                    value={formData.actualStartDateTime || ""}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, actualStartDateTime: e.target.value }) : null)}
+                    value={formData.actualStartDateTime}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        actualStartDateTime: e.target.value,
+                      }))
+                    }
                     className="w-full"
                   />
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Actual End Date & Time {formData.status === "Completed" && <span className="text-error">*</span>}
+                    Actual End Date & Time
                   </label>
                   <Input
                     type="datetime-local"
-                    value={formData.actualEndDateTime || ""}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, actualEndDateTime: e.target.value }) : null)}
-                    required={formData.status === "Completed"}
+                    value={formData.actualEndDateTime}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        actualEndDateTime: e.target.value,
+                      }))
+                    }
                     className="w-full"
                   />
-                  <p className="text-xs text-onSurfaceVariant mt-1">Required for completed status</p>
+                  <p className="body-small text-onSurfaceVariant mt-1">
+                    Required for completed status
+                  </p>
                 </div>
               </div>
             </section>
 
             {/* Cost Information */}
             <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">Cost Information</h3>
+              <h3 className="title-medium font-semibold text-onSurface mb-4">
+                Cost Information
+              </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
@@ -315,7 +580,12 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     step="0.01"
                     min="0"
                     value={formData.estimatedCost}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, estimatedCost: parseFloat(e.target.value) || 0 }) : null)}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        estimatedCost: parseFloat(e.target.value) || 0,
+                      }))
+                    }
                     placeholder="0.00"
                     className="w-full"
                   />
@@ -328,55 +598,104 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.actualCost || 0}
-                    onChange={(e) => setFormData(prev => prev ? ({ ...prev, actualCost: parseFloat(e.target.value) || 0 }) : null)}
+                    value={formData.actualCost}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        actualCost: parseFloat(e.target.value) || 0,
+                      }))
+                    }
                     placeholder="0.00"
                     className="w-full"
                   />
                 </div>
               </div>
-              {formData.serviceBy === "In-House" && (
-                <p className="text-sm text-onSurfaceVariant mt-2">
-                  Costs are automatically distributed equally among assets when actual cost is entered
-                </p>
-              )}
+              <p className="body-small text-onSurfaceVariant mt-2">
+                Costs are automatically distributed equally among assets when
+                actual cost is entered
+              </p>
             </section>
 
             {/* Notes */}
             <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">Notes</h3>
+              <h3 className="title-medium font-semibold text-onSurface mb-4">
+                Notes
+              </h3>
               <TextArea
-                value={formData.notes || ""}
-                onChange={(e) => setFormData(prev => prev ? ({ ...prev, notes: e.target.value }) : null)}
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, notes: e.target.value }))
+                }
                 placeholder="Additional notes or comments..."
                 rows={4}
                 className="w-full"
               />
             </section>
 
-            {/* Parts Used */}
-            {formData.partsUsed && formData.partsUsed.length > 0 && (
+            {/* Parts Used - Read Only */}
+            {workOrder.partsUsed && workOrder.partsUsed.length > 0 && (
               <section>
-                <h3 className="title-medium font-semibold text-onSurface mb-4">Parts Used</h3>
-                <div className="border border-outline rounded overflow-hidden">
+                <h3 className="title-medium font-semibold text-onSurface mb-4">
+                  Parts Used
+                </h3>
+                <div className="border border-outlineVariant rounded-md overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-surfaceVariant">
+                    <thead className="bg-surfaceContainerLowest">
                       <tr>
-                        <th className="px-4 py-2 text-left label-large text-onSurface">Part Name</th>
-                        <th className="px-4 py-2 text-right label-large text-onSurface">Quantity</th>
-                        <th className="px-4 py-2 text-right label-large text-onSurface">Unit Cost</th>
-                        <th className="px-4 py-2 text-right label-large text-onSurface">Total</th>
+                        <th className="px-4 py-2 text-left label-small text-onSurfaceVariant">
+                          Part Name
+                        </th>
+                        <th></th>
+                        <th className="px-4 py-2 text-right label-small text-onSurfaceVariant">
+                          Quantity
+                        </th>
+                        <th className="px-4 py-2 text-right label-small text-onSurfaceVariant">
+                          Unit Cost (RM)
+                        </th>
+                        <th className="px-4 py-2 text-right label-small text-onSurfaceVariant">
+                          Total (RM)
+                        </th>
                       </tr>
                     </thead>
                     <tbody>
-                      {formData.partsUsed.map(part => (
-                        <tr key={part.id} className="border-t border-outlineVariant">
-                          <td className="px-4 py-2 body-medium text-onSurface">{part.partName}</td>
-                          <td className="px-4 py-2 text-right body-medium text-onSurface">{part.quantity}</td>
-                          <td className="px-4 py-2 text-right body-medium text-onSurface">${part.unitCost.toFixed(2)}</td>
-                          <td className="px-4 py-2 text-right body-medium text-onSurface">${part.totalCost.toFixed(2)}</td>
+                      {workOrder.partsUsed.map((part, index) => (
+                        <tr
+                          key={index}
+                          className="border-t border-outlineVariant"
+                        >
+                          <td className="px-4 py-2 body-small text-onSurface">
+                            {part.partName}
+                          </td>
+                          <td></td>
+                          <td className="px-4 py-2 body-small text-onSurface text-right">
+                            {part.quantity}
+                          </td>
+                          <td className="px-4 py-2 body-small text-onSurface text-right">
+                            {part.unitCost.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2 body-small text-onSurface text-right font-semibold">
+                            {(part.quantity * part.unitCost).toFixed(2)}
+                          </td>
                         </tr>
                       ))}
+                      <tr className="border-t border-outlineVariant bg-surfaceContainerLowest">
+                        <td
+                          colSpan={4}
+                          className="px-4 py-2 label-medium text-onSurface text-right"
+                        >
+                          Total Parts Cost:
+                        </td>
+                        <td className="px-4 py-2 label-medium text-onSurface text-right font-semibold">
+                          RM{" "}
+                          {workOrder.partsUsed
+                            .reduce(
+                              (sum, part) =>
+                                sum + part.quantity * part.unitCost,
+                              0
+                            )
+                            .toFixed(2)}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -389,13 +708,13 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 rounded text-primary hover:bg-primary/10 transition-colors"
+              className="px-4 py-2 rounded text-primary hover:bg-primary/10 transition-colors label-large"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors"
+              className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large"
             >
               Save Changes
             </button>

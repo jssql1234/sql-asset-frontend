@@ -17,6 +17,8 @@ interface SearchableDropdownProps {
   className?: string;
   maxHeight?: string;
   emptyMessage?: string;
+  /** Show search input inside dropdown instead of button */
+  searchInDropdown?: boolean;
 }
 
 export const SearchableDropdown = ({
@@ -27,22 +29,28 @@ export const SearchableDropdown = ({
   className,
   maxHeight = "max-h-60",
   emptyMessage = "No options found",
+  searchInDropdown = false,
 }: SearchableDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const selectedItem = items.find(item => item.id === selectedId);
+  const selectedItem = items.find((item) => item.id === selectedId);
 
-  const filteredItems = items.filter(item =>
-    item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (item.sublabel && item.sublabel.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredItems = items.filter(
+    (item) =>
+      item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (item.sublabel &&
+        item.sublabel.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
         setSearchTerm("");
       }
@@ -80,6 +88,63 @@ export const SearchableDropdown = ({
     }
   };
 
+  if (searchInDropdown) {
+    // Search input mode - always shows input field
+    return (
+      <div ref={dropdownRef} className={cn("relative", className)}>
+        {/* Search Input Field */}
+        <Input
+          ref={inputRef}
+          type="text"
+          placeholder={placeholder}
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            if (!isOpen) setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={handleKeyDown}
+          className="w-full"
+        />
+
+        {/* Dropdown Content */}
+        {isOpen && (
+          <div className="absolute top-full z-50 mt-1 w-full rounded-md border border-outlineVariant bg-surface shadow-lg">
+            {/* Options List */}
+            <div className={cn("overflow-y-auto", maxHeight)}>
+              {filteredItems.length > 0 ? (
+                filteredItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleSelect(item.id)}
+                    className={cn(
+                      "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainerLowest focus:bg-surfaceContainerLowest focus:outline-none",
+                      selectedId === item.id &&
+                        "bg-primaryContainer text-onPrimaryContainer"
+                    )}
+                  >
+                    <span className="font-medium">{item.label}</span>
+                    {item.sublabel && (
+                      <span className="text-xs opacity-75">
+                        {item.sublabel}
+                      </span>
+                    )}
+                  </button>
+                ))
+              ) : (
+                <div className="px-3 py-2 text-sm text-onSurfaceVariant">
+                  {emptyMessage}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Button mode - shows selected item with dropdown
   return (
     <div ref={dropdownRef} className={cn("relative", className)}>
       {/* Trigger Button */}

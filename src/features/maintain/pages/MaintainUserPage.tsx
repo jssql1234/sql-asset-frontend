@@ -1,9 +1,9 @@
 import React from 'react';
-import { SidebarLayout } from '@/layout/sidebar/SidebarLayout';
+import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 
 const MaintainUserPage: React.FC = () => {
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain User" },
@@ -27,7 +27,7 @@ const MaintainUserPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

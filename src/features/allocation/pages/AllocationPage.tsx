@@ -1,4 +1,4 @@
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/modal/AllocationModal";
 import TransferModal from "../components/modal/TransferModal";
@@ -46,7 +46,7 @@ const AllocationPage: React.FC = () => {
   });
 
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Asset Maintenance" },
         { label: "Allocation" },
@@ -67,7 +67,7 @@ const AllocationPage: React.FC = () => {
       />
       <TransferModal isOpen={isTransferModalOpen} onClose={closeTransferModal} />
       <ReturnModal isOpen={isReturnModalOpen} onClose={closeReturnModal} />
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

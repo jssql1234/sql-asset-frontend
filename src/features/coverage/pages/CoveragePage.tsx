@@ -1,5 +1,5 @@
 import React from "react";
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import { Tabs } from "@/components/ui/components";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
@@ -13,39 +13,12 @@ import { useCoverageTabs } from "@/features/coverage/hooks/useCoverageTabs";
 import { useCoverageState } from "@/features/coverage/hooks/useCoverageState";
 
 const CoveragePage: React.FC = () => {
-  const {
-    insuranceFilters,
-    setInsuranceFilters,
-    warrantyFilters,
-    setWarrantyFilters,
-    claimFilters,
-    setClaimFilters,
-    modals,
-    setModals,
-    handleViewInsurance,
-    handleCloseInsuranceDetails,
-    handleCloseWarrantyDetails,
-    handleCloseWorkOrder,
-    handleViewWarranty,
-    handleViewClaim,
-    handleCloseClaimDetails,
-} = useCoverageState();
+  const { insuranceFilters, setInsuranceFilters, warrantyFilters, setWarrantyFilters, claimFilters, setClaimFilters, modals, setModals, handleViewInsurance, handleCloseInsuranceDetails, handleCloseWarrantyDetails, handleCloseWorkOrder, handleViewWarranty, handleViewClaim, handleCloseClaimDetails } = useCoverageState();
 
-  const tabs = useCoverageTabs({
-    insuranceFilters,
-    setInsuranceFilters,
-    warrantyFilters,
-    setWarrantyFilters,
-    claimFilters,
-    setClaimFilters,
-    setModals,
-    handleViewInsurance,
-    handleViewWarranty,
-    handleViewClaim,
-  });
+  const tabs = useCoverageTabs({ insuranceFilters, setInsuranceFilters, warrantyFilters, setWarrantyFilters, claimFilters, setClaimFilters, setModals, handleViewInsurance, handleViewWarranty, handleViewClaim });
 
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Asset Maintenance" },
         { label: "Insurance & Warranty" },
@@ -119,7 +92,7 @@ const CoveragePage: React.FC = () => {
         }
         claim={modals.claimForWorkOrder}
       />
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

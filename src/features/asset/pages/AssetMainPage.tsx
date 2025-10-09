@@ -1,16 +1,16 @@
 import React from "react";
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import AssetContentArea from "@asset/components/AssetContentArea";
 
 const AssetMainPage: React.FC = () => {
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Assets" },
       ]}
     >
       <AssetContentArea />
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

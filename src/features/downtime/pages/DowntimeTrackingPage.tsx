@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
@@ -43,7 +43,7 @@ const DowntimeTrackingPage: React.FC = () => {
   };
 
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Asset" },
         { label: "Downtime Tracking" },
@@ -84,7 +84,7 @@ const DowntimeTrackingPage: React.FC = () => {
         open={modals.resolvedIncidents}
         onClose={() => handleModalClose("resolvedIncidents")}
       />
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

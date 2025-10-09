@@ -2,14 +2,14 @@ import * as React from "react"
 import { SidebarInset, SidebarProvider, SidebarSeparator, SidebarTrigger } from "./SidebarCN"
 import { AppSidebar } from "./SidebarNav"
 
-interface SidebarLayoutProps {
+interface SidebarHeaderProps {
   children: React.ReactNode
   breadcrumbs?: {
     label: string
   }[]
 }
 
-export function SidebarLayout({ children, breadcrumbs }: SidebarLayoutProps) {
+export function SidebarHeader({ children, breadcrumbs }: SidebarHeaderProps) {
   return (
     <SidebarProvider>
       <AppSidebar />

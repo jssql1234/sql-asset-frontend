@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import { useToast } from "@/components/ui/components/Toast";
 import WorkRequestTab from "./WorkRequestTab";
 import { CreateWorkRequestModal } from "../components/CreateWorkRequestModal";
@@ -188,7 +188,7 @@ const WorkRequestPage: React.FC = () => {
 
 
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Asset Maintenance" },
         { label: "Work Requests" },
@@ -275,7 +275,7 @@ const WorkRequestPage: React.FC = () => {
         onSuccess={handleWorkRequestSuccess}
         onReject={() => {}}
       />
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

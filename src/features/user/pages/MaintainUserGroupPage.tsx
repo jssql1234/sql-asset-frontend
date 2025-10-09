@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/components';
-import { SidebarLayout } from '@/layout/sidebar/SidebarLayout';
+import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
 import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
@@ -148,7 +148,7 @@ const MaintainUserGroupPage: React.FC = () => {
 
 
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain User Group" },
@@ -223,7 +223,7 @@ const MaintainUserGroupPage: React.FC = () => {
           groupName={groupToDelete?.name ?? ''}
         />
       </div>
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

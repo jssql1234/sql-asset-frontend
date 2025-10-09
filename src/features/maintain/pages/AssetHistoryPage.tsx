@@ -1,9 +1,9 @@
 import React from 'react';
-import { SidebarLayout } from '@/layout/sidebar/SidebarLayout';
+import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 
 const AssetHistoryPage: React.FC = () => {
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Tools" },
         { label: "Asset History" },
@@ -27,7 +27,7 @@ const AssetHistoryPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

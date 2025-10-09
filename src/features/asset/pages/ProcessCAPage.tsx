@@ -1,16 +1,16 @@
 import React from "react";
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 
 const ProcessCAPage: React.FC = () => {
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Tax Computation" },
         { label: "Process CA" },
       ]}
     >
       <></>
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

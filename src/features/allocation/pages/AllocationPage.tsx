@@ -7,50 +7,17 @@ import { useAllocationState } from "../hooks/useAllocationState";
 import { useAllocationTabs } from "../hooks/useAllocationTabs";
 
 const AllocationPage: React.FC = () => {
-  const {
-    filters,
-    selectedAssetIds,
-    filteredAssets,
-    summary,
-    isAllocationModalOpen,
-    isTransferModalOpen,
-    isReturnModalOpen,
-    locations,
-    pics,
-    statuses,
-    assets,
-    handleFilterChange,
-    handleSelectionChange,
-    openAllocationModal,
-    openTransferModal,
-    openReturnModal,
-    closeAllocationModal,
-    closeTransferModal,
-    closeReturnModal,
-    handleAllocationSubmit,
+  const { filters, selectedAssetIds, filteredAssets, summary, isAllocationModalOpen, isTransferModalOpen, isReturnModalOpen, locations, pics, statuses, assets,
+    handleFilterChange, handleSelectionChange, openAllocationModal, openTransferModal, openReturnModal, closeAllocationModal, closeTransferModal, closeReturnModal, handleAllocationSubmit,
   } = useAllocationState();
 
-  const tabs = useAllocationTabs({
-    filteredAssets,
-    filters,
-    summary,
-    locations,
-    pics,
-    statuses,
-    selectedAssetIds,
-    onFilterChange: handleFilterChange,
-    onSelectionChange: handleSelectionChange,
-    onOpenAllocationModal: openAllocationModal,
-    onOpenTransferModal: openTransferModal,
-    onOpenReturnModal: openReturnModal,
+  const tabs = useAllocationTabs({ filteredAssets, filters, summary, locations, pics, statuses, selectedAssetIds,
+    onFilterChange: handleFilterChange, onSelectionChange: handleSelectionChange, onOpenAllocationModal: openAllocationModal, onOpenTransferModal: openTransferModal, onOpenReturnModal: openReturnModal,
   });
 
   return (
     <SidebarHeader
-      breadcrumbs={[
-        { label: "Asset Maintenance" },
-        { label: "Allocation" },
-      ]}
+      breadcrumbs={[ { label: "Asset Maintenance" }, { label: "Allocation" } ]}
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <Tabs tabs={tabs} defaultValue="allocation" />

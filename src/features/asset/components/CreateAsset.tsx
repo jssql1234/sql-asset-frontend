@@ -1,4 +1,4 @@
-import React, { useState, useRef, useImperativeHandle, forwardRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useImperativeHandle, useEffect, useCallback } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
@@ -20,10 +20,19 @@ import { ChevronDown } from "@/assets/icons";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
+import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 
 interface SerialNumberData {
   serial: string;
   remark: string;
+}
+
+interface TabProps {
+  register: UseFormRegister<CreateAssetFormData>;
+  setValue: UseFormSetValue<CreateAssetFormData>;
+  watch: UseFormWatch<CreateAssetFormData>;
+  control: Control<CreateAssetFormData>;
+  errors?: FieldErrors<CreateAssetFormData>;
 }
 
 interface CreateAssetProps {
@@ -36,7 +45,7 @@ interface CreateAssetRef {
 }
 
 // Tab Components
-const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
+const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -45,14 +54,14 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("caAssetGroup") || "-- Choose Group --"}
+                {watch("caAssetGroup") ?? "-- Choose Group --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("caAssetGroup", "building")}>Building</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("caAssetGroup", "machinery")}>Machinery</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("caAssetGroup", "vehicles")}>Vehicles</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("caAssetGroup", "building"); }}>Building</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("caAssetGroup", "machinery"); }}>Machinery</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("caAssetGroup", "vehicles"); }}>Vehicles</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -61,13 +70,13 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("allowanceClass") || "-- Choose Code --"}
+                {watch("allowanceClass") ?? "-- Choose Code --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("allowanceClass", "class1")}>Class 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("allowanceClass", "class2")}>Class 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("allowanceClass", "class1"); }}>Class 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("allowanceClass", "class2"); }}>Class 2</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -76,13 +85,13 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("subClass") || "-- Choose Type --"}
+                {watch("subClass") ?? "-- Choose Type --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("subClass", "type1")}>Type 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("subClass", "type2")}>Type 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("subClass", "type1"); }}>Type 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("subClass", "type2"); }}>Type 2</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -138,7 +147,7 @@ const AllowanceTab: React.FC<any> = ({ register, setValue, watch }) => {
   );
 };
 
-const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) => {
+const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, control }) => {
   return (
     <Card className="p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-6">
@@ -175,17 +184,17 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("hpInstalment") || "- Choose No. of Instalment -"}
+                {watch("hpInstalment")}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("hpInstalment", "12")}>12</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("hpInstalment", "24")}>24</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("hpInstalment", "36")}>36</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("hpInstalment", "48")}>48</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("hpInstalment", "60")}>60</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("hpInstalment", "other")}>Other</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "12"); }}>12</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "24"); }}>24</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "36"); }}>36</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "48"); }}>48</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "60"); }}>60</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "other"); }}>Other</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -212,7 +221,7 @@ const HirePurchaseTab: React.FC<any> = ({ register, setValue, watch, control }) 
   );
 };
 
-const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
+const DepreciationTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -226,8 +235,8 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("depreciationMethod", "Straight Line")}>Straight Line</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("depreciationMethod", "Manual")}>Manual</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("depreciationMethod", "Straight Line"); }}>Straight Line</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("depreciationMethod", "Manual"); }}>Manual</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -241,8 +250,8 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-fit">
-              <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "Yearly")}>Yearly</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("depreciationFrequency", "Monthly")}>Monthly</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("depreciationFrequency", "Yearly"); }}>Yearly</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("depreciationFrequency", "Monthly"); }}>Monthly</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -274,7 +283,7 @@ const DepreciationTab: React.FC<any> = ({ register, setValue, watch }) => {
 };
 
 
-const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
+const AllocationTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -283,18 +292,18 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("branch") || "-- Select Branch --"}
+                {watch("branch") ?? "-- Select Branch --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("branch", "HQ")}>Headquarters</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("branch", "KL")}>Kuala Lumpur Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("branch", "JB")}>Johor Bahru Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("branch", "PG")}>Penang Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("branch", "KT")}>Kuantan Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("branch", "KC")}>Kuching Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("branch", "KK")}>Kota Kinabalu Branch</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "HQ"); }}>Headquarters</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "KL"); }}>Kuala Lumpur Branch</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "JB"); }}>Johor Bahru Branch</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "PG"); }}>Penang Branch</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "KT"); }}>Kuantan Branch</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "KC"); }}>Kuching Branch</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("branch", "KK"); }}>Kota Kinabalu Branch</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -303,19 +312,19 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("department") || "-- Select Department --"}
+                {watch("department") ?? "-- Select Department --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("department", "IT")}>Information Technology</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "HR")}>Human Resources</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "FIN")}>Finance</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "OPS")}>Operations</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "MKT")}>Marketing</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "ADM")}>Administration</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "LEG")}>Legal</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("department", "AUD")}>Audit</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "IT"); }}>Information Technology</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "HR"); }}>Human Resources</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "FIN"); }}>Finance</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "OPS"); }}>Operations</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "MKT"); }}>Marketing</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "ADM"); }}>Administration</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "LEG"); }}>Legal</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("department", "AUD"); }}>Audit</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -326,26 +335,26 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("location") || "-- Select Location --"}
+                {watch("location") ?? "-- Select Location --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("location", "HQ-L1")}>HQ - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "HQ-L2")}>HQ - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "HQ-L3")}>HQ - Level 3</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "HQ-L4")}>HQ - Level 4</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "HQ-L5")}>HQ - Level 5</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "KL-L1")}>KL Branch - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "KL-L2")}>KL Branch - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "JB-L1")}>JB Branch - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "JB-L2")}>JB Branch - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "PG-L1")}>Penang Branch - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "PG-L2")}>Penang Branch - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "WAREHOUSE")}>Warehouse</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "STORAGE")}>Storage Room</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "MEETING-RM")}>Meeting Room</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("location", "CONF-RM")}>Conference Room</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L1"); }}>HQ - Level 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L2"); }}>HQ - Level 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L3"); }}>HQ - Level 3</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L4"); }}>HQ - Level 4</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L5"); }}>HQ - Level 5</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "KL-L1"); }}>KL Branch - Level 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "KL-L2"); }}>KL Branch - Level 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "JB-L1"); }}>JB Branch - Level 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "JB-L2"); }}>JB Branch - Level 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "PG-L1"); }}>Penang Branch - Level 1</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "PG-L2"); }}>Penang Branch - Level 2</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "WAREHOUSE"); }}>Warehouse</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "STORAGE"); }}>Storage Room</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "MEETING-RM"); }}>Meeting Room</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("location", "CONF-RM"); }}>Conference Room</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -354,23 +363,23 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
           <DropdownMenu className="w-full">
             <DropdownMenuTrigger>
               <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("personInCharge") || "-- Select Person --"}
+                {watch("personInCharge") ?? "-- Select Person --"}
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP001")}>John Doe (EMP001) - IT Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP002")}>Jane Smith (EMP002) - HR Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP003")}>Michael Chen (EMP003) - Finance Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP004")}>Sarah Johnson (EMP004) - Operations Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP005")}>David Lee (EMP005) - IT Technician</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP006")}>Emma Wilson (EMP006) - HR Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP007")}>Robert Kim (EMP007) - Finance Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP008")}>Lisa Brown (EMP008) - Admin Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP009")}>Kevin Tan (EMP009) - Operations Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP010")}>Amy Wong (EMP010) - Marketing Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP011")}>Thomas Lim (EMP011) - Legal Officer</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setValue("personInCharge", "EMP012")}>Rachel Ng (EMP012) - Audit Officer</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP001"); }}>John Doe (EMP001) - IT Manager</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP002"); }}>Jane Smith (EMP002) - HR Manager</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP003"); }}>Michael Chen (EMP003) - Finance Manager</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP004"); }}>Sarah Johnson (EMP004) - Operations Manager</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP005"); }}>David Lee (EMP005) - IT Technician</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP006"); }}>Emma Wilson (EMP006) - HR Executive</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP007"); }}>Robert Kim (EMP007) - Finance Executive</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP008"); }}>Lisa Brown (EMP008) - Admin Executive</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP009"); }}>Kevin Tan (EMP009) - Operations Executive</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP010"); }}>Amy Wong (EMP010) - Marketing Executive</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP011"); }}>Thomas Lim (EMP011) - Legal Officer</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP012"); }}>Rachel Ng (EMP012) - Audit Officer</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -384,7 +393,7 @@ const AllocationTab: React.FC<any> = ({ register, setValue, watch }) => {
 };
 
 
-const WarrantyTab: React.FC<any> = ({ register, control }) => {
+const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -452,7 +461,7 @@ const WarrantyTab: React.FC<any> = ({ register, control }) => {
   );
 };
 
-const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) => {
+const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObject<CreateAssetRef | null> }) => {
   const { onSuccess, onBack } = props;
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
@@ -512,7 +521,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
     submit: () => formRef.current?.requestSubmit(),
   }));
 
-  const onSubmit = (data: CreateAssetFormData) => {
+  const onSubmit = (data: CreateAssetFormData): void => {
     console.log("Form data:", data);
     // Handle form submission
     onSuccess?.(data);
@@ -600,7 +609,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
             },
             {
               label: batchMode ? "Exit Batch" : "Batch",
-              onAction: () => setBatchMode((prev) => !prev),
+              onAction: () => { setBatchMode((prev) => !prev); },
               variant: batchMode ? "destructive" : "default",
               size: "sm",
               position: "inline",
@@ -614,7 +623,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
         <div className="flex flex-row gap-6 items-stretch px-6 pb-20">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
-            <form ref={formRef} onSubmit={handleSubmit(onSubmit)} action="" className="space-y-6">
+            <form ref={formRef} onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} action="" className="space-y-6">
               {/* Main Form Fields */}
               <Card className="p-6">
                 {/* Inactive Status Section - Compact */}
@@ -714,7 +723,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                     <DropdownMenu className="w-full">
                       <DropdownMenuTrigger>
                         <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                          {assetGroups.find(g => g.value === watch("assetGroup"))?.label || "-- Choose Asset Group --"}
+                          {assetGroups.find(g => g.value === watch("assetGroup"))?.label ?? "-- Choose Asset Group --"}
                           <ChevronDown className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -722,7 +731,7 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
                         {assetGroups.map((group) => (
                           <DropdownMenuItem
                             key={group.value}
-                            onClick={() => setValue("assetGroup", group.value)}
+                            onClick={() => { setValue("assetGroup", group.value); }}
                           >
                             {group.label}
                           </DropdownMenuItem>
@@ -878,6 +887,6 @@ const CreateAsset = forwardRef<CreateAssetRef, CreateAssetProps>((props, ref) =>
       </div>
     </div>
   );
-});
+};
 
 export default CreateAsset;

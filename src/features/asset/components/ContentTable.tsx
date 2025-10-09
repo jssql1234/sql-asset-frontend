@@ -79,11 +79,6 @@ const DATA_TABLE_STYLES = {
   className: "",
 };
 
-const setDataTableTheme = (config: { base?: string; className?: string }) => {
-  if (config.base) DATA_TABLE_STYLES.base = config.base;
-  if (config.className) DATA_TABLE_STYLES.className = config.className;
-};
-
 // --------------------------------
 //
 // ------------ Props -------------
@@ -263,7 +258,7 @@ function DataTableHeader<TData>({
         const column = header.column.columnDef as CustomColumnDef<TData>;
 
         const prevHeader = headerGroup.headers[index - 1];
-        const prevColumnDef = prevHeader?.column.columnDef as
+        const prevColumnDef = prevHeader.column.columnDef as
           | (ColumnDef<TData> & {
               sticky?: boolean;
               stickyRight?: number;
@@ -271,7 +266,7 @@ function DataTableHeader<TData>({
           | undefined;
         const prevIsStickyRight =
           prevColumnDef?.sticky === true &&
-          prevColumnDef?.stickyRight !== undefined;
+          prevColumnDef.stickyRight !== undefined;
 
         return (
           <TableHead
@@ -285,7 +280,7 @@ function DataTableHeader<TData>({
                 !(
                   headerGroup.headers[index + 1]?.column
                     .columnDef as CustomColumnDef<TData>
-                )?.sticky,
+                ).sticky,
               "shadow-[-2px_0_8px_-2px_rgba(0,0,0,0.08)]":
                 column.stickyRight && !prevIsStickyRight,
             })}
@@ -395,7 +390,7 @@ function DataTableRow<TData>({
       <TableRow
         key={row.id}
         data-state={row.getIsSelected() && "selected"}
-        onClick={(event) => handleRowClick(row, event)}
+        onClick={(event) => { handleRowClick(row, event); }}
         className={cn(
           enableRowClickSelection && row.getCanSelect() && "cursor-pointer"
         )}
@@ -403,7 +398,7 @@ function DataTableRow<TData>({
         {cells.map((cell, i) => {
           const column = cell.column.columnDef as CustomColumnDef<TData>;
           const prevCell = cells[i - 1];
-          const prevColumnDef = prevCell?.column.columnDef as
+          const prevColumnDef = prevCell.column.columnDef as
             | (ColumnDef<TData> & {
                 sticky?: boolean;
                 stickyRight?: number;
@@ -411,7 +406,7 @@ function DataTableRow<TData>({
             | undefined;
           const prevIsStickyRight =
             prevColumnDef?.sticky === true &&
-            prevColumnDef?.stickyRight !== undefined;
+            prevColumnDef.stickyRight !== undefined;
           return (
             <TableCell
               key={cell.id}
@@ -422,8 +417,7 @@ function DataTableRow<TData>({
                 "bg-surfaceContainerLow": column.sticky,
                 "shadow-[2px_0_8px_-2px_rgba(0,0,0,0.08)]":
                   column.stickyLeft &&
-                  !(cells[i + 1]?.column.columnDef as CustomColumnDef<TData>)
-                    ?.sticky,
+                  !(cells[i + 1]?.column.columnDef as CustomColumnDef<TData>).sticky,
                 "shadow-[-2px_0_8px_-2px_rgba(0,0,0,0.08)]":
                   column.stickyRight && !prevIsStickyRight,
               })}
@@ -467,10 +461,10 @@ function SkeletonRow<TData, TValue>({
   columns: ColumnDef<TData, TValue>[] | CustomColumnDef<TData, TValue>[];
   rowCount: number;
 }) {
-  return [...Array(rowCount)].map((_, i) => (
-    <TableRow key={i} className="hover:bg-transparent">
-      {columns.map((_, j) => (
-        <TableCell key={j}>
+  return Array.from({ length: rowCount }, (_: unknown, i: number) => (
+    <TableRow key={`skeleton-row-${String(i)}`} className="hover:bg-transparent">
+      {columns.map((_: unknown, j: number) => (
+        <TableCell key={`skeleton-cell-${String(i)}-${String(j)}`}>
           <Skeleton className="h-5 rounded-sm" />
         </TableCell>
       ))}
@@ -495,11 +489,11 @@ const getCommonPinningStyles = <TData,>(
   const isPinned = column.sticky;
 
   return {
-    left: isPinned ? `${column.stickyLeft}px` : undefined,
-    right: isPinned ? `${column.stickyRight}px` : undefined,
+    left: isPinned && column.stickyLeft !== undefined ? `${String(column.stickyLeft)}px` : undefined,
+    right: isPinned && column.stickyRight !== undefined ? `${String(column.stickyRight)}px` : undefined,
     position: isPinned ? "sticky" : "relative",
     zIndex: isPinned ? 1 : 0,
   };
 };
 
-export { setDataTableTheme, DataTable };
+export { DataTable };

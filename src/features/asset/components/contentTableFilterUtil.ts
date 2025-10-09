@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+//The any types in FilterFn<any> and Row<any> are required by TanStack Table for maximum flexibility across different data structures. 
+// These are not unsafe usages of any but rather necessary for the library's type system to work properly.
 import type { FilterFn, Row } from "@tanstack/react-table";
 
 // IMPORTANT: Extend the FilterFns interface for type safety
@@ -9,16 +12,6 @@ declare module "@tanstack/react-table" {
   }
 }
 
-/**
- * Custom filter function for multi-select dropdowns.
- * A row will be included if its value for the given column
- * is present in the array of filter values.
- *
- * @param row The current row object.
- * @param columnId The ID of the column being filtered (type: string).
- * @param filterValue An array of values to filter by (e.g., ['value1', 'value2']).
- * @returns True if the row should be included, false otherwise.
- */
 export const multiSelectFilterFn: FilterFn<any> = (
   row: Row<any>,
   columnId: string,
@@ -31,21 +24,12 @@ export const multiSelectFilterFn: FilterFn<any> = (
   }
 
   const cellValueString = String(cellValue);
-  const isMatch = filterValue.some((val) => String(val) === cellValueString);
+  const isMatch = filterValue.some((val) => val === cellValueString);
 
   return isMatch;
 };
 
-/**
- * Custom filter function for filtering arrays or individual values.
- * For array cell values: returns true if any array element matches any filter value.
- * For non-array cell values: returns true if the cell value matches any filter value.
- *
- * @param row The current row object.
- * @param columnId The ID of the column being filtered (type: string).
- * @param filterValue An array of values to filter by (e.g., ['completed', 'pending']).
- * @returns True if the row should be included, false otherwise.
- */
+
 
 export const fuzzyArrayIncludesFilterFn: FilterFn<any> = (
   row,
@@ -63,16 +47,7 @@ export const fuzzyArrayIncludesFilterFn: FilterFn<any> = (
   return filterValue.some((val) => values.includes(val));
 };
 
-/**
- * Custom filter function for searching text within cell values.
- * Returns true if the cell value includes the search string (case-insensitive).
- * Works with both string and array cell values.
- *
- * @param row The current row object.
- * @param columnId The ID of the column being filtered.
- * @param filterValue The search string to filter by.
- * @returns True if the row should be included, false otherwise.
- */
+
 export const searchIncludesFilterFn: FilterFn<any> = (
   row,
   columnId,
@@ -85,11 +60,11 @@ export const searchIncludesFilterFn: FilterFn<any> = (
   const searchValue = filterValue.toLowerCase();
   
   if (Array.isArray(cellValue)) {
-    return cellValue.some(val => 
-      String(val).toLowerCase().includes(searchValue)
+    return cellValue.some(val =>
+      val.toLowerCase().includes(searchValue) 
     );
   }
 
-  return String(cellValue).toLowerCase().includes(searchValue);
+  return cellValue.toLowerCase().includes(searchValue);
 };
 

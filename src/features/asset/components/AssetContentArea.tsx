@@ -91,7 +91,7 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
     meta: { label: "Qty" },
     cell: ({ getValue }) => {
       const value = getValue() as number;
-      return (value ?? 0).toLocaleString();
+      return value.toLocaleString();
     },
   },
   // {
@@ -178,7 +178,9 @@ export default function AssetContentArea() {
   const [view, setView] = useState<'list' | 'create'>('list');
   const navigate = useNavigate();
   const { data: assets } = useGetAsset();
-  const createAssetMutation = useCreateAsset(() => setView('list'));
+  const createAssetMutation = useCreateAsset(() => {
+    setView('list');
+  });
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
@@ -222,8 +224,11 @@ export default function AssetContentArea() {
             <div className="flex items-center gap-3">
               {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
               <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
-              onClick={() => setGroupByBatch(!groupByBatch)}>
+              onClick={() => {
+                setGroupByBatch(!groupByBatch);
+              }}>
                 <button
+                  type="button"
                   className={cn(
                     "px-3 py-1 body-small",
                     !groupByBatch && "bg-primary text-onPrimary"
@@ -232,6 +237,7 @@ export default function AssetContentArea() {
                   Asset
                 </button>
                 <button
+                  type="button"
                   className={cn(
                     "px-3 py-1 body-small",
                     groupByBatch && "bg-primary text-onPrimary"
@@ -250,7 +256,9 @@ export default function AssetContentArea() {
             <div className="flex items-center gap-2">
               <PermissionGuard feature="maintainItem" action="entryNew">
           
-              <Button size="sm" onClick={() => setView('create')}>
+              <Button size="sm" onClick={() => {
+                setView('create');
+              }}>
                 Add
               </Button>
               </PermissionGuard>
@@ -258,7 +266,9 @@ export default function AssetContentArea() {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">Edit</Button>
                   <Button variant="destructive" size="sm">Delete</Button>
-                  <Button variant="destructive" size="sm" onClick={() => navigate('/disposal')}>Dispose</Button>
+                  <Button variant="destructive" size="sm" onClick={() => {
+                    void navigate('/disposal');
+                  }}>Dispose</Button>
                   <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
                 </div>
               )}
@@ -269,7 +279,7 @@ export default function AssetContentArea() {
           <div className="mt-3">
             <DataTable
               columns={visibleColumns}
-              data={assets || []}
+              data={assets ?? []}
               showPagination={true}
               showCheckbox={true}
               enableRowClickSelection={true}
@@ -280,17 +290,19 @@ export default function AssetContentArea() {
         </Card>
       ) : (
         <CreateAsset
-          onBack={() => setView('list')}
+          onBack={() => {
+            setView('list');
+          }}
           onSuccess={(data) => {
             const asset: Asset = {
               id: data.code,
-              batchId: data.batchID || '',
+              batchId: data.batchID ?? '',
               name: data.assetName,
               group: data.assetGroup,
-              description: data.description || '',
+              description: data.description ?? '',
               acquireDate: data.acquireDate || '',
-              purchaseDate: data.purchaseDate || '',
-              cost: parseFloat(data.cost || '0') || 0,
+              purchaseDate: data.purchaseDate ?? '',
+              cost: Number(data.cost ?? '0') || 0,
               qty: data.quantity,
               active: !data.inactive,
             };

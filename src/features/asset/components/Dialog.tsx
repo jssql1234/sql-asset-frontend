@@ -2,8 +2,10 @@ import { cn } from "@/utils/utils";
 import {
   createContext,
   type ReactNode,
-  useContext,
+  use,
+  useCallback,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import { X } from "@/assets/icons";
@@ -96,84 +98,7 @@ const DIALOG_STYLES = {
   },
 };
 
-const setDialogTheme = (config: {
-  dialogTrigger?: {
-    variant?: string;
-    className?: string;
-  };
-  dialogOverlay?: {
-    base?: string;
-    className?: string;
-  };
-  dialogContent?: {
-    base?: string;
-    className?: string;
-  };
-  dialogClose?: {
-    variant?: string;
-    base?: string;
-    className?: string;
-  };
-  dialogHeader?: {
-    base?: string;
-    className?: string;
-  };
-  dialogFooter?: {
-    base?: string;
-    className?: string;
-  };
-  dialogTitle?: {
-    base?: string;
-    className?: string;
-  };
-  dialogDescription?: {
-    base?: string;
-    className?: string;
-  };
-}) => {
-  if (config.dialogTrigger?.variant)
-    DIALOG_STYLES.dialogTrigger.variant = config.dialogTrigger.variant;
-  if (config.dialogTrigger?.className)
-    DIALOG_STYLES.dialogTrigger.className = config.dialogTrigger.className;
-
-  if (config.dialogOverlay?.base)
-    DIALOG_STYLES.dialogOverlay.base = config.dialogOverlay.base;
-  if (config.dialogOverlay?.className)
-    DIALOG_STYLES.dialogOverlay.className = config.dialogOverlay.className;
-
-  if (config.dialogContent?.base)
-    DIALOG_STYLES.dialogContent.base = config.dialogContent.base;
-  if (config.dialogContent?.className)
-    DIALOG_STYLES.dialogContent.className = config.dialogContent.className;
-
-  if (config.dialogClose?.variant)
-    DIALOG_STYLES.dialogClose.variant = config.dialogClose.variant;
-  if (config.dialogClose?.base)
-    DIALOG_STYLES.dialogClose.base = config.dialogClose.base;
-  if (config.dialogClose?.className)
-    DIALOG_STYLES.dialogClose.className = config.dialogClose.className;
-
-  if (config.dialogHeader?.base)
-    DIALOG_STYLES.dialogHeader.base = config.dialogHeader.base;
-  if (config.dialogHeader?.className)
-    DIALOG_STYLES.dialogHeader.className = config.dialogHeader.className;
-
-  if (config.dialogFooter?.base)
-    DIALOG_STYLES.dialogFooter.base = config.dialogFooter.base;
-  if (config.dialogFooter?.className)
-    DIALOG_STYLES.dialogFooter.className = config.dialogFooter.className;
-
-  if (config.dialogTitle?.base)
-    DIALOG_STYLES.dialogTitle.base = config.dialogTitle.base;
-  if (config.dialogTitle?.className)
-    DIALOG_STYLES.dialogTitle.className = config.dialogTitle.className;
-
-  if (config.dialogDescription?.base)
-    DIALOG_STYLES.dialogDescription.base = config.dialogDescription.base;
-  if (config.dialogDescription?.className)
-    DIALOG_STYLES.dialogDescription.className =
-      config.dialogDescription.className;
-};
+// setDialogTheme is imported from base UI component
 
 // --------------------------------
 //
@@ -181,15 +106,15 @@ const setDialogTheme = (config: {
 //
 // --------------------------------
 
-type DialogContextType = {
+interface DialogContextType {
   open: boolean;
   setOpen: (value: boolean) => void;
-};
+}
 
 const DialogContext = createContext<DialogContextType | undefined>(undefined);
 
 const useDialogContext = () => {
-  const context = useContext(DialogContext);
+  const context = use(DialogContext);
   if (!context)
     throw new Error("Dialog components must be used within <Dialog>");
   return context;
@@ -231,18 +156,20 @@ const Dialog: React.FC<{
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
 
-  const setOpen = (newOpen: boolean) => {
+  const setOpen = useCallback((newOpen: boolean) => {
     if (isControlled) {
       onOpenChange?.(newOpen);
     } else {
       setInternalOpen(newOpen);
     }
-  };
+  }, [isControlled, onOpenChange]);
+
+  const contextValue = useMemo(() => ({ open, setOpen }), [open, setOpen]);
 
   return (
-    <DialogContext.Provider value={{ open, setOpen }}>
+    <DialogContext value={contextValue}>
       {children}
-    </DialogContext.Provider>
+    </DialogContext>
   );
 };
 
@@ -259,7 +186,7 @@ const DialogTrigger: React.FC<DialogTriggerProps> = ({
   if (children && React.isValidElement(children)) {
     return (
       <div
-        onClick={() => setOpen(true)}
+        onClick={() => { setOpen(true); }}
         className={cn("inline-block cursor-pointer", className)}
       >
         {children}
@@ -336,14 +263,14 @@ const DialogContent: React.FC<{
       if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    return () => { document.removeEventListener("keydown", handleKey); };
   }, [setOpen]);
 
   if (!open) return null;
 
   return (
     <DialogPortal>
-      <DialogOverlay onClose={() => setOpen(false)} />
+      <DialogOverlay onClose={() => { setOpen(false); }} />
       <div
         className={cn(
           DIALOG_STYLES.dialogContent.base,
@@ -388,9 +315,7 @@ const DialogClose: React.FC<{
         setOpen(false);
       }}
     >
-      {children ? (
-        children
-      ) : (
+      {children ?? (
         <>
           <X className="w-5 h-5" />
           <span className="sr-only">Close</span>
@@ -460,7 +385,6 @@ const DialogDescription: React.FC<{
 };
 
 export {
-  setDialogTheme,
   Dialog,
   DialogTrigger,
   DialogPortal,

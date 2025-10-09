@@ -28,7 +28,7 @@ export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalPr
     let example = format;
     if (format.includes('%.')) {
       // Handle %.Nd pattern
-      example = format.replace(/%.(\d+)d/g, (_, digits) => {
+      example = format.replace(/%.(\d+)d/g, (_, digits: string) => {
         return String(nextNumber).padStart(parseInt(digits), '0');
       });
     }
@@ -132,7 +132,7 @@ export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalPr
             <Input
               type="text"
               value={format}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormat(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setFormat(e.target.value); }}
               placeholder="Enter format pattern (e.g., SN-%.5d)"
               className="font-mono"
             />
@@ -149,7 +149,7 @@ export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalPr
             <Input
               type="number"
               value={nextNumber}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNextNumber(parseInt(e.target.value) || 1)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setNextNumber(parseInt(e.target.value) || 1); }}
               min={1}
               className="w-full"
             />

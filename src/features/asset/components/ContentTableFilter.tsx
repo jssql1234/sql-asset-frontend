@@ -12,13 +12,15 @@ import { cn } from "@/utils/utils";
 import type { DropdownAlignment } from "@ui/utils/dropdown";
 import type { Meta } from "@ui/utils/dataTable";
 
-function TableFilter({
+const EMPTY_ARRAY: string[] = [];
+
+function TableFilter<TData = unknown>({
   column,
-  uniqueValues = [],
+  uniqueValues = EMPTY_ARRAY,
   filterAlignment = 'center',
   filterType = 'checkbox',
 }: {
-  column: Column<any, unknown>;
+  column: Column<TData>;
   uniqueValues: string[];
   filterAlignment?: DropdownAlignment;
   filterType?: 'checkbox' | 'search';
@@ -30,7 +32,7 @@ function TableFilter({
       : values.sort();
   }, [uniqueValues]);
 
-  const labelMap = (column.columnDef.meta as Meta)?.filterOptions ?? {};
+  const labelMap = (column.columnDef.meta as Meta).filterOptions ?? {};
 
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -38,10 +40,10 @@ function TableFilter({
   useEffect(() => {
     if (filterType === 'checkbox') {
       const currentFilter = column.getFilterValue() as string[] | undefined;
-      setCheckedItems(currentFilter || []);
+      setCheckedItems(currentFilter ?? []);
     } else {
       const currentFilter = column.getFilterValue() as string | undefined;
-      setSearchValue(currentFilter || '');
+      setSearchValue(currentFilter ?? '');
     }
   }, [column, filterType]);
 
@@ -109,7 +111,7 @@ function TableFilter({
         <DropdownMenuContent className="min-w-32 w-max max-w-[280px]" defaultAlignment={filterAlignment}>
           <Input
             value={searchValue}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            onChange={(e) => { handleSearchChange(e.target.value); }}
             placeholder="Search..."
             className="w-full pl-8"
             
@@ -142,12 +144,12 @@ function TableFilter({
         </DropdownMenuCheckboxItem>
         {sortedUniqueValues.map((val) => {
           const isChecked = checkedItems.includes(val);
-          const label = labelMap[String(val)] ?? String(val);
+          const label = labelMap[val] ?? val;
           return (
             <DropdownMenuCheckboxItem
               key={val}
               checked={isChecked}
-              onClick={() => toggleItem(val)}
+              onClick={() => { toggleItem(val); }}
               className="gap-2"
               custom
             >
@@ -182,4 +184,9 @@ export const MemoizedTableFilter = memo(TableFilter, (prev, next) => {
     prev.filterType === next.filterType &&
     prev.uniqueValues.join(",") === next.uniqueValues.join(",")
   );
-});
+}) as <TData = unknown>(props: {
+  column: Column<TData>;
+  uniqueValues: string[];
+  filterAlignment?: DropdownAlignment;
+  filterType?: 'checkbox' | 'search';
+}) => React.JSX.Element;

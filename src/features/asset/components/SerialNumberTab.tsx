@@ -2,12 +2,14 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, Button } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { useSerialNumberValidation } from "../hooks/useSerialNumberValidation";
-import SerialNumberGenerationModal from "./SerialNumberGenerationModal.tsx";
+import SerialNumberGenerationModal from "./SerialNumberGenerationModal";
 
 interface SerialNumberData {
   serial: string;
   remark: string;
 }
+
+const EMPTY_SERIAL_NUMBERS: SerialNumberData[] = [];
 
 interface SerialNumberTabProps {
   quantity: number;
@@ -17,11 +19,41 @@ interface SerialNumberTabProps {
   onSerialNumbersChange?: (serialNumbers: SerialNumberData[]) => void;
 }
 
+interface SerialNumberInputRowProps {
+  item: SerialNumberData;
+  index: number;
+  serialIndex: number;
+  validation: { isValid: boolean; message: string; errors: Record<number, string> };
+  onUpdate: (index: number, field: 'serial' | 'remark', value: string) => void;
+}
+
+const SerialNumberInputRow: React.FC<SerialNumberInputRowProps> = ({ item, index, serialIndex, validation, onUpdate }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div className="relative">
+      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-onSurfaceVariant">#</span>
+      <Input
+        value={item.serial}
+        onChange={(e) => { onUpdate(index, 'serial', e.target.value); }}
+        placeholder={`Serial number ${String(serialIndex + 1)}`}
+        className="pl-8"
+      />
+      {validation.errors[index] && (
+        <span className="body-small text-error mt-1 block">{validation.errors[index]}</span>
+      )}
+    </div>
+    <Input
+      value={item.remark}
+      onChange={(e) => { onUpdate(index, 'remark', e.target.value); }}
+      placeholder="Enter remark"
+    />
+  </div>
+);
+
 export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   quantity,
   quantityPerUnit = 1,
   isBatchMode = false,
-  serialNumbers = [],
+  serialNumbers = EMPTY_SERIAL_NUMBERS,
   onSerialNumbersChange,
 }) => {
   const [serialData, setSerialData] = useState<SerialNumberData[]>([]);
@@ -51,12 +83,12 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     }
 
     setSerialData(newSerialData);
-  }, [quantity, quantityPerUnit, isBatchMode]);
+  }, [quantity, quantityPerUnit, isBatchMode, serialData, serialNumbers]);
 
   // Notify parent of changes
   useEffect(() => {
     onSerialNumbersChange?.(serialData);
-  }, [serialData]);
+  }, [onSerialNumbersChange, serialData]);
 
   const updateSerialNumber = useCallback((index: number, field: 'serial' | 'remark', value: string) => {
     setSerialData(prevData => {
@@ -78,7 +110,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         const formatRegex = format.replace(/%.(\d+)d/g, '(\\d+)');
         const regex = new RegExp(formatRegex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace('\\(\\\\d\\+\\)', '(\\d+)'));
         const match = item.serial.match(regex);
-        if (match && match[1]) {
+        if (match?.[1]) {
           existingNumbers.push(parseInt(match[1]));
         }
       }
@@ -116,7 +148,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
       // Generate serial numbers and update state
       const updated = [...prevData];
       emptyFields.forEach(({ index }) => {
-        const serialNumber = format.replace(/%.(\d+)d/g, (_, digits) => {
+        const serialNumber = format.replace(/%.(\d+)d/g, (_, digits: string) => {
           const num = counter++;
           return String(num).padStart(parseInt(digits), '0');
         });
@@ -153,7 +185,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         const emptyCount = assetSerialData.filter(item => !item.serial.trim()).length;
 
         return (
-          <div key={assetIndex} className="border border-outline rounded-lg p-4 bg-surface">
+          <div key={`asset-${String(assetIndex)}`} className="border border-outline rounded-lg p-4 bg-surface">
             {/* Batch mode specific: Asset header with generate button */}
             <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline">
               <div className="flex items-center gap-3">
@@ -166,7 +198,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setIsGenerationModalOpen(() => true)}
+                onClick={() => { setIsGenerationModalOpen(true); }}
                 className="text-xs"
               >
                 Generate <span>{emptyCount}</span>
@@ -177,14 +209,15 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
               {assetSerialData.map((item, serialIndex) => {
                 const globalIndex = startIndex + serialIndex;
                 return (
-                  <SerialNumberInputRow
-                    key={serialIndex}
-                    item={item}
-                    index={globalIndex}
-                    serialIndex={serialIndex}
-                    validation={validation}
-                    onUpdate={updateSerialNumber}
-                  />
+                  <div key={`asset-${String(assetIndex)}-serial-${String(serialIndex)}`}>
+                    <SerialNumberInputRow
+                      item={item}
+                      index={globalIndex}
+                      serialIndex={serialIndex}
+                      validation={validation}
+                      onUpdate={updateSerialNumber}
+                    />
+                  </div>
                 );
               })}
             </div>
@@ -194,46 +227,18 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     } else {
 
       return serialData.map((item, index) => (
-        <SerialNumberInputRow
-          key={index}
-          item={item}
-          index={index}
-          serialIndex={index}
-          validation={validation}
-          onUpdate={updateSerialNumber}
-        />
+        <div key={`single-mode-serial-${String(index)}`}>
+          <SerialNumberInputRow
+            item={item}
+            index={index}
+            serialIndex={index}
+            validation={validation}
+            onUpdate={updateSerialNumber}
+          />
+        </div>
       ));
     }
   };
-
-  // Reusable component for serial number input rows
-  const SerialNumberInputRow: React.FC<{
-    item: SerialNumberData;
-    index: number;
-    serialIndex: number;
-    validation: { isValid: boolean; message: string; errors: Record<number, string> };
-    onUpdate: (index: number, field: 'serial' | 'remark', value: string) => void;
-  }> = ({ item, index, serialIndex, validation, onUpdate }) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-onSurfaceVariant">#</span>
-        <Input
-          value={item.serial}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate(index, 'serial', e.target.value)}
-          placeholder={`Serial number ${serialIndex + 1}`}
-          className="pl-8"
-        />
-        {validation.errors[index] && (
-          <span className="body-small text-error mt-1 block">{validation.errors[index]}</span>
-        )}
-      </div>
-      <Input
-        value={item.remark}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdate(index, 'remark', e.target.value)}
-        placeholder="Enter remark"
-      />
-    </div>
-  );
 
   return (
     <Card className="p-6 shadow-sm">
@@ -243,7 +248,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         </label>
         <Button
           type="button"
-          onClick={() => setIsGenerationModalOpen(() => true)}
+          onClick={() => { setIsGenerationModalOpen(true); }}
           variant="outline"
           className="bg-primary text-primary-foreground hover:bg-primary/90"
         >
@@ -269,7 +274,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
       <SerialNumberGenerationModal
         isOpen={isGenerationModalOpen}
-        onClose={() => setIsGenerationModalOpen(() => false)}
+        onClose={() => { setIsGenerationModalOpen(false); }}
         emptyFieldsCount={getEmptySerialFieldsCount}
         nextAvailableNumber={getNextAvailableSerialNumber}
         onGenerate={generateSerialNumbers}

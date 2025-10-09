@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 
 export function useGetAsset() {
-  return useDataQuery<Asset[], Error>({
+  return useDataQuery<Asset[]>({
     key: ["assetList"],
     queryFn: fetchAssetList,
     title: t("asset:toast.getAssetFail"),
@@ -17,11 +17,11 @@ export function useCreateAsset(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<void, Error, Asset>({
+  return useMutation<unknown, Error, Asset>({
     mutationFn: createAsset,
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: ["assetList"],
       });
       addToast({
@@ -33,7 +33,7 @@ export function useCreateAsset(onSuccess?: () => void) {
       onSuccess?.();
     },
 
-    onError: (_error: Error) => {
+    onError: () => {
       addToast({
         variant: "error",
         title: t("asset:toast.createAssetFail"),

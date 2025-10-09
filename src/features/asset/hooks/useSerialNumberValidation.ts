@@ -11,6 +11,16 @@ export interface SerialNumberValidationResult {
   errors: Record<number, string>;
 }
 
+export interface ParsedSerialNumberData {
+  serial?: string;
+  serialNumber?: string;
+  remark?: string;
+  notes?: string;
+  [key: string]: unknown;
+}
+
+export type SerialNumberObjectData = Record<string, string | undefined>;
+
 export const useSerialNumberValidation = (
   serialNumbers: SerialNumberData[]
 ): SerialNumberValidationResult => {
@@ -35,7 +45,7 @@ export const useSerialNumberValidation = (
     if (emptySerialNumbers.length > 0) {
       return {
         isValid: false,
-        message: `Serial number validation failed: You have filled ${filledCount} out of ${serialNumbers.length} serial number fields. Please fill all serial number fields or leave them all empty.`,
+        message: `Serial number validation failed: You have filled ${filledCount.toString()} out of ${serialNumbers.length.toString()} serial number fields. Please fill all serial number fields or leave them all empty.`,
         errors: {}
       };
     }
@@ -74,7 +84,7 @@ export const formatSerialNumbersForSubmission = (serialNumbers: SerialNumberData
 };
 
 export const parseSerialNumbersFromData = (
-  data: any,
+  data: ParsedSerialNumberData[] | SerialNumberObjectData,
   totalFields: number
 ): SerialNumberData[] => {
   const serialNumbers: SerialNumberData[] = [];
@@ -85,20 +95,20 @@ export const parseSerialNumbersFromData = (
     data.forEach((item, index) => {
       if (index < totalFields) {
         serialNumbers.push({
-          serial: item.serial || item.serialNumber || '',
-          remark: item.remark || item.notes || ''
+          serial: (item.serial ?? item.serialNumber) ?? '',
+          remark: (item.remark ?? item.notes) ?? ''
         });
       }
     });
-  } else if (data && typeof data === 'object') {
+  } else {
     // If data is an object with serial number fields
     for (let i = 1; i <= totalFields; i++) {
-      const serialKey = `serial-${i}`;
-      const remarkKey = `remark-${i}`;
+      const serialKey = `serial-${i.toString()}`;
+      const remarkKey = `remark-${i.toString()}`;
 
       serialNumbers.push({
-        serial: data[serialKey] || '',
-        remark: data[remarkKey] || ''
+        serial: data[serialKey] ?? '',
+        remark: data[remarkKey] ?? ''
       });
     }
   }

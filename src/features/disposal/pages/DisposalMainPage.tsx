@@ -115,7 +115,7 @@ const DisposalMainPage: React.FC = () => {
   });
 
   // Disposal history - using the correct interface from DisposalHistoryTable
-  const [disposalHistory, setDisposalHistory] = useState<Array<{
+  const [disposalHistory, setDisposalHistory] = useState<{
     id: string;
     assetId: string;
     disposalType: string;
@@ -127,22 +127,34 @@ const DisposalMainPage: React.FC = () => {
     notes: string;
     createdAt: string;
     status: 'completed' | 'draft' | 'cancelled';
-  }>>([]);
+  }[]>([]);
 
   // Check for existing disposal data from asset selection
   useEffect(() => {
     try {
       const existingData = localStorage.getItem('disposalAssetData');
       if (existingData) {
-        const parsedData = JSON.parse(existingData);
+        const parsedData = JSON.parse(existingData) as {
+          main?: {
+            code?: string;
+            description?: string;
+            purchaseDate?: string;
+          };
+          allowance?: {
+            originalCost?: number;
+            qualifyingExpenditure?: number;
+            residualExpenditure?: number;
+            totalCAClaimed?: number;
+          };
+        };
         const baseAssetData = {
-          assetId: parsedData.main?.code || '',
-          assetDescription: parsedData.main?.description || '',
-          originalCost: parsedData.allowance?.originalCost || 0,
-          qualifyingExpenditure: parsedData.allowance?.qualifyingExpenditure || 0,
-          residualExpenditure: parsedData.allowance?.residualExpenditure || 0,
-          totalCAClaimed: parsedData.allowance?.totalCAClaimed || 0,
-          purchaseDate: parsedData.main?.purchaseDate || '',
+          assetId: parsedData.main?.code ?? '',
+          assetDescription: parsedData.main?.description ?? '',
+          originalCost: parsedData.allowance?.originalCost ?? 0,
+          qualifyingExpenditure: parsedData.allowance?.qualifyingExpenditure ?? 0,
+          residualExpenditure: parsedData.allowance?.residualExpenditure ?? 0,
+          totalCAClaimed: parsedData.allowance?.totalCAClaimed ?? 0,
+          purchaseDate: parsedData.main?.purchaseDate ?? '',
           disposalDate: '',
         };
         setAssetData(baseAssetData);
@@ -264,8 +276,8 @@ const DisposalMainPage: React.FC = () => {
           <h2 className="text-xl font-semibold text-onBackground">Disposal History</h2>
           <DisposalHistoryTable
             entries={disposalHistory}
-            onView={(item) => console.log('View details:', item)}
-            onEdit={(item) => console.log('Edit:', item)}
+            onView={(item) => { console.log('View details:', item); }}
+            onEdit={(item) => { console.log('Edit:', item); }}
             onDelete={(id) => {
               setDisposalHistory(prev => prev.filter(h => h.id !== id));
             }}
@@ -368,20 +380,20 @@ const DisposalMainPage: React.FC = () => {
             actions={isViewingHistory ? [
               {
                 label: "New Disposal",
-                onAction: () => navigate('/asset'),
+                onAction: () => { void navigate('/asset'); },
                 variant: "outline",
                 size: "default",
               },
               {
                 label: "Back to Disposal Process",
-                onAction: () => setIsViewingHistory(false),
+                onAction: () => { setIsViewingHistory(false); },
                 variant: "outline",
                 size: "default",
               },
             ] : [
               {
                 label: "View History",
-                onAction: () => setIsViewingHistory(true),
+                onAction: () => { setIsViewingHistory(true); },
                 variant: "outline",
                 size: "default",
               },

@@ -91,43 +91,49 @@ const UserAccessRightsPage: React.FC = () => {
 
       return updatedPermissions;
     })
-    
+
     setHasUnsavedChanges(() => true);
   };
 
   const grantAllPermissions = () => {
     if (!selectedGroup) return;
 
-    const updatedPermissions = { ...draftPermissions };
+    setDraftPermissions((prev) => {
+      const updatedPermissions = { ...prev };
 
-    PERMISSION_ITEMS.forEach(item => {
-      if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-        updatedPermissions[item.key] = {};
-      }
-      Object.keys(item.permissions).forEach(action => {
-        updatedPermissions[item.key][action] = true;
+      PERMISSION_ITEMS.forEach(item => {
+        if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
+          updatedPermissions[item.key] = {};
+        }
+        Object.keys(item.permissions).forEach(action => {
+          updatedPermissions[item.key][action] = true;
+        });
       });
-    });
 
-    setDraftPermissions(() => updatedPermissions);
+      return updatedPermissions;
+    })
+
     setHasUnsavedChanges(() => true);
   };
 
   const revokeAllPermissions = () => {
     if (!selectedGroup) return;
 
-    const updatedPermissions = { ...draftPermissions };
+    setDraftPermissions((prev) => {
+      const updatedPermissions = { ...prev };
 
-    PERMISSION_ITEMS.forEach(item => {
-      if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-        updatedPermissions[item.key] = {};
-      }
-      Object.keys(item.permissions).forEach(action => {
-        updatedPermissions[item.key][action] = false;
+      PERMISSION_ITEMS.forEach(item => {
+        if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
+          updatedPermissions[item.key] = {};
+        }
+        Object.keys(item.permissions).forEach(action => {
+          updatedPermissions[item.key][action] = false;
+        });
       });
-    });
 
-    setDraftPermissions(() => updatedPermissions);
+      return updatedPermissions;
+    })
+
     setHasUnsavedChanges(() => true);
   };
 

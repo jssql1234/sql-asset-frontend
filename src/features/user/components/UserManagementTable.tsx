@@ -20,13 +20,13 @@ const UserManagementTable: React.FC<UserManagementTableProps> = ({
       <div className="flex gap-2">
         <Button
           variant={activeTab === 'users' ? 'primary' : 'secondary'}
-          onClick={() => {setActiveTab('users')}}
+          onClick={() => {setActiveTab(() => 'users')}}
         >
           Users
         </Button>
         <Button
           variant={activeTab === 'groups' ? 'primary' : 'secondary'}
-          onClick={() => {setActiveTab('groups')}}
+          onClick={() => {setActiveTab(() => 'groups')}}
         >
           Groups
         </Button>

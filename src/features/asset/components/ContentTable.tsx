@@ -258,7 +258,7 @@ function DataTableHeader<TData>({
         const column = header.column.columnDef as CustomColumnDef<TData>;
 
         const prevHeader = headerGroup.headers[index - 1];
-        const prevColumnDef = prevHeader.column.columnDef as
+        const prevColumnDef = prevHeader?.column.columnDef as
           | (ColumnDef<TData> & {
               sticky?: boolean;
               stickyRight?: number;
@@ -398,7 +398,7 @@ function DataTableRow<TData>({
         {cells.map((cell, i) => {
           const column = cell.column.columnDef as CustomColumnDef<TData>;
           const prevCell = cells[i - 1];
-          const prevColumnDef = prevCell.column.columnDef as
+          const prevColumnDef = prevCell?.column.columnDef as
             | (ColumnDef<TData> & {
                 sticky?: boolean;
                 stickyRight?: number;

@@ -41,6 +41,7 @@ export {
   IconCreditCardPay as Payment,
   IconClipboardList as OrderDetails,
   IconFileInvoice as Invoice,
+  IconFile as FileOutline,
   IconCopy as Copy,
   IconMail as Mail,
   IconUser as User,
@@ -62,12 +63,16 @@ export {
   IconFilter as Filter,
   IconShieldLock as Roles,
   IconShield as Shield,
+  IconBriefcase as Briefcase,
+  IconBriefcaseFilled as BriefcaseFilled,
   
   IconLink as Link,
   IconLogout as LogOut,
 
   IconFileExport as ExportFile,
   IconPrinter as Printer,
+  IconCalendarWeek as Calendar, 
+  IconCalendarWeekFilled as CalendarFilled, 
 
   IconLoader as Loader,
   IconCircleCheck as CircleCheck,
@@ -85,6 +90,7 @@ export {
   IconMap as Map,
   IconHistory as History,
   IconShieldCheck as ShieldCheck,
+  IconTrash as Bin,
   IconSettings as Settings,
   IconHomeFilled as HomeFilled,
   IconCalculatorFilled as CalculatorFilled,
@@ -98,5 +104,6 @@ export {
   IconSettingsFilled as SettingsFilled,
   IconShieldCheckFilled as ShieldCheckFilled,
 
+  IconTrashFilled as BinFilled,
   IconFiles as FileStack,
 } from "@tabler/icons-react"

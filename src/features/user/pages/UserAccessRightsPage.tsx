@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { SidebarLayout } from "@/layout/sidebar/SidebarLayout";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import { use } from "react";
 import { UserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";
@@ -120,7 +120,7 @@ const UserAccessRightsPage: React.FC = () => {
   };
 
   return (
-    <SidebarLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Tools" },
         { label: "User Access Right Assignment" },
@@ -177,7 +177,7 @@ const UserAccessRightsPage: React.FC = () => {
           </Card>
         )}
       </div>
-    </SidebarLayout>
+    </SidebarHeader>
   );
 };
 

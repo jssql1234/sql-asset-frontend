@@ -10,8 +10,8 @@ interface PermissionEditorProps {
   onUpdatePermission: (feature: string, action: string, value: boolean) => void;
   onSave: () => void;
   onReset: () => void;
-  onGrantSelected: () => void;
-  onRevokeSelected: () => void;
+  onGrantSelected: (selectedPermissions: Set<string>) => void;
+  onRevokeSelected: (selectedPermissions: Set<string>) => void;
   onGrantAll: () => void;
   onRevokeAll: () => void;
   isAdminGroup?: boolean;
@@ -34,23 +34,27 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => (new Set([])));
 
   const togglePermissionSelection = (permissionKey: string) => {
-    const newSelection = new Set(selectedPermissions);
-    if (newSelection.has(permissionKey)) {
-      newSelection.delete(permissionKey);
-    } else {
-      newSelection.add(permissionKey);
-    }
-    setSelectedPermissions(() => newSelection);
+    setSelectedPermissions((prev) => {
+      const newSelection = new Set(prev);
+      if (newSelection.has(permissionKey)) {
+        newSelection.delete(permissionKey);
+      } else {
+        newSelection.add(permissionKey);
+      }
+      return newSelection;
+    });
   };
 
   const toggleGroupExpansion = (groupId: string) => {
-    const newExpanded = new Set(expandedGroups);
-    if (newExpanded.has(groupId)) {
-      newExpanded.delete(groupId);
-    } else {
-      newExpanded.add(groupId);
-    }
-    setExpandedGroups(() => newExpanded);
+    setExpandedGroups((prev) => {
+      const newExpanded = new Set(prev);
+      if (newExpanded.has(groupId)) {
+        newExpanded.delete(groupId);
+      } else {
+        newExpanded.add(groupId);
+      }
+      return newExpanded;
+    });
   };
 
   if (!selectedGroup) return null;
@@ -320,14 +324,14 @@ const PermissionEditor: React.FC<PermissionEditorProps> = ({
       <div className="sticky bottom-0 bg-white border-t pt-4 flex justify-between">
         <div className="flex gap-2">
           <Button
-            onClick={onGrantSelected}
+            onClick={() => {onGrantSelected(selectedPermissions)}}
             disabled={selectedPermissions.size === 0 || isAdminGroup}
             variant="secondary"
           >
             Grant
           </Button>
           <Button
-            onClick={onRevokeSelected}
+            onClick={() => {onRevokeSelected(selectedPermissions)}}
             disabled={selectedPermissions.size === 0 || isAdminGroup}
             variant="secondary"
           >

@@ -47,39 +47,51 @@ const UserAccessRightsPage: React.FC = () => {
     initializeDraftPermissions(selectedGroup);
   };
 
-  const grantSelectedPermissions = () => {
+  const grantSelectedPermissions = (selectedPermissions: Set<string>) => {
     if (!selectedGroup) return;
 
-    const updatedPermissions = { ...draftPermissions };
+    setDraftPermissions((prev) => {
+      const updatedPermissions = { ...prev };
 
-    PERMISSION_ITEMS.forEach(item => {
-      if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-        updatedPermissions[item.key] = {};
-      }
-      Object.keys(item.permissions).forEach(action => {
-        updatedPermissions[item.key][action] = true;
-      });
+      selectedPermissions.forEach(permissionKey => {
+        const item = PERMISSION_ITEMS.find(item => item.key === permissionKey);
+        if (item) {
+          if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
+            updatedPermissions[item.key] = {};
+          }
+          Object.keys(item.permissions).forEach(action => {
+            updatedPermissions[item.key][action] = true;
+          });
+        }
+      })
+
+      return updatedPermissions;
     });
 
-    setDraftPermissions(() => updatedPermissions);
     setHasUnsavedChanges(() => true);
   };
 
-  const revokeSelectedPermissions = () => {
+  const revokeSelectedPermissions = (selectedPermissions: Set<string>) => {
     if (!selectedGroup) return;
 
-    const updatedPermissions = { ...draftPermissions };
+    setDraftPermissions((prev) => {
+      const updatedPermissions = { ...prev };
 
-    PERMISSION_ITEMS.forEach(item => {
-      if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-        updatedPermissions[item.key] = {};
-      }
-      Object.keys(item.permissions).forEach(action => {
-        updatedPermissions[item.key][action] = false;
-      });
-    });
+      selectedPermissions.forEach(permissionKey => {
+        const item = PERMISSION_ITEMS.find(item => item.key === permissionKey);
+        if (item) {
+          if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
+            updatedPermissions[item.key] = {};
+          }
+          Object.keys(item.permissions).forEach(action => {
+            updatedPermissions[item.key][action] = false;
+          });
+        }
+      })
 
-    setDraftPermissions(() => updatedPermissions);
+      return updatedPermissions;
+    })
+    
     setHasUnsavedChanges(() => true);
   };
 

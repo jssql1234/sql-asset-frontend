@@ -2,7 +2,7 @@ import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Calculator, CalculatorFilled, LayoutDashboard, LayoutDashboardFilled, Clock, ClockFilled, Gauge, GaugeFilled, Bin, BinFilled, HomeFilled, Dots, Location as LocationIcon, LocationFilled, ShieldCheck, ShieldCheckFilled, Calendar, CalendarFilled, Briefcase, BriefcaseFilled } from "@/assets/icons";
 import { ProfileDropdown } from "./ProfileDropdown";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel } from "./SidebarCN";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarSeparator } from "./SidebarCN";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./SidebarHelper";
 
 const data = {
@@ -42,7 +42,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton
               asChild
               size="lg"
-              tooltip="SQL Asset"
               className="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
             >
               <Link to="/asset" className="flex w-full items-center gap-2 group-data-[collapsible=icon]:gap-0">
@@ -60,8 +59,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        {data.navigationSections.map((section) => (
+        {data.navigationSections.map((section, sectionIndex) => (
           <React.Fragment key={section.title}>
+            {sectionIndex > 0 && (
+              <SidebarSeparator className="group-data-[collapsible=icon]:block hidden mx-2 my-1" />
+            )}
             <SidebarGroup className="p-0">
               <SidebarGroupLabel>{section.title}</SidebarGroupLabel>
               <SidebarMenu className="gap-0 px-2">

@@ -2,11 +2,11 @@ import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Calculator, CalculatorFilled, LayoutDashboard, LayoutDashboardFilled, Clock, ClockFilled, Gauge, GaugeFilled, Bin, BinFilled, HomeFilled, Dots, Location as LocationIcon, LocationFilled, ShieldCheck, ShieldCheckFilled, Calendar, CalendarFilled, Briefcase, BriefcaseFilled } from "@/assets/icons";
 import { ProfileDropdown } from "./ProfileDropdown";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarRail, SidebarGroup, SidebarGroupLabel } from "./SidebarCN";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel } from "./SidebarCN";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./SidebarHelper";
 
 const data = {
-  user: { name: "shadcn", email: "m@example.com" },
+  user: { name: "Adam", email: "Adam@sql.com.my" },
   navigationSections: [
     {
       title: "Tax Computation",
@@ -105,7 +105,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Dots className="ml-auto size-4 group-data-[collapsible=icon]:ml-0 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-58 rounded-lg" defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
+              <DropdownMenuContent className="min-w-58 rounded-3xl border border-border" defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
                 <DropdownMenuGroup>
                   <DropdownMenuItem onClick={() => navigate("/maintain-asset-group")}>Maintain Asset Group</DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -128,7 +128,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
         <ProfileDropdown user={data.user} />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   );
 }

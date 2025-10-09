@@ -1,17 +1,12 @@
 import { Bell, ChevronsUpDown, LogOut, Settings, User } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "./SidebarHelper"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./SidebarCN"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from "./SidebarCN"
 
 export function ProfileDropdown({
   user,
 }: {
-  user: {
-    name: string
-    email: string
-  }
+  user: { name: string; email: string }
 }) {
-  const { isMobile } = useSidebar()
-
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -31,8 +26,8 @@ export function ProfileDropdown({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="min-w-56 rounded-lg"
-            defaultAlignment={isMobile ? "center" : "right"}
+            className="min-w-56 rounded-3xl border border-border/50"
+            defaultAlignment="right"
             matchTriggerWidth={false}
           >
             <DropdownMenuLabel className="flex flex-col gap-1">

@@ -47,26 +47,26 @@ export function importFromCSV(csvText: string): { groups: UserGroup[]; errors: s
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (row.length !== 3) {
-        errors.push(`Row ${i + 1}: Invalid number of columns`);
+        errors.push(`Row ${(i + 1).toString()}: Invalid number of columns`);
         continue;
       }
 
       const [id, name, description] = row;
 
       // Validate required fields
-      if (!id?.trim()) {
-        errors.push(`Row ${i + 1}: ID is required`);
+      if (!id.trim()) {
+        errors.push(`Row ${(i + 1).toString()}: ID is required`);
         continue;
       }
 
-      if (!name?.trim()) {
-        errors.push(`Row ${i + 1}: Name is required`);
+      if (!name.trim()) {
+        errors.push(`Row ${(i + 1).toString()}: Name is required`);
         continue;
       }
 
       // Check for duplicate IDs in the import
       if (groups.some(g => g.id === id.trim())) {
-        errors.push(`Row ${i + 1}: Duplicate ID "${id.trim()}" in import file`);
+        errors.push(`Row ${(i + 1).toString()}: Duplicate ID "${id.trim()}" in import file`);
         continue;
       }
 
@@ -74,7 +74,7 @@ export function importFromCSV(csvText: string): { groups: UserGroup[]; errors: s
       groups.push({
         id: id.trim(),
         name: name.trim(),
-        description: description?.trim() || '',
+        description: description.trim() || '',
         defaultPermissions: {} // Empty permissions for imported groups
       });
     }
@@ -110,7 +110,7 @@ function downloadCSV(content: string, filename: string): void {
   const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
 
-  if (link.download !== undefined) {
+  if (link.download as string | undefined !== undefined) {
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
     link.setAttribute('download', filename);

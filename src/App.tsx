@@ -2,10 +2,10 @@ import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "@/routes";
 import { ToastProvider } from "./components/ui/components/Toast";
 import { ThemeProvider } from "./context/ThemeContext";
-import { UserProvider } from "./context/UserContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { useTranslation } from "react-i18next";
 import { TranslationProvider } from "./components/ui/components/Table";
+import UserProvider from "./context/UserProvider";
 
 const queryClient = new QueryClient();
 

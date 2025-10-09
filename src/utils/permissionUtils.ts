@@ -20,8 +20,8 @@ export function hasPermission(
   if (actionAllowed === undefined) return false; // Action not applicable
 
   // Check group permissions
-  const groupPermission = group.defaultPermissions[feature]?.[action];
-  return groupPermission;
+  const groupPermission = (group.defaultPermissions[feature] as Record<string, boolean> | undefined)?.[action];
+  return groupPermission ?? false;
 }
 
 /**

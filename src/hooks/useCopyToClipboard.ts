@@ -7,7 +7,7 @@ export function useCopyToClipboard() {
   const { t } = useTranslation(["common"]);
   const { addToast } = useToast();
 
-  const copy = async (text: string, showToast: boolean = true) => {
+  const copy = async (text: string, showToast: true) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -19,7 +19,7 @@ export function useCopyToClipboard() {
         });
       }
 
-      setTimeout(() => setCopied(false), 2000);
+      setTimeout(() => {setCopied(false)}, 2000);
     } catch {
       if (showToast) {
         addToast({

@@ -1,10 +1,9 @@
-import React, { createContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import type { User } from '@/types/user';
 import type { UserGroup } from '@/types/user-group';
 import { createAllPermissionsEnabled } from '@/utils/permissionUtils';
+import { UserContext, type UserContextType } from './UserContext';
 
-// Generate all permissions enabled dynamically
 const ALL_PERMISSIONS_ENABLED = createAllPermissionsEnabled();
 
 // Mock data - in production this would come from API
@@ -50,50 +49,24 @@ const MOCK_GROUPS: UserGroup[] = [
   }
 ];
 
-interface UserContextType {
-  currentUser: User | null;
-  users: User[];
-  groups: UserGroup[];
-  setCurrentUser: (user: User | null) => void;
-  getUserGroup: (groupId: string) => UserGroup | undefined;
-  updateUser: (userId: string, updates: Partial<User>) => void;
-  updateGroup: (groupId: string, updates: Partial<UserGroup>) => void;
-  addGroup: (group: UserGroup) => void;
-  deleteGroup: (groupId: string) => boolean; // Returns true if deleted, false if prevented (admin cannot be deleted)
-  assignUserToGroup: (userId: string, groupId: string) => void;
-}
-
-export const UserContext = createContext<UserContextType>({
-  currentUser: null,
-  users: [],
-  groups: [],
-  setCurrentUser: () => {},
-  getUserGroup: () => undefined,
-  updateUser: () => {},
-  updateGroup: () => {},
-  addGroup: () => {},
-  deleteGroup: () => false,
-  assignUserToGroup: () => {},
-});
-
 interface UserProviderProps {
   children: ReactNode;
 }
 
-export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
+const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) : MOCK_USERS[0]; // Default to admin for development
+    return saved ? JSON.parse(saved) as User : MOCK_USERS[0]; // Default to admin for development
   });
 
   const [users, setUsers] = useState<User[]>(() => {
     const saved = localStorage.getItem('mockUsers');
-    return saved ? JSON.parse(saved) : MOCK_USERS;
+    return saved ? JSON.parse(saved) as User[] : MOCK_USERS;
   });
 
   const [groups, setGroups] = useState<UserGroup[]>(() => {
     const saved = localStorage.getItem('mockGroups');
-    return saved ? JSON.parse(saved) : MOCK_GROUPS;
+    return saved ? JSON.parse(saved) as UserGroup[] : MOCK_GROUPS;
   });
 
   // Persist to localStorage
@@ -109,34 +82,34 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     localStorage.setItem('mockGroups', JSON.stringify(groups));
   }, [groups]);
 
-  const getUserGroup = (groupId: string): UserGroup | undefined => {
+  const getUserGroup = useCallback((groupId: string): UserGroup | undefined => {
     return groups.find(g => g.id === groupId);
-  };
+  }, [groups]);
 
-  const updateUser = (userId: string, updates: Partial<User>) => {
+  const updateUser = useCallback((userId: string, updates: Partial<User>) => {
     setUsers(prev => prev.map(user =>
       user.id === userId ? { ...user, ...updates } : user
     ));
-  };
+  }, []);
 
-  const updateGroup = (groupId: string, updates: Partial<UserGroup>) => {
+  const updateGroup = useCallback((groupId: string, updates: Partial<UserGroup>) => {
     // Prevent updating admin permissions
     if (groupId === 'admin' && updates.defaultPermissions) {
       // Admin permissions cannot be modified
-      const { defaultPermissions, ...otherUpdates } = updates;
+      const { ...otherUpdates } = updates;
       updates = otherUpdates;
     }
 
     setGroups(prev => prev.map(group =>
       group.id === groupId ? { ...group, ...updates } : group
     ));
-  };
+  }, []);
 
-  const addGroup = (group: UserGroup) => {
+  const addGroup = useCallback((group: UserGroup) => {
     setGroups(prev => [...prev, group]);
-  };
+  }, []);
 
-  const deleteGroup = (groupId: string): boolean => {
+  const deleteGroup = useCallback((groupId: string): boolean => {
     // Prevent deletion of admin group
     if (groupId === 'admin') return false;
 
@@ -149,13 +122,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     ));
 
     return true;
-  };
+  }, []);
 
-  const assignUserToGroup = (userId: string, groupId: string) => {
+  const assignUserToGroup = useCallback((userId: string, groupId: string) => {
     updateUser(userId, { groupId });
-  };
+  }, [updateUser]);
 
-  const value: UserContextType = {
+  const value: UserContextType = useMemo(() => ({
     currentUser,
     users,
     groups,
@@ -166,11 +139,13 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     addGroup,
     deleteGroup,
     assignUserToGroup,
-  };
+  }), [currentUser, users, groups, setCurrentUser, getUserGroup, updateUser, updateGroup, addGroup, deleteGroup, assignUserToGroup]);
 
   return (
-    <UserContext.Provider value={value}>
+    <UserContext value={value}>
       {children}
-    </UserContext.Provider>
+    </UserContext>
   );
 };
+
+export default UserProvider;

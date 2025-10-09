@@ -5,15 +5,15 @@ import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
 import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
 import { useUserGroupManagement } from '../hooks/useUserGroupManagement';
-import { UserGroupService } from '../services/userGroupService';
+import * as UserGroupService from '../services/userGroupService';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { ExportFile, Upload } from '@/assets/icons';
-import { useContext } from 'react';
+import { use } from 'react';
 import { UserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 
 const MaintainUserGroupPage: React.FC = () => {
-  const { addGroup } = useContext(UserContext);
+  const { addGroup } = use(UserContext);
   const {
     groups,
     isModalOpen,
@@ -56,7 +56,7 @@ const MaintainUserGroupPage: React.FC = () => {
         title: 'Export Successful',
         description: 'User groups exported to CSV',
       });
-    } catch (error) {
+    } catch {
       addToast({
         variant: 'error',
         title: 'Export Failed',
@@ -69,7 +69,7 @@ const MaintainUserGroupPage: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -82,67 +82,70 @@ const MaintainUserGroupPage: React.FC = () => {
       return;
     }
 
-    try {
-      const text = await file.text();
-      const result = UserGroupService.importFromCSV(text);
+    // Handle the async operation
+    file.text()
+      .then(text => {
+        const result = UserGroupService.importFromCSV(text);
 
-      if (result.errors.length > 0) {
+        if (result.errors.length > 0) {
+          addToast({
+            variant: 'error',
+            title: 'Import Failed',
+            description: result.errors.join(', '),
+          });
+          return;
+        }
+
+        // Actually import the groups to the system
+        let successCount = 0;
+        const errorMessages: string[] = [];
+
+        for (const groupData of result.groups) {
+          try {
+            // Check if group with this ID already exists
+            const existingGroup = groups.find(g => g.id === groupData.id);
+            if (existingGroup) {
+              errorMessages.push(`Group with ID "${groupData.id}" already exists`);
+              continue;
+            }
+
+            // Add the group to the system
+            addGroup(groupData);
+            successCount++;
+          } catch (error) {
+            errorMessages.push(`Failed to add group "${groupData.id}": ${error instanceof Error ? error.message : 'Unknown error'}`);
+          }
+        }
+
+        if (successCount > 0) {
+          addToast({
+            variant: 'success',
+            title: 'Import Successful',
+            description: `Successfully imported ${successCount.toFixed(0)} group${successCount > 1 ? 's' : ''}`,
+          });
+        }
+
+        if (errorMessages.length > 0) {
+          addToast({
+            variant: 'warning',
+            title: 'Import Completed with Warnings',
+            description: errorMessages.join(', '),
+          });
+        }
+      })
+      .catch(() => {
         addToast({
           variant: 'error',
           title: 'Import Failed',
-          description: result.errors.join(', '),
+          description: 'Failed to read the CSV file',
         });
-        return;
-      }
-
-      // Actually import the groups to the system
-      let successCount = 0;
-      let errorMessages: string[] = [];
-
-      for (const groupData of result.groups) {
-        try {
-          // Check if group with this ID already exists
-          const existingGroup = groups.find(g => g.id === groupData.id);
-          if (existingGroup) {
-            errorMessages.push(`Group with ID "${groupData.id}" already exists`);
-            continue;
-          }
-
-          // Add the group to the system
-          addGroup(groupData);
-          successCount++;
-        } catch (error) {
-          errorMessages.push(`Failed to add group "${groupData.id}": ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }
-
-      if (successCount > 0) {
-        addToast({
-          variant: 'success',
-          title: 'Import Successful',
-          description: `Successfully imported ${successCount} group${successCount > 1 ? 's' : ''}`,
-        });
-      }
-
-      if (errorMessages.length > 0) {
-        addToast({
-          variant: 'warning',
-          title: 'Import Completed with Warnings',
-          description: errorMessages.join(', '),
-        });
-      }
-
-    } catch (error) {
-      addToast({
-        variant: 'error',
-        title: 'Import Failed',
-        description: 'Failed to read the CSV file',
+      })
+      .finally(() => {
+        // Clear the input
+        event.target.value = '';
       });
-    }
-
-    // Clear the input
-    event.target.value = '';
   };
+
 
   return (
     <SidebarLayout
@@ -217,7 +220,7 @@ const MaintainUserGroupPage: React.FC = () => {
           isOpen={deleteDialogOpen}
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
-          groupName={groupToDelete?.name || ''}
+          groupName={groupToDelete?.name ?? ''}
         />
       </div>
     </SidebarLayout>

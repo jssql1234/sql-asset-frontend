@@ -1,17 +1,15 @@
 import { useMemo, useState } from "react";
 import { Card } from "@/components/ui/components";
-// import { DataTable, TableColumnVisibility } from "@/components/ui/components/Table/index";
-import { TableColumnVisibility } from "@/components/ui/components/Table/index";
-import { DataTable } from "@/features/asset/components/ContentTable";
+import { DataTable, TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 
-type Demo = {
+interface Demo {
   id: string;
   group: string;
   nogroup: string;
   nosort: string;
   tfdata: boolean;
-};
+}
 
 const SAMPLE_DATA: Demo[] = [
   { id: "1", group: "GroupAlpha", nogroup: "CategoryOne", nosort: "value19z", tfdata: true },
@@ -27,8 +25,7 @@ const createColumns = (): CustomColumnDef<Demo>[] => [
     id: "id",
     accessorKey: "id",
     header: "Asset ID",
-    // Search input filter
-    filterFn: "searchIncludes",
+    // Default multiSelect filter
   },
   {
     id: "group", 
@@ -47,7 +44,6 @@ const createColumns = (): CustomColumnDef<Demo>[] => [
     id: "nosort",
     accessorKey: "nosort",
     header: "Disabled Sorting",
-    filterFn: "searchIncludes",
     // No sorting
     enableSorting: false,
   },

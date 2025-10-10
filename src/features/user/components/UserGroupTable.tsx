@@ -1,5 +1,5 @@
 import React from 'react';
-import { DataTable } from '@/features/asset/components/ContentTable';
+import { DataTable } from "@/components/ui/components/Table";
 import { Button } from '@/components/ui/components';
 import { TooltipWrapper } from '@/components/TooltipWrapper';
 import { Edit, Delete } from '@/assets/icons';

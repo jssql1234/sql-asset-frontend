@@ -9,7 +9,9 @@ const AssetMainPage: React.FC = () => {
         { label: "Assets" },
       ]}
     >
-      <AssetContentArea />
+      <div className="flex flex-col gap-6 p-1">
+        <AssetContentArea />
+      </div>
     </SidebarHeader>
   );
 };

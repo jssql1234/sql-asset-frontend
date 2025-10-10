@@ -30,11 +30,10 @@ interface SerialNumberInputRowProps {
 const SerialNumberInputRow: React.FC<SerialNumberInputRowProps> = ({ item, index, serialIndex, validation, onUpdate }) => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
     <div className="relative">
-      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-onSurfaceVariant">#</span>
       <Input
         value={item.serial}
         onChange={(e) => { onUpdate(index, 'serial', e.target.value); }}
-        placeholder={`Serial number ${String(serialIndex + 1)}`}
+        placeholder={`# Serial number ${String(serialIndex + 1)}`}
         className="pl-8"
       />
       {validation.errors[index] && (
@@ -58,6 +57,8 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 }) => {
   const [serialData, setSerialData] = useState<SerialNumberData[]>([]);
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
+  const [serialFormat, setSerialFormat] = useState('SN-%.5d');
+  const [startingNumber, setStartingNumber] = useState(1);
   const validation = useSerialNumberValidation(serialData);
 
   useEffect(() => {
@@ -97,13 +98,12 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   }, []);
 
   const getNextAvailableSerialNumber = useMemo((): number => {
-    const format = 'SN-%.5d';
     const existingNumbers: number[] = [];
 
     serialData.forEach(item => {
       if (item.serial) {
-        // Extract number from serial number based on format pattern
-        const formatRegex = format.replace(/%.(\d+)d/g, '(\\d+)');
+        // Extract number from serial number based on current format pattern
+        const formatRegex = serialFormat.replace(/%.(\d+)d/g, '(\\d+)');
         const regex = new RegExp(formatRegex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace('\\(\\\\d\\+\\)', '(\\d+)'));
         const match = item.serial.match(regex);
         if (match?.[1]) {
@@ -113,11 +113,11 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     });
 
     if (existingNumbers.length === 0) {
-      return 1;
+      return startingNumber;
     }
 
     existingNumbers.sort((a, b) => a - b);
-    let nextNumber = 1;
+    let nextNumber = Math.max(startingNumber, 1);
 
     for (const num of existingNumbers) {
       if (num === nextNumber) {
@@ -128,10 +128,14 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     }
 
     return nextNumber;
-  }, [serialData]);
+  }, [serialData, serialFormat, startingNumber]);
 
 
   const generateSerialNumbers = useCallback((count: number, format: string, nextNumber: number) => {
+    // Update the stored format and starting number for future use
+    setSerialFormat(format);
+    setStartingNumber(nextNumber);
+
     setSerialData(prevData => {
       // Find empty fields
       const emptyFields = prevData
@@ -274,6 +278,8 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         emptyFieldsCount={getEmptySerialFieldsCount}
         nextAvailableNumber={getNextAvailableSerialNumber}
         onGenerate={generateSerialNumbers}
+        initialFormat={serialFormat}
+        initialStartingNumber={startingNumber}
       />
     </Card>
   );

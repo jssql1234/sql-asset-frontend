@@ -8,6 +8,8 @@ interface SerialNumberGenerationModalProps {
   emptyFieldsCount: number;
   nextAvailableNumber: number;
   onGenerate: (count: number, format: string, nextNumber: number) => void;
+  initialFormat?: string;
+  initialStartingNumber?: number;
 }
 
 export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalProps> = ({
@@ -16,10 +18,12 @@ export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalPr
   emptyFieldsCount,
   nextAvailableNumber,
   onGenerate,
+  initialFormat = 'SN-%.5d',
+  initialStartingNumber = 1,
 }) => {
   const [count, setCount] = useState(emptyFieldsCount);
-  const [format, setFormat] = useState('SN-%.5d');
-  const [nextNumber, setNextNumber] = useState(nextAvailableNumber);
+  const [format, setFormat] = useState(initialFormat);
+  const [nextNumber, setNextNumber] = useState(Math.max(nextAvailableNumber, initialStartingNumber));
   const [previewFormat, setPreviewFormat] = useState(format);
   const [previewExample, setPreviewExample] = useState('');
 
@@ -36,12 +40,14 @@ export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalPr
     setPreviewExample(example);
   }, [format, nextNumber]);
 
-  // Reset count when modal opens
+  // Reset values when modal opens
   useEffect(() => {
     if (isOpen) {
       setCount(emptyFieldsCount);
+      setFormat(initialFormat);
+      setNextNumber(Math.max(nextAvailableNumber, initialStartingNumber));
     }
-  }, [isOpen, emptyFieldsCount]);
+  }, [isOpen, emptyFieldsCount, initialFormat, nextAvailableNumber, initialStartingNumber]);
 
   const handleDecreaseCount = () => {
     if (count > 1) {

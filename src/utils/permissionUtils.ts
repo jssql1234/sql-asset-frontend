@@ -47,9 +47,9 @@ export function createAllPermissionsEnabled(): Record<string, Record<string, boo
     allPermissions[permissionItem.key] = {};
 
     // Enable all actions that are defined for this permission item
-    for (const [action, isApplicable] of Object.entries(permissionItem.permissions)) {
+    for (const [action] of Object.entries(permissionItem.permissions)) {
       // Only set to true if the action is applicable to this feature
-      allPermissions[permissionItem.key][action] = isApplicable;
+      allPermissions[permissionItem.key][action] = true;
     }
   }
 

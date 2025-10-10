@@ -58,34 +58,30 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 }) => {
   const [serialData, setSerialData] = useState<SerialNumberData[]>([]);
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
-
-  // Use the validation hook
   const validation = useSerialNumberValidation(serialData);
 
-  // Initialize serial data based on quantity
   useEffect(() => {
     const assetsInBatch = isBatchMode ? quantity : 1;
     const totalSerialFields = assetsInBatch * quantityPerUnit;
 
-    // Initialize or expand serial data array
-    const newSerialData = [...serialData];
-    while (newSerialData.length < totalSerialFields) {
-      newSerialData.push({ serial: '', remark: '' });
+    const newSerialData: SerialNumberData[] = [];
+    for (let i = 0; i < totalSerialFields; i++) {
+      if (serialNumbers[i]) {
+        newSerialData.push({ ...serialNumbers[i] });
+      } else {
+        newSerialData.push({ serial: '', remark: '' });
+      }
     }
 
-    // Update existing data if provided
-    if (serialNumbers.length > 0) {
-      serialNumbers.forEach((item, index) => {
-        if (newSerialData[index]) {
-          newSerialData[index] = { ...item };
-        }
-      });
-    }
+    setSerialData(prevData => {
+      if (JSON.stringify(prevData) === JSON.stringify(newSerialData)) {
+        return prevData;
+      }
+      return newSerialData;
+    });
+  }, [quantity, quantityPerUnit, isBatchMode, serialNumbers]);
 
-    setSerialData(newSerialData);
-  }, [quantity, quantityPerUnit, isBatchMode, serialData, serialNumbers]);
 
-  // Notify parent of changes
   useEffect(() => {
     onSerialNumbersChange?.(serialData);
   }, [onSerialNumbersChange, serialData]);

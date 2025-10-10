@@ -1,4 +1,4 @@
-import React, { useState, useRef, useImperativeHandle, useEffect, useCallback } from "react";
+import React, { useState, useRef, useImperativeHandle, useEffect, useCallback, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
@@ -504,6 +504,9 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     setValue("serialNumbers", serialNumbers);
   }, [setValue]);
 
+  const serialNumbersValue = watch("serialNumbers");
+  const memoizedSerialNumbers = useMemo(() => serialNumbersValue, [serialNumbersValue]);
+
   const inactive = watch("inactive");
 
   useEffect(() => {
@@ -581,7 +584,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
           quantity={watch("quantity")}
           quantityPerUnit={watch("quantityPerUnit")}
           isBatchMode={batchMode}
-          serialNumbers={watch("serialNumbers")}
+          serialNumbers={memoizedSerialNumbers}
           onSerialNumbersChange={handleSerialNumbersChange}
         />
       ),

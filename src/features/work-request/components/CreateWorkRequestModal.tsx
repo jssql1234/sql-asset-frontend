@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/components/Button';
 import { Input } from '@/components/ui/components/Input/Input';
+import { FileInput } from '@/components/ui/components/Input/FileInput';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
   // SearchWithDropdown state
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [uploadedPhotos, setUploadedPhotos] = useState<FileList | null>(null);
 
   // Asset categories for SearchWithDropdown
   const assetCategories = [
@@ -105,7 +107,12 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
         problemDescription: createForm.problemDescription,
         additionalNotes: createForm.additionalNotes,
         status: 'Pending',
-        photos: [],
+        photos: uploadedPhotos ? Array.from(uploadedPhotos).map((file, index) => ({
+          id: `temp-${Date.now()}-${index}`,
+          filename: file.name,
+          url: URL.createObjectURL(file),
+          uploadDate: new Date().toISOString(),
+        })) : [],
       });
 
       // Reset form
@@ -118,6 +125,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
       });
       setSelectedAssets([]);
       setSelectedCategory("all");
+      setUploadedPhotos(null);
       
       onSuccess(newWorkRequest);
       onClose();
@@ -140,6 +148,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
     });
     setSelectedAssets([]);
     setSelectedCategory("all");
+    setUploadedPhotos(null);
     onClose();
   }, [isGuestUser, currentUser, onClose]);
 
@@ -231,6 +240,22 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
               placeholder="Describe the problem or maintenance needed..."
               rows={4}
               className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-vertical"
+            />
+          </div>
+
+          {/* Upload Photos */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-onSurface">
+              Upload Photos
+            </label>
+            <FileInput
+              label=""
+              fileHint="Upload photos related to the problem (optional)"
+              fileValue={uploadedPhotos}
+              onFilesChange={setUploadedPhotos}
+              accept="image/*"
+              multiple
+              isPreviewUrl={true}
             />
           </div>
 

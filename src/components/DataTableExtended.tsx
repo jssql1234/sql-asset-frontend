@@ -33,6 +33,8 @@ import {
   type SortingState,
   type ColumnFiltersState,
   type Table as TanStackTable,
+  type Header,
+  type Row,
 } from '@tanstack/react-table';
 import { Skeleton } from '@/components/ui/components';
 import {
@@ -206,7 +208,7 @@ export function DataTableExtended<TData, TValue>({
 
   return (
     <div ref={containerRef} className="flex flex-col h-full">
-      <div className={cn('flex-1 rounded-md border border-outline', enhancedClassName)}>
+      <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
         <Table style={{ width: '100%', height: '100%' }}>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -289,7 +291,7 @@ export function DataTableExtended<TData, TValue>({
 }
 
 // Helper components
-function SortIndicator({ header }: { header: any }) {
+function SortIndicator<TData, TValue>({ header }: { header: Header<TData, TValue> }) {
   if (!header.column.getCanSort()) return null;
 
   const sortState = header.column.getIsSorted();
@@ -313,10 +315,10 @@ function SkeletonRow<TData, TValue>({
 }) {
   return (
     <>
-      {[...Array(rowCount)].map((_, i) => (
-        <TableRow key={i} className="hover:bg-transparent">
+      {Array.from({ length: rowCount }, (_, i) => (
+        <TableRow key={`skeleton-row-${i.toString()}`} className="hover:bg-transparent">
           {columns.map((_, j) => (
-            <TableCell key={j}>
+            <TableCell key={`skeleton-cell-${i.toString()}-${j.toString()}`}>
               <Skeleton className="h-5 rounded-sm" />
             </TableCell>
           ))}
@@ -344,7 +346,7 @@ function DataTableRow<TData>({
   table: TanStackTable<TData>;
   enableRowClickSelection?: boolean;
 }) {
-  const handleRowClick = (row: any, event: React.MouseEvent) => {
+  const handleRowClick = (row: Row<TData>, event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
     const isInteractiveElement = target.closest(
       'button, a, input, select, textarea, [role="button"]'
@@ -366,7 +368,7 @@ function DataTableRow<TData>({
           <TableRow
             key={row.id}
             data-state={row.getIsSelected() && 'selected'}
-            onClick={(event) => handleRowClick(row, event)}
+            onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer'
             )}

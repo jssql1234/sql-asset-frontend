@@ -38,18 +38,6 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
   const columns = useMemo<ColumnDef<AssetRecord>[]>(
     () => [
       {
-        id: "sequence",
-        header: "No.",
-        cell: ({ row }) => (
-          <span className="body-small text-onSurfaceVariant">
-            {Number(row.id) + 1}
-          </span>
-        ),
-        size: 64,
-        enableSorting: false,
-        enableColumnFilter: false,
-      },
-      {
         accessorKey: "name",
         header: "Asset Name",
         cell: ({ row }) => {
@@ -150,18 +138,6 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
 const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
   const columns = useMemo<ColumnDef<RentalRecord>[]>(
     () => [
-      {
-        id: "sequence",
-        header: "No.",
-        cell: ({ row }) => (
-          <span className="body-small text-onSurfaceVariant">
-            {Number(row.id) + 1}
-          </span>
-        ),
-        size: 64,
-        enableSorting: false,
-        enableColumnFilter: false,
-      },
       {
         accessorKey: "assetName",
         header: "Asset",

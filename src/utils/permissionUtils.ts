@@ -10,7 +10,7 @@ export function hasPermission(
   group: UserGroup,
   feature: string,
   action: PermissionAction
-): boolean | undefined {
+): boolean {
   // Find the permission item to check if action is applicable
   const permissionItem = PERMISSION_ITEMS.find(p => p.key === feature);
   if (permissionItem === undefined) return false;
@@ -24,7 +24,7 @@ export function hasPermission(
 
   // Check group permissions
   const groupPermission = defaultPermissions[action];
-  return groupPermission;
+  return groupPermission ?? false; // Default to false if permission is not set
 }
 
 /**

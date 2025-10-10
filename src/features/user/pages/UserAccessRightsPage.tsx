@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import { use } from "react";
 import { UserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";
 import { Card } from "@/components/ui/components";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
+import { SearchableDropdown } from "@/components/SearchableDropdown";
 import PermissionEditor from "../components/PermissionEditor";
 import TabHeader from "@/components/TabHeader";
 
@@ -13,6 +13,12 @@ const UserAccessRightsPage: React.FC = () => {
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [draftPermissions, setDraftPermissions] = useState<Partial<Record<string, Partial<Record<string, boolean>>>>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Convert groups to SearchableDropdown format
+  const groupItems = useMemo(() => groups.map(group => ({
+    id: group.id,
+    label: group.name,
+  })), [groups]);
 
   // Initialize draft permissions when group changes
   const initializeDraftPermissions = (groupId: string) => {
@@ -145,26 +151,16 @@ const UserAccessRightsPage: React.FC = () => {
         {/* Group Selection */}
         <Card className="p-4 flex flex-start gap-4">
           <h2 className="text-lg font-semibold self-center">Select Group</h2>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              label={selectedGroup ? groups.find(g => g.id === selectedGroup)?.name : 'Select a group...'}
-              className="flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 min-w-[200px]"
-            />
-            <DropdownMenuContent className="w-fit">
-              {groups.map(group => (
-                <DropdownMenuItem
-                  key={group.id}
-                  onClick={() => {
-                    setSelectedGroup(() => group.id);
-                    initializeDraftPermissions(group.id);
-                  }}
-                  className="cursor-pointer"
-                >
-                  <div className="font-medium">{group.name}</div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SearchableDropdown
+            items={groupItems}
+            selectedId={selectedGroup ?? undefined}
+            onSelect={(groupId) => {
+              setSelectedGroup(groupId);
+              initializeDraftPermissions(groupId);
+            }}
+            placeholder="Select a group..."
+            className="min-w-[250px]"
+          />
         </Card>
 
         {/* Group Permission Editor */}

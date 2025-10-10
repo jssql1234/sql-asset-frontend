@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/components/Dialog';
 
-import { AssetTags } from './AssetTags';
+import { SearchWithDropdown } from '@/components/SearchWithDropdown';
 import { WorkRequestStatusBadge } from './WorkRequestBadges';
 import { MaintenanceHistoryTable } from './MaintenanceHistoryTable';
 import { workRequestService, maintenanceHistoryService } from '../services/workRequestService';
@@ -37,6 +37,20 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory[]>([]);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+
+  // Asset categories for SearchWithDropdown (disabled in review mode)
+  const assetCategories = [
+    { id: "all", label: "All Assets" },
+  ];
+
+  // Convert selected assets to SearchWithDropdown format
+  const selectedAssetItems = workRequest?.selectedAssets.map((asset) => ({
+    id: asset.main.code,
+    label: asset.main.name,
+    sublabel: asset.main.code,
+  })) || [];
+
+  const selectedAssetIds = workRequest?.selectedAssets.map((asset) => asset.main.code) || [];
 
   // Load maintenance history when a work request is selected for review
   useEffect(() => {
@@ -137,9 +151,17 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
             {/* Selected Assets */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-onSurface">Selected Assets</label>
-              <div className="min-h-[60px] border border-outlineVariant rounded-md p-3 bg-surfaceContainerHigh">
-                <AssetTags assets={workRequest.selectedAssets} readonly />
-              </div>
+              <SearchWithDropdown
+                categories={assetCategories}
+                selectedCategoryId="all"
+                onCategoryChange={() => {}} // Disabled, no-op
+                items={selectedAssetItems}
+                selectedIds={selectedAssetIds}
+                onSelectionChange={() => {}} // Disabled, no-op
+                placeholder="Assets selected for this request"
+                emptyMessage="No assets selected"
+                disable={true}
+              />
             </div>
 
             {/* Request Details */}

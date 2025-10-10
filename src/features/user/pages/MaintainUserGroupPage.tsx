@@ -1,5 +1,4 @@
 import React, { useRef, useState } from 'react';
-import { Button } from '@/components/ui/components';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
@@ -11,6 +10,7 @@ import { ExportFile, Upload } from '@/assets/icons';
 import { use } from 'react';
 import { UserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
+import TabHeader from '@/components/TabHeader';
 
 const MaintainUserGroupPage: React.FC = () => {
   const { addGroup } = use(UserContext);
@@ -154,41 +154,32 @@ const MaintainUserGroupPage: React.FC = () => {
         { label: "Maintain User Group" },
       ]}
     >
+
+      <TabHeader
+        title="Maintain User Group"
+        // subtitle="Maintain User Groups"
+        actions={[
+          {
+            icon: <ExportFile className="h-4 w-4" />,
+            label: "Export CSV",
+            variant: 'outline',
+            className: 'h-9 px-4 py-2',
+            onAction: handleExportCSV
+          } , {
+            icon: <Upload className="h-4 w-4" />,
+            label: "Import CSV",
+            variant: 'outline',
+            className: 'h-9 px-4 py-2',
+            onAction: handleImportCSV
+          } , {
+            label: "Add Group",
+            className: 'h-9 px-4 py-2',
+            onAction: handleAddGroup
+          }
+        ]}
+      />
+
       <div className="flex flex-col h-full">
-        {/* Header Actions */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-onSurface">Maintain User Group</h1>
-            <p className="text-sm text-onSurfaceVariant mt-1">
-              Manage user groups and their permissions
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleExportCSV}
-              className="flex items-center gap-2"
-            >
-              <ExportFile className="h-4 w-4" />
-              Export CSV
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={handleImportCSV}
-              className="flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Import CSV
-            </Button>
-
-            <Button onClick={handleAddGroup}>
-              Add Group
-            </Button>
-          </div>
-        </div>
-
         {/* Hidden file input for CSV import */}
         <input
           ref={fileInputRef}

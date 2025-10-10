@@ -62,7 +62,7 @@ export const TabHeader = ({
     }
 
     return (
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-3">
         {regularActions.map(({ label, onAction, icon, variant, size, disabled, className, tooltip }) => (
           <Button
             key={label}

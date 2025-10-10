@@ -6,6 +6,7 @@ import { PERMISSION_ITEMS } from "@/types/permission";
 import { Card } from "@/components/ui/components";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import PermissionEditor from "../components/PermissionEditor";
+import TabHeader from "@/components/TabHeader";
 
 const UserAccessRightsPage: React.FC = () => {
   const { groups, updateGroup } = use(UserContext);
@@ -133,9 +134,13 @@ const UserAccessRightsPage: React.FC = () => {
     <SidebarHeader
       breadcrumbs={[
         { label: "Tools" },
-        { label: "User Access Right Assignment" },
+        { label: "User Access Rights Assignment" },
       ]}
     >
+      <TabHeader
+        title="User Access Rights Assignment"
+        subtitle="Maintain Permissions for Each User Groups"
+      />
       <div className="space-y-6">
         {/* Group Selection */}
         <Card className="p-4 flex flex-start gap-4">

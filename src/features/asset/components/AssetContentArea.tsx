@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui/components";
-import { DataTable, TableColumnVisibility } from "@/components/ui/components/Table/index";
+import { TableColumnVisibility } from "@/components/ui/components/Table/index";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
 import CreateAsset from "./CreateAsset";
@@ -20,25 +21,32 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
     accessorKey: "id",
     header: "Asset ID",
     meta: { label: "Asset ID" },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "batchId", 
     accessorKey: "batchId", 
     header: "Batch ID",
-    enableColumnFilter: false,
     meta: { label: "Batch ID" },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "name",
     accessorKey: "name",
     header: "Asset Name", 
     meta: { label: "Asset Name" },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "group",
     accessorKey: "group",
     header: "Asset Group",
     meta: { label: "Asset Group" },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "description",
@@ -53,18 +61,24 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
         </span>
       );
     },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "acquireDate",
     accessorKey: "acquireDate",
     header: "Acquire Date",
     meta: { label: "Acquire Date" },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "purchaseDate", 
     accessorKey: "purchaseDate", 
     header: "Purchase Date",
     meta: { label: "Purchase Date" },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "cost",
@@ -75,6 +89,8 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
       const value = getValue() as number;
       return value.toLocaleString();
     },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   {
     id: "qty",
@@ -85,6 +101,8 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
       const value = getValue() as number;
       return value.toLocaleString();
     },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   // {
   //   id: "qe",
@@ -151,6 +169,8 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
       const value = getValue() as boolean;
       return value ? "Yes" : "No";
     },
+    enableSorting: true,
+    enableColumnFilter: false,
   },
   // {
   //   id: "personalUsePct",
@@ -310,7 +330,7 @@ export default function AssetContentArea() {
             </div>
           </div>
 
-          <DataTable
+          <DataTableExtended
             columns={visibleColumns}
             data={assets ?? []}
             showPagination={true}

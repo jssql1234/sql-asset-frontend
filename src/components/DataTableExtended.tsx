@@ -120,7 +120,7 @@ export function DataTableExtended<TData, TValue>({
 
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    // ✅ Add faceted filtering support
+    // Add faceted filtering support
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     

@@ -215,6 +215,20 @@ export default function AssetContentArea() {
     setSelectedRowIds(rowIds);
   };
 
+  // Filter assets based on search value
+  const filteredAssets = useMemo(() => {
+    if (!assets || !searchValue.trim()) return assets;
+
+    const searchLower = searchValue.toLowerCase().trim();
+    return assets.filter(asset =>
+      (asset.id || '').toLowerCase().includes(searchLower) ||
+      (asset.batchId || '').toLowerCase().includes(searchLower) ||
+      (asset.name || '').toLowerCase().includes(searchLower) ||
+      (asset.group || '').toLowerCase().includes(searchLower) ||
+      (asset.description || '').toLowerCase().includes(searchLower)
+    );
+  }, [assets, searchValue]);
+
   // Summary cards data
   const summaryCardsData: SummaryCardItem[] = [
     {
@@ -266,7 +280,7 @@ export default function AssetContentArea() {
           <div className="mb-6">
             <Search
               searchValue={searchValue}
-              searchPlaceholder="Search assets..."
+              searchPlaceholder="Search by asset ID, batch ID, asset name, asset group, description"
               onSearch={setSearchValue}
               live={true}
             />
@@ -332,7 +346,7 @@ export default function AssetContentArea() {
 
           <DataTableExtended
             columns={visibleColumns}
-            data={assets ?? []}
+            data={filteredAssets ?? []}
             showPagination={true}
             showCheckbox={true}
             enableRowClickSelection={true}

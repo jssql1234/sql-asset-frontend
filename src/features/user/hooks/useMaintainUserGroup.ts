@@ -4,7 +4,7 @@ import { UserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 
-export const useUserGroupManagement = () => {
+export const useMaintainUserGroup = () => {
   const { groups, addGroup, updateGroup, deleteGroup } = use(UserContext);
   const { addToast } = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);

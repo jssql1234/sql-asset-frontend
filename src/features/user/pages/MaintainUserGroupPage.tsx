@@ -3,7 +3,7 @@ import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
 import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
-import { useUserGroupManagement } from '../hooks/useUserGroupManagement';
+import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 import * as UserGroupService from '../services/userGroupService';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { ExportFile, Upload } from '@/assets/icons';
@@ -23,7 +23,7 @@ const MaintainUserGroupPage: React.FC = () => {
     handleDeleteGroup,
     handleSaveGroup,
     handleCloseModal,
-  } = useUserGroupManagement();
+  } = useMaintainUserGroup();
 
   const { addToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);

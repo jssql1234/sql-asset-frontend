@@ -183,6 +183,26 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
               </div>
             )}
 
+            {/* Uploaded Photos */}
+            {workRequest.photos && workRequest.photos.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-onSurface">Uploaded Photos</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {workRequest.photos.map((photo) => (
+                    <div key={photo.id} className="space-y-2">
+                      <div className="aspect-square border border-outlineVariant rounded-md overflow-hidden bg-surfaceContainerHigh">
+                        <img
+                          src={photo.url}
+                          alt={photo.filename}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Maintenance History */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-onSurface">Maintenance History</label>

@@ -166,6 +166,20 @@ export const MOCK_ASSETS = [
   { id: "AST-005", name: "Forklift Toyota 8FG25", code: "FRK-005" },
   { id: "AST-006", name: "Compressor Atlas Copco XAS 185", code: "CMP-006" },
   { id: "AST-007", name: "Welding Machine Lincoln Electric", code: "WLD-007" },
+  { id: "AST-008", name: "Tower Crane Potain MD 365", code: "CRN-008" },
+  { id: "AST-009", name: "Bulldozer CAT D6T", code: "BLD-009" },
+  { id: "AST-010", name: "Excavator Hitachi ZX350", code: "EXC-010" },
+  { id: "AST-011", name: "Generator Perkins 250kVA", code: "GEN-011" },
+  { id: "AST-012", name: "Forklift Hyster H50FT", code: "FRK-012" },
+  { id: "AST-013", name: "Compressor Ingersoll Rand", code: "CMP-013" },
+  { id: "AST-014", name: "Welding Machine ESAB Rebel", code: "WLD-014" },
+  { id: "AST-015", name: "Tower Crane Liebherr 200 EC", code: "CRN-015" },
+  { id: "AST-016", name: "Excavator Volvo EC220E", code: "EXC-016" },
+  { id: "AST-017", name: "Bulldozer John Deere 750K", code: "BLD-017" },
+  { id: "AST-018", name: "Generator Caterpillar C15", code: "GEN-018" },
+  { id: "AST-019", name: "Forklift Yale GDP050VX", code: "FRK-019" },
+  { id: "AST-020", name: "Compressor Sullair 185", code: "CMP-020" },
+  { id: "AST-021", name: "Welding Machine Miller Millermatic", code: "WLD-021" },
 ];
 
 // Mock Technicians

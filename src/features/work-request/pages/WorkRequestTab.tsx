@@ -89,7 +89,7 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
             </Button>
           </div>
         </div>
-        <div className="border-t border-outline overflow-auto">
+        <div className="border-t border-outline">
           <WorkRequestTable
             workRequests={workRequests}
             selectedWorkRequestIds={selectedWorkRequestIds}

@@ -1,6 +1,7 @@
 import * as React from "react"
 import { SidebarInset, SidebarProvider, SidebarSeparator, SidebarTrigger } from "./SidebarCN"
 import { AppSidebar } from "./SidebarNav"
+import sqlAssetLogo from "@/assets/images/sqlasset_logo1.png"
 
 interface SidebarHeaderProps {
   children: React.ReactNode
@@ -33,7 +34,7 @@ export function SidebarHeader({ children, breadcrumbs }: SidebarHeaderProps) {
             )}
           </div>
           <div className="px-4">
-            <img src="src/assets/images/sqlasset_logo1.png" alt="SQL Asset Logo" className="h-8 w-auto object-contain" />
+            <img src={sqlAssetLogo} alt="SQL Asset Logo" className="h-8 w-auto object-contain" />
           </div>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-4">

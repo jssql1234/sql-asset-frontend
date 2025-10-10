@@ -331,7 +331,7 @@ function EmptyDataRow({ columnLength }: { columnLength: number }) {
   return (
     <TableRow className="hover:bg-transparent">
       <TableCell colSpan={columnLength} className="text-onSurface text-center">
-        {t('result')}
+        {t('No records found. Add a new entry to get started.')}
       </TableCell>
     </TableRow>
   );

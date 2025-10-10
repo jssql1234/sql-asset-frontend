@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Badge, Button } from "@/components/ui/components";
+import { Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import type { AssetRecord, RentalRecord } from "../types";
 
@@ -244,18 +244,6 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
         size: 80,
         enableSorting: true,
         enableColumnFilter: false,
-      },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: () => (
-          <Button variant="link" size="sm">
-            View Details
-          </Button>
-        ),
-        enableSorting: false,
-        enableColumnFilter: false,
-        size: 120,
       },
     ],
     []

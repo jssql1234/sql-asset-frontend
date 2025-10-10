@@ -7,10 +7,7 @@ import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedI
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
 import { DowntimeSummaryCard } from "@/features/downtime/components/DowntimeSummaryCard";
 import { DowntimeTabHeader } from "@/features/downtime/components/DowntimeTabHeader";
-import { 
-  useGetDowntimeIncidents, 
-  useGetDowntimeSummary 
-} from "@/features/downtime/hooks/useDowntimeService";
+import { useGetDowntimeIncidents, useGetDowntimeSummary } from "@/features/downtime/hooks/useDowntimeService";
 
 const DowntimeTrackingPage: React.FC = () => {
   // Fetch data using hooks
@@ -39,11 +36,8 @@ const DowntimeTrackingPage: React.FC = () => {
 
   return (
     <SidebarHeader
-      breadcrumbs={[
-        { label: "Asset Maintenance" },
-        { label: "Downtime Tracking" },
-      ]}
-    >
+      breadcrumbs={[ { label: "Asset Maintenance" }, { label: "Downtime Tracking" } ]}>
+        
       <div className="flex flex-col gap-6 p-1">
         <DowntimeTabHeader
           onViewResolved={() => setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true }))}

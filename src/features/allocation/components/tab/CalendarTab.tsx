@@ -53,7 +53,7 @@ const CalendarTab = () => {
               <Input
                 placeholder="Search assets..."
                 value={searchTerm}
-                onChange={(event) => setSearchTerm(event.target.value)}
+                onChange={(event) => { setSearchTerm(event.target.value); }}
                 className="w-52"
               />
               <DropdownMenu>
@@ -67,7 +67,7 @@ const CalendarTab = () => {
                 <DropdownMenuContent matchTriggerWidth disablePortal>
                   <DropdownMenuRadioGroup
                     value={assetFilter}
-                    onValueChange={(value) => setAssetFilter(value)}
+                    onValueChange={(value) => { setAssetFilter(value); }}
                   >
                     {ASSET_CATEGORIES.map((option) => (
                       <DropdownMenuRadioItem key={option.value} value={option.value}>
@@ -84,7 +84,7 @@ const CalendarTab = () => {
               <DropdownMenuContent matchTriggerWidth disablePortal>
                 <DropdownMenuRadioGroup
                   value={viewMode}
-                  onValueChange={(value) => setViewMode(value)}
+                  onValueChange={(value) => { setViewMode(value); }}
                 >
                   {VIEW_OPTIONS.map((option) => (
                     <DropdownMenuRadioItem key={option.value} value={option.value}>
@@ -115,7 +115,7 @@ const CalendarTab = () => {
               {filter.label}
             </FilterChip>
           ))}
-          <Button variant="link" size="sm" onClick={() => setAssetFilter("")}>
+          <Button variant="link" size="sm" onClick={() => { setAssetFilter(""); }}>
             Reset asset filter
           </Button>
         </div>

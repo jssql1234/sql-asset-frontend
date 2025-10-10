@@ -9,7 +9,7 @@ interface UseAllocationTabsProps {
   onOpenAllocationModal: () => void;
 }
 
-export const useAllocationTabs = ({
+export const getAllocationTabs = ({
   filteredAssets,
   summary,
   onOpenAllocationModal,

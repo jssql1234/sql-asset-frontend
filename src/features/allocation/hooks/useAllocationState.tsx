@@ -28,10 +28,11 @@ export const useAllocationState = () => {
     };
   }, []);
 
-  const openAllocationModal = useCallback(() => setIsAllocationModalOpen(true), []);
+  const openAllocationModal = useCallback(() => { setIsAllocationModalOpen(true); }, []);
 
-  const closeAllocationModal = useCallback(() => setIsAllocationModalOpen(false), []);
+  const closeAllocationModal = useCallback(() => { setIsAllocationModalOpen(false); }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleAllocationSubmit = useCallback((_payload: AllocationActionPayload) => {
     setIsAllocationModalOpen(false);
   }, []);

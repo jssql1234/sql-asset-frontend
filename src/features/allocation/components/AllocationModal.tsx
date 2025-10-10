@@ -58,16 +58,16 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
 
   const toggleAsset = (assetId: string, maxQuantity: number) => {
     setSelectedMap((prev) => {
-      const next = { ...prev };
-      if (next[assetId]) {
-        delete next[assetId];
+      if (prev[assetId]) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { [assetId]: removed, ...rest } = prev;
+        return rest;
       } else {
-        next[assetId] = Math.min(1, maxQuantity);
-        if (maxQuantity > 0) {
-          next[assetId] = 1;
-        }
+        return {
+          ...prev,
+          [assetId]: Math.min(1, maxQuantity) > 0 ? 1 : Math.min(1, maxQuantity),
+        };
       }
-      return next;
     });
   };
 
@@ -93,7 +93,18 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
 
   const canProceed = useMemo(() => {
     if (!allocationType) return false;
-    const hasAssets = buildSelections().length > 0;
+    const selections = Object.entries(selectedMap)
+      .filter(([, quantity]) => quantity > 0)
+      .map(([assetId, quantity]) => {
+        const asset = assets.find((item) => item.id === assetId);
+        return {
+          assetId,
+          assetName: asset?.name ?? assetId,
+          requestedQuantity: quantity,
+          availableQuantity: asset?.remaining ?? 0,
+        };
+      });
+    const hasAssets = selections.length > 0;
     if (!hasAssets) return false;
     if (allocationType === "location") {
       return targetLocation.trim().length > 0;
@@ -103,7 +114,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
       startDate !== undefined &&
       startDate !== ""
     );
-  }, [allocationType, targetLocation, targetUser, startDate, selectedMap]);
+  }, [allocationType, targetLocation, targetUser, startDate, selectedMap, assets]);
 
   const handleBack = () => {
     setAllocationType(null);
@@ -187,7 +198,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                           <Input
                             placeholder="eg. HQ - IT Store"
                             value={targetLocation}
-                            onChange={(event) => setTargetLocation(event.target.value)}
+                            onChange={(event) => { setTargetLocation(event.target.value); }}
                             list="allocation-locations"
                           />
                           <datalist id="allocation-locations">
@@ -210,7 +221,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             <Input
                               placeholder="eg. John Lee"
                               value={targetUser}
-                              onChange={(event) => setTargetUser(event.target.value)}
+                              onChange={(event) => { setTargetUser(event.target.value); }}
                               list="allocation-users"
                             />
                             <datalist id="allocation-users">
@@ -226,7 +237,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             <SemiDatePicker
                               inputType="dateTime"
                               value={startDate}
-                              onChange={(value) => setStartDate(value as string | Date)}
+                              onChange={(value) => { setStartDate(value as string | Date); }}
                             />
                           </div>
                           <div className="flex flex-col gap-1">
@@ -236,7 +247,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             <SemiDatePicker
                               inputType="dateTime"
                               value={endDate}
-                              onChange={(value) => setEndDate(value as string | Date)}
+                              onChange={(value) => { setEndDate(value as string | Date); }}
                             />
                           </div>
                         </div>
@@ -292,7 +303,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                         <button
                           type="button"
                           key={asset.id}
-                          onClick={() => toggleAsset(asset.id, maxQuantity)}
+                          onClick={() => { toggleAsset(asset.id, maxQuantity); }}
                           className={cn(
                             "flex h-full flex-col gap-4 rounded-lg border p-4 text-left transition-shadow",
                             selected
@@ -335,7 +346,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                           {selected && (
                             <div
                               className="flex items-center gap-3 rounded-md border border-primary bg-primaryContainer px-3 py-2"
-                              onClick={(event) => event.stopPropagation()}
+                              onClick={(event) => { event.stopPropagation(); }}
                             >
                               <label
                                 htmlFor={`allocation-qty-${asset.id}`}
@@ -349,13 +360,13 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                                 min={1}
                                 max={maxQuantity}
                                 value={quantity}
-                                onChange={(event) =>
+                                onChange={(event) => {
                                   updateQuantity(
                                     asset.id,
                                     Number(event.target.value),
                                     maxQuantity
-                                  )
-                                }
+                                  );
+                                }}
                                 className="w-20"
                               />
                               <span className="body-small text-onSurfaceVariant">
@@ -387,7 +398,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                   maxRows={6}
                   placeholder="Provide additional instructions or context for this allocation."
                   value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
+                  onChange={(event) => { setNotes(event.target.value); }}
                 />
               </div>
             </div>

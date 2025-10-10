@@ -20,15 +20,15 @@ const rentalStatusToneMap: Record<RentalRecord["status"], string> = {
   Cancelled: "secondary",
 };
 
-type AllocationVariantProps = {
+interface AllocationVariantProps {
   variant: "allocation";
   assets: AssetRecord[];
-};
+}
 
-type RentalVariantProps = {
+interface RentalVariantProps {
   variant: "rental";
   rentals: RentalRecord[];
-};
+}
 
 type TableProps = AllocationVariantProps | RentalVariantProps;
 
@@ -96,7 +96,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         cell: ({ row }) => (
           <Badge
             text={row.original.status}
-            variant={allocationStatusVariantMap[row.original.status] ?? "primary"}
+            variant={allocationStatusVariantMap[row.original.status]}
             dot
           />
         ),
@@ -183,7 +183,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
         cell: ({ row }) => (
           <Badge
             text={row.original.status}
-            variant={rentalStatusToneMap[row.original.status] ?? "primary"}
+            variant={rentalStatusToneMap[row.original.status]}
             dot
           />
         ),

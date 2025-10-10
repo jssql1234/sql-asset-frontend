@@ -20,43 +20,41 @@ export const getAllocationSummaryCards = (summary: AllocationSummary) => [
   },
   {
     label: "Utilization Rate",
-    value: `${summary.utilizationRate}%`,
+    value: `${summary.utilizationRate.toString()}%`,
     description: "Allocation efficiency",
-    tone: (summary.utilizationRate > 75 ? "warning" : "default") as
-      | "warning"
-      | "default",
+    tone: summary.utilizationRate > 75 ? "warning" : "default",
   },
 ];
 
 export const getRentalSummaryCards = (
-  rentals: Array<{ status: string; quantity: number }>
+  rentals: { status: string; quantity: number }[]
 ) => {
-  const stats = rentals.reduce(
+  const stats = rentals.reduce<Record<string, number>>(
     (acc, rental) => {
       acc.total += 1;
       acc[rental.status] = (acc[rental.status] ?? 0) + 1;
       acc.totalIncome += rental.quantity * 50; // Assume $50 per unit
       return acc;
     },
-    { total: 0, totalIncome: 0 } as Record<string, number>
+    { total: 0, totalIncome: 0, Active: 0, Scheduled: 0, Completed: 0, Overdue: 0, Cancelled: 0 }
   );
 
   return [
     {
       label: "Active Rentals",
-      value: stats.Active ?? 0,
+      value: stats.Active,
       description: "Currently in progress",
       tone: "success" as const,
     },
     {
       label: "Scheduled Rentals",
-      value: stats.Scheduled ?? 0,
+      value: stats.Scheduled,
       description: "Upcoming reservations",
       tone: "warning" as const,
     },
     {
       label: "Completed Rentals",
-      value: stats.Completed ?? 0,
+      value: stats.Completed,
       description: "Successfully finished",
       tone: "default" as const,
     },

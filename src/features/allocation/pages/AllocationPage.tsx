@@ -2,7 +2,7 @@ import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/AllocationModal";
 import { useAllocationState } from "../hooks/useAllocationState";
-import { useAllocationTabs } from "../hooks/useAllocationTabs";
+import { getAllocationTabs } from "../hooks/useAllocationTabs";
 import { useMemo } from "react";
 
 const AllocationPage: React.FC = () => {
@@ -21,7 +21,7 @@ const AllocationPage: React.FC = () => {
     return Array.from(userSet).sort();
   }, [filteredAssets]);
 
-  const tabs = useAllocationTabs({ filteredAssets, summary,
+  const tabs = getAllocationTabs({ filteredAssets, summary,
     onOpenAllocationModal: openAllocationModal,
   });
 

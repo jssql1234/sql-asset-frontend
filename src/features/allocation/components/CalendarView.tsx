@@ -24,7 +24,7 @@ function CalendarView({
   searchTerm,
   assetFilter,
 }: CalendarViewProps): ReactElement {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => new Date());
 
   // Sample events data
   const events: CalendarEvent[] = [
@@ -110,7 +110,7 @@ function CalendarView({
 
     // Empty cells for days before the month starts
     for (let i = 0; i < firstDay; i++) {
-      days.push(<div key={`empty-${i}`} className="p-2 h-32"></div>);
+      days.push(<div key={`empty-${i.toString()}`} className="p-2 h-32"></div>);
     }
 
     // Days of the month
@@ -216,7 +216,7 @@ function CalendarView({
           </Button>
         </div>
 
-        <Button variant="secondary" onClick={() => setCurrentDate(new Date())}>
+        <Button variant="secondary" onClick={() => { setCurrentDate(new Date()); }}>
           Today
         </Button>
       </div>

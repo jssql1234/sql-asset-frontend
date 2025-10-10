@@ -253,7 +253,7 @@ body {
 }
 
 :root {
-  --sidebar: hsl(0 0% 98%);
+  --sidebar: hsl(0 0% 97%);
   --sidebar-foreground: hsl(240 5.3% 26.1%);
   --sidebar-primary: hsl(240 5.9% 10%);
   --sidebar-primary-foreground: hsl(0 0% 98%);
@@ -276,5 +276,5 @@ body {
 
 /* Custom border color for header separator */
 header[class*="border-b"] {
-  border-bottom-color: #b9babb;
+  border-bottom-color: #e0e1e2;
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Button, Card } from "@/components/ui/components";
+import { Card } from "@/components/ui/components";
 import { useToast } from "@/components/ui/components/Toast";
+import TabHeader from "@/components/TabHeader";
 import WorkRequestFilter, { type FilterOptions } from "../components/WorkRequestFilter";
 import WorkRequestTable from "../components/WorkRequestTable";
 import DeleteConfirmationDialog from "../components/DeleteConfirmationDialog";
@@ -40,14 +41,17 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
 
   return (
     <div className="flex flex-col gap-6">
-      <Card className="flex flex-col gap-3 rounded-xl border border-outline bg-surface p-6 shadow-sm lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <h2 className="title-large text-onSurface">Work Requests</h2>
-          <p className="body-medium text-onSurfaceVariant">
-            Manage maintenance requests, track progress, and coordinate work orders.
-          </p>
-        </div>
-      </Card>
+      <TabHeader
+        title="Work Requests"
+        subtitle="Manage maintenance requests, track progress, and coordinate work orders."
+        actions={[
+          {
+            label: "New Request",
+            onAction: onOpenCreateModal,
+            disabled: !onOpenCreateModal,
+          },
+        ]}
+      />
 
       <WorkRequestFilter
         filters={filters}
@@ -57,44 +61,13 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
       />
 
       <Card className="flex flex-col gap-4 border border-outline bg-surfaceContainer p-0 min-h-[500px]">
-        <div className="flex items-center justify-between px-6 py-4">
-          <div>
-            <h3 className="title-small text-onSurface">Work Request List</h3>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={
-                selectedWorkRequestIds.length !== 1 || !onOpenReviewModal
-              }
-              onClick={() => onOpenReviewModal?.()}
-            >
-              Review
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={selectedWorkRequestIds.length === 0 || !onDelete || isDeletingItems}
-              onClick={() => setIsDeleteDialogOpen(true)}
-            >
-              Delete ({selectedWorkRequestIds.length})
-            </Button>
-            <Button
-              size="sm"
-              disabled={!onOpenCreateModal}
-              onClick={() => onOpenCreateModal?.()}
-            >
-              New Request
-            </Button>
-          </div>
-        </div>
         <div className="border-t border-outline">
           <WorkRequestTable
             workRequests={workRequests}
             selectedWorkRequestIds={selectedWorkRequestIds}
             isLoading={isLoading}
             onSelectionChange={onSelectionChange}
+            onEditWorkRequest={onOpenReviewModal}
           />
         </div>
       </Card>

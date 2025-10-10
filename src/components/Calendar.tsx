@@ -36,82 +36,36 @@ export interface CalendarEvent extends EventInput {
 }
 
 export interface CalendarProps {
-  /** Array of events to display */
   events?: CalendarEvent[];
-  
-  /** Initial view: 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek' */
-  initialView?: string;
-  
-  /** Initial date to display */
+  initialView?: string; /* 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek' */
   initialDate?: string | Date;
-  
-  /** Enable date selection */
   selectable?: boolean;
-  
-  /** Enable event editing (drag & drop, resize) */
   editable?: boolean;
-  
-  /** Show weekends */
   weekends?: boolean;
-  
-  /** Limit number of events per day (true = auto, number = specific limit) */
   dayMaxEvents?: boolean | number;
-  
-  /** Header toolbar configuration */
   headerToolbar?: {
     left?: string;
     center?: string;
     right?: string;
   };
-  
-  /** Callback when date range is selected */
   onDateSelect?: (selectInfo: DateSelectArg) => void;
-  
-  /** Callback when event is clicked */
-  onEventClick?: (clickInfo: EventClickArg) => void;
-  
-  /** Callback when visible date range changes */
-  onDatesSet?: (dateInfo: DatesSetArg) => void;
-  
-  /** Callback when events are set/updated */
-  onEventsSet?: (events: EventApi[]) => void;
-  
-  /** Callback when event is changed (drag/resize) */
-  onEventChange?: (changeInfo: EventChangeArg) => void;
-  
-  /** Custom event content renderer */
-  eventContent?: (eventInfo: EventContentArg) => React.ReactNode;
-  
-  /** Custom CSS class for the calendar container */
+  onEventClick?: (clickInfo: EventClickArg) => void;              /** Callback when event is clicked */
+  onDatesSet?: (dateInfo: DatesSetArg) => void;                   /** Callback when visible date range changes */
+  onEventsSet?: (events: EventApi[]) => void;                     /** Callback when events are set/updated */
+  onEventChange?: (changeInfo: EventChangeArg) => void;           /** Callback when event is changed (drag/resize) */
+  eventContent?: (eventInfo: EventContentArg) => React.ReactNode; /** Custom event content renderer */
   className?: string;
-  
-  /** Calendar height */
   height?: string | number;
-  
-  /** Enable now indicator (current time line) */
-  nowIndicator?: boolean;
-  
-  /** Select mirror (show selection while dragging) */
-  selectMirror?: boolean;
+  nowIndicator?: boolean; /** Enable now indicator (current time line) */
+  selectMirror?: boolean; /** Select mirror (show selection while dragging) */
 }
 
-/**
- * Calendar Component
- * 
- * A flexible calendar component with multiple view options and event management.
- * 
- * @example
- * ```tsx
- * <Calendar
- *   events={events}
- *   initialView="dayGridMonth"
- *   editable={true}
- *   selectable={true}
- *   onDateSelect={handleDateSelect}
- *   onEventClick={handleEventClick}
- * />
- * ```
- */
+/* ---------------------------------
+//
+// ----------- Component ----------
+//
+// -------------------------------- */
+
 export const Calendar = ({
   events = [],
   initialView = "dayGridMonth",

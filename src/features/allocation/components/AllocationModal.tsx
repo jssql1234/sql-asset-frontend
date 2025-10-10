@@ -4,12 +4,11 @@ import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { cn } from "@/utils/utils";
-import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord, } from "../../types";
+import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord, } from "../types";
 
 interface AllocationModalProps {
   isOpen: boolean;
   assets: AssetRecord[];
-  selectedAssetIds: string[];
   locations: string[];
   users: string[];
   onClose: () => void;
@@ -19,7 +18,6 @@ interface AllocationModalProps {
 const AllocationModal: React.FC<AllocationModalProps> = ({
   isOpen,
   assets,
-  selectedAssetIds,
   locations,
   users,
   onClose,
@@ -36,11 +34,8 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
   const [selectedMap, setSelectedMap] = useState<Record<string, number>>({});
 
   const availableAssets = useMemo(() => {
-    if (selectedAssetIds.length > 0) {
-      return assets.filter((asset) => selectedAssetIds.includes(asset.id));
-    }
     return assets;
-  }, [assets, selectedAssetIds]);
+  }, [assets]);
 
   const resetState = () => {
     setStep(1);
@@ -55,15 +50,11 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      const defaults = selectedAssetIds.reduce<Record<string, number>>(
-        (acc, assetId) => ({ ...acc, [assetId]: 1 }),
-        {}
-      );
-      setSelectedMap(defaults);
+      setSelectedMap({});
     } else {
       resetState();
     }
-  }, [isOpen, selectedAssetIds]);
+  }, [isOpen]);
 
   const toggleAsset = (assetId: string, maxQuantity: number) => {
     setSelectedMap((prev) => {

@@ -10,12 +10,8 @@ interface UseAllocationTabsProps {
   locations: string[];
   pics: string[];
   statuses: AssetStatus[];
-  selectedAssetIds: string[];
   onFilterChange: (filters: AllocationFilters) => void;
-  onSelectionChange: (selected: AssetRecord[]) => void;
   onOpenAllocationModal: () => void;
-  onOpenTransferModal: () => void;
-  onOpenReturnModal: () => void;
 }
 
 export const useAllocationTabs = ({
@@ -25,12 +21,8 @@ export const useAllocationTabs = ({
   locations,
   pics,
   statuses,
-  selectedAssetIds,
   onFilterChange,
-  onSelectionChange,
   onOpenAllocationModal,
-  onOpenTransferModal,
-  onOpenReturnModal,
 }: UseAllocationTabsProps) => {
   const tabs = [
     {
@@ -44,12 +36,8 @@ export const useAllocationTabs = ({
           locations={locations}
           pics={pics}
           statuses={statuses}
-          selectedAssetIds={selectedAssetIds}
           onFilterChange={onFilterChange}
-          onSelectionChange={onSelectionChange}
           onOpenAllocationModal={onOpenAllocationModal}
-          onOpenTransferModal={onOpenTransferModal}
-          onOpenReturnModal={onOpenReturnModal}
         />
       ),
     },

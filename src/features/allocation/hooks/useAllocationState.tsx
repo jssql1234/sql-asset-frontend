@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { MOCK_ASSETS, MOCK_LOCATIONS, MOCK_PICS, MOCK_STATUS } from "../mockData";
-import type { AllocationActionPayload, AllocationFilters, AllocationSummary, AssetRecord } from "../types";
+import type { AllocationActionPayload, AllocationFilters, AllocationSummary } from "../types";
 
 const DEFAULT_FILTERS: AllocationFilters = {
   search: "",
@@ -11,10 +11,7 @@ const DEFAULT_FILTERS: AllocationFilters = {
 
 export const useAllocationState = () => {
   const [filters, setFilters] = useState<AllocationFilters>(DEFAULT_FILTERS);
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
-  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
-  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
 
   const filteredAssets = useMemo(() => {
     const normalizedSearch = filters.search.trim().toLowerCase();
@@ -41,12 +38,6 @@ export const useAllocationState = () => {
       );
     });
   }, [filters]);
-
-  useEffect(() => {
-    setSelectedAssetIds((prev) =>
-      prev.filter((id) => filteredAssets.some((asset) => asset.id === id))
-    );
-  }, [filteredAssets]);
 
   const summary: AllocationSummary = useMemo(() => {
     const totals = filteredAssets.reduce(
@@ -75,17 +66,9 @@ export const useAllocationState = () => {
     setFilters(nextFilters);
   }, []);
 
-  const handleSelectionChange = useCallback((selected: AssetRecord[]) => {
-    setSelectedAssetIds(selected.map((asset) => asset.id));
-  }, []);
-
   const openAllocationModal = useCallback(() => setIsAllocationModalOpen(true), []);
-  const openTransferModal = useCallback(() => setIsTransferModalOpen(true), []);
-  const openReturnModal = useCallback(() => setIsReturnModalOpen(true), []);
 
   const closeAllocationModal = useCallback(() => setIsAllocationModalOpen(false), []);
-  const closeTransferModal = useCallback(() => setIsTransferModalOpen(false), []);
-  const closeReturnModal = useCallback(() => setIsReturnModalOpen(false), []);
 
   const handleAllocationSubmit = useCallback((_payload: AllocationActionPayload) => {
     setIsAllocationModalOpen(false);
@@ -93,24 +76,16 @@ export const useAllocationState = () => {
 
   return {
     filters,
-    selectedAssetIds,
     filteredAssets,
     summary,
     isAllocationModalOpen,
-    isTransferModalOpen,
-    isReturnModalOpen,
     locations: MOCK_LOCATIONS,
     pics: MOCK_PICS,
     statuses: MOCK_STATUS,
     assets: MOCK_ASSETS,
     handleFilterChange,
-    handleSelectionChange,
     openAllocationModal,
-    openTransferModal,
-    openReturnModal,
     closeAllocationModal,
-    closeTransferModal,
-    closeReturnModal,
     handleAllocationSubmit,
   };
 };

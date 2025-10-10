@@ -23,9 +23,6 @@ const rentalStatusToneMap: Record<RentalRecord["status"], string> = {
 type AllocationVariantProps = {
   variant: "allocation";
   assets: AssetRecord[];
-  onSelectionChange?: (selected: AssetRecord[]) => void;
-  selectedAssetIds?: string[];
-  onInspectAsset?: (asset: AssetRecord) => void;
 };
 
 type RentalVariantProps = {
@@ -37,9 +34,6 @@ type TableProps = AllocationVariantProps | RentalVariantProps;
 
 const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
   assets,
-  onSelectionChange,
-  selectedAssetIds,
-  onInspectAsset,
 }) => {
   const columns = useMemo<ColumnDef<AssetRecord>[]>(
     () => [
@@ -124,35 +118,9 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           </div>
         ),
       },
-      {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <button
-            type="button"
-            className="label-medium text-primary hover:underline"
-            onClick={() => onInspectAsset?.(row.original)}
-          >
-            Inspect
-          </button>
-        ),
-        enableSorting: false,
-        enableColumnFilter: false,
-        size: 120,
-      },
     ],
-    [onInspectAsset]
+    []
   );
-
-  const controlledRowSelection = useMemo(() => {
-    if (!selectedAssetIds || selectedAssetIds.length === 0) return undefined;
-    return assets.reduce<Record<string, boolean>>((acc, asset, index) => {
-      if (selectedAssetIds.includes(asset.id)) {
-        acc[index.toString()] = true;
-      }
-      return acc;
-    }, {});
-  }, [assets, selectedAssetIds]);
 
   return (
     <div className="flex h-full flex-col">
@@ -160,10 +128,6 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         columns={columns}
         data={assets}
         showPagination
-        showCheckbox
-        enableRowClickSelection
-        onRowSelectionChange={(rows) => onSelectionChange?.(rows)}
-        rowSelection={controlledRowSelection}
       />
     </div>
   );
@@ -282,14 +246,11 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
 
 const Table: React.FC<TableProps> = (props) => {
   if (props.variant === "allocation") {
-    const { assets, onSelectionChange, selectedAssetIds, onInspectAsset } = props;
+    const { assets } = props;
     return (
       <AllocationVariantTable
         variant="allocation"
         assets={assets}
-        onSelectionChange={onSelectionChange}
-        selectedAssetIds={selectedAssetIds}
-        onInspectAsset={onInspectAsset}
       />
     );
   }

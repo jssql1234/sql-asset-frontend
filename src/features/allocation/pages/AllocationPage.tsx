@@ -1,18 +1,16 @@
 import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import Tabs from "@/components/ui/components/Tabs";
-import AllocationModal from "../components/modal/AllocationModal";
-import TransferModal from "../components/modal/TransferModal";
-import ReturnModal from "../components/modal/ReturnModal";
+import AllocationModal from "../components/AllocationModal";
 import { useAllocationState } from "../hooks/useAllocationState";
 import { useAllocationTabs } from "../hooks/useAllocationTabs";
 
 const AllocationPage: React.FC = () => {
-  const { filters, selectedAssetIds, filteredAssets, summary, isAllocationModalOpen, isTransferModalOpen, isReturnModalOpen, locations, pics, statuses, assets,
-    handleFilterChange, handleSelectionChange, openAllocationModal, openTransferModal, openReturnModal, closeAllocationModal, closeTransferModal, closeReturnModal, handleAllocationSubmit,
+  const { filters, filteredAssets, summary, isAllocationModalOpen, locations, pics, statuses, assets,
+    handleFilterChange, openAllocationModal, closeAllocationModal, handleAllocationSubmit,
   } = useAllocationState();
 
-  const tabs = useAllocationTabs({ filteredAssets, filters, summary, locations, pics, statuses, selectedAssetIds,
-    onFilterChange: handleFilterChange, onSelectionChange: handleSelectionChange, onOpenAllocationModal: openAllocationModal, onOpenTransferModal: openTransferModal, onOpenReturnModal: openReturnModal,
+  const tabs = useAllocationTabs({ filteredAssets, filters, summary, locations, pics, statuses,
+    onFilterChange: handleFilterChange, onOpenAllocationModal: openAllocationModal,
   });
 
   return (
@@ -28,12 +26,9 @@ const AllocationPage: React.FC = () => {
         onClose={closeAllocationModal}
         onSubmit={handleAllocationSubmit}
         assets={assets}
-        selectedAssetIds={selectedAssetIds}
         locations={locations}
         users={pics}
       />
-      <TransferModal isOpen={isTransferModalOpen} onClose={closeTransferModal} />
-      <ReturnModal isOpen={isReturnModalOpen} onClose={closeReturnModal} />
     </SidebarHeader>
   );
 };

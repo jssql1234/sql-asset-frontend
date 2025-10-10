@@ -60,21 +60,13 @@ const RentalsTab: React.FC = () => {
         }
       />
 
-      <Card className="flex flex-1 flex-col gap-4 border border-outline bg-surfaceContainer p-0">
-        <div className="flex items-center justify-between px-6 py-4">
+      <Card className="flex flex-1 flex-col gap-1 border border-outline bg-surfaceContainer p-0">
+        <div className="flex items-center justify-between px-5 py-4">
           <div>
             <h3 className="title-small text-onSurface">Rental Inventory</h3>
             <p className="body-small text-onSurfaceVariant">
               {rentalsForTable.length} records • Viewing filtered rentals
             </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" size="sm">
-              Export List
-            </Button>
-            <Button variant="outline" size="sm">
-              View Calendar
-            </Button>
           </div>
         </div>
         <div className="flex-1 border-t border-outline">

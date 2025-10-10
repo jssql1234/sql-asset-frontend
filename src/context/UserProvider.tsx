@@ -11,11 +11,13 @@ const MOCK_USERS: User[] = [
   {
     id: '1',
     name: 'Admin User',
+    email: 'admin@company.com',
     groupId: 'admin',
   },
   {
     id: '2',
     name: 'Regular User',
+    email: 'user@company.com',
     groupId: 'user',
   }
 ];
@@ -86,11 +88,24 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     return groups.find(g => g.id === groupId);
   }, [groups]);
 
+  const addUser = useCallback((user: User) => {
+    setUsers(prev => [...prev, user]);
+  }, []);
+
   const updateUser = useCallback((userId: string, updates: Partial<User>) => {
     setUsers(prev => prev.map(user =>
       user.id === userId ? { ...user, ...updates } : user
     ));
   }, []);
+
+  const deleteUser = useCallback((userId: string): boolean => {
+    setUsers(prev => prev.filter(user => user.id !== userId));
+    return true;
+  }, []);
+
+  const getUsersByGroup = useCallback((groupId: string): User[] => {
+    return users.filter(user => user.groupId === groupId);
+  }, [users]);
 
   const updateGroup = useCallback((groupId: string, updates: Partial<UserGroup>) => {
     // Prevent updating admin permissions
@@ -109,20 +124,21 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     setGroups(prev => [...prev, group]);
   }, []);
 
-  const deleteGroup = useCallback((groupId: string): boolean => {
+  const deleteGroup = useCallback((groupId: string): { success: boolean; assignedUsers?: User[] } => {
     // Prevent deletion of admin group
-    if (groupId === 'admin') return false;
+    if (groupId === 'admin') return { success: false };
+
+    // Check for assigned users
+    const assignedUsers = users.filter(u => u.groupId === groupId);
+    if (assignedUsers.length > 0) {
+      return { success: false, assignedUsers };
+    }
 
     // Remove the group
     setGroups(prev => prev.filter(g => g.id !== groupId));
 
-    // Reassign users from deleted group to admin group
-    setUsers(prev => prev.map(user =>
-      user.groupId === groupId ? { ...user, groupId: 'admin' } : user
-    ));
-
-    return true;
-  }, []);
+    return { success: true };
+  }, [users]);
 
   const assignUserToGroup = useCallback((userId: string, groupId: string) => {
     updateUser(userId, { groupId });
@@ -134,12 +150,15 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     groups,
     setCurrentUser,
     getUserGroup,
+    addUser,
     updateUser,
+    deleteUser,
+    getUsersByGroup,
     updateGroup,
     addGroup,
     deleteGroup,
     assignUserToGroup,
-  }), [currentUser, users, groups, setCurrentUser, getUserGroup, updateUser, updateGroup, addGroup, deleteGroup, assignUserToGroup]);
+  }), [currentUser, users, groups, setCurrentUser, getUserGroup, addUser, updateUser, deleteUser, getUsersByGroup, updateGroup, addGroup, deleteGroup, assignUserToGroup]);
 
   return (
     <UserContext value={value}>

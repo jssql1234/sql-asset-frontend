@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
-import { SearchableDropdown } from "@/components/SearchableDropdown";
+import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { WorkOrder, WorkOrderFormData, MaintenanceType, MaintenancePriority, MaintenanceStatus, ServiceBy } from "../types";
 import { MOCK_ASSETS, MOCK_TECHNICIANS, MOCK_VENDORS, MAINTENANCE_TYPES, PRIORITY_LEVELS, STATUS_OPTIONS } from "../mockData";
 
@@ -39,14 +39,18 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
     status: "Pending",
   });
 
-  const [selectedAssets, setSelectedAssets] = useState<Array<{ id: string; name: string; code: string }>>([]);
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [assigneeOptions, setAssigneeOptions] = useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
 
-  // Filter out already selected assets from the dropdown
-  const availableAssets = useMemo(() => {
-    const selectedAssetIds = new Set(selectedAssets.map(asset => asset.id));
-    return MOCK_ASSETS.filter(asset => !selectedAssetIds.has(asset.id));
-  }, [selectedAssets]);
+  // Asset categories for SearchWithDropdown
+  const assetCategories = [
+    { id: "all", label: "All Categories" },
+    { id: "heavy", label: "Heavy Equipment", sublabel: "Excavators, Bulldozers, Cranes" },
+    { id: "power", label: "Power Equipment", sublabel: "Generators, Compressors" },
+    { id: "material", label: "Material Handling", sublabel: "Forklifts" },
+    { id: "tools", label: "Tools & Machinery", sublabel: "Welding Machines" },
+  ];
 
   // Populate form when workOrder changes
   useEffect(() => {
@@ -73,17 +77,8 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
       });
 
       // Parse selected assets from workOrder
-      const assetIds = workOrder.assetId.split(',');
-      const assetNames = workOrder.assetName.split(',');
-      const assets = assetIds.map((id, index) => {
-        const asset = MOCK_ASSETS.find(a => a.id === id.trim());
-        return {
-          id: id.trim(),
-          name: assetNames[index]?.trim() || asset?.name || id.trim(),
-          code: asset?.code || id.trim(),
-        };
-      });
-      setSelectedAssets(assets);
+      const assetIds = workOrder.assetId.split(',').map(id => id.trim());
+      setSelectedAssets(assetIds);
     }
   }, [workOrder]);
 
@@ -96,62 +91,27 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
     }
   }, [formData.serviceBy]);
 
-  const handleAssetSelect = (assetId: string) => {
-    const asset = MOCK_ASSETS.find(a => a.id === assetId);
-    if (asset && !selectedAssets.find(a => a.id === assetId)) {
-      const updatedAssets = [...selectedAssets, asset];
-      setSelectedAssets(updatedAssets);
-      
-      // Update form data
-      if (updatedAssets.length === 1) {
-        setFormData(prev => ({
-          ...prev,
-          assetId: asset.id,
-          assetName: asset.name,
-        }));
-      } else {
-        setFormData(prev => ({
-          ...prev,
-          assetId: updatedAssets.map(a => a.id).join(','),
-          assetName: updatedAssets.map(a => a.name).join(', '),
-        }));
-      }
-    }
-  };
+  const handleAssetSelectionChange = (assetIds: string[]) => {
+    setSelectedAssets(assetIds);
 
-  const handleRemoveAsset = (assetId: string) => {
-    const updatedAssets = selectedAssets.filter(a => a.id !== assetId);
-    setSelectedAssets(updatedAssets);
-    
     // Update form data
-    if (updatedAssets.length === 0) {
-      setFormData(prev => ({
+    if (assetIds.length === 0) {
+      setFormData((prev) => ({
         ...prev,
         assetId: "",
         assetName: "",
       }));
-    } else if (updatedAssets.length === 1) {
-      setFormData(prev => ({
-        ...prev,
-        assetId: updatedAssets[0].id,
-        assetName: updatedAssets[0].name,
-      }));
     } else {
-      setFormData(prev => ({
+      const selectedAssetObjects = assetIds
+        .map((id) => MOCK_ASSETS.find((a) => a.id === id))
+        .filter((a) => a !== undefined);
+      
+      setFormData((prev) => ({
         ...prev,
-        assetId: updatedAssets.map(a => a.id).join(','),
-        assetName: updatedAssets.map(a => a.name).join(', '),
+        assetId: assetIds.join(","),
+        assetName: selectedAssetObjects.map((a) => a!.name).join(", "),
       }));
     }
-  };
-
-  const handleClearAllAssets = () => {
-    setSelectedAssets([]);
-    setFormData(prev => ({
-      ...prev,
-      assetId: "",
-      assetName: "",
-    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -227,92 +187,21 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                   <label className="label-large block mb-2 text-onSurface">
                     Search Assets <span className="text-error">*</span>
                   </label>
-                  <div className="space-y-3">
-                    <div className="flex gap-2">
-                      <div className="flex-1">
-                        <SearchableDropdown
-                          items={availableAssets.map((asset) => ({
-                            id: asset.id,
-                            label: asset.name,
-                            sublabel: asset.code,
-                          }))}
-                          selectedId=""
-                          onSelect={handleAssetSelect}
-                          placeholder="Search asset by name or ID"
-                          emptyMessage={
-                            selectedAssets.length === MOCK_ASSETS.length
-                              ? "All assets have been selected"
-                              : "No assets found"
-                          }
-                          searchInDropdown={true}
-                        />
-                      </div>
-                      {selectedAssets.length > 0 && (
-                        <button
-                          type="button"
-                          onClick={handleClearAllAssets}
-                          className="px-4 py-2 rounded bg-error text-onError hover:bg-error/90 transition-colors whitespace-nowrap label-large"
-                        >
-                          Clear All Assets
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Selected Assets */}
-                    <div>
-                      <label className="label-medium block mb-2 text-onSurfaceVariant">
-                        Selected Assets
-                      </label>
-                      <div className="h-40 overflow-y-auto border border-outlineVariant rounded p-2 bg-surfaceContainerLowest">
-                        {selectedAssets.length === 0 ? (
-                          <div className="flex items-center justify-center h-full">
-                            <p className="body-small text-onSurfaceVariant italic text-center">
-                              No assets selected. Use the search above to add
-                              assets.
-                            </p>
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            {selectedAssets.map((asset) => (
-                              <div
-                                key={asset.id}
-                                className="flex items-center justify-between px-3 py-2 bg-surface rounded border border-outlineVariant hover:border-primary/40 transition-colors"
-                              >
-                                <div className="flex flex-col">
-                                  <span className="body-medium font-medium text-onSurface">
-                                    {asset.name}
-                                  </span>
-                                  <span className="body-small text-onSurfaceVariant">
-                                    {asset.code}
-                                  </span>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveAsset(asset.id)}
-                                  className="ml-2 p-1 rounded hover:bg-errorContainer text-error transition-colors"
-                                  title="Remove asset"
-                                >
-                                  <svg
-                                    className="w-4 h-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M6 18L18 6M6 6l12 12"
-                                    />
-                                  </svg>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                  <SearchWithDropdown
+                    categories={assetCategories}
+                    selectedCategoryId={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    items={MOCK_ASSETS.map((asset) => ({
+                      id: asset.id,
+                      label: asset.name,
+                      sublabel: asset.code,
+                    }))}
+                    selectedIds={selectedAssets}
+                    onSelectionChange={handleAssetSelectionChange}
+                    placeholder="Search asset by name or ID..."
+                    emptyMessage="No assets found"
+                    disable={true}
+                  />
                 </div>
               </div>
             </section>

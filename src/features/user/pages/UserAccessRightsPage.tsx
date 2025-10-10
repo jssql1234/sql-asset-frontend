@@ -10,7 +10,7 @@ import PermissionEditor from "../components/PermissionEditor";
 const UserAccessRightsPage: React.FC = () => {
   const { groups, updateGroup } = use(UserContext);
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [draftPermissions, setDraftPermissions] = useState<Record<string, Record<string, boolean>>>({});
+  const [draftPermissions, setDraftPermissions] = useState<Partial<Record<string, Partial<Record<string, boolean>>>>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Initialize draft permissions when group changes
@@ -55,12 +55,10 @@ const UserAccessRightsPage: React.FC = () => {
 
       selectedPermissions.forEach(permissionKey => {
         const item = PERMISSION_ITEMS.find(item => item.key === permissionKey);
-        if (item) {
-          if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-            updatedPermissions[item.key] = {};
-          }
+        if (!(item == null)) {
+          const itemPermissions = updatedPermissions[item.key] ??= {};
           Object.keys(item.permissions).forEach(action => {
-            updatedPermissions[item.key][action] = true;
+            itemPermissions[action] = true;
           });
         }
       })
@@ -79,12 +77,10 @@ const UserAccessRightsPage: React.FC = () => {
 
       selectedPermissions.forEach(permissionKey => {
         const item = PERMISSION_ITEMS.find(item => item.key === permissionKey);
-        if (item) {
-          if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-            updatedPermissions[item.key] = {};
-          }
+        if (!(item == null)) {
+          const itemPermissions = updatedPermissions[item.key] ??= {};
           Object.keys(item.permissions).forEach(action => {
-            updatedPermissions[item.key][action] = false;
+            itemPermissions[action] = false;
           });
         }
       })
@@ -102,11 +98,9 @@ const UserAccessRightsPage: React.FC = () => {
       const updatedPermissions = { ...prev };
 
       PERMISSION_ITEMS.forEach(item => {
-        if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-          updatedPermissions[item.key] = {};
-        }
+        const itemPermissions = updatedPermissions[item.key] ??= {};
         Object.keys(item.permissions).forEach(action => {
-          updatedPermissions[item.key][action] = true;
+          itemPermissions[action] = true;
         });
       });
 
@@ -123,11 +117,9 @@ const UserAccessRightsPage: React.FC = () => {
       const updatedPermissions = { ...prev };
 
       PERMISSION_ITEMS.forEach(item => {
-        if (!(updatedPermissions[item.key] as Record<string, boolean> | undefined)) {
-          updatedPermissions[item.key] = {};
-        }
+        const itemPermissions = updatedPermissions[item.key] ??= {};
         Object.keys(item.permissions).forEach(action => {
-          updatedPermissions[item.key][action] = false;
+          itemPermissions[action] = false;
         });
       });
 

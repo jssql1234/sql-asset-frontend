@@ -10,18 +10,21 @@ export function hasPermission(
   group: UserGroup,
   feature: string,
   action: PermissionAction
-): boolean {
+): boolean | undefined {
   // Find the permission item to check if action is applicable
   const permissionItem = PERMISSION_ITEMS.find(p => p.key === feature);
   if (!permissionItem) return false;
 
   // Check if action is applicable to this feature
   const actionAllowed = permissionItem.permissions[action];
-  if (actionAllowed === undefined) return false; // Action not applicable
+  if (actionAllowed == null) return false; // Action not applicable
+
+  const defaultPermissions = group.defaultPermissions[feature];
+  if (defaultPermissions == null) return false;
 
   // Check group permissions
-  const groupPermission = (group.defaultPermissions[feature] as Record<string, boolean> | undefined)?.[action];
-  return groupPermission ?? false;
+  const groupPermission = defaultPermissions[action];
+  return groupPermission;
 }
 
 /**

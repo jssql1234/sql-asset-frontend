@@ -2,5 +2,5 @@ export interface UserGroup {
     id: string;
     name: string;
     description: string;
-    defaultPermissions: Record<string, Record<string, boolean>>; // feature -> action -> boolean
+    defaultPermissions: Partial<Record<string, Partial<Record<string, boolean>>>>; // feature -> action -> boolean
 }

@@ -198,14 +198,14 @@ export default function AssetContentArea() {
   // Summary cards data
   const summaryCardsData: SummaryCardItem[] = [
     {
-      label: "Total Assets",
-      value: assets?.length.toString() ?? "0",
-      description: "Total registered assets",
-    },
-    {
       label: "Total Asset Cost",
       value: `RM ${(assets?.reduce((sum, asset) => sum + (asset.cost || 0), 0) ?? 0).toLocaleString()}`,
       description: "Combined cost of all assets",
+    },
+    {
+      label: "Total Assets",
+      value: assets?.length.toString() ?? "0",
+      description: "Total registered assets",
     },
     {
       label: "Active Assets",
@@ -236,17 +236,25 @@ export default function AssetContentArea() {
           <TabHeader
             title="Asset Management"
             subtitle="Manage and track all company assets"
-            actions={[
-              {
-                label: "Add Asset",
-                onAction: () => { setView('create'); },
-                variant: "default",
-              }
-            ]}
+            actions={[]}
           />
-        <Card className="p-3">
+
+          <div className="mb-6">
+            <SummaryCards data={summaryCardsData} columns={3} />
+          </div>
+
+          <div className="mb-6">
+            <Search
+              searchValue={searchValue}
+              searchPlaceholder="Search assets..."
+              onSearch={setSearchValue}
+              live={true}
+            />
+          </div>
+
+          <Card className="p-3">
           {/* Header actions */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
               <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
@@ -301,15 +309,6 @@ export default function AssetContentArea() {
               )}
             </div>
           </div>
-
-          <SummaryCards data={summaryCardsData} columns={3} />
-
-          <Search
-            searchValue={searchValue}
-            searchPlaceholder="Search assets..."
-            onSearch={setSearchValue}
-            live={true}
-          />
 
           <DataTable
             columns={visibleColumns}

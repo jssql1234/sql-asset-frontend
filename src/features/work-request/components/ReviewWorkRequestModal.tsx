@@ -95,7 +95,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
     <>
       {/* Review Work Request Modal */}
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-6xl max-h-[90vh] w-full flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Review Work Request</DialogTitle>
           </DialogHeader>

@@ -145,7 +145,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-full overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Work Request</DialogTitle>
         </DialogHeader>

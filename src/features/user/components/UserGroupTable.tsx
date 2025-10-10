@@ -1,7 +1,8 @@
-import React from 'react';
-import { DataTable } from "@/components/ui/components/Table";
+import React, { useState, useMemo } from 'react';
+import { DataTableExtended as DataTable } from "@/components/DataTableExtended";
 import { Button } from '@/components/ui/components';
 import { TooltipWrapper } from '@/components/TooltipWrapper';
+import SearchFilter from '@/components/SearchFilter';
 import { Edit, Delete } from '@/assets/icons';
 import type { UserGroup } from '@/types/user-group';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -17,6 +18,19 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter groups based on search term
+  const filteredGroups = useMemo(() => {
+    if (!searchTerm.trim()) return groups;
+
+    const term = searchTerm.toLowerCase().trim();
+    return groups.filter(group =>
+      group.id.toLowerCase().includes(term) ||
+      group.name.toLowerCase().includes(term) ||
+      group.description.toLowerCase().includes(term)
+    );
+  }, [groups, searchTerm]);
   const columns: ColumnDef<UserGroup>[] = [
     {
       accessorKey: 'id',
@@ -84,11 +98,22 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
   ];
 
   return (
-    <DataTable
-      columns={columns}
-      data={groups}
-      showPagination={true}
-      className="w-full"
-    />
+    <div className="space-y-4">
+      <SearchFilter
+        searchLabel="Search Groups"
+        searchPlaceholder="Search by ID, name, or description"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        live={true}
+        className="w-full"
+      />
+      <DataTable
+        columns={columns}
+        data={filteredGroups}
+        showPagination={true}
+        onRowDoubleClick={onEdit}
+        className="w-full"
+      />
+    </div>
   );
 };

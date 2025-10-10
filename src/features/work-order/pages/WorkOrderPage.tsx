@@ -1,22 +1,13 @@
 import { useState } from "react";
-import { AssetLayout } from "@/layout/AssetSidebar";
+import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
 import CalendarTab from "./CalendarTab";
 import CreateWorkOrderModal from "../components/CreateWorkOrderModal";
 import EditWorkOrderModal from "../components/EditWorkOrderModal";
-import {
-  MOCK_WORK_ORDERS,
-  MOCK_WORK_ORDER_SUMMARY,
-} from "../mockData";
-import type {
-  WorkOrderFilters,
-  WorkOrder,
-  WorkOrderFormData,
-} from "../types";
-import {
-  DEFAULT_WORK_ORDER_FILTERS,
-} from "../types";
+import { MOCK_WORK_ORDERS, MOCK_WORK_ORDER_SUMMARY } from "../mockData";
+import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
+import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
 
 const WorkOrdersPage: React.FC = () => {
   // State
@@ -24,12 +15,14 @@ const WorkOrdersPage: React.FC = () => {
   const [workOrderFilters, setWorkOrderFilters] = useState<WorkOrderFilters>(
     DEFAULT_WORK_ORDER_FILTERS
   );
-  
+
   // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(null);
-  const [prefilledDates, setPrefilledDates] = useState<{ 
+  const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(
+    null
+  );
+  const [prefilledDates, setPrefilledDates] = useState<{
     scheduledDate?: string;
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
@@ -73,21 +66,21 @@ const WorkOrdersPage: React.FC = () => {
     console.log("Start date:", selectInfo.startStr);
     console.log("End date:", selectInfo.endStr);
     console.log("All day:", selectInfo.allDay);
-    
+
     // Convert dates to datetime-local format
     const startDate = new Date(selectInfo.start);
     const endDate = new Date(selectInfo.end);
-    
+
     // Format as YYYY-MM-DDTHH:mm for datetime-local input
     const formatDateTime = (date: Date) => {
       const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
       return `${year}-${month}-${day}T${hours}:${minutes}`;
     };
-    
+
     // Open create work order modal with pre-filled dates
     setPrefilledDates({
       scheduledDate: selectInfo.startStr,
@@ -95,16 +88,10 @@ const WorkOrdersPage: React.FC = () => {
       scheduledEndDateTime: formatDateTime(endDate),
     });
     setIsCreateModalOpen(true);
-    
+
     // Clear the selection after handling
     selectInfo.view.calendar.unselect();
   };
-
-  // Drag and drop functionality removed - events are now read-only
-  // Users must use the edit modal to change work order dates
-  // const handleCalendarEventChange = (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => {
-  //   ... removed for simplicity
-  // };
 
   // Form submission handlers
   const handleSubmitCreateWorkOrder = (formData: WorkOrderFormData) => {
@@ -122,7 +109,7 @@ const WorkOrdersPage: React.FC = () => {
       status: formData.status,
       serviceBy: formData.serviceBy,
       assignedTo: formData.assignedTo,
-      requestedDate: new Date().toISOString().split('T')[0],
+      requestedDate: new Date().toISOString().split("T")[0],
       scheduledDate: formData.scheduledDate,
       scheduledStartDateTime: formData.scheduledStartDateTime,
       scheduledEndDateTime: formData.scheduledEndDateTime,
@@ -136,23 +123,35 @@ const WorkOrdersPage: React.FC = () => {
     };
 
     // Add to work orders list
-    setWorkOrders(prev => [...prev, newWorkOrder]);
-    
+    setWorkOrders((prev) => [...prev, newWorkOrder]);
+
     console.log("Work order created:", newWorkOrder);
-    alert(`Work order ${newWorkOrder.workOrderNumber} has been created successfully!`);
-    
+    alert(
+      `Work order ${newWorkOrder.workOrderNumber} has been created successfully!`
+    );
+
     setIsCreateModalOpen(false);
   };
 
-  const handleSubmitEditWorkOrder = (updatedWorkOrder: WorkOrder) => {
+  const handleSubmitEditWorkOrder = (formData: WorkOrderFormData) => {
+    if (!selectedWorkOrder) return;
+
+    // Merge form data with existing work order
+    const updatedWorkOrder: WorkOrder = {
+      ...selectedWorkOrder,
+      ...formData,
+    };
+
     // Update work order in list
-    setWorkOrders(prev =>
-      prev.map(wo => wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo)
+    setWorkOrders((prev) =>
+      prev.map((wo) => (wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo))
     );
-    
+
     console.log("Work order updated:", updatedWorkOrder);
-    alert(`Work order ${updatedWorkOrder.workOrderNumber} has been updated successfully!`);
-    
+    alert(
+      `Work order ${updatedWorkOrder.workOrderNumber} has been updated successfully!`
+    );
+
     setIsEditModalOpen(false);
     setSelectedWorkOrder(null);
   };
@@ -189,8 +188,10 @@ const WorkOrdersPage: React.FC = () => {
   ];
 
   return (
-    <AssetLayout activeSidebarItem="work-orders">
-      <div className="flex min-h-full flex-col gap-4 overflow-auto">
+    <SidebarHeader
+      breadcrumbs={[{ label: "Asset Maintenance" }, { label: "Work Orders" }]}
+    >
+      <div className="flex min-h-full flex-col gap-4 overflow-hidden">
         <Tabs tabs={tabs} defaultValue="workorders" />
       </div>
 
@@ -201,7 +202,7 @@ const WorkOrdersPage: React.FC = () => {
         onSubmit={handleSubmitCreateWorkOrder}
         prefilledDates={prefilledDates}
       />
-      
+
       <EditWorkOrderModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -211,7 +212,7 @@ const WorkOrdersPage: React.FC = () => {
         onSubmit={handleSubmitEditWorkOrder}
         workOrder={selectedWorkOrder}
       />
-    </AssetLayout>
+    </SidebarHeader>
   );
 };
 

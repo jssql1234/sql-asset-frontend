@@ -131,15 +131,23 @@ const WorkRequestPage: React.FC = () => {
   const handleOpenCreateModal = () => setIsCreateModalOpen(true);
   const handleCloseCreateModal = () => setIsCreateModalOpen(false);
 
-  const handleOpenReviewModal = useCallback(() => {
+  const handleOpenReviewModal = useCallback((workRequest?: WorkRequest) => {
+    // If a work request is provided directly (from double-click), use it
+    if (workRequest) {
+      setSelectedWorkRequest(workRequest);
+      setIsReviewModalOpen(true);
+      return;
+    }
+
+    // Otherwise, use the selected work request from selection
     if (selectedWorkRequestIds.length !== 1) {
       alert('Please select exactly one work request to review.');
       return;
     }
 
-    const workRequest = workRequests.find(wr => wr.id === selectedWorkRequestIds[0]);
-    if (workRequest) {
-      setSelectedWorkRequest(workRequest);
+    const selectedWorkRequest = workRequests.find(wr => wr.id === selectedWorkRequestIds[0]);
+    if (selectedWorkRequest) {
+      setSelectedWorkRequest(selectedWorkRequest);
       setIsReviewModalOpen(true);
     }
   }, [selectedWorkRequestIds, workRequests]);

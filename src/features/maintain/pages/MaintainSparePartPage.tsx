@@ -1,148 +1,143 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import Search from '@/components/Search';
-import { DataTable } from '@/components/ui/components/Table';
-import { type ColumnDef } from '@tanstack/react-table';
-import { Plus } from '@/assets/icons';
-
-interface SparePart {
-  id: string;
-  name: string;
-  partNumber: string;
-  description: string;
-  category: string;
-  quantity: number;
-  unitCost: number;
-  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
-  createdAt: string;
-}
-
-const mockSpareParts: SparePart[] = [
-  {
-    id: '1',
-    name: 'CPU Fan',
-    partNumber: 'CPU-FAN-001',
-    description: 'High-performance CPU cooling fan',
-    category: 'Cooling',
-    quantity: 25,
-    unitCost: 45.99,
-    status: 'In Stock',
-    createdAt: '2023-01-15',
-  },
-  {
-    id: '2',
-    name: 'Power Supply Unit',
-    partNumber: 'PSU-500W-002',
-    description: '500W ATX power supply',
-    category: 'Power',
-    quantity: 8,
-    unitCost: 89.99,
-    status: 'Low Stock',
-    createdAt: '2023-02-20',
-  },
-  {
-    id: '3',
-    name: 'RAM Module 8GB',
-    partNumber: 'RAM-8GB-003',
-    description: 'DDR4 8GB memory module',
-    category: 'Memory',
-    quantity: 0,
-    unitCost: 65.50,
-    status: 'Out of Stock',
-    createdAt: '2023-03-10',
-  },
-  {
-    id: '4',
-    name: 'Hard Drive 1TB',
-    partNumber: 'HDD-1TB-004',
-    description: '1TB SATA hard drive',
-    category: 'Storage',
-    quantity: 15,
-    unitCost: 79.99,
-    status: 'In Stock',
-    createdAt: '2023-04-05',
-  },
-];
+import { Plus, ExportFile, Settings } from '@/assets/icons';
+import { SparePartsFormModal } from '../components/SparePartsFormModal';
+import { SparePartsTable } from '../components/SparePartsTable';
+import { SparePartsSearchAndFilter } from '../components/SparePartsSearchAndFilter';
+import { useSpareParts } from '../hooks/useSpareParts';
+import type { SparePart, SparePartFormData } from '../types/spareParts';
+import { useToast } from '@/components/ui/components/Toast/useToast';
 
 const MaintainSparePartPage: React.FC = () => {
-  const [searchValue, setSearchValue] = useState('');
-  const [spareParts] = useState<SparePart[]>(mockSpareParts);
+  const {
+    filteredSpareParts,
+    selectedSpareParts,
+    filters,
+    updateFilters,
+    addSparePart,
+    updateSparePart,
+    deleteSparePart,
+    deleteMultipleSpareParts,
+    toggleSparePartSelection,
+    resetToSampleData,
+    exportData,
+  } = useSpareParts();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPart, setEditingPart] = useState<SparePart | null>(null);
+  const { addToast } = useToast();
 
   const handleAddSparePart = () => {
-    // TODO: Implement add spare part modal
-    console.log('Add spare part clicked');
+    setEditingPart(null);
+    setIsModalOpen(true);
   };
 
-  const filteredSpareParts = spareParts.filter(sparePart =>
-    sparePart.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    sparePart.partNumber.toLowerCase().includes(searchValue.toLowerCase()) ||
-    sparePart.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-    sparePart.category.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const handleEditSparePart = (part: SparePart) => {
+    setEditingPart(part);
+    setIsModalOpen(true);
+  };
 
-  const columns: ColumnDef<SparePart>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Part Name',
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-          <div className="text-sm text-onSurfaceVariant">PN: {row.original.partNumber}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'category',
-      header: 'Category',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.category}</div>
-      ),
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }) => (
-        <div className="text-sm text-onSurfaceVariant">{row.original.description}</div>
-      ),
-    },
-    {
-      accessorKey: 'quantity',
-      header: 'Quantity',
-      cell: ({ row }) => (
-        <div className="text-sm font-medium">{row.original.quantity}</div>
-      ),
-    },
-    {
-      accessorKey: 'unitCost',
-      header: 'Unit Cost',
-      cell: ({ row }) => (
-        <div className="text-sm">${row.original.unitCost.toFixed(2)}</div>
-      ),
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => {
-        const status = row.original.status;
-        const colorClass = status === 'In Stock' ? 'bg-green-100 text-green-800' :
-                          status === 'Low Stock' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800';
-        return (
-          <span className={`px-2 py-1 rounded-full text-xs ${colorClass}`}>
-            {status}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created Date',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.createdAt}</div>
-      ),
-    },
-  ];
+  const handleSaveSparePart = (formData: SparePartFormData) => {
+    try {
+      if (editingPart) {
+        updateSparePart(formData);
+        addToast({
+          title: "Success",
+          description: "Spare part updated successfully!",
+          variant: "default",
+        });
+      } else {
+        addSparePart(formData);
+        addToast({
+          title: "Success",
+          description: "Spare part added successfully!",
+          variant: "default",
+        });
+      }
+    } catch (error) {
+      addToast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while saving the spare part.",
+        variant: "destructive",
+      });
+      throw error; // Re-throw so the modal can handle it too
+    }
+  };
+
+  const handleDeleteSparePart = (id: string) => {
+    if (confirm('Are you sure you want to delete this spare part?')) {
+      try {
+        deleteSparePart(id);
+        addToast({
+          title: "Success",
+          description: "Spare part deleted successfully!",
+          variant: "default",
+        });
+      } catch (error) {
+        addToast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "An error occurred while deleting the spare part.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleDeleteMultipleSpareParts = (ids: string[]) => {
+    if (confirm(`Are you sure you want to delete ${String(ids.length)} selected spare parts?`)) {
+      try {
+        deleteMultipleSpareParts(ids);
+        addToast({
+          title: "Success",
+          description: `${String(ids.length)} spare parts deleted successfully!`,
+          variant: "default",
+        });
+      } catch (error) {
+        addToast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "An error occurred while deleting the spare parts.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleResetToSampleData = () => {
+    if (confirm('Are you sure you want to reset to sample data? This will overwrite any existing data.')) {
+      try {
+        resetToSampleData();
+        addToast({
+          title: "Success",
+          description: "Data reset to sample data successfully!",
+          variant: "default",
+        });
+      } catch (error) {
+        addToast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "An error occurred while resetting the data.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleExportData = () => {
+    try {
+      exportData();
+      addToast({
+        title: "Success",
+        description: "Data exported successfully!",
+        variant: "default",
+      });
+    } catch (error) {
+      addToast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An error occurred while exporting the data.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <SidebarHeader
@@ -153,7 +148,7 @@ const MaintainSparePartPage: React.FC = () => {
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <TabHeader
-          title="Maintain Spare Part"
+          title="Spare Parts Management"
           subtitle="Manage spare parts inventory and information"
           actions={[
             {
@@ -163,22 +158,56 @@ const MaintainSparePartPage: React.FC = () => {
               variant: "default",
             },
           ]}
+          customActions={
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleExportData}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+                title="Export Data"
+              >
+                <ExportFile className="w-4 h-4" />
+                Export Data
+              </button>
+              <button
+                type="button"
+                onClick={handleResetToSampleData}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+                title="Reset to Sample"
+              >
+                <Settings className="w-4 h-4" />
+                Reset to Sample
+              </button>
+            </div>
+          }
         />
 
-        <Search
-          searchValue={searchValue}
-          searchPlaceholder="Search spare parts..."
-          onSearch={setSearchValue}
-          live
+        <SparePartsSearchAndFilter
+          filters={filters}
+          onFiltersChange={updateFilters}
+          spareParts={filteredSpareParts}
         />
 
         <div className="flex-1 overflow-hidden">
-          <DataTable
-            columns={columns}
-            data={filteredSpareParts}
-            showPagination
+          <SparePartsTable
+            spareParts={filteredSpareParts}
+            selectedParts={selectedSpareParts}
+            onToggleSelection={toggleSparePartSelection}
+            onEditPart={handleEditSparePart}
+            onDeletePart={handleDeleteSparePart}
+            onDeleteMultipleParts={handleDeleteMultipleSpareParts}
           />
         </div>
+
+        <SparePartsFormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+          }}
+          onSave={handleSaveSparePart}
+          editingPart={editingPart}
+          existingParts={filteredSpareParts}
+        />
       </div>
     </SidebarHeader>
   );

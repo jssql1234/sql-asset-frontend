@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
-import type { DowntimeIncident, FilterState } from "@/features/downtime/types";
+import type { DowntimeIncident } from "@/features/downtime/types";
+import Search from "@/components/Search";
 
 export const PRIORITY_BADGE_VARIANT: Record<DowntimeIncident["priority"], "primary" | "red" | "green" | "yellow" | "blue" | "grey"> = {
   Low: "blue",
@@ -13,28 +14,26 @@ export const PRIORITY_BADGE_VARIANT: Record<DowntimeIncident["priority"], "prima
 
 interface DowntimeTableProps {
   incidents: DowntimeIncident[];
-  filters: FilterState;
   onEditIncident: (incident: DowntimeIncident) => void;
 }
 
 export const DowntimeTable: React.FC<DowntimeTableProps> = ({
   incidents,
-  filters,
   onEditIncident,
 }) => {
-  // Filter incidents based on current filters
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter incidents based on search query
   const filteredIncidents = useMemo(() => {
-    return incidents.filter((incident) => {
-      const matchesSearch = 
-        incident.assetName.toLowerCase().includes(filters.search.toLowerCase()) ||
-        incident.description.toLowerCase().includes(filters.search.toLowerCase());
-      const matchesAsset = !filters.asset || incident.assetId === filters.asset;
-      const matchesStatus = !filters.status || incident.status === filters.status;
-      const matchesPriority = !filters.priority || incident.priority === filters.priority;
-      
-      return matchesSearch && matchesAsset && matchesStatus && matchesPriority;
-    });
-  }, [incidents, filters]);
+    if (!searchQuery.trim()) return incidents;
+    
+    const query = searchQuery.toLowerCase();
+    return incidents.filter((incident) => 
+      incident.assetName.toLowerCase().includes(query) ||
+      incident.assetId.toLowerCase().includes(query) ||
+      incident.description.toLowerCase().includes(query)
+    );
+  }, [incidents, searchQuery]);
 
   // Table column definitions
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
@@ -48,6 +47,8 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
             <div className="text-sm text-onSurfaceVariant">{row.original.assetId}</div>
           </div>
         ),
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "priority",
@@ -60,14 +61,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         },
         filterFn: "multiSelect",
         enableColumnFilter: true,
-        meta: {
-          filterOptions: [
-            { label: "Low", value: "Low" },
-            { label: "Medium", value: "Medium" },
-            { label: "High", value: "High" },
-            { label: "Critical", value: "Critical" },
-          ],
-        },
+        enableSorting: false,
       },
       {
         accessorKey: "startTime",
@@ -81,6 +75,8 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
             </div>
           );
         },
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "description",
@@ -95,6 +91,8 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
             </div>
           );
         },
+        enableSorting: false,
+        enableColumnFilter: false,
       },
     ],
     []
@@ -102,17 +100,24 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h2 className="title-medium font-medium text-onSurface">
           Current Incidents ({filteredIncidents.length})
         </h2>
+        <div className="flex-shrink-0 w-80">
+          <Search
+            searchValue={searchQuery}
+            onSearch={setSearchQuery}
+            searchPlaceholder="Search incidents..."
+            live={true}
+          />
+        </div>
       </div>
       
       <DataTableExtended
         columns={columns}
         data={filteredIncidents}
         showPagination={true}
-        className="border border-outline"
         onRowDoubleClick={onEditIncident}
       />
     </div>

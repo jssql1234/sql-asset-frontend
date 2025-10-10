@@ -3,9 +3,9 @@ export interface DowntimeIncident {
   assetName: string;
   assetId: string;
   priority: "Low" | "Medium" | "High" | "Critical";
-  status: "Active" | "Resolved" | "In Progress";
+  status: "Down" | "Resolved";
   startTime: string; // ISO date string
-  endTime?: string; // ISO date string, optional for active incidents
+  endTime?: string; // ISO date string, optional for down incidents
   downtimeDuration?: string; // Calculated duration string
   description: string;
   reportedBy?: string;
@@ -18,13 +18,6 @@ export interface DowntimeSummary {
   totalIncidents: number;
   totalResolved: number;
   totalDowntime: string; // Total downtime duration formatted string
-}
-
-export interface FilterState {
-  search: string;
-  asset: string;
-  status: "" | DowntimeIncident["status"];
-  priority: "" | DowntimeIncident["priority"];
 }
 
 export interface ModalState {

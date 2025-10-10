@@ -1,38 +1,33 @@
 import React, { useState } from "react";
 import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
-import type { DowntimeIncident, DowntimeSummary, FilterState, ModalState } from "@/features/downtime/types";
+import type { DowntimeIncident, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
 import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
 import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedIncidentsModal";
-import { DowntimeSearchFilter } from "@/features/downtime/components/DowntimeSearchFilter";
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
 import { DowntimeSummaryCard } from "@/features/downtime/components/DowntimeSummaryCard";
 import { DowntimeTabHeader } from "@/features/downtime/components/DowntimeTabHeader";
-import { mockIncidents, mockSummary } from "@/features/downtime/mockData";
+import { 
+  useGetDowntimeIncidents, 
+  useGetDowntimeSummary 
+} from "@/features/downtime/hooks/useDowntimeService";
 
 const DowntimeTrackingPage: React.FC = () => {
-  const [incidents] = useState<DowntimeIncident[]>(mockIncidents);
-  const [summary] = useState<DowntimeSummary>(mockSummary);
-  const [filters, setFilters] = useState<FilterState>({
-    search: "",
-    asset: "",
-    status: "",
-    priority: "",
-  });
+  // Fetch data using hooks
+  const { data: allIncidents = [], isLoading: isLoadingIncidents } = useGetDowntimeIncidents();
+  const { data: summary, isLoading: isLoadingSummary } = useGetDowntimeSummary();
+  
   const [modals, setModals] = useState<ModalState>({
     logDowntime: false,
     editIncident: false,
     resolvedIncidents: false,
   });
+  
   const [selectedIncident, setSelectedIncident] = useState<DowntimeIncident | null>(null);
 
   const handleEditIncident = (incident: DowntimeIncident) => {
     setSelectedIncident(incident);
     setModals((prev: ModalState) => ({ ...prev, editIncident: true }));
-  };
-
-  const handleFilterChange = (newFilters: Partial<FilterState>) => {
-    setFilters((prev: FilterState) => ({ ...prev, ...newFilters }));
   };
 
   const handleModalClose = (modalKey: keyof ModalState) => {
@@ -55,18 +50,24 @@ const DowntimeTrackingPage: React.FC = () => {
           onLogDowntime={() => setModals((prev: ModalState) => ({ ...prev, logDowntime: true }))}
         />
 
-        <DowntimeSummaryCard summary={summary} />
+        {isLoadingSummary ? (
+          <div className="flex items-center justify-center p-8">
+            <span className="text-onSurfaceVariant">Loading summary...</span>
+          </div>
+        ) : summary ? (
+          <DowntimeSummaryCard summary={summary} />
+        ) : null}
 
-        <DowntimeSearchFilter
-          filters={filters}
-          onFiltersChange={handleFilterChange}
-        />
-
-        <DowntimeTable
-          incidents={incidents}
-          filters={filters}
-          onEditIncident={handleEditIncident}
-        />
+        {isLoadingIncidents ? (
+          <div className="flex items-center justify-center p-8">
+            <span className="text-onSurfaceVariant">Loading incidents...</span>
+          </div>
+        ) : (
+          <DowntimeTable
+            incidents={allIncidents}
+            onEditIncident={handleEditIncident}
+          />
+        )}
       </div>
 
       <LogDowntimeModal

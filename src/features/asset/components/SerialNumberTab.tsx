@@ -74,12 +74,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
       }
     }
 
-    setSerialData(prevData => {
-      if (JSON.stringify(prevData) === JSON.stringify(newSerialData)) {
-        return prevData;
-      }
-      return newSerialData;
-    });
+    setSerialData(newSerialData);
   }, [quantity, quantityPerUnit, isBatchMode, serialNumbers]);
 
 
@@ -249,8 +244,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         <Button
           type="button"
           onClick={() => { setIsGenerationModalOpen(true); }}
-          variant="outline"
-          className="bg-primary text-primary-foreground hover:bg-primary/90"
+          variant="default"
         >
           Generate SN
         </Button>

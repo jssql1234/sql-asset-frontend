@@ -192,7 +192,7 @@ export const SerialNumberGenerationModal: React.FC<SerialNumberGenerationModalPr
             <Button
               onClick={handleGenerate}
               disabled={count <= 0 || count > emptyFieldsCount}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              variant="default"
             >
               Generate {count > 0 ? count : ''} Serial{count !== 1 ? 's' : ''}
             </Button>

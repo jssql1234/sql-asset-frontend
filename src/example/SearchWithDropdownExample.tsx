@@ -61,7 +61,8 @@ export const SearchWithDropdownExample = () => {
           onSelectionChange={handleSelectionChange}
           placeholder="Search assets by name or code..."
           emptyMessage="No assets found. Try a different search term."
-          hideSelectedField={false}
+          hideSelectedField={true}
+          disable={false}
         />
       </div>
 

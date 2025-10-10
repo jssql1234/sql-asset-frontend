@@ -27,6 +27,7 @@ interface SearchWithDropdownProps {
   maxHeight?: string;
   emptyMessage?: string;
   hideSelectedField?: boolean;
+  disable?: boolean;
 }
 
 export const SearchWithDropdown = ({
@@ -41,6 +42,7 @@ export const SearchWithDropdown = ({
   maxHeight = "max-h-60",
   emptyMessage = "No results found",
   hideSelectedField = false,
+  disable = false,
 }: SearchWithDropdownProps) => {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
@@ -124,17 +126,19 @@ export const SearchWithDropdown = ({
         <div className="relative">
           <button
             type="button"
-            onClick={handleCategoryDropdownToggle}
+            onClick={disable ? undefined : handleCategoryDropdownToggle}
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 bg-surfaceContainerHigh text-onSurface rounded-l-lg border border-r-0 border-outlineVariant hover:bg-surfaceContainerHighest transition-colors whitespace-nowrap h-[42px]",
-              isCategoryDropdownOpen && "bg-surfaceContainerHighest"
+              isCategoryDropdownOpen && "bg-surfaceContainerHighest",
+              {"opacity-50 cursor-not-allowed": disable}
             )}
           >
             <span className="label-large font-medium">{categoryLabel}</span>
             <ChevronDown
               className={cn(
                 "h-4 w-4 text-onSurfaceVariant transition-transform",
-                isCategoryDropdownOpen && "rotate-180"
+                isCategoryDropdownOpen && "rotate-180",
+                {"opacity-50": disable}
               )}
             />
           </button>
@@ -197,10 +201,10 @@ export const SearchWithDropdown = ({
             type="text"
             placeholder={placeholder}
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={handleSearchFocus}
-            onKeyDown={handleKeyDown}
-            className="w-full rounded-l-none border-outlineVariant focus:z-10 h-[42px]"
+            onChange={disable ? undefined : (e) => setSearchTerm(e.target.value)}
+            onFocus={disable ? undefined : handleSearchFocus}
+            onKeyDown={disable ? undefined : handleKeyDown}
+            className={cn("w-full rounded-l-none border-outlineVariant focus:z-10 h-[42px]", {"opacity-50 cursor-not-allowed": disable})}
           />
 
           {/* Search Dropdown List */}
@@ -239,13 +243,14 @@ export const SearchWithDropdown = ({
       </div>
 
       {/* Selected Items Display */}
-        {hideSelectedField || selectedIds.length > 0 ? (
+        {!hideSelectedField || selectedIds.length > 0 ? (
           <Card className="bg-surfaceContainerLowest p-3 ">
             {/* Header with Clear all button */}
             <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-onSurfaceVariant">
               {selectedIds.length} item{selectedIds.length > 1 ? "s" : ""} selected
             </span>
+            {!disable && selectedIds.length > 0 && (
             <button
               type="button"
               onClick={() => onSelectionChange([])}
@@ -253,7 +258,9 @@ export const SearchWithDropdown = ({
             >
               Clear all
             </button>
+            )}
             </div>
+            
             {/* Selected items chips */}
             <div className="flex flex-wrap gap-2">
             {selectedIds.map((id) => {
@@ -265,28 +272,30 @@ export const SearchWithDropdown = ({
                 <Badge
                   text={item.label}
                   variant="primary"
-                  className="pr-8"
+                  className={!disable ? "pr-7" : ""}
                 />
-                <button
-                  type="button"
-                  onClick={(e) => handleRemoveItem(id, e)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
-                  aria-label={`Remove ${item.label}`}
-                >
-                  <svg
-                    className="w-3.5 h-3.5 text-error"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+                {!disable && (
+                    <button
+                        type="button"
+                        onClick={(e) => handleRemoveItem(id, e)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                        aria-label={`Remove ${item.label}`}
+                    >
+                        <svg
+                            className="w-3.5 h-3.5 text-error"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                            />
+                        </svg>
+                    </button>
+                )}
                 </div>
               );
             })}

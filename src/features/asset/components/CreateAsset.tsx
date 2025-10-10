@@ -466,7 +466,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("allowance");
+  const [activeTab, setActiveTab] = useState("allocation");
 
   const {
     register,
@@ -518,6 +518,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     }
   }, [inactive, setValue]);
 
+
   const formRef = useRef<HTMLFormElement>(null);
 
   useImperativeHandle(ref, () => ({
@@ -555,46 +556,81 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     { value: "vehicles", label: "Vehicles" },
   ];
 
-  const tabs: TabItem[] = [
-    {
-      label: "Allowance",
-      value: "allowance",
-      content: <AllowanceTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
-    },
-    {
-      label: "Hire Purchase",
-      value: "hire-purchase",
-      content: <HirePurchaseTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
-    },
-    {
-      label: "Depreciation",
-      value: "depreciation",
-      content: <DepreciationTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
-    },
-    {
-      label: "Allocation",
-      value: "allocation",
-      content: <AllocationTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
-    },
-    {
-      label: "Serial No",
-      value: "serial-no",
-      content: (
-        <SerialNumberTab
-          quantity={watch("quantity")}
-          quantityPerUnit={watch("quantityPerUnit")}
-          isBatchMode={batchMode}
-          serialNumbers={memoizedSerialNumbers}
-          onSerialNumbersChange={handleSerialNumbersChange}
-        />
-      ),
-    },
-    {
-      label: "Warranty",
-      value: "warranty",
-      content: <WarrantyTab register={register} setValue={setValue} watch={watch} control={control} errors={errors} />,
-    },
-  ];
+  // Define tabs based on batch mode
+  const tabs: TabItem[] = useMemo(() => {
+    const commonProps = { register, setValue, watch, control, errors };
+
+    if (batchMode) {
+      // Batch mode: only show allocation, serial no, and warranty tabs
+      return [
+        {
+          label: "Allocation",
+          value: "allocation",
+          content: <AllocationTab {...commonProps} />,
+        },
+        {
+          label: "Serial No",
+          value: "serial-no",
+          content: (
+            <SerialNumberTab
+              quantity={watch("quantity")}
+              quantityPerUnit={watch("quantityPerUnit")}
+              isBatchMode={batchMode}
+              serialNumbers={memoizedSerialNumbers}
+              onSerialNumbersChange={handleSerialNumbersChange}
+            />
+          ),
+        },
+        {
+          label: "Warranty",
+          value: "warranty",
+          content: <WarrantyTab {...commonProps} />,
+        },
+      ];
+    } else {
+      // Normal mode: show all tabs
+      return [
+        {
+          label: "Allowance",
+          value: "allowance",
+          content: <AllowanceTab {...commonProps} />,
+        },
+        {
+          label: "Hire Purchase",
+          value: "hire-purchase",
+          content: <HirePurchaseTab {...commonProps} />,
+        },
+        {
+          label: "Depreciation",
+          value: "depreciation",
+          content: <DepreciationTab {...commonProps} />,
+        },
+        {
+          label: "Allocation",
+          value: "allocation",
+          content: <AllocationTab {...commonProps} />,
+        },
+        {
+          label: "Serial No",
+          value: "serial-no",
+          content: (
+            <SerialNumberTab
+              quantity={watch("quantity")}
+              quantityPerUnit={watch("quantityPerUnit")}
+              isBatchMode={batchMode}
+              serialNumbers={memoizedSerialNumbers}
+              onSerialNumbersChange={handleSerialNumbersChange}
+            />
+          ),
+        },
+        {
+          label: "Warranty",
+          value: "warranty",
+          content: <WarrantyTab {...commonProps} />,
+        },
+      ];
+    }
+  }, [batchMode, register, setValue, watch, control, errors, memoizedSerialNumbers, handleSerialNumbersChange]);
 
   return (
     <div className="bg-surface min-h-screen">
@@ -612,7 +648,21 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
             },
             {
               label: batchMode ? "Exit Batch" : "Batch",
-              onAction: () => { setBatchMode((prev) => !prev); },
+              onAction: () => {
+                const newBatchMode = !batchMode;
+                setBatchMode(newBatchMode);
+                if (newBatchMode) {
+                  const batchModeTabs = ["allocation", "serial-no", "warranty"];
+                  if (!batchModeTabs.includes(activeTab)) {
+                    setActiveTab("allocation");
+                  }
+                } else {
+                  const normalModeTabs = ["allowance", "hire-purchase", "depreciation", "allocation", "serial-no", "warranty"];
+                  if (!normalModeTabs.includes(activeTab)) {
+                    setActiveTab("allowance");
+                  }
+                }
+              },
               variant: batchMode ? "destructive" : "default",
               size: "sm",
               position: "inline",
@@ -867,7 +917,14 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
               </Card>
 
               {/* Tabs */}
-              <Tabs tabs={tabs} variant={"underline"} className="m-0" onValueChange={setActiveTab} />
+              <Tabs
+                key={`tabs-${batchMode ? 'batch' : 'normal'}`}
+                tabs={tabs}
+                variant={"underline"}
+                className="m-0"
+                defaultValue={activeTab}
+                onValueChange={setActiveTab}
+              />
             </form>
           </div>
 

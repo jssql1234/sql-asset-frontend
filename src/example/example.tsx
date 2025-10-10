@@ -27,6 +27,8 @@ import TitleSubtitle from "@/components/TitleSubtitle";
 import { SampleForm } from "./SampleForm";
 import DialogExample from "./DialogExample";
 
+import SearchWithDropdownExample from "@/example/SearchWithDropdownExample";
+
 export default function Testing() {
   const tabItems = [
     {
@@ -351,6 +353,13 @@ function Component() {
       <div className="space-y-2 text-onSurface">
         <div className="title-small">The Card</div>
         <Card>Put any components here</Card>
+      </div>
+
+      <div className="space-y-2">
+        <div className="title-small text-onSurface"> The Search With Dropdown</div>
+        <div className="max-w-md">
+          <SearchWithDropdownExample /> 
+        </div>
       </div>
     </div>
   );

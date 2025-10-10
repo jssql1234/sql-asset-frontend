@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import SearchFilter from '@/components/SearchFilter';
+import Search from '@/components/Search';
 import { DataTable } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Plus } from '@/assets/icons';
@@ -139,7 +139,7 @@ const MaintainDepartmentPage: React.FC = () => {
           ]}
         />
 
-        <SearchFilter
+        <Search
           searchValue={searchValue}
           searchPlaceholder="Search departments..."
           onSearch={setSearchValue}

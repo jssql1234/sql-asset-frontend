@@ -1,15 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { Dialog,  DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from "@/components/ui/components";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
-import type { DowntimeIncident, EditIncidentFormData } from "@/features/downtime/types";
+import type { DowntimeIncident } from "@/features/downtime/types";
+import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
+import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
+import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
+import { Trash2 } from "lucide-react";
 
 interface EditIncidentModalProps {
   open: boolean;
   incident: DowntimeIncident | null;
   onClose: () => void;
-  onSubmit?: (data: EditIncidentFormData) => void;
 }
 
 const priorityOptions = [
@@ -17,33 +20,42 @@ const priorityOptions = [
   { value: "Medium", label: "Medium" },
   { value: "High", label: "High" },
   { value: "Critical", label: "Critical" },
-];
+] as const;
 
 const statusOptions = [
-  { value: "Active", label: "Active" },
+  { value: "Down", label: "Down" },
   { value: "Resolved", label: "Resolved" },
-];
+] as const;
 
 export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   open,
   incident,
   onClose,
-  onSubmit,
 }) => {
-  const [formData, setFormData] = useState<EditIncidentFormData>({
+  const [formData, setFormData] = useState<EditDowntimeInput>({
     id: "",
     assetId: "",
     priority: "Medium",
-    status: "Active",
+    status: "Down",
     description: "",
     startTime: new Date().toISOString(),
     endTime: undefined,
     resolutionNotes: "",
   });
+  
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const updateMutation = useUpdateDowntimeIncident(() => {
+    handleClose();
+  });
+
+  const deleteMutation = useDeleteDowntimeIncident(() => {
+    handleClose();
+  });
 
   // Update form data when incident changes
   useEffect(() => {
-    if (incident) {
+    if (incident && open) {
       setFormData({
         id: incident.id,
         assetId: incident.assetId,
@@ -53,46 +65,69 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         startTime: incident.startTime,
         endTime: incident.endTime,
         resolutionNotes: incident.resolutionNotes || "",
+        reportedBy: incident.reportedBy,
+        resolvedBy: incident.resolvedBy,
       });
+      setErrors({});
     }
-  }, [incident]);
+  }, [incident, open]);
 
-  const getSelectedPriorityLabel = () => {
-    return formData.priority;
+  const handleClose = () => {
+    setErrors({});
+    onClose();
   };
 
-  const getSelectedStatusLabel = () => {
-    return formData.status;
+  const handleDelete = () => {
+    if (!incident) return;
+    
+    if (window.confirm(`Are you sure you want to delete incident for ${incident.assetName}?`)) {
+      deleteMutation.mutate(incident.id);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSubmit) {
-      onSubmit(formData);
+    
+    // Validate form data
+    const validation = editDowntimeSchema.safeParse(formData);
+    
+    if (!validation.success) {
+      const fieldErrors: Record<string, string> = {};
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path.join(".");
+        fieldErrors[path] = issue.message;
+      });
+      setErrors(fieldErrors);
+      return;
     }
-    onClose();
+    
+    // Clear errors and submit
+    setErrors({});
+    updateMutation.mutate(validation.data);
   };
 
-  const handleInputChange = (field: keyof EditIncidentFormData) => (
+  const handleInputChange = (field: keyof EditDowntimeInput) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
+    setErrors(prev => ({ ...prev, [field]: "" }));
   };
 
-  const handlePrioritySelect = (priority: DowntimeIncident["priority"]) => {
+  const handlePrioritySelect = (priority: EditDowntimeInput["priority"]) => {
     setFormData(prev => ({ ...prev, priority }));
   };
 
-  const handleStatusSelect = (status: DowntimeIncident["status"]) => {
+  const handleStatusSelect = (status: EditDowntimeInput["status"]) => {
     setFormData(prev => ({ 
       ...prev, 
       status,
-      // If resolving, set end time to now
-      endTime: status === "Resolved" ? new Date().toISOString() : prev.endTime
+      // If resolving, set end time to now if not already set
+      endTime: status === "Resolved" && !prev.endTime ? new Date().toISOString() : prev.endTime
     }));
+    setErrors(prev => ({ ...prev, status: "", endTime: "", resolutionNotes: "" }));
   };
 
-  const handleDateTimeChange = (field: keyof EditIncidentFormData) => (date: string | Date | Date[] | string[] | undefined) => {
+  const handleDateTimeChange = (field: "startTime" | "endTime") => (date: string | Date | Date[] | string[] | undefined) => {
     if (date instanceof Date) {
       setFormData(prev => ({ ...prev, [field]: date.toISOString() }));
     } else if (typeof date === 'string') {
@@ -100,13 +135,14 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     } else if (field === 'endTime' && date === undefined) {
       setFormData(prev => ({ ...prev, [field]: undefined }));
     }
+    setErrors(prev => ({ ...prev, [field]: "" }));
   };
 
   if (!incident) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <DialogContent className="max-w-md">
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Incident</DialogTitle>
         </DialogHeader>
@@ -124,12 +160,12 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Priority*</label>
             <DropdownMenu className="w-full">
-              <DropdownMenuTrigger label={getSelectedPriorityLabel()} className="w-full justify-between" />
+              <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
               <DropdownMenuContent>
                 {priorityOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => handlePrioritySelect(option.value as DowntimeIncident["priority"])}
+                    onClick={() => handlePrioritySelect(option.value)}
                   >
                     {option.label}
                   </DropdownMenuItem>
@@ -142,12 +178,12 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Status*</label>
             <DropdownMenu className="w-full">
-              <DropdownMenuTrigger label={getSelectedStatusLabel()} className="w-full justify-between" />
+              <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
               <DropdownMenuContent>
                 {statusOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => handleStatusSelect(option.value as DowntimeIncident["status"])}
+                    onClick={() => handleStatusSelect(option.value)}
                   >
                     {option.label}
                   </DropdownMenuItem>
@@ -165,13 +201,16 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
               inputType="dateTime"
               className="w-full"
             />
+            {errors.startTime && (
+              <span className="text-sm text-error">{errors.startTime}</span>
+            )}
           </div>
 
-          {/* End Time (show if resolved or in progress) */}
-          {(formData.status === "Resolved" || formData.status === "In Progress") && (
+          {/* End Time (show if resolved) */}
+          {formData.status === "Resolved" && (
             <div className="flex flex-col gap-2">
               <label className="label-medium text-onSurface">
-                End Time{formData.status === "Resolved" ? "*" : ""}
+                End Time*
               </label>
               <SemiDatePicker
                 value={formData.endTime ? new Date(formData.endTime) : null}
@@ -179,6 +218,9 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                 inputType="dateTime"
                 className="w-full"
               />
+              {errors.endTime && (
+                <span className="text-sm text-error">{errors.endTime}</span>
+              )}
             </div>
           )}
 
@@ -188,35 +230,54 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
             <TextArea
               value={formData.description}
               onChange={handleInputChange("description")}
-              placeholder="Describe the issue..."
+              placeholder="Describe the issue... (minimum 10 characters)"
               className="min-h-[100px]"
-              required
             />
+            {errors.description && (
+              <span className="text-sm text-error">{errors.description}</span>
+            )}
           </div>
 
           {/* Resolution Notes (show if resolved) */}
           {formData.status === "Resolved" && (
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Resolution Notes</label>
+              <label className="label-medium text-onSurface">Resolution Notes*</label>
               <TextArea
                 value={formData.resolutionNotes || ""}
                 onChange={handleInputChange("resolutionNotes")}
-                placeholder="Describe how the issue was resolved..."
+                placeholder="Describe how the issue was resolved... (minimum 10 characters)"
                 className="min-h-[80px]"
               />
+              {errors.resolutionNotes && (
+                <span className="text-sm text-error">{errors.resolutionNotes}</span>
+              )}
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={onClose}>
-              Cancel
-            </Button>
+          
+          <DialogFooter className="flex justify-between items-center">
             <Button
-              variant="default"
-              type="submit"
-              disabled={!formData.description.trim() || (formData.status === "Resolved" && !formData.endTime)}
+              variant="ghost"
+              type="button"
+              onClick={handleDelete}
+              className="text-error hover:text-error hover:bg-errorContainer"
+              disabled={deleteMutation.isPending}
             >
-              Update Incident
+              <Trash2 className="h-4 w-4 mr-2" />
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
+            
+            <div className="flex gap-2">
+              <Button variant="outline" type="button" onClick={handleClose}>
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                type="submit"
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending ? "Updating..." : "Update Incident"}
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

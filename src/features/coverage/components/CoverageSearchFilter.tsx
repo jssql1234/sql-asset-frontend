@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import SearchFilterBase, { type FilterConfig } from "@/components/SearchFilter";
+import Search from "@/components/Search";
 import { Card } from "@/components/ui/components";
 import { cn } from "@/utils/utils";
 import type { ClaimFilters, InsuranceFilters, WarrantyFilters } from "@/features/coverage/types";
@@ -30,15 +30,6 @@ export const CoverageSearchFilter: React.FC<CoverageSearchFilterProps> = ({
   onClear,
   className,
 }) => {
-  const dropdownFilters: FilterConfig<string>[] = (dropdowns ?? []).map((dropdown) => ({
-    id: dropdown.id,
-    label: dropdown.label,
-    value: dropdown.value,
-    placeholder: dropdown.placeholder,
-    options: dropdown.options,
-    onSelect: (value) => dropdown.onSelect(value),
-  }));
-
   return (
     <Card
       className={cn(
@@ -46,15 +37,12 @@ export const CoverageSearchFilter: React.FC<CoverageSearchFilterProps> = ({
         className
       )}
     >
-      <SearchFilterBase
+      <Search
         searchLabel={searchLabel}
         searchPlaceholder={searchPlaceholder}
         searchValue={searchValue}
         onSearch={onSearchChange}
         live
-        filters={dropdownFilters}
-        onClearFilters={onClear}
-        clearLabel="Clear Filters"
         className="gap-0"
       />
     </Card>

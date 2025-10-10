@@ -6,7 +6,7 @@ import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
-import SearchFilter from "@/components/SearchFilter";
+import Search from "@/components/Search";
 
 
 // Column definitions for TanStack Table
@@ -230,7 +230,7 @@ export default function AssetContentArea() {
 
           <SummaryCards data={summaryCardsData} columns={3} />
 
-          <SearchFilter
+          <Search
             searchValue={searchValue}
             searchPlaceholder="Search assets..."
             onSearch={setSearchValue}

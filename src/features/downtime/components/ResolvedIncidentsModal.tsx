@@ -2,10 +2,10 @@ import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from "@/components/ui/components";
 import { DataTable } from "@/components/ui/components/Table";
 import { type ColumnDef } from "@tanstack/react-table";
-import SearchFilter from "@/components/SearchFilter";
+import Search from "@/components/Search";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/components/DowntimeTable";
-import { resolvedIncidents } from "@/features/downtime/mockData";
+import { useGetResolvedIncidents } from "@/features/downtime/hooks/useDowntimeService";
 
 interface ResolvedIncidentsModalProps {
   open: boolean;
@@ -17,6 +17,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   onClose,
 }) => {
   const [searchValue, setSearchValue] = useState("");
+  const { data: resolvedIncidents = [], isLoading } = useGetResolvedIncidents();
 
   // Filter incidents based on search
   const filteredIncidents = useMemo(() => {
@@ -27,7 +28,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       incident.description.toLowerCase().includes(searchValue.toLowerCase()) ||
       incident.resolutionNotes?.toLowerCase().includes(searchValue.toLowerCase())
     );
-  }, [searchValue]);
+  }, [searchValue, resolvedIncidents]);
 
   // Table column definitions
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
@@ -112,26 +113,30 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         
         {/* Search */}
         <div className="flex-shrink-0 mb-4">
-          <SearchFilter
+          <Search
             searchValue={searchValue}
             onSearch={setSearchValue}
             searchPlaceholder="Search resolved incidents..."
             live
             className="gap-0"
-            contentClassName="gap-0"
-            inputWrapperClassName="max-w-md"
             inputClassName="rounded"
           />
         </div>
 
         {/* Table */}
         <div className="flex-1 overflow-hidden">
-          <DataTable
-            columns={columns}
-            data={filteredIncidents}
-            showPagination={true}
-            className="border border-outline h-full"
-          />
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <span className="text-onSurfaceVariant">Loading resolved incidents...</span>
+            </div>
+          ) : (
+            <DataTable
+              columns={columns}
+              data={filteredIncidents}
+              showPagination={true}
+              className="border border-outline h-full"
+            />
+          )}
         </div>
 
         <div className="flex-shrink-0 mt-4 text-center">

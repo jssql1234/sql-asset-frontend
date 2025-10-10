@@ -194,7 +194,7 @@ const WorkRequestPage: React.FC = () => {
         { label: "Work Requests" },
       ]}
     >
-      <div className="flex flex-col gap-4 min-h-full overflow-auto">
+      <div className="flex flex-col gap-4 min-h-full">
         {/* User Controls */}
         <div className="flex items-center justify-between px-4 flex-shrink-0">
           <div className="flex items-center gap-4">
@@ -244,7 +244,7 @@ const WorkRequestPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 px-4 pb-4">
+        <div className="px-4 pb-4">
           <WorkRequestTab
             workRequests={filteredWorkRequests}
             filters={filters}

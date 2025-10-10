@@ -100,7 +100,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       accessorKey: 'problemDescription',
       header: 'Problem Description',
       cell: ({ getValue }: any) => (
-        <span className="truncate max-w-xs text-sm" title={getValue() as string}>
+        <span className="line-clamp-3 max-w-sm text-sm leading-relaxed" title={getValue() as string}>
           {getValue() as string}
         </span>
       ),

@@ -16,12 +16,12 @@ interface SearchWithDropdownProps {
   categories: SearchWithDropdownItem[];
   selectedCategoryId?: string;
   onCategoryChange: (categoryId: string) => void;
-  
+
   // Search multi-select props
   items: SearchWithDropdownItem[];
   selectedIds?: string[];
   onSelectionChange: (selectedIds: string[]) => void;
-  
+
   placeholder?: string;
   className?: string;
   maxHeight?: string;
@@ -51,21 +51,28 @@ export const SearchWithDropdown = ({
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Get selected category label
-  const selectedCategory = categories.find((cat) => cat.id === selectedCategoryId);
-  const categoryLabel = selectedCategory?.label || categories[0]?.label || "All categories";
+  const selectedCategory = categories.find(
+    (cat) => cat.id === selectedCategoryId
+  );
+  const categoryLabel =
+    selectedCategory?.label || categories[0]?.label || "All categories";
 
   // Filter items based on search term and remove selected items
   const filteredItems = items.filter(
     (item) =>
       !selectedIds.includes(item.id) && // Remove selected items from dropdown
       (item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.sublabel && item.sublabel.toLowerCase().includes(searchTerm.toLowerCase())))
+        (item.sublabel &&
+          item.sublabel.toLowerCase().includes(searchTerm.toLowerCase())))
   );
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsCategoryDropdownOpen(false);
         setIsSearchDropdownOpen(false);
       }
@@ -86,7 +93,7 @@ export const SearchWithDropdown = ({
     const newSelectedIds = selectedIds.includes(itemId)
       ? selectedIds.filter((id) => id !== itemId)
       : [...selectedIds, itemId];
-    
+
     onSelectionChange(newSelectedIds);
   };
 
@@ -130,7 +137,7 @@ export const SearchWithDropdown = ({
             className={cn(
               "flex items-center gap-2 px-4 py-2.5 bg-surfaceContainerHigh text-onSurface rounded-l-lg border border-r-0 border-outlineVariant hover:bg-surfaceContainerHighest transition-colors whitespace-nowrap h-[42px]",
               isCategoryDropdownOpen && "bg-surfaceContainerHighest",
-              {"opacity-50 cursor-not-allowed": disable}
+              { "opacity-50 cursor-not-allowed": disable }
             )}
           >
             <span className="label-large font-medium">{categoryLabel}</span>
@@ -138,7 +145,7 @@ export const SearchWithDropdown = ({
               className={cn(
                 "h-4 w-4 text-onSurfaceVariant transition-transform",
                 isCategoryDropdownOpen && "rotate-180",
-                {"opacity-50": disable}
+                { "opacity-50": disable }
               )}
             />
           </button>
@@ -160,7 +167,12 @@ export const SearchWithDropdown = ({
                       )}
                     >
                       <div className="flex flex-col">
-                        <span className={cn("font-medium", selected && "text-primary")}>
+                        <span
+                          className={cn(
+                            "font-medium",
+                            selected && "text-primary"
+                          )}
+                        >
                           {category.label}
                         </span>
                         {category.sublabel && (
@@ -201,10 +213,15 @@ export const SearchWithDropdown = ({
             type="text"
             placeholder={placeholder}
             value={searchTerm}
-            onChange={disable ? undefined : (e) => setSearchTerm(e.target.value)}
+            onChange={
+              disable ? undefined : (e) => setSearchTerm(e.target.value)
+            }
             onFocus={disable ? undefined : handleSearchFocus}
             onKeyDown={disable ? undefined : handleKeyDown}
-            className={cn("w-full rounded-l-none border-outlineVariant focus:z-10 h-[42px]", {"opacity-50 cursor-not-allowed": disable})}
+            className={cn(
+              "w-full rounded-l-none border-outlineVariant focus:z-10 h-[42px]",
+              { "opacity-50 cursor-not-allowed": disable }
+            )}
           />
 
           {/* Search Dropdown List */}
@@ -220,9 +237,7 @@ export const SearchWithDropdown = ({
                       className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
                     >
                       <div className="flex flex-col">
-                        <span className="font-medium">
-                          {item.label}
-                        </span>
+                        <span className="font-medium">{item.label}</span>
                         {item.sublabel && (
                           <span className="text-xs text-onSurfaceVariant opacity-75">
                             {item.sublabel}
@@ -243,67 +258,66 @@ export const SearchWithDropdown = ({
       </div>
 
       {/* Selected Items Display */}
-        {!hideSelectedField || selectedIds.length > 0 ? (
-          <Card className="bg-surfaceContainerLowest p-3 ">
-            {/* Header with Clear all button */}
-            <div className="flex items-center justify-between mb-2">
+      {!hideSelectedField || selectedIds.length > 0 ? (
+        <Card className="bg-surfaceContainerLowest p-3 max-h-40 overflow-y-auto">
+          {/* Header with Clear all button */}
+          <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-onSurfaceVariant">
-              {selectedIds.length} item{selectedIds.length > 1 ? "s" : ""} selected
+              {selectedIds.length} item{selectedIds.length > 1 ? "s" : ""}{" "}
+              selected
             </span>
             {!disable && selectedIds.length > 0 && (
-            <button
-              type="button"
-              onClick={() => onSelectionChange([])}
-              className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-            >
-              Clear all
-            </button>
+              <button
+                type="button"
+                onClick={() => onSelectionChange([])}
+                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                Clear all
+              </button>
             )}
-            </div>
-            
-            {/* Selected items chips */}
-            <div className="flex flex-wrap gap-2">
+          </div>
+
+          {/* Selected items chips */}
+          <div className="flex flex-wrap gap-2">
             {selectedIds.map((id) => {
               const item = items.find((i) => i.id === id);
               if (!item) return null;
-              
+
               return (
                 <div key={id} className="relative group">
-                <Badge
-                  text={item.label}
-                  variant="primary"
-                  className={!disable ? "pr-7" : ""}
-                />
-                {!disable && (
+                  <Badge
+                    text={item.label}
+                    variant="primary"
+                    className={!disable ? "pr-7" : ""}
+                  />
+                  {!disable && (
                     <button
-                        type="button"
-                        onClick={(e) => handleRemoveItem(id, e)}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
-                        aria-label={`Remove ${item.label}`}
+                      type="button"
+                      onClick={(e) => handleRemoveItem(id, e)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                      aria-label={`Remove ${item.label}`}
                     >
-                        <svg
-                            className="w-3.5 h-3.5 text-error"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                            />
-                        </svg>
+                      <svg
+                        className="w-3.5 h-3.5 text-error"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
                     </button>
-                )}
+                  )}
                 </div>
               );
             })}
-            </div>
-          </Card>
-        ) : null}
-          
-
+          </div>
+        </Card>
+      ) : null}
     </div>
   );
 };

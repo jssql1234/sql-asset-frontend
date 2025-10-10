@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
-import { DataTable } from "@/components/ui/components/Table";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
@@ -103,7 +103,7 @@ const InsurancesVariantTable = ({
   );
 
   return (
-    <DataTable<CoverageInsurance, unknown>
+    <DataTableExtended<CoverageInsurance, unknown>
       columns={columns}
       data={policies}
       showPagination
@@ -153,7 +153,7 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
   );
 
   return (
-    <DataTable<CoverageWarranty, unknown>
+    <DataTableExtended<CoverageWarranty, unknown>
       columns={columns}
       data={warranties}
       showPagination
@@ -254,7 +254,7 @@ const ClaimsVariantTable = ({
   );
 
   return (
-    <DataTable<CoverageClaim, unknown>
+    <DataTableExtended<CoverageClaim, unknown>
       columns={columns}
       data={claims}
       showPagination

@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Badge } from "@/components/ui/components";
-import { DataTable } from "@/components/ui/components/Table";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import type { DowntimeIncident, FilterState } from "@/features/downtime/types";
 
@@ -108,7 +108,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         </h2>
       </div>
       
-      <DataTable
+      <DataTableExtended
         columns={columns}
         data={filteredIncidents}
         showPagination={true}

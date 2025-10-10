@@ -185,14 +185,12 @@ export function DataTableExtended<TData, TValue>({
       );
       if (isInteractiveElement) return;
 
-      const tbody = row.parentElement;
-      if (!tbody) return;
-
-      const rows = Array.from(tbody.querySelectorAll('tr'));
-      const rowIndex = rows.indexOf(row as HTMLTableRowElement);
-
-      if (rowIndex >= 0 && rowIndex < data.length) {
-        onRowDoubleClick(data[rowIndex]);
+      // Find the row in the table's current row model
+      const tableRows = table.getRowModel().rows;
+      const clickedRow = tableRows.find(r => r.id === row.getAttribute('data-row-id'));
+      
+      if (clickedRow) {
+        onRowDoubleClick(clickedRow.original);
       }
     };
 
@@ -200,7 +198,7 @@ export function DataTableExtended<TData, TValue>({
     return () => {
       container.removeEventListener('dblclick', handleDoubleClick as EventListener);
     };
-  }, [onRowDoubleClick, data]);
+  }, [onRowDoubleClick, table]);
 
   const enhancedClassName = onRowDoubleClick
     ? `${className ?? ''} [&_tbody_tr]:cursor-pointer`
@@ -367,6 +365,7 @@ function DataTableRow<TData>({
         return (
           <TableRow
             key={row.id}
+            data-row-id={row.id}
             data-state={row.getIsSelected() && 'selected'}
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(

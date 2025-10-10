@@ -20,7 +20,7 @@ const statusVariantMap: Record<CoverageStatus, { variant: BadgeVariant; label: s
 };
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({ status, className }) => {
-  const config = statusVariantMap[status] ?? { variant: "grey", label: status };
+  const config = statusVariantMap[status];
 
   return (
     <Badge

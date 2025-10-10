@@ -87,7 +87,7 @@ export const ClaimFormModal: React.FC<ClaimFormModalProps> = ({
                       {references.map((item) => (
                         <DropdownMenuItem
                           key={item.id}
-                          onClick={() => setReferenceId(item.id)}
+                          onClick={() => { setReferenceId(item.id); }}
                         >
                           <div className="flex flex-col">
                             <span className="font-medium">{item.name}</span>
@@ -147,7 +147,7 @@ export const ClaimFormModal: React.FC<ClaimFormModalProps> = ({
               </div>
               <Input placeholder="Search assets by name or ID" disabled />
               <div className="min-h-[96px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
-                {initialClaim?.assets?.length ? (
+                {initialClaim?.assets.length ? (
                   initialClaim.assets.map((asset) => (
                     <span
                       key={asset.id}
@@ -181,7 +181,7 @@ export const ClaimFormModal: React.FC<ClaimFormModalProps> = ({
         </div>
 
         <DialogFooter className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => { onOpenChange(false); }}>
             Cancel
           </Button>
           <Button type="submit">Save</Button>

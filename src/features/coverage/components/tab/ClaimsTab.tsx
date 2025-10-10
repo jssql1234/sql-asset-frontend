@@ -28,7 +28,7 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
       claim.claimNumber.toLowerCase().includes(query) ||
       claim.referenceName.toLowerCase().includes(query) ||
       claim.referenceId.toLowerCase().includes(query) ||
-      (claim.description && claim.description.toLowerCase().includes(query)) ||
+      (claim.description?.toLowerCase().includes(query) ?? false) ||
       claim.type.toLowerCase().includes(query) ||
       claim.status.toLowerCase().includes(query) ||
       claim.assets.some((asset) => 

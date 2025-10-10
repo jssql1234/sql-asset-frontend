@@ -27,9 +27,9 @@ export const useCoverageTabs = ({
           <InsurancesTab
             insurances={coverageInsurances}
             summary={insuranceSummary}
-            onAddPolicy={() =>
-              setModals((prev) => ({ ...prev, policyForm: true }))
-            }
+            onAddPolicy={() => {
+              setModals((prev) => ({ ...prev, policyForm: true }));
+            }}
             onViewInsurance={handleViewInsurance}
           />
         ),
@@ -41,9 +41,9 @@ export const useCoverageTabs = ({
           <WarrantiesTab
             warranties={coverageWarranties}
             summary={warrantySummary}
-            onAddWarranty={() =>
-              setModals((prev) => ({ ...prev, warrantyForm: true }))
-            }
+            onAddWarranty={() => {
+              setModals((prev) => ({ ...prev, warrantyForm: true }));
+            }}
             onViewWarranty={handleViewWarranty}
           />
         ),
@@ -55,9 +55,9 @@ export const useCoverageTabs = ({
           <ClaimsTab
             claims={coverageClaims}
             summary={claimSummary}
-            onAddClaim={() =>
-              setModals((prev) => ({ ...prev, claimForm: true }))
-            }
+            onAddClaim={() => {
+              setModals((prev) => ({ ...prev, claimForm: true }));
+            }}
             onViewClaim={handleViewClaim}
           />
         ),

@@ -30,9 +30,9 @@ const CoveragePage: React.FC = () => {
 
       <InsuranceFormModal
         open={modals.insuranceForm}
-        onOpenChange={(open) =>
-          setModals((prev) => ({ ...prev, insuranceForm: open }))
-        }
+        onOpenChange={(open) => {
+          setModals((prev) => ({ ...prev, insuranceForm: open }));
+        }}
         providers={insuranceProviders}
       />
 
@@ -48,9 +48,9 @@ const CoveragePage: React.FC = () => {
 
       <WarrantyFormModal
         open={modals.warrantyForm}
-        onOpenChange={(open) =>
-          setModals((prev) => ({ ...prev, warrantyForm: open }))
-        }
+        onOpenChange={(open) => {
+          setModals((prev) => ({ ...prev, warrantyForm: open }));
+        }}
         providers={warrantyProviders}
       />
 
@@ -66,9 +66,9 @@ const CoveragePage: React.FC = () => {
 
       <ClaimFormModal
         open={modals.claimForm}
-        onOpenChange={(open) =>
-          setModals((prev) => ({ ...prev, claimForm: open }))
-        }
+        onOpenChange={(open) => {
+          setModals((prev) => ({ ...prev, claimForm: open }));
+        }}
         policies={coverageInsurances}
         warranties={coverageWarranties}
       />
@@ -85,11 +85,13 @@ const CoveragePage: React.FC = () => {
 
       <WorkOrderFromClaimModal
         open={modals.workOrderFromClaim}
-        onOpenChange={(open) =>
-          open
-            ? setModals((prev) => ({ ...prev, workOrderFromClaim: open }))
-            : handleCloseWorkOrder()
-        }
+        onOpenChange={(open) => {
+          if (open) {
+            setModals((prev) => ({ ...prev, workOrderFromClaim: open }));
+          } else {
+            handleCloseWorkOrder();
+          }
+        }}
         claim={modals.claimForWorkOrder}
       />
     </SidebarHeader>

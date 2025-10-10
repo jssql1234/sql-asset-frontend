@@ -14,18 +14,20 @@ interface InsuranceFormModalProps {
 export const InsuranceFormModal: React.FC<InsuranceFormModalProps> = ({
   open,
   onOpenChange,
-  providers = [],
+  providers,
   initialInsurance,
 }) => {
+  const effectiveProviders = providers ?? [];
   const isEditing = Boolean(initialInsurance);
 
   const headerTitle = isEditing ? "Edit Insurance Policy" : "Add Insurance Policy";
 
   const providerSuggestions = useMemo(() => {
-    if (providers.length === 0) return null;
+    const effectiveProviders = providers ?? [];
+    if (effectiveProviders.length === 0) return null;
     return (
       <div className="flex flex-wrap gap-2 body-small text-onSurfaceVariant">
-        {providers.map((provider) => (
+        {effectiveProviders.map((provider) => (
           <span key={provider} className="px-2 py-1 rounded-full bg-secondaryContainer">
             {provider}
           </span>
@@ -120,9 +122,9 @@ export const InsuranceFormModal: React.FC<InsuranceFormModalProps> = ({
             </div>
           </Card>
 
-          {providers.length > 0 && (
+          {effectiveProviders.length > 0 && (
             <datalist id="policy-provider-suggestions">
-              {providers.map((provider) => (
+              {effectiveProviders.map((provider) => (
                 <option key={provider} value={provider} />
               ))}
             </datalist>
@@ -154,7 +156,7 @@ export const InsuranceFormModal: React.FC<InsuranceFormModalProps> = ({
               </div>
               <Input placeholder="Search assets by name or ID" disabled />
               <div className="min-h-[96px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
-                {initialInsurance?.assetsCovered?.length ? (
+                {initialInsurance?.assetsCovered.length ? (
                   initialInsurance.assetsCovered.map((asset) => (
                     <span
                       key={asset.id}
@@ -175,7 +177,7 @@ export const InsuranceFormModal: React.FC<InsuranceFormModalProps> = ({
         </div>
 
         <DialogFooter className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => { onOpenChange(false); }}>
             Cancel
           </Button>
           <Button type="submit">Save</Button>

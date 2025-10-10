@@ -91,7 +91,7 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
               </DetailModalSection>
 
               <DialogFooter className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                <Button variant="outline" onClick={() => { onOpenChange(false); }}>
                   Cancel
                 </Button>
                 <Button type="submit">Create Work Order</Button>

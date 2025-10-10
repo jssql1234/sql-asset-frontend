@@ -76,13 +76,13 @@ export const InsuranceDetailsModal: React.FC<InsuranceDetailsModalProps> = ({
 
               <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
-                  {insurance.description || "No additional description provided."}
+                  {insurance.description ?? "No additional description provided."}
                 </p>
               </DetailModalSection>
 
               <DetailModalSection
                 title="Assets Covered"
-                subtitle={`${insurance.assetsCovered.length} assets`}
+                subtitle={`${insurance.assetsCovered.length.toString()} assets`}
                 assetGrid={{
                   assets: insurance.assetsCovered,
                   action: (asset) => (
@@ -95,7 +95,7 @@ export const InsuranceDetailsModal: React.FC<InsuranceDetailsModalProps> = ({
             </div>
 
             <DialogFooter className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              <Button variant="secondary" onClick={() => { onOpenChange(false); }}>
                 Close
               </Button>
               <Button>Edit Policy</Button>

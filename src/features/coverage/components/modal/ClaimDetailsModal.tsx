@@ -69,13 +69,13 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
 
               <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
-                  {claim.description || "No additional description provided."}
+                  {claim.description ?? "No additional description provided."}
                 </p>
               </DetailModalSection>
 
               <DetailModalSection
                 title="Assets"
-                subtitle={`${claim.assets.length} assets`}
+                subtitle={`${claim.assets.length.toString()} assets`}
                 assetGrid={{
                   assets: claim.assets,
                   action: (asset) => (
@@ -88,7 +88,7 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
             </div>
 
             <DialogFooter className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              <Button variant="secondary" onClick={() => { onOpenChange(false); }}>
                 Close
               </Button>
               <Button>Edit Claim</Button>

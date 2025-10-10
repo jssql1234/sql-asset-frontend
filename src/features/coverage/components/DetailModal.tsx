@@ -41,6 +41,7 @@ export const DetailModalSection = ({
   contentClassName,
 }: DetailModalSectionProps) => {
   const hasItems = Boolean(items?.length);
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const hasAssetGrid = Boolean(assetGrid?.assets?.length);
   const hasChildren = Boolean(children);
 
@@ -57,9 +58,9 @@ export const DetailModalSection = ({
       </div>
       {(hasItems || hasAssetGrid || hasChildren) ? (
         <div className={cn("space-y-3", contentClassName)}>
-          {hasItems ? (
+          {hasItems && items ? (
             <dl className="space-y-3 body-medium text-onSurface">
-              {items!.map(({ label, value, align = "end" }) => (
+              {items.map(({ label, value, align = "end" }) => (
                 <div key={label} className="flex items-start justify-between gap-6">
                   <dt className="text-onSurfaceVariant">{label}</dt>
                   <dd className={cn("max-w-[60%]", align === "end" ? "text-right" : "text-left")}>{value}</dd>
@@ -67,10 +68,10 @@ export const DetailModalSection = ({
               ))}
             </dl>
           ) : null}
-          {hasAssetGrid ? (
+          {hasAssetGrid && assetGrid ? (
             <div className="space-y-3">
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {assetGrid!.assets.map((asset) => (
+                {assetGrid.assets.map((asset) => (
                   <div
                     key={asset.id}
                     className="flex items-center justify-between rounded-md border border-outlineVariant bg-surfaceContainerLowest px-3 py-2"
@@ -79,11 +80,11 @@ export const DetailModalSection = ({
                       <span className="font-medium text-onSurface">{asset.name}</span>
                       <span className="body-small text-onSurfaceVariant">{asset.id}</span>
                     </div>
-                    {assetGrid!.action ? assetGrid!.action(asset) : null}
+                    {assetGrid.action ? assetGrid.action(asset) : null}
                   </div>
                 ))}
               </div>
-              {assetGrid!.footer}
+              {assetGrid.footer}
             </div>
           ) : null}
           {children}

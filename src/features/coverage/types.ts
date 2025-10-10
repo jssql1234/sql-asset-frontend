@@ -16,10 +16,10 @@ export interface CoverageInsurance {
   startDate: string; // ISO date string
   expiryDate: string; // ISO date string
   status: InsuranceStatus;
-  assetsCovered: Array<{
+  assetsCovered: {
     id: string;
     name: string;
-  }>;
+  }[];
   description?: string;
 }
 
@@ -31,10 +31,10 @@ export interface CoverageWarranty {
   coverage: string;
   expiryDate: string;
   status: WarrantyStatus;
-  assetsCovered: Array<{
+  assetsCovered: {
     id: string;
     name: string;
-  }>;
+  }[];
   description?: string;
 }
 
@@ -44,10 +44,10 @@ export interface CoverageClaim {
   type: ClaimType;
   referenceId: string;
   referenceName: string;
-  assets: Array<{
+  assets: {
     id: string;
     name: string;
-  }>;
+  }[];
   amount: number;
   status: ClaimStatus;
   dateFiled: string; // ISO date string

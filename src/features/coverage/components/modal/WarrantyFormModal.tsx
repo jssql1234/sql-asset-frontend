@@ -14,9 +14,10 @@ interface WarrantyFormModalProps {
 export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
   open,
   onOpenChange,
-  providers = [],
+  providers,
   initialWarranty,
 }) => {
+  const effectiveProviders = providers ?? [];
   const isEditing = Boolean(initialWarranty);
 
   return (
@@ -74,9 +75,9 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
             </div>
           </Card>
 
-          {providers.length > 0 && (
+          {effectiveProviders.length > 0 && (
             <datalist id="warranty-provider-suggestions">
-              {providers.map((provider) => (
+              {effectiveProviders.map((provider) => (
                 <option key={provider} value={provider} />
               ))}
             </datalist>
@@ -108,7 +109,7 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
               </div>
               <Input placeholder="Search assets by name or ID" disabled />
               <div className="min-h-[96px] rounded-md border border-outline flex flex-wrap gap-2 p-3 bg-surfaceContainer">
-                {initialWarranty?.assetsCovered?.length ? (
+                {initialWarranty?.assetsCovered.length ? (
                   initialWarranty.assetsCovered.map((asset) => (
                     <span
                       key={asset.id}
@@ -129,7 +130,7 @@ export const WarrantyFormModal: React.FC<WarrantyFormModalProps> = ({
         </div>
 
         <DialogFooter className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => { onOpenChange(false); }}>
             Cancel
           </Button>
           <Button type="submit">Save</Button>

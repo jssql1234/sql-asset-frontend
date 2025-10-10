@@ -6,23 +6,23 @@ import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
 
-type InsurancesVariantProps = {
+interface InsurancesVariantProps {
   variant: "insurances";
   policies: CoverageInsurance[];
   onViewInsurance: (insurance: CoverageInsurance) => void;
-};
+}
 
-type WarrantiesVariantProps = {
+interface WarrantiesVariantProps {
   variant: "warranties";
   warranties: CoverageWarranty[];
   onViewWarranty: (warranty: CoverageWarranty) => void;
-};
+}
 
-type ClaimsVariantProps = {
+interface ClaimsVariantProps {
   variant: "claims";
   claims: CoverageClaim[];
   onViewClaim: (claim: CoverageClaim) => void;
-};
+}
 
 type CoverageTableProps =
   | InsurancesVariantProps

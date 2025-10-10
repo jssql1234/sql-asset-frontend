@@ -52,13 +52,13 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
 
               <DetailModalSection title="Description">
                 <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
-                  {warranty.description || "No additional description provided."}
+                  {warranty.description ?? "No additional description provided."}
                 </p>
               </DetailModalSection>
 
               <DetailModalSection
                 title="Assets Covered"
-                subtitle={`${warranty.assetsCovered.length} assets`}
+                subtitle={`${warranty.assetsCovered.length.toString()} assets`}
                 assetGrid={{
                   assets: warranty.assetsCovered,
                   action: (asset) => (
@@ -71,7 +71,7 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
             </div>
 
             <DialogFooter className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => onOpenChange(false)}>
+              <Button variant="secondary" onClick={() => { onOpenChange(false); }}>
                 Close
               </Button>
               <Button>Edit Warranty</Button>

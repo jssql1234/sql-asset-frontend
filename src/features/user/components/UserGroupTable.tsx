@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { DataTableExtended as DataTable } from "@/components/DataTableExtended";
 import { Button } from '@/components/ui/components';
 import { TooltipWrapper } from '@/components/TooltipWrapper';
-import SearchFilter from '@/components/SearchFilter';
+import Search from '@/components/Search';
 import { Edit, Delete } from '@/assets/icons';
 import type { UserGroup } from '@/types/user-group';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -99,7 +99,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <SearchFilter
+      <Search
         searchLabel="Search Groups"
         searchPlaceholder="Search by ID, name, or description"
         searchValue={searchTerm}

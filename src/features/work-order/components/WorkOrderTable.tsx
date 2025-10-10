@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/components";
-import { DataTable } from "@/components/ui/components/Table";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import type { WorkOrder, WorkOrderFilters } from "../types";
 
@@ -181,48 +181,21 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
     [onViewDetails]
   );
 
-  // Handle row double click
-  const handleTableDoubleClick = (e: React.MouseEvent) => {
-    console.log("Double click detected on table");
-    // Find the closest table row (tr element)
-    const row = (e.target as HTMLElement).closest('tr');
-    console.log("Found row:", row);
-    if (row) {
-      // Get row index from the data array
-      const rows = document.querySelectorAll('.work-order-table tbody tr');
-      const rowIndex = Array.from(rows).indexOf(row);
-      console.log("Row index:", rowIndex);
-      
-      if (rowIndex >= 0 && rowIndex < filteredWorkOrders.length) {
-        const workOrder = filteredWorkOrders[rowIndex];
-        console.log("Found work order:", workOrder);
-        if (workOrder && onEditWorkOrder) {
-          onEditWorkOrder(workOrder);
-        }
-      }
-    }
-  };
-
   return (
     <div className="flex flex-col gap-4">
-      <style>{`
-        .work-order-table tbody tr {
-          cursor: pointer;
-          user-select: none;
-        }
-        .work-order-table tbody tr:hover {
-          background-color: rgba(var(--color-primary-rgb, 33, 150, 243), 0.08);
-        }
-      `}</style>
-
-      <div className="work-order-table" onDoubleClick={handleTableDoubleClick}>
-        <DataTable
-          columns={columns}
-          data={filteredWorkOrders}
-          showPagination={true}
-          className="border border-outline"
-        />
+      <div className="flex items-center justify-between">
+        <h2 className="title-medium font-medium text-onSurface">
+          Work Orders ({filteredWorkOrders.length})
+        </h2>
       </div>
+      
+      <DataTableExtended
+        columns={columns}
+        data={filteredWorkOrders}
+        showPagination={true}
+        className="border border-outline"
+        onRowDoubleClick={onEditWorkOrder}
+      />
     </div>
   );
 };

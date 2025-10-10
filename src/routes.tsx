@@ -44,6 +44,7 @@ function AppRoutes() {
       
       {/* Asset Management Routes */}
       <Route path="/asset" element={<AssetMainPage />} />
+      <Route path="/asset/create-asset" element={<AssetMainPage />} />
       <Route path="/process-ca" element={<ProcessCAPage />} />
       <Route path="/disposal" element={<DisposalMainPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />

@@ -1,12 +1,16 @@
-import { useMemo, useState } from "react";
-import { DataTable } from "@/components/ui/components/Table/index";
+import { useEffect, useMemo, useState } from "react";
+import { Button, Card } from "@/components/ui/components";
+import { DataTable, TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
+import { cn } from "@/utils/utils";
 import CreateAsset from "./CreateAsset";
 import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
+import PermissionGuard from "@/components/PermissionGuard";
+import { useNavigate, useLocation } from "react-router-dom";
 
 
 // Column definitions for TanStack Table
@@ -164,14 +168,27 @@ export default function AssetContentArea() {
   const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
   const [view, setView] = useState<'list' | 'create'>('list');
   const [searchValue, setSearchValue] = useState('');
+  const [groupByBatch, setGroupByBatch] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
   const { data: assets } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => {
     setView('list');
+    void navigate('/asset');
   });
+
+  // Sync view state with URL
+  useEffect(() => {
+    if (location.pathname === '/asset/create-asset') {
+      setView('create');
+    } else if (location.pathname === '/asset') {
+      setView('list');
+    }
+  }, [location.pathname, setView]);
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
-  const visibleColumns = allColumns;
+  const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
   // Handle row selection
   const handleRowSelectionChange = (_rows: Asset[], rowIds: string[]) => {
@@ -215,7 +232,7 @@ export default function AssetContentArea() {
   return (
     <>
       {view === 'list' ? (
-        <>
+        <div>
           <TabHeader
             title="Asset Management"
             subtitle="Manage and track all company assets"
@@ -227,6 +244,63 @@ export default function AssetContentArea() {
               }
             ]}
           />
+        <Card className="p-3">
+          {/* Header actions */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
+              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
+              onClick={() => {
+                setGroupByBatch(!groupByBatch);
+              }}>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    !groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Asset
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Batch
+                </button>
+              </div>
+              <TableColumnVisibility
+                columns={allColumns}
+                visibleColumns={visibleColumns}
+                setVisibleColumns={setVisibleColumns}
+                className="size-32"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <PermissionGuard feature="maintainItem" action="entryNew">
+          
+              <Button size="sm" onClick={() => {
+                setView('create');
+                void navigate('/asset/create-asset');
+              }}>
+                Add
+              </Button>
+              </PermissionGuard>
+              {selectedRowIds.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">Edit</Button>
+                  <Button variant="destructive" size="sm">Delete</Button>
+                  <Button variant="destructive" size="sm" onClick={() => {
+                    void navigate('/disposal');
+                  }}>Dispose</Button>
+                  <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
+                </div>
+              )}
+            </div>
+          </div>
 
           <SummaryCards data={summaryCardsData} columns={3} />
 
@@ -246,11 +320,13 @@ export default function AssetContentArea() {
             onRowSelectionChange={handleRowSelectionChange}
             selectedCount={selectedRowIds.length}
           />
-        </>
+        </Card>
+        </div>
       ) : (
         <CreateAsset
           onBack={() => {
             setView('list');
+            void navigate('/asset');
           }}
           onSuccess={(data) => {
             const asset: Asset = {

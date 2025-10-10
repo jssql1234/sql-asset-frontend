@@ -78,10 +78,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       >
                         <Link
                           to={item.url}
-                          className="flex items-center gap-2"
+                          className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
                           aria-current={isActive ? "page" : undefined}
                         >
-                          {isActive && item.filledIcon ? (
+                          {isActive ? (
                             <item.filledIcon className="size-4" />
                           ) : (
                             <item.icon className="size-4" />
@@ -109,21 +109,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-58 rounded-3xl border border-border" defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
                 <DropdownMenuGroup>
-                  <DropdownMenuItem onClick={() => navigate("/maintain-asset-group")}>Maintain Asset Group</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-asset-group")}>Maintain Asset Group</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/maintain-user-group")}>Maintain User Group</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/maintain-user")}>Maintain User</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/user-access-rights")}>User Access Right Assignment</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-user-group")}>Maintain User Group</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-user")}>Maintain User</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/user-access-rights")}>User Access Right Assignment</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/maintain-location")}>Maintain Location</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/maintain-department")}>Maintain Department</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/maintain-customer")}>Maintain Customer</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-location")}>Maintain Location</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-department")}>Maintain Department</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-customer")}>Maintain Customer</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/maintain-spare-part")}>Maintain Spare Part</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/maintain-service-provider")}>Maintain Service Provider</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-spare-part")}>Maintain Spare Part</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate("/maintain-service-provider")}>Maintain Service Provider</DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/asset-history")}>Asset History</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void navigate("/asset-history")}>Asset History</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

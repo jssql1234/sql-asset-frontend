@@ -1,7 +1,7 @@
 import * as React from "react";
 import * as CollapsiblePrimitive from "@radix-ui/react-collapsible";
 import { cn } from "@/utils/utils";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSubmenu, setDropdownTheme } from "@/components/ui/components/DropdownButton";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuCheckboxItem, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSubmenu } from "@/components/ui/components/DropdownButton";
 
 /**
  * Collapsible helpers leverage Radix primitives to guarantee
@@ -12,10 +12,14 @@ const Collapsible = CollapsiblePrimitive.Root;
 
 const CollapsibleTrigger = CollapsiblePrimitive.Trigger;
 
-const CollapsibleContent = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content>
->(({ className, children, ...props }, ref) => (
+const CollapsibleContent = ({
+  className,
+  children,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof CollapsiblePrimitive.Content> & {
+  ref?: React.Ref<HTMLDivElement>
+}) => (
   <CollapsiblePrimitive.Content
     ref={ref}
     className={cn(
@@ -27,8 +31,7 @@ const CollapsibleContent = React.forwardRef<
   >
     <div className="overflow-hidden">{children}</div>
   </CollapsiblePrimitive.Content>
-));
-CollapsibleContent.displayName = "CollapsibleContent";
+)
 
 /**
  * Dropdown helpers re-export the UI kit primitives while
@@ -38,10 +41,13 @@ CollapsibleContent.displayName = "CollapsibleContent";
 
 const baseMenuPadding = "px-3 py-2";
 
-const DropdownMenuLabel = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div">
->(({ className, ...props }, ref) => (
+const DropdownMenuLabel = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<"div"> & {
+  ref?: React.Ref<HTMLDivElement>
+}) => (
   <div
     ref={ref}
     className={cn(
@@ -52,33 +58,36 @@ const DropdownMenuLabel = React.forwardRef<
     role="presentation"
     {...props}
   />
-));
-DropdownMenuLabel.displayName = "DropdownMenuLabel";
+)
 
-const DropdownMenuSeparator = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div">
->(({ className, ...props }, ref) => (
+const DropdownMenuSeparator = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<"div"> & {
+  ref?: React.Ref<HTMLDivElement>
+}) => (
   <div
     ref={ref}
     className={cn("mx-3 my-1 h-px bg-onSurfaceVariant", className)}
     role="separator"
     {...props}
   />
-));
-DropdownMenuSeparator.displayName = "DropdownMenuSeparator";
+)
 
-const DropdownMenuGroup = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentPropsWithoutRef<"div">
->(({ className, ...props }, ref) => (
+const DropdownMenuGroup = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<"div"> & {
+  ref?: React.Ref<HTMLDivElement>
+}) => (
   <div
     ref={ref}
     className={cn("flex flex-col gap-1", className)}
     role="group"
     {...props}
   />
-));
-DropdownMenuGroup.displayName = "DropdownMenuGroup";
+)
 
-export { Collapsible, CollapsibleContent, CollapsibleTrigger, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSubmenu, DropdownMenuTrigger, setDropdownTheme };
+export { Collapsible, CollapsibleContent, CollapsibleTrigger, DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSubmenu, DropdownMenuTrigger };

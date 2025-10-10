@@ -25,7 +25,7 @@ export function SidebarHeader({ children, breadcrumbs }: SidebarHeaderProps) {
             {breadcrumbs && breadcrumbs.length > 0 && (
               <div className="text-sm text-onSurfaceVariant hidden md:flex items-center gap-2">
                 {breadcrumbs.map((crumb, index) => (
-                  <React.Fragment key={index}>
+                  <React.Fragment key={crumb.label}>
                     {index > 0 && <span>/</span>}
                     <span>{crumb.label}</span>
                   </React.Fragment>

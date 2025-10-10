@@ -6,11 +6,19 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { PanelLeftIcon } from "lucide-react"
 import { cn } from "@/utils/utils"
 import { Button } from "@/components/ui/components"
+import { SIDEBAR_COOKIE_NAME, SIDEBAR_COOKIE_MAX_AGE, SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON, SIDEBAR_KEYBOARD_SHORTCUT } from "./sidebar-constants"
+import { SidebarContext } from "./sidebar-context"
+import { useSidebar } from "./sidebar-hooks"
+import type { SidebarContextProps } from "./sidebar-types"
 
-const Separator = React.forwardRef<
-  React.ElementRef<typeof SeparatorPrimitive>,
-  React.ComponentPropsWithoutRef<typeof SeparatorPrimitive>
->(({ className, orientation = "horizontal", ...props }, ref) => (
+const Separator = ({
+  className,
+  orientation = "horizontal",
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof SeparatorPrimitive> & {
+  ref?: React.Ref<React.ComponentRef<typeof SeparatorPrimitive>>
+}) => (
   <SeparatorPrimitive
     ref={ref}
     orientation={orientation}
@@ -21,18 +29,22 @@ const Separator = React.forwardRef<
     )}
     {...props}
   />
-))
-Separator.displayName = "Separator"
+)
 
 // Tooltip components built on Radix primitives for accessibility
 const TooltipProvider = TooltipPrimitive.Provider
 const Tooltip = TooltipPrimitive.Root
 const TooltipTrigger = TooltipPrimitive.Trigger
 
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, side = "right", align = "center", ...props }, ref) => (
+const TooltipContent = ({
+  className,
+  side = "right",
+  align = "center",
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & {
+  ref?: React.Ref<React.ComponentRef<typeof TooltipPrimitive.Content>>
+}) => (
   <TooltipPrimitive.Content
     ref={ref}
     side={side}
@@ -40,31 +52,7 @@ const TooltipContent = React.forwardRef<
     className={cn( "rounded-md bg-inverseSurface px-3 py-1.5 text-sm text-inverseOnSurface shadow-md z-50", "data-[state=delayed-open]:animate-fade-in", className )}
     {...props}
   />
-))
-TooltipContent.displayName = TooltipPrimitive.Content.displayName
-
-const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-const SIDEBAR_WIDTH = "14rem"
-const SIDEBAR_WIDTH_ICON = "3rem"
-const SIDEBAR_KEYBOARD_SHORTCUT = "b"
-
-type SidebarContextProps = {
-  state: "expanded" | "collapsed"
-  open: boolean
-  setOpen: (open: boolean) => void
-  toggleSidebar: () => void
-}
-
-const SidebarContext = React.createContext<SidebarContextProps | null>(null)
-
-function useSidebar() {
-  const context = React.useContext(SidebarContext)
-  if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider.")
-  }
-  return context
-}
+)
 
 function SidebarProvider({
   defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props
@@ -82,7 +70,7 @@ function SidebarProvider({
 
     const value = `; ${document.cookie}`
     const parts = value.split(`; ${name}=`)
-    if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+    if (parts.length === 2) return parts.pop()?.split(';').shift() ?? null
     return null
   }
 
@@ -106,7 +94,7 @@ function SidebarProvider({
 
       // This sets the cookie to keep the sidebar state.
       if (typeof document !== "undefined") {
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState.toString()}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE.toString()}`
       }
     },
     [setOpenProp, open]
@@ -130,7 +118,7 @@ function SidebarProvider({
     }
 
     window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
+    return () => { window.removeEventListener("keydown", handleKeyDown); }
   }, [toggleSidebar])
 
   // Add a state data-state="expanded" or "collapsed", easier to style the sidebar with Tailwind classes.
@@ -142,7 +130,7 @@ function SidebarProvider({
   )
 
   return (
-    <SidebarContext.Provider value={contextValue}>
+    <SidebarContext value={contextValue}>
       <TooltipProvider delayDuration={0}>
         <div
           data-slot="sidebar-wrapper"
@@ -158,7 +146,7 @@ function SidebarProvider({
           {children}
         </div>
       </TooltipProvider>
-    </SidebarContext.Provider>
+    </SidebarContext>
   )
 }
 
@@ -412,4 +400,4 @@ function SidebarMenuButton({
   )
 }
 
-export { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarSeparator, SidebarTrigger, useSidebar }
+export { Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupLabel, SidebarHeader, SidebarInset, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarSeparator, SidebarTrigger }

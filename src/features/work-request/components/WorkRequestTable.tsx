@@ -125,17 +125,11 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="title-medium font-medium text-onSurface">
-          Work Requests ({workRequests.length})
-        </h2>
-      </div>
       
       <DataTableExtended
         columns={columns}
         data={workRequests}
         showPagination={true}
-        className="border border-outline"
         onRowDoubleClick={onEditWorkRequest}
       />
     </div>

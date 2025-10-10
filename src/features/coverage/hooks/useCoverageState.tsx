@@ -1,25 +1,7 @@
 import { useCallback, useState } from "react";
-import type { ClaimFilters, CoverageClaim, CoverageModalsState, CoverageWarranty, InsuranceFilters, WarrantyFilters } from "@/features/coverage/types";
+import type { CoverageClaim, CoverageModalsState, CoverageWarranty } from "@/features/coverage/types";
 
 export const useCoverageState = () => {
-  const [insuranceFilters, setInsuranceFilters] = useState<InsuranceFilters>({
-    search: "",
-    status: "",
-    provider: "",
-  });
-
-  const [warrantyFilters, setWarrantyFilters] = useState<WarrantyFilters>({
-    search: "",
-    status: "",
-    provider: "",
-  });
-
-  const [claimFilters, setClaimFilters] = useState<ClaimFilters>({
-    search: "",
-    type: "",
-    status: "",
-  });
-
   const [modals, setModals] = useState<CoverageModalsState>({
     insuranceForm: false,
     insuranceDetails: null,
@@ -91,12 +73,6 @@ export const useCoverageState = () => {
   }, []);
 
   return {
-    insuranceFilters,
-    setInsuranceFilters,
-    warrantyFilters,
-    setWarrantyFilters,
-    claimFilters,
-    setClaimFilters,
     modals,
     setModals,
     handleViewInsurance,

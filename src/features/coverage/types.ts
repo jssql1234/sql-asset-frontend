@@ -82,24 +82,6 @@ export interface ClaimSummaryMetrics {
   rejectedClaims: number;
 }
 
-export interface InsuranceFilters {
-  search: string;
-  status: "" | InsuranceStatus;
-  provider: string;
-}
-
-export interface WarrantyFilters {
-  search: string;
-  status: "" | WarrantyStatus;
-  provider: string;
-}
-
-export interface ClaimFilters {
-  search: string;
-  type: "" | ClaimType;
-  status: "" | ClaimStatus;
-}
-
 export interface CoverageModalsState {
   insuranceForm: boolean;
   insuranceDetails: CoverageInsurance | null;

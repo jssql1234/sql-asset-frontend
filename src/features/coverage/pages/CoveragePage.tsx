@@ -13,9 +13,9 @@ import { useCoverageTabs } from "@/features/coverage/hooks/useCoverageTabs";
 import { useCoverageState } from "@/features/coverage/hooks/useCoverageState";
 
 const CoveragePage: React.FC = () => {
-  const { insuranceFilters, setInsuranceFilters, warrantyFilters, setWarrantyFilters, claimFilters, setClaimFilters, modals, setModals, handleViewInsurance, handleCloseInsuranceDetails, handleCloseWarrantyDetails, handleCloseWorkOrder, handleViewWarranty, handleViewClaim, handleCloseClaimDetails } = useCoverageState();
+  const { modals, setModals, handleViewInsurance, handleCloseInsuranceDetails, handleCloseWarrantyDetails, handleCloseWorkOrder, handleViewWarranty, handleViewClaim, handleCloseClaimDetails } = useCoverageState();
 
-  const tabs = useCoverageTabs({ insuranceFilters, setInsuranceFilters, warrantyFilters, setWarrantyFilters, claimFilters, setClaimFilters, setModals, handleViewInsurance, handleViewWarranty, handleViewClaim });
+  const tabs = useCoverageTabs({ setModals, handleViewInsurance, handleViewWarranty, handleViewClaim });
 
   return (
     <SidebarHeader

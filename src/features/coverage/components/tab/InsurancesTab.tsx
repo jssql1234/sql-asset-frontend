@@ -1,16 +1,13 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import { InsuranceSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import Search from "@/components/Search";
 import { InsuranceSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
-import type { CoverageInsurance, InsuranceFilters, InsuranceSummaryMetrics } from "@/features/coverage/types";
+import type { CoverageInsurance, InsuranceSummaryMetrics } from "@/features/coverage/types";
 
 interface InsurancesTabProps {
   insurances: CoverageInsurance[];
   summary: InsuranceSummaryMetrics;
-  providers: string[];
-  filters: InsuranceFilters;
-  onFiltersChange: (filters: Partial<InsuranceFilters>) => void;
   onAddPolicy: () => void;
   onViewInsurance: (insurance: CoverageInsurance) => void;
 }
@@ -18,30 +15,26 @@ interface InsurancesTabProps {
 export const InsurancesTab: React.FC<InsurancesTabProps> = ({
   insurances,
   summary,
-  providers,
-  filters,
-  onFiltersChange,
   onAddPolicy,
   onViewInsurance,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   const filteredPolicies = useMemo(() => {
-    return insurances.filter((insurance) => {
-      const matchesSearch = filters.search
-        ? [
-            insurance.name,
-            insurance.provider,
-            insurance.policyNumber,
-            ...insurance.assetsCovered.map((asset) => `${asset.id} ${asset.name}`),
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(filters.search.toLowerCase())
-        : true;
-      const matchesStatus = filters.status ? insurance.status === filters.status : true;
-      const matchesProvider = filters.provider ? insurance.provider === filters.provider : true;
-      return matchesSearch && matchesStatus && matchesProvider;
-    });
-  }, [insurances, filters]);
+    if (!searchQuery.trim()) return insurances;
+
+    const query = searchQuery.toLowerCase();
+    return insurances.filter((insurance) => 
+      insurance.name.toLowerCase().includes(query) ||
+      insurance.provider.toLowerCase().includes(query) ||
+      insurance.policyNumber.toLowerCase().includes(query) ||
+      insurance.status.toLowerCase().includes(query) ||
+      insurance.assetsCovered.some((asset) => 
+        asset.id.toLowerCase().includes(query) || 
+        asset.name.toLowerCase().includes(query)
+      )
+    );
+  }, [insurances, searchQuery]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -58,10 +51,11 @@ export const InsurancesTab: React.FC<InsurancesTabProps> = ({
 
       <InsuranceSummaryCards summary={summary} />
 
-      <InsuranceSearchFilter
-        filters={filters}
-        providers={providers}
-        onFiltersChange={onFiltersChange}
+      <Search
+        searchValue={searchQuery}
+        searchPlaceholder="Search by policy name, provider, or asset"
+        onSearch={setSearchQuery}
+        live
       />
 
       <CoverageTable

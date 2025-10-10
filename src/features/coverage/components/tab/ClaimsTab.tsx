@@ -1,15 +1,13 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import { ClaimSearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import Search from "@/components/Search";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
-import type { ClaimFilters, ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
+import type { ClaimSummaryMetrics, CoverageClaim } from "@/features/coverage/types";
 
 interface ClaimsTabProps {
   claims: CoverageClaim[];
   summary: ClaimSummaryMetrics;
-  filters: ClaimFilters;
-  onFiltersChange: (filters: Partial<ClaimFilters>) => void;
   onAddClaim: () => void;
   onViewClaim: (claim: CoverageClaim) => void;
 }
@@ -17,30 +15,28 @@ interface ClaimsTabProps {
 export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   claims,
   summary,
-  filters,
-  onFiltersChange,
   onAddClaim,
   onViewClaim,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   const filteredClaims = useMemo(() => {
-    return claims.filter((claim) => {
-      const matchesSearch = filters.search
-        ? [
-            claim.claimNumber,
-            claim.referenceName,
-            claim.referenceId,
-            claim.description ?? "",
-            ...claim.assets.map((asset) => `${asset.id} ${asset.name}`),
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(filters.search.toLowerCase())
-        : true;
-      const matchesType = filters.type ? claim.type === filters.type : true;
-      const matchesStatus = filters.status ? claim.status === filters.status : true;
-      return matchesSearch && matchesType && matchesStatus;
-    });
-  }, [claims, filters]);
+    if (!searchQuery.trim()) return claims;
+
+    const query = searchQuery.toLowerCase();
+    return claims.filter((claim) => 
+      claim.claimNumber.toLowerCase().includes(query) ||
+      claim.referenceName.toLowerCase().includes(query) ||
+      claim.referenceId.toLowerCase().includes(query) ||
+      (claim.description && claim.description.toLowerCase().includes(query)) ||
+      claim.type.toLowerCase().includes(query) ||
+      claim.status.toLowerCase().includes(query) ||
+      claim.assets.some((asset) => 
+        asset.id.toLowerCase().includes(query) || 
+        asset.name.toLowerCase().includes(query)
+      )
+    );
+  }, [claims, searchQuery]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -57,9 +53,11 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
 
       <ClaimSummaryCards summary={summary} />
 
-      <ClaimSearchFilter
-        filters={filters}
-        onFiltersChange={onFiltersChange}
+      <Search
+        searchValue={searchQuery}
+        searchPlaceholder="Search by claim number, asset, or policy"
+        onSearch={setSearchQuery}
+        live
       />
 
       <CoverageTable

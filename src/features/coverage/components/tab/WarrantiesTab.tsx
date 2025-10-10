@@ -1,16 +1,13 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import { WarrantySearchFilter } from "@/features/coverage/components/CoverageSearchFilter";
+import Search from "@/components/Search";
 import { WarrantySummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
-import type { CoverageWarranty, WarrantyFilters, WarrantySummaryMetrics } from "@/features/coverage/types";
+import type { CoverageWarranty, WarrantySummaryMetrics } from "@/features/coverage/types";
 
 interface WarrantiesTabProps {
   warranties: CoverageWarranty[];
   summary: WarrantySummaryMetrics;
-  providers: string[];
-  filters: WarrantyFilters;
-  onFiltersChange: (filters: Partial<WarrantyFilters>) => void;
   onAddWarranty: () => void;
   onViewWarranty: (warranty: CoverageWarranty) => void;
 }
@@ -18,31 +15,27 @@ interface WarrantiesTabProps {
 export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
   warranties,
   summary,
-  providers,
-  filters,
-  onFiltersChange,
   onAddWarranty,
   onViewWarranty,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
   const filteredWarranties = useMemo(() => {
-    return warranties.filter((warranty) => {
-      const matchesSearch = filters.search
-        ? [
-            warranty.name,
-            warranty.provider,
-            warranty.warrantyNumber,
-            warranty.coverage,
-            ...warranty.assetsCovered.map((asset) => `${asset.id} ${asset.name}`),
-          ]
-            .join(" ")
-            .toLowerCase()
-            .includes(filters.search.toLowerCase())
-        : true;
-      const matchesStatus = filters.status ? warranty.status === filters.status : true;
-      const matchesProvider = filters.provider ? warranty.provider === filters.provider : true;
-      return matchesSearch && matchesStatus && matchesProvider;
-    });
-  }, [warranties, filters]);
+    if (!searchQuery.trim()) return warranties;
+
+    const query = searchQuery.toLowerCase();
+    return warranties.filter((warranty) => 
+      warranty.name.toLowerCase().includes(query) ||
+      warranty.provider.toLowerCase().includes(query) ||
+      warranty.warrantyNumber.toLowerCase().includes(query) ||
+      warranty.coverage.toLowerCase().includes(query) ||
+      warranty.status.toLowerCase().includes(query) ||
+      warranty.assetsCovered.some((asset) => 
+        asset.id.toLowerCase().includes(query) || 
+        asset.name.toLowerCase().includes(query)
+      )
+    );
+  }, [warranties, searchQuery]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -59,10 +52,11 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
 
       <WarrantySummaryCards summary={summary} />
 
-      <WarrantySearchFilter
-        filters={filters}
-        providers={providers}
-        onFiltersChange={onFiltersChange}
+      <Search
+        searchValue={searchQuery}
+        searchPlaceholder="Search by warranty name, provider, or asset"
+        onSearch={setSearchQuery}
+        live
       />
 
       <CoverageTable variant="warranties" warranties={filteredWarranties} onViewWarranty={onViewWarranty} />

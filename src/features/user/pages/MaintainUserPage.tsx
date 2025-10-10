@@ -3,13 +3,12 @@ import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { UserTable } from '../components/UserTable';
 import TabHeader from '@/components/TabHeader';
 import { ExportFile, Upload } from '@/assets/icons';
-import { use } from 'react';
-import { UserContext } from '@/context/UserContext';
+import { useUserContext } from '@/context/UserContext';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import type { User } from '@/types/user';
 
 const MaintainUserPage: React.FC = () => {
-  const { users, groups, deleteUser } = use(UserContext);
+  const { users, groups, deleteUser } = useUserContext();
   const { addToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

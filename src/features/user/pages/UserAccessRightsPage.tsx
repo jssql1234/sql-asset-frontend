@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
-import { use } from "react";
-import { UserContext } from "@/context/UserContext";
+import { useUserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";
 import { Card } from "@/components/ui/components";
 import { SearchableDropdown } from "@/components/SearchableDropdown";
@@ -9,7 +8,7 @@ import PermissionEditor from "../components/PermissionEditor";
 import TabHeader from "@/components/TabHeader";
 
 const UserAccessRightsPage: React.FC = () => {
-  const { groups, updateGroup } = use(UserContext);
+  const { groups, updateGroup } = useUserContext();
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
   const [draftPermissions, setDraftPermissions] = useState<Partial<Record<string, Partial<Record<string, boolean>>>>>({});
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);

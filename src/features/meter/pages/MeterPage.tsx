@@ -84,10 +84,7 @@ const MeterPage = () => {
 
   return (
     <SidebarHeader
-      breadcrumbs={[
-        { label: "Asset Maintenance" },
-        { label: "Meter Reading" },
-      ]}
+      breadcrumbs={[{ label: "Asset Maintenance" }, { label: "Meter Reading" }]}
     >
       <div className="flex h-full flex-col gap-6">
         <Tabs tabs={tabs} defaultValue="groups">
@@ -101,4 +98,3 @@ const MeterPage = () => {
 };
 
 export default MeterPage;
-

@@ -1,0 +1,127 @@
+import React, { useState, useMemo } from 'react';
+import { DataTableExtended as DataTable } from "@/components/DataTableExtended";
+import { Button } from '@/components/ui/components';
+import Search from '@/components/Search';
+import { Edit, Delete } from '@/assets/icons';
+import type { User } from '@/types/user';
+import type { ColumnDef } from '@tanstack/react-table';
+
+interface UserTableProps {
+  users: User[];
+  groups: { id: string; name: string }[];
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
+}
+
+export const UserTable: React.FC<UserTableProps> = ({
+  users,
+  groups,
+  onEdit,
+  onDelete,
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter users based on search term
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm.trim()) return users;
+
+    const term = searchTerm.toLowerCase().trim();
+    return users.filter(user =>
+      user.name.toLowerCase().includes(term) ||
+      user.email.toLowerCase().includes(term) ||
+      (user.position?.toLowerCase().includes(term) ?? false) ||
+      (user.department?.toLowerCase().includes(term) ?? false) ||
+      (user.location?.toLowerCase().includes(term) ?? false) ||
+      (groups.find(g => g.id === user.groupId)?.name.toLowerCase().includes(term) ?? false)
+    );
+  }, [users, searchTerm, groups]);
+
+  const columns: ColumnDef<User>[] = [
+    {
+      accessorKey: 'name',
+      header: 'Name',
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    },
+    {
+      accessorKey: 'email',
+      header: 'Email',
+      cell: ({ row }) => <span>{row.original.email}</span>,
+    },
+    {
+      accessorKey: 'phone',
+      header: 'Phone',
+      cell: ({ row }) => <span>{row.original.phone ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'position',
+      header: 'Position',
+      cell: ({ row }) => <span>{row.original.position ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'department',
+      header: 'Department',
+      cell: ({ row }) => <span>{row.original.department ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'location',
+      header: 'Location',
+      cell: ({ row }) => <span>{row.original.location ?? '-'}</span>,
+    },
+    {
+      accessorKey: 'groupId',
+      header: 'User Group',
+      cell: ({ row }) => {
+        const group = groups.find(g => g.id === row.original.groupId);
+        return <span>{group?.name ?? row.original.groupId}</span>;
+      },
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              onEdit(row.original);
+            }}
+            className="h-8 w-8 p-0"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              onDelete(row.original);
+            }}
+            className="h-8 w-8 p-0 text-error hover:text-error hover:bg-error/10"
+          >
+            <Delete className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      <Search
+        searchLabel="Search Users"
+        searchPlaceholder="Search by name, email, position, department, location, or group"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        live={true}
+        className="w-full"
+      />
+      <DataTable
+        columns={columns}
+        data={filteredUsers}
+        showPagination={true}
+        onRowDoubleClick={onEdit}
+        className="w-full"
+      />
+    </div>
+  );
+};

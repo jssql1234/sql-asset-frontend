@@ -3,11 +3,7 @@ import { Input } from "@/components/ui/components/Input";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import WorkOrderTable from "../components/WorkOrderTable";
-import type {
-  WorkOrder,
-  WorkOrderFilters,
-  WorkOrderSummary,
-} from "../types";
+import type { WorkOrder, WorkOrderFilters, WorkOrderSummary } from "../types";
 
 interface WorkOrderTabProps {
   workOrders: WorkOrder[];
@@ -60,7 +56,7 @@ export const WorkOrderTab = ({
   ];
 
   return (
-    <div className="flex flex-col gap-6 p-2">
+    <div className="flex flex-col gap-6 p-1">
       <TabHeader
         title="Work Orders"
         subtitle="Track and manage maintenance work orders and execution"
@@ -79,35 +75,28 @@ export const WorkOrderTab = ({
 
       {/* Filters */}
       <Card className="border border-outline bg-surfaceContainer p-4">
-        <div className="grid grid-cols-1">
-          <div>
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex flex-row items-center gap-2 w-full">
             <Input
               type="text"
               placeholder="Search by asset or job..."
               value={filters.search}
               onChange={(e) => handleChange("search", e.target.value)}
-              className="w-full"
+              className="flex-1"
             />
+            <Button variant="outline" size="sm" onClick={onResetFilters}>
+              Clear Filters
+            </Button>
           </div>
         </div>
-
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={onResetFilters}>
-            Clear Filters
-          </Button>
-        </div>
       </Card>
 
-      <Card className="flex flex-col gap-4 border border-outline bg-surfaceContainer p-0 min-h-[500px]">
-        <div className="border-t border-outline overflow-auto p-4">
-          <WorkOrderTable
-            workOrders={workOrders}
-            filters={filters}
-            onEditWorkOrder={onEditWorkOrder}
-            onViewDetails={onViewDetails}
-          />
-        </div>
-      </Card>
+      <WorkOrderTable
+        workOrders={workOrders}
+        filters={filters}
+        onEditWorkOrder={onEditWorkOrder}
+        onViewDetails={onViewDetails}
+      />
     </div>
   );
 };

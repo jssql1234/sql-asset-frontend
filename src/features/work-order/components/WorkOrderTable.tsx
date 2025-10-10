@@ -71,16 +71,13 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
     () => [
       {
         accessorKey: "workOrderNumber",
-        header: "Work Order #",
-        cell: ({ getValue, row }) => {
+        header: "ID",
+        cell: ({ getValue }) => {
           const woNumber = getValue() as string;
           return (
-            <button
-              onClick={() => onViewDetails?.(row.original)}
-              className="font-medium text-primary hover:underline"
-            >
+            <span >
               {woNumber}
-            </button>
+            </span>
           );
         },
       },
@@ -89,7 +86,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         header: "Asset",
         cell: ({ row }) => (
           <div>
-            <div className="font-medium text-onSurface">{row.original.assetName}</div>
+
             <div className="text-sm text-onSurfaceVariant">{row.original.assetCode}</div>
           </div>
         ),
@@ -100,8 +97,8 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const title = getValue() as string;
           return (
-            <div className="max-w-xs">
-              <div className="truncate text-onSurface" title={title}>
+            <div className="max-w-sm">
+              <div className="line-clamp-3 text-onSurface leading-relaxed" title={title}>
                 {title}
               </div>
             </div>
@@ -208,12 +205,6 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="title-medium font-medium text-onSurface">
-          Work Orders ({filteredWorkOrders.length})
-        </h2>
-      </div>
-
       <style>{`
         .work-order-table tbody tr {
           cursor: pointer;

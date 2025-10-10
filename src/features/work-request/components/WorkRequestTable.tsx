@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Badge } from '@/components/ui/components/Badge';
-import { DataTable } from '@/components/ui/components/Table/DataTable';
+import { DataTableExtended } from '@/components/DataTableExtended';
+import { type ColumnDef } from "@tanstack/react-table";
 import { WorkRequestStatusBadge } from './WorkRequestBadges';
 import type { WorkRequest, WorkRequestAsset } from '@/types/work-request';
 
@@ -9,6 +10,7 @@ interface WorkRequestTableProps {
   selectedWorkRequestIds: string[];
   isLoading?: boolean;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
+  onEditWorkRequest?: (workRequest: WorkRequest) => void;
 }
 
 const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
@@ -16,9 +18,10 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   selectedWorkRequestIds: _selectedWorkRequestIds,
   isLoading = false,
   onSelectionChange,
+  onEditWorkRequest,
 }) => {
   // Table columns configuration
-  const columns = useMemo(() => [
+  const columns: ColumnDef<WorkRequest>[] = useMemo(() => [
     {
       accessorKey: 'requestId',
       header: 'Request #',
@@ -121,17 +124,21 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   }, [workRequests, _selectedWorkRequestIds]);
 
   return (
-    <DataTable
-      key={`table-${_selectedWorkRequestIds.join('-')}`}
-      columns={columns}
-      data={workRequests}
-      showCheckbox
-      enableRowClickSelection
-      isLoading={isLoading}
-      onRowSelectionChange={handleRowSelectionChange}
-      rowSelection={selectedRowState}
-      className="h-full"
-    />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <h2 className="title-medium font-medium text-onSurface">
+          Work Requests ({workRequests.length})
+        </h2>
+      </div>
+      
+      <DataTableExtended
+        columns={columns}
+        data={workRequests}
+        showPagination={true}
+        className="border border-outline"
+        onRowDoubleClick={onEditWorkRequest}
+      />
+    </div>
   );
 };
 

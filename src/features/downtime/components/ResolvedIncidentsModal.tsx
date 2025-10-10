@@ -121,7 +121,6 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           <DialogTitle>Resolved Incidents</DialogTitle>
         </DialogHeader>
         
-        {/* Search */}
         <div className="flex-shrink-0 mb-4">
           <Search
             searchValue={searchValue}
@@ -133,7 +132,6 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           />
         </div>
 
-        {/* Table */}
         <div className="flex-1 overflow-hidden">
           <DataTableExtended
             columns={columns}

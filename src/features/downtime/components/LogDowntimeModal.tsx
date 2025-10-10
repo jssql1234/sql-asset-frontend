@@ -22,6 +22,11 @@ const priorityOptions = [
   { value: "Critical", label: "Critical" },
 ] as const;
 
+const statusOptions = [
+  { value: "Down", label: "Down" },
+  { value: "Resolved", label: "Resolved" },
+] as const;
+
 export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   open,
   onClose,
@@ -29,6 +34,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   const [formData, setFormData] = useState<CreateDowntimeInput>({
     assetId: "",
     priority: "Medium",
+    status: "Down",
     description: "",
     startTime: new Date().toISOString(),
   });
@@ -45,6 +51,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
       setFormData({
         assetId: "",
         priority: "Medium",
+        status: "Down",
         description: "",
         startTime: new Date().toISOString(),
       });
@@ -56,6 +63,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
     setFormData({
       assetId: "",
       priority: "Medium",
+      status: "Down",
       description: "",
       startTime: new Date().toISOString(),
     });
@@ -98,6 +106,16 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
     setFormData((prev) => ({ ...prev, priority }));
   };
 
+  const handleStatusSelect = (status: CreateDowntimeInput["status"]) => {
+    setFormData((prev) => ({
+      ...prev,
+      status,
+      // If resolving, set end time to now if not already set
+      endTime: status === "Resolved" && !prev.endTime ? new Date().toISOString() : prev.endTime,
+    }));
+    setErrors((prev) => ({ ...prev, status: "", endTime: "" }));
+  };
+
   const handleDateTimeChange = (date: string | Date | Date[] | string[] | undefined) => {
     if (date instanceof Date) {
       setFormData((prev) => ({ ...prev, startTime: date.toISOString() }));
@@ -105,6 +123,17 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
       setFormData((prev) => ({ ...prev, startTime: date }));
     }
     setErrors((prev) => ({ ...prev, startTime: "" }));
+  };
+
+  const handleEndDateTimeChange = (date: string | Date | Date[] | string[] | undefined) => {
+    if (date instanceof Date) {
+      setFormData((prev) => ({ ...prev, endTime: date.toISOString() }));
+    } else if (typeof date === "string") {
+      setFormData((prev) => ({ ...prev, endTime: date }));
+    } else if (date === undefined) {
+      setFormData((prev) => ({ ...prev, endTime: undefined }));
+    }
+    setErrors((prev) => ({ ...prev, endTime: "" }));
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -127,7 +156,6 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Asset Selection */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Asset*</label>
             <DropdownMenu className="w-full">
@@ -153,7 +181,6 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
             )}
           </div>
 
-          {/* Priority Selection */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Priority*</label>
             <DropdownMenu className="w-full">
@@ -176,7 +203,28 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
             </DropdownMenu>
           </div>
 
-          {/* Start Time */}
+          <div className="flex flex-col gap-2">
+            <label className="label-medium text-onSurface">Status*</label>
+            <DropdownMenu className="w-full">
+              <DropdownMenuTrigger 
+                label={formData.status} 
+                className="w-full justify-between" 
+              />
+              <DropdownMenuContent>
+                {statusOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => {
+                      handleStatusSelect(option.value);
+                    }}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Start Time*</label>
             <SemiDatePicker
@@ -190,7 +238,21 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
             )}
           </div>
 
-          {/* Description */}
+          {formData.status === "Resolved" && (
+            <div className="flex flex-col gap-2">
+              <label className="label-medium text-onSurface">End Time*</label>
+              <SemiDatePicker
+                value={formData.endTime ? new Date(formData.endTime) : null}
+                onChange={handleEndDateTimeChange}
+                inputType="dateTime"
+                className="w-full"
+              />
+              {errors.endTime && (
+                <span className="text-sm text-error">{errors.endTime}</span>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Description*</label>
             <TextArea

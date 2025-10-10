@@ -5,18 +5,14 @@ import type { DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
 import { fetchDowntimeIncidents, fetchResolvedIncidents, fetchDowntimeSummary, createDowntimeIncident, updateDowntimeIncident, deleteDowntimeIncident } from "../services/downtimeService";
 
-/**
- * Query keys for React Query cache management
- */
+// Query keys for React Query cache management
 export const DOWNTIME_QUERY_KEYS = {
   incidents: ["downtime", "incidents"] as const,
   resolved: ["downtime", "resolved"] as const,
   summary: ["downtime", "summary"] as const,
 } as const;
 
-/**
- * Hook to fetch all active downtime incidents
- */
+// Hook to fetch all active downtime incidents
 export function useGetDowntimeIncidents() {
   return useDataQuery<DowntimeIncident[]>({
     key: DOWNTIME_QUERY_KEYS.incidents,
@@ -26,9 +22,7 @@ export function useGetDowntimeIncidents() {
   });
 }
 
-/**
- * Hook to fetch resolved downtime incidents
- */
+// Hook to fetch resolved downtime incidents
 type ResolvedIncidentsQueryOptions = Pick<QueryOptions, "enabled">;
 
 export function useGetResolvedIncidents(options?: ResolvedIncidentsQueryOptions) {
@@ -41,9 +35,7 @@ export function useGetResolvedIncidents(options?: ResolvedIncidentsQueryOptions)
   });
 }
 
-/**
- * Hook to fetch downtime summary statistics
- */
+// Hook to fetch downtime summary statistics
 export function useGetDowntimeSummary() {
   return useDataQuery<DowntimeSummary>({
     key: DOWNTIME_QUERY_KEYS.summary,
@@ -53,9 +45,7 @@ export function useGetDowntimeSummary() {
   });
 }
 
-/**
- * Hook to create a new downtime incident
- */
+// Hook to create a new downtime incident
 export function useCreateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
@@ -91,9 +81,7 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
   });
 }
 
-/**
- * Hook to update an existing downtime incident
- */
+// Hook to update an existing downtime incident
 export function useUpdateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
@@ -129,9 +117,7 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
   });
 }
 
-/**
- * Hook to delete a downtime incident
- */
+// Hook to delete a downtime incident
 export function useDeleteDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();

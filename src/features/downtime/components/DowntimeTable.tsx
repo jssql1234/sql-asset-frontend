@@ -18,7 +18,6 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter incidents based on search query
   const filteredIncidents = useMemo(() => {
     if (!searchQuery.trim()) return incidents;
     
@@ -30,7 +29,6 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
     );
   }, [incidents, searchQuery]);
 
-  // Table column definitions
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
@@ -56,7 +54,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         },
         filterFn: "multiSelect",
         enableColumnFilter: true,
-        enableSorting: false,
+        enableSorting: true,
       },
       {
         accessorKey: "startTime",

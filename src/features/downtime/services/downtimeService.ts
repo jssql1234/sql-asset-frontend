@@ -1,18 +1,15 @@
 import type { DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import { getDowntimeAssetName, mockIncidents, resolvedIncidents } from "../mockData";
+import { getDowntimeAssetName } from "../mockData";
 import { calculateDuration } from "../utils/downtimeUtils";
 
-/**
- * Mock database - in a real application, this would be replaced with actual API calls
- */
-let incidentsStore: DowntimeIncident[] = [...mockIncidents];
-let resolvedStore: DowntimeIncident[] = [...resolvedIncidents];
+
+// Mock database - in a real application, this would be replaced with actual API calls
+let incidentsStore: DowntimeIncident[] = [];
+let resolvedStore: DowntimeIncident[] = [];
 let nextId = 100; // Start IDs from 100 for new incidents
 
-/**
- * Helper function to calculate summary statistics
- */
+// Helper function to calculate summary statistics
 const calculateSummary = (): DowntimeSummary => {
   const activeIncidents = incidentsStore.filter(i => i.status === "Down").length;
   const totalIncidents = incidentsStore.length + resolvedStore.length;
@@ -41,41 +38,32 @@ const calculateSummary = (): DowntimeSummary => {
   };
 };
 
-/**
- * Fetch all active downtime incidents
- */
+// Fetch all active downtime incidents
 export const fetchDowntimeIncidents = async (): Promise<DowntimeIncident[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 300));
   return Promise.resolve([...incidentsStore]);
 };
 
-/**
- * Fetch resolved downtime incidents
- */
+// Fetch resolved downtime incidents
 export const fetchResolvedIncidents = async (): Promise<DowntimeIncident[]> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 300));
   return Promise.resolve([...resolvedStore]);
 };
 
-/**
- * Fetch downtime summary statistics
- */
+// Fetch downtime summary statistics
 export const fetchDowntimeSummary = async (): Promise<DowntimeSummary> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 200));
   return Promise.resolve(calculateSummary());
 };
 
-/**
- * Create a new downtime incident
- */
+// Create a new downtime incident
 export const createDowntimeIncident = async (
   input: CreateDowntimeInput
 ): Promise<DowntimeIncident> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
   
   // Find asset name (in real app, this would come from asset API)
   const newIncident: DowntimeIncident = {
@@ -83,11 +71,11 @@ export const createDowntimeIncident = async (
     assetName: getDowntimeAssetName(input.assetId),
     assetId: input.assetId,
     priority: input.priority,
-    status: "Down",
+    status: input.status,
     startTime: input.startTime,
     endTime: input.endTime,
     description: input.description,
-  reportedBy: input.reportedBy ?? "Current User",
+    reportedBy: input.reportedBy ?? "Current User",
   };
   
   // Calculate duration if end time is provided
@@ -98,13 +86,16 @@ export const createDowntimeIncident = async (
     );
   }
   
-  incidentsStore = [newIncident, ...incidentsStore];
+  // If status is Resolved, add to resolved store, otherwise to incidents store
+  if (input.status === "Resolved") {
+    resolvedStore = [newIncident, ...resolvedStore];
+  } else {
+    incidentsStore = [newIncident, ...incidentsStore];
+  }
   return Promise.resolve(newIncident);
 };
 
-/**
- * Update an existing downtime incident
- */
+// Update an existing downtime incident
 export const updateDowntimeIncident = async (
   input: EditDowntimeInput
 ): Promise<DowntimeIncident> => {
@@ -149,9 +140,7 @@ export const updateDowntimeIncident = async (
   return Promise.resolve(updatedIncident);
 };
 
-/**
- * Delete a downtime incident
- */
+// Delete a downtime incident
 export const deleteDowntimeIncident = async (id: string): Promise<undefined> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 400));
@@ -160,13 +149,4 @@ export const deleteDowntimeIncident = async (id: string): Promise<undefined> => 
   resolvedStore = resolvedStore.filter(i => i.id !== id);
   
   return Promise.resolve(undefined);
-};
-
-/**
- * Reset the mock data (useful for testing)
- */
-export const resetMockData = (): void => {
-  incidentsStore = [...mockIncidents];
-  resolvedStore = [...resolvedIncidents];
-  nextId = 100;
 };

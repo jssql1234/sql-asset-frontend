@@ -65,7 +65,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         description: incident.description,
         startTime: incident.startTime,
         endTime: incident.endTime,
-  resolutionNotes: incident.resolutionNotes ?? "",
+        resolutionNotes: incident.resolutionNotes ?? "",
         reportedBy: incident.reportedBy,
         resolvedBy: incident.resolvedBy,
       });

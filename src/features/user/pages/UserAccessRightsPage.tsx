@@ -55,7 +55,7 @@ const UserAccessRightsPage: React.FC = () => {
 
       selectedPermissions.forEach(permissionKey => {
         const item = PERMISSION_ITEMS.find(item => item.key === permissionKey);
-        if (!(item == null)) {
+        if (item !== undefined) {
           const itemPermissions = updatedPermissions[item.key] ??= {};
           Object.keys(item.permissions).forEach(action => {
             itemPermissions[action] = true;
@@ -77,7 +77,7 @@ const UserAccessRightsPage: React.FC = () => {
 
       selectedPermissions.forEach(permissionKey => {
         const item = PERMISSION_ITEMS.find(item => item.key === permissionKey);
-        if (!(item == null)) {
+        if (item !== undefined) {
           const itemPermissions = updatedPermissions[item.key] ??= {};
           Object.keys(item.permissions).forEach(action => {
             itemPermissions[action] = false;

@@ -22,7 +22,7 @@ const data = {
         { name: "Allocation", url: "/allocation", icon: LocationIcon, filledIcon: LocationFilled },
         { name: "Downtime Tracking", url: "/downtime-tracking", icon: Clock, filledIcon: ClockFilled },
         { name: "Work Requests", url: "/work-request", icon: Briefcase, filledIcon: BriefcaseFilled },
-        { name: "Maintenance Schedule", url: "/maintenance-schedule", icon: Calendar, filledIcon: CalendarFilled },
+        { name: "Work Orders", url: "/work-orders", icon: Calendar, filledIcon: CalendarFilled },
         { name: "Insurance & Warranty", url: "/insurance", icon: ShieldCheck, filledIcon: ShieldCheckFilled },
         { name: "Meter Reading", url: "/meter-reading", icon: Gauge, filledIcon: GaugeFilled },
       ],

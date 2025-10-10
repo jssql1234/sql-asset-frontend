@@ -38,6 +38,7 @@ const InsurancesVariantTable = ({
       {
         accessorKey: "name",
         header: "Policy",
+        enableColumnFilter: false,
         cell: ({ row }) => {
           const policy = row.original;
           return (
@@ -53,6 +54,7 @@ const InsurancesVariantTable = ({
       {
         accessorKey: "remainingCoverage",
         header: "Available Coverage",
+        enableColumnFilter: false,
         cell: ({ row }) => (
           <span className="font-medium">
             {formatCurrency(row.original.remainingCoverage)}
@@ -65,6 +67,7 @@ const InsurancesVariantTable = ({
       {
         accessorKey: "annualPremium",
         header: "Annual Premium",
+        enableColumnFilter: false,
         cell: ({ row }) => formatCurrency(row.original.annualPremium),
         meta: {
           align: "right",
@@ -73,6 +76,7 @@ const InsurancesVariantTable = ({
       {
         accessorKey: "totalClaimed",
         header: "Total Claimed",
+        enableColumnFilter: false,
         cell: ({ row }) => formatCurrency(row.original.totalClaimed),
         meta: {
           align: "right",
@@ -81,6 +85,7 @@ const InsurancesVariantTable = ({
       {
         accessorKey: "expiryDate",
         header: "Expiry Date",
+        enableColumnFilter: false,
         cell: ({ row }) => {
           const policy = row.original;
           return (
@@ -96,6 +101,9 @@ const InsurancesVariantTable = ({
       {
         accessorKey: "status",
         header: "Status",
+        enableColumnFilter: true,
+        filterFn: "multiSelect",
+        enableSorting: true,
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
     ],
@@ -118,6 +126,7 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
       {
         accessorKey: "name",
         header: "Warranty",
+        enableColumnFilter: false,
         cell: ({ row }) => {
           const warranty = row.original;
           return (
@@ -133,19 +142,27 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
       {
         accessorKey: "provider",
         header: "Provider",
+        enableColumnFilter: false,
       },
       {
         accessorKey: "coverage",
         header: "Coverage",
+        enableColumnFilter: true,
+        filterFn: "multiSelect",
+        enableSorting: true,
       },
       {
         accessorKey: "expiryDate",
         header: "Expiry Date",
+        enableColumnFilter: false,
         cell: ({ row }) => formatDate(row.original.expiryDate),
       },
       {
         accessorKey: "status",
         header: "Status",
+        enableColumnFilter: true,
+        filterFn: "multiSelect",
+        enableSorting: true,
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
     ],
@@ -171,6 +188,7 @@ const ClaimsVariantTable = ({
       {
         accessorKey: "claimNumber",
         header: "Claim",
+        enableColumnFilter: false,
         cell: ({ row }) => {
           const claim = row.original;
           return (
@@ -186,6 +204,9 @@ const ClaimsVariantTable = ({
       {
         accessorKey: "type",
         header: "Type",
+        enableColumnFilter: true,
+        filterFn: "multiSelect",
+        enableSorting: true,
         cell: ({ row }) => (
           <Badge
             text={row.original.type}
@@ -196,6 +217,9 @@ const ClaimsVariantTable = ({
       {
         accessorKey: "referenceName",
         header: "Policy/Warranty",
+        enableColumnFilter: true,
+        filterFn: "multiSelect",
+        enableSorting: true,
         cell: ({ row }) => {
           const claim = row.original;
           return (
@@ -209,6 +233,8 @@ const ClaimsVariantTable = ({
       {
         accessorKey: "assets",
         header: "Assets",
+        enableColumnFilter: false,
+        enableSorting: false,
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
             {row.original.assets.map((asset) => (
@@ -225,6 +251,7 @@ const ClaimsVariantTable = ({
       {
         accessorKey: "amount",
         header: "Amount",
+        enableColumnFilter: false,
         cell: ({ row }) => (
           <div className="text-right font-medium">
             {formatCurrency(row.original.amount)}
@@ -237,16 +264,21 @@ const ClaimsVariantTable = ({
       {
         accessorKey: "status",
         header: "Status",
+        enableColumnFilter: true,
+        filterFn: "multiSelect",
+        enableSorting: true,
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         accessorKey: "dateFiled",
         header: "Date Filed",
+        enableColumnFilter: false,
         cell: ({ row }) => formatDate(row.original.dateFiled),
       },
       {
         accessorKey: "workOrderId",
         header: "Work Order",
+        enableColumnFilter: false,
         cell: ({ row }) => row.original.workOrderId ?? "—",
       },
     ],

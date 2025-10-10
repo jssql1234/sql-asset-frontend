@@ -1,11 +1,7 @@
 import type {
-  AllocationType,
   AssetRecord,
   CalendarEventRecord,
   RentalRecord,
-  RentalStatus,
-  TransferType,
-  ReturnType,
 } from "./types";
 
 const now = new Date();
@@ -260,42 +256,3 @@ export const MOCK_RENTALS: RentalRecord[] = [
     contactEmail: "design@company.com",
   },
 ];
-
-export const MOCK_TRANSFER_TYPES: TransferType[] = [
-  "location-to-location",
-  "user-to-user",
-];
-
-export const MOCK_RETURN_TYPES: ReturnType[] = [
-  "location-return",
-  "user-return",
-];
-
-export const MOCK_ALLOCATION_TYPES: AllocationType[] = [
-  "location",
-  "user",
-];
-
-export const MOCK_LOCATIONS = Array.from(
-  new Set(MOCK_ASSETS.map((asset) => asset.location))
-).sort();
-
-export const MOCK_PICS = Array.from(
-  new Set(MOCK_ASSETS.map((asset) => asset.pic))
-).sort();
-
-export const MOCK_STATUS = Array.from(
-  new Set(MOCK_ASSETS.map((asset) => asset.status))
-).sort();
-
-export const MOCK_RENTAL_STATUS: RentalStatus[] = [
-  "Scheduled",
-  "Active",
-  "Completed",
-  "Overdue",
-  "Cancelled",
-];
-
-export const MOCK_RENTAL_LOCATIONS = Array.from(
-  new Set(MOCK_RENTALS.map((rental) => rental.location))
-).sort();

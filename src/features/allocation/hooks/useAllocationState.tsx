@@ -1,12 +1,9 @@
 import { useCallback, useMemo, useState } from "react";
-import { MOCK_ASSETS, MOCK_LOCATIONS, MOCK_PICS, MOCK_STATUS } from "../mockData";
+import { MOCK_ASSETS } from "../mockData";
 import type { AllocationActionPayload, AllocationFilters, AllocationSummary } from "../types";
 
 const DEFAULT_FILTERS: AllocationFilters = {
   search: "",
-  location: "",
-  pic: "",
-  status: "",
 };
 
 export const useAllocationState = () => {
@@ -17,27 +14,13 @@ export const useAllocationState = () => {
     const normalizedSearch = filters.search.trim().toLowerCase();
 
     return MOCK_ASSETS.filter((asset) => {
-      const matchesSearch = normalizedSearch
+      return normalizedSearch
         ? `${asset.name} ${asset.code} ${asset.status} ${asset.location}`
             .toLowerCase()
             .includes(normalizedSearch)
         : true;
-      const matchesLocation = filters.location
-        ? asset.location === filters.location
-        : true;
-      const matchesPic = filters.pic ? asset.pic === filters.pic : true;
-      const matchesStatus = filters.status
-        ? asset.status === filters.status
-        : true;
-
-      return (
-        matchesSearch &&
-        matchesLocation &&
-        matchesPic &&
-        matchesStatus
-      );
     });
-  }, [filters]);
+  }, [filters.search]);
 
   const summary: AllocationSummary = useMemo(() => {
     const totals = filteredAssets.reduce(
@@ -79,9 +62,6 @@ export const useAllocationState = () => {
     filteredAssets,
     summary,
     isAllocationModalOpen,
-    locations: MOCK_LOCATIONS,
-    pics: MOCK_PICS,
-    statuses: MOCK_STATUS,
     assets: MOCK_ASSETS,
     handleFilterChange,
     openAllocationModal,

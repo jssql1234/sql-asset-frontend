@@ -41,15 +41,10 @@ export interface AllocationSummary {
 
 export interface AllocationFilters {
   search: string;
-  location: string;
-  pic: string;
-  status: AssetStatus | "";
 }
 
 export interface RentalFilters {
   search: string;
-  status: RentalStatus | "";
-  location: string;
 }
 
 export type AllocationType = "location" | "user";
@@ -67,25 +62,6 @@ export interface AllocationActionPayload {
   targetUser?: string;
   startDate?: string;
   endDate?: string;
-  assets: AllocationSelection[];
-  notes?: string;
-}
-
-export type TransferType = "location-to-location" | "user-to-user";
-
-export interface TransferActionPayload {
-  type: TransferType;
-  source: string;
-  destination: string;
-  assets: AllocationSelection[];
-  notes?: string;
-}
-
-export type ReturnType = "location-return" | "user-return";
-
-export interface ReturnActionPayload {
-  type: ReturnType;
-  source: string;
   assets: AllocationSelection[];
   notes?: string;
 }

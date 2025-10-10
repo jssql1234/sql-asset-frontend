@@ -1,18 +1,15 @@
 import { useMemo } from "react";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
-import { AllocationFilter } from "../AllocationSearchFilter";
+import Search from "@/components/Search";
 import AllocationTable from "../AllocationTable";
 import { getAllocationSummaryCards } from "../AllocationSummaryCards";
-import type { AllocationFilters, AllocationSummary, AssetRecord, AssetStatus } from "../../types";
+import type { AllocationFilters, AllocationSummary, AssetRecord } from "../../types";
 
 interface AllocationTabProps {
   assets: AssetRecord[];
   filters: AllocationFilters;
   summary: AllocationSummary;
-  locations: string[];
-  pics: string[];
-  statuses: AssetStatus[];
   onFilterChange: (filters: AllocationFilters) => void;
   onOpenAllocationModal?: () => void;
 }
@@ -21,9 +18,6 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
   assets,
   filters,
   summary,
-  locations,
-  pics,
-  statuses,
   onFilterChange,
   onOpenAllocationModal,
 }) => {
@@ -48,17 +42,12 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
 
       <SummaryCards data={summaryCards} />
 
-      <AllocationFilter
-        filters={filters}
-        locations={locations}
-        pics={pics}
-        statuses={statuses}
-        onFiltersChange={(partialFilters) =>
-          onFilterChange({ ...filters, ...partialFilters })
-        }
+      <Search
+        searchValue={filters.search}
+        searchPlaceholder="Search by asset, status, or location"
+        onSearch={(value) => onFilterChange({ ...filters, search: value })}
+        live
       />
-
-      
         <div className="flex-1 border-t border-outline">
           <AllocationTable
             variant="allocation"

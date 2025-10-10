@@ -5,11 +5,11 @@ import { useAllocationState } from "../hooks/useAllocationState";
 import { useAllocationTabs } from "../hooks/useAllocationTabs";
 
 const AllocationPage: React.FC = () => {
-  const { filters, filteredAssets, summary, isAllocationModalOpen, locations, pics, statuses, assets,
+  const { filters, filteredAssets, summary, isAllocationModalOpen, locations, pics, assets,
     handleFilterChange, openAllocationModal, closeAllocationModal, handleAllocationSubmit,
   } = useAllocationState();
 
-  const tabs = useAllocationTabs({ filteredAssets, filters, summary, locations, pics, statuses,
+  const tabs = useAllocationTabs({ filteredAssets, filters, summary,
     onFilterChange: handleFilterChange, onOpenAllocationModal: openAllocationModal,
   });
 

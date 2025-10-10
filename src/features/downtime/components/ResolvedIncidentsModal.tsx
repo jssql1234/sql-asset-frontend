@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from "@/components/ui/components";
-import { DataTable } from "@/components/ui/components/Table";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import Search from "@/components/Search";
 import type { DowntimeIncident } from "@/features/downtime/types";
-import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/components/DowntimeTable";
+import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/constants";
 import { useGetResolvedIncidents } from "@/features/downtime/hooks/useDowntimeService";
+import { formatDate, formatTime } from "@/features/downtime/utils/downtimeUtils";
 
 interface ResolvedIncidentsModalProps {
   open: boolean;
@@ -17,7 +18,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   onClose,
 }) => {
   const [searchValue, setSearchValue] = useState("");
-  const { data: resolvedIncidents = [], isLoading } = useGetResolvedIncidents();
+  const { data: resolvedIncidents = [], isLoading } = useGetResolvedIncidents({ enabled: open });
 
   // Filter incidents based on search
   const filteredIncidents = useMemo(() => {
@@ -55,11 +56,11 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         accessorKey: "startTime",
         header: "Start Time",
         cell: ({ getValue }) => {
-          const date = new Date(getValue() as string);
+          const value = getValue() as string;
           return (
             <div>
-              <div>{date.toLocaleDateString()}</div>
-              <div className="text-sm text-onSurfaceVariant">{date.toLocaleTimeString()}</div>
+              <div>{formatDate(value)}</div>
+              <div className="text-sm text-onSurfaceVariant">{formatTime(value)}</div>
             </div>
           );
         },
@@ -68,12 +69,14 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         accessorKey: "endTime",
         header: "End Time",
         cell: ({ getValue }) => {
-          const endTime = getValue() as string;
-          const date = new Date(endTime);
+          const endTime = getValue() as string | undefined;
+          if (!endTime) {
+            return <span className="text-onSurfaceVariant">Pending</span>;
+          }
           return (
             <div>
-              <div>{date.toLocaleDateString()}</div>
-              <div className="text-sm text-onSurfaceVariant">{date.toLocaleTimeString()}</div>
+              <div>{formatDate(endTime)}</div>
+              <div className="text-sm text-onSurfaceVariant">{formatTime(endTime)}</div>
             </div>
           );
         },
@@ -94,7 +97,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           return (
             <div className="max-w-xs">
               <div className="truncate" title={notes}>
-                {notes || "-"}
+                {notes ?? "-"}
               </div>
             </div>
           );
@@ -105,7 +108,14 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   );
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Resolved Incidents</DialogTitle>
@@ -125,23 +135,19 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
 
         {/* Table */}
         <div className="flex-1 overflow-hidden">
-          {isLoading ? (
-            <div className="flex items-center justify-center p-8">
-              <span className="text-onSurfaceVariant">Loading resolved incidents...</span>
-            </div>
-          ) : (
-            <DataTable
-              columns={columns}
-              data={filteredIncidents}
-              showPagination={true}
-              className="border border-outline h-full"
-            />
-          )}
+          <DataTableExtended
+            columns={columns}
+            data={filteredIncidents}
+            showPagination
+            isLoading={isLoading}
+            className="h-full"
+          />
         </div>
 
         <div className="flex-shrink-0 mt-4 text-center">
           <span className="body-small text-onSurfaceVariant">
-            Showing {filteredIncidents.length} resolved incident{filteredIncidents.length !== 1 ? 's' : ''}
+            Showing {filteredIncidents.length} resolved incident
+            {filteredIncidents.length !== 1 ? "s" : ""}
           </span>
         </div>
       </DialogContent>

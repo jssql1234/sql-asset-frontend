@@ -6,7 +6,7 @@ import {
 } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 
-type QueryOptions = {
+export type QueryOptions = {
   staleTime?: number;
   gcTime?: number;
   refetchOnWindowFocus?: boolean;

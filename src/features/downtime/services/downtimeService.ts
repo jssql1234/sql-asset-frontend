@@ -1,6 +1,7 @@
 import type { DowntimeIncident, DowntimeSummary } from "../types";
-import type { CreateDowntimeInput, EditDowntimeInput, ResolveDowntimeInput } from "../zod/downtimeSchemas";
-import { mockIncidents, resolvedIncidents } from "../mockData";
+import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
+import { getDowntimeAssetName, mockIncidents, resolvedIncidents } from "../mockData";
+import { calculateDuration } from "../utils/downtimeUtils";
 
 /**
  * Mock database - in a real application, this would be replaced with actual API calls
@@ -8,20 +9,6 @@ import { mockIncidents, resolvedIncidents } from "../mockData";
 let incidentsStore: DowntimeIncident[] = [...mockIncidents];
 let resolvedStore: DowntimeIncident[] = [...resolvedIncidents];
 let nextId = 100; // Start IDs from 100 for new incidents
-
-/**
- * Helper function to calculate downtime duration
- */
-const calculateDuration = (startTime: string, endTime: string): string => {
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-  const diffMs = end.getTime() - start.getTime();
-  
-  const hours = Math.floor(diffMs / (1000 * 60 * 60));
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
-  return `${hours}h ${minutes}m`;
-};
 
 /**
  * Helper function to calculate summary statistics
@@ -44,7 +31,7 @@ const calculateSummary = (): DowntimeSummary => {
   
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  const totalDowntime = `${hours}h ${minutes}m`;
+  const totalDowntime = `${hours.toString()}h ${minutes.toString()}m`;
   
   return {
     activeIncidents,
@@ -91,25 +78,16 @@ export const createDowntimeIncident = async (
   await new Promise(resolve => setTimeout(resolve, 500));
   
   // Find asset name (in real app, this would come from asset API)
-  const assetMap: Record<string, string> = {
-    "CBT-001": "Conveyor Belt A1",
-    "PMP-002": "Pump System B2",
-    "GEN-003": "Generator C3",
-    "CMP-004": "Compressor D4",
-    "HP-005": "Hydraulic Press E5",
-    "CS-006": "Cooling System F6",
-  };
-  
   const newIncident: DowntimeIncident = {
     id: String(nextId++),
-    assetName: assetMap[input.assetId] || "Unknown Asset",
+    assetName: getDowntimeAssetName(input.assetId),
     assetId: input.assetId,
     priority: input.priority,
     status: "Down",
     startTime: input.startTime,
     endTime: input.endTime,
     description: input.description,
-    reportedBy: input.reportedBy || "Current User",
+  reportedBy: input.reportedBy ?? "Current User",
   };
   
   // Calculate duration if end time is provided
@@ -138,18 +116,9 @@ export const updateDowntimeIncident = async (
     throw new Error("Incident not found");
   }
   
-  const assetMap: Record<string, string> = {
-    "CBT-001": "Conveyor Belt A1",
-    "PMP-002": "Pump System B2",
-    "GEN-003": "Generator C3",
-    "CMP-004": "Compressor D4",
-    "HP-005": "Hydraulic Press E5",
-    "CS-006": "Cooling System F6",
-  };
-  
   const updatedIncident: DowntimeIncident = {
     ...incidentsStore[index],
-    assetName: assetMap[input.assetId] || "Unknown Asset",
+    assetName: getDowntimeAssetName(input.assetId),
     assetId: input.assetId,
     priority: input.priority,
     status: input.status,
@@ -181,46 +150,16 @@ export const updateDowntimeIncident = async (
 };
 
 /**
- * Resolve a downtime incident
- */
-export const resolveDowntimeIncident = async (
-  input: ResolveDowntimeInput
-): Promise<DowntimeIncident> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  const index = incidentsStore.findIndex(i => i.id === input.id);
-  if (index === -1) {
-    throw new Error("Incident not found");
-  }
-  
-  const resolvedIncident: DowntimeIncident = {
-    ...incidentsStore[index],
-    status: "Resolved",
-    endTime: input.endTime,
-    resolvedBy: input.resolvedBy,
-    resolutionNotes: input.resolutionNotes,
-    downtimeDuration: calculateDuration(incidentsStore[index].startTime, input.endTime),
-  };
-  
-  // Move from active to resolved
-  incidentsStore = incidentsStore.filter(i => i.id !== input.id);
-  resolvedStore = [resolvedIncident, ...resolvedStore];
-  
-  return Promise.resolve(resolvedIncident);
-};
-
-/**
  * Delete a downtime incident
  */
-export const deleteDowntimeIncident = async (id: string): Promise<void> => {
+export const deleteDowntimeIncident = async (id: string): Promise<undefined> => {
   // Simulate API delay
   await new Promise(resolve => setTimeout(resolve, 400));
   
   incidentsStore = incidentsStore.filter(i => i.id !== id);
   resolvedStore = resolvedStore.filter(i => i.id !== id);
   
-  return Promise.resolve();
+  return Promise.resolve(undefined);
 };
 
 /**

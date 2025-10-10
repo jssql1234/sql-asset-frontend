@@ -4,13 +4,8 @@ import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import Search from "@/components/Search";
-
-export const PRIORITY_BADGE_VARIANT: Record<DowntimeIncident["priority"], "primary" | "red" | "green" | "yellow" | "blue" | "grey"> = {
-  Low: "blue",
-  Medium: "yellow",
-  High: "red",
-  Critical: "red",
-};
+import { formatDate, formatTime } from "@/features/downtime/utils/downtimeUtils";
+import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/constants";
 
 interface DowntimeTableProps {
   incidents: DowntimeIncident[];
@@ -67,11 +62,11 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         accessorKey: "startTime",
         header: "Start Time",
         cell: ({ getValue }) => {
-          const date = new Date(getValue() as string);
+          const value = getValue() as string;
           return (
             <div>
-              <div>{date.toLocaleDateString()}</div>
-              <div className="text-sm text-onSurfaceVariant">{date.toLocaleTimeString()}</div>
+              <div>{formatDate(value)}</div>
+              <div className="text-sm text-onSurfaceVariant">{formatTime(value)}</div>
             </div>
           );
         },

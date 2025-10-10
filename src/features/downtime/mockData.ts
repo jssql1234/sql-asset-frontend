@@ -1,10 +1,30 @@
 import type { DowntimeIncident, DowntimeSummary } from "./types";
 
+export const downtimeAssets: { id: string; name: string }[] = [
+  { id: "CBT-001", name: "Conveyor Belt A1" },
+  { id: "PMP-002", name: "Pump System B2" },
+  { id: "GEN-003", name: "Generator C3" },
+  { id: "AC-004", name: "Air Compressor D4" },
+  { id: "HP-005", name: "Hydraulic Press E5" },
+  { id: "CS-006", name: "Cooling System F6" },
+];
+
+export const downtimeAssetMap: Record<string, string> = downtimeAssets.reduce<Record<string, string>>(
+  (acc, { id, name }) => {
+    acc[id] = name;
+    return acc;
+  },
+  {}
+);
+
+export const getDowntimeAssetName = (assetId: string): string =>
+  downtimeAssetMap[assetId] ?? "Unknown Asset";
+
 // Mock data - in real app this would come from API
 export const mockIncidents: DowntimeIncident[] = [
   {
     id: "1",
-    assetName: "Conveyor Belt A1",
+    assetName: getDowntimeAssetName("CBT-001"),
     assetId: "CBT-001",
     priority: "High",
     status: "Down",
@@ -14,7 +34,7 @@ export const mockIncidents: DowntimeIncident[] = [
   },
   {
     id: "2",
-    assetName: "Pump System B2",
+    assetName: getDowntimeAssetName("PMP-002"),
     assetId: "PMP-002",
     priority: "Medium",
     status: "Down",
@@ -24,7 +44,7 @@ export const mockIncidents: DowntimeIncident[] = [
   },
   {
     id: "3",
-    assetName: "Generator C3",
+    assetName: getDowntimeAssetName("GEN-003"),
     assetId: "GEN-003",
     priority: "Critical",
     status: "Resolved",
@@ -38,7 +58,7 @@ export const mockIncidents: DowntimeIncident[] = [
   },
   {
     id: "4",
-    assetName: "Air Compressor D4",
+    assetName: getDowntimeAssetName("AC-004"),
     assetId: "AC-004",
     priority: "Low",
     status: "Down",
@@ -58,7 +78,7 @@ export const mockSummary: DowntimeSummary = {
 export const resolvedIncidents: DowntimeIncident[] = [
   {
     id: "3",
-    assetName: "Generator C3",
+    assetName: getDowntimeAssetName("GEN-003"),
     assetId: "GEN-003",
     priority: "Critical",
     status: "Resolved",
@@ -70,7 +90,7 @@ export const resolvedIncidents: DowntimeIncident[] = [
   },
   {
     id: "4",
-    assetName: "Hydraulic Press E5",
+    assetName: getDowntimeAssetName("HP-005"),
     assetId: "HP-005",
     priority: "High",
     status: "Resolved",
@@ -82,7 +102,7 @@ export const resolvedIncidents: DowntimeIncident[] = [
   },
   {
     id: "5",
-    assetName: "Cooling System F6",
+    assetName: getDowntimeAssetName("CS-006"),
     assetId: "CS-006",
     priority: "Medium",
     status: "Resolved",

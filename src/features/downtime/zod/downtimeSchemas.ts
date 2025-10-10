@@ -7,8 +7,8 @@ export const createDowntimeSchema = z.object({
   assetId: z.string().min(1, "Asset is required"),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  startTime: z.string().datetime("Invalid date format"),
-  endTime: z.string().datetime("Invalid date format").optional(),
+  startTime: z.iso.datetime({ message: "Invalid date format" }),
+  endTime: z.iso.datetime({ message: "Invalid date format" }).optional(),
   reportedBy: z.string().optional(),
 }).refine(
   (data) => {
@@ -32,8 +32,8 @@ export const editDowntimeSchema = z.object({
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  startTime: z.string().datetime("Invalid date format"),
-  endTime: z.string().datetime("Invalid date format").optional(),
+  startTime: z.iso.datetime({ message: "Invalid date format" }),
+  endTime: z.iso.datetime({ message: "Invalid date format" }).optional(),
   reportedBy: z.string().optional(),
   resolvedBy: z.string().optional(),
   resolutionNotes: z.string().optional(),
@@ -77,7 +77,7 @@ export const editDowntimeSchema = z.object({
  */
 export const resolveDowntimeSchema = z.object({
   id: z.string().min(1, "Incident ID is required"),
-  endTime: z.string().datetime("Invalid date format"),
+  endTime: z.iso.datetime({ message: "Invalid date format" }),
   resolvedBy: z.string().min(1, "Resolver name is required"),
   resolutionNotes: z.string().min(10, "Resolution notes must be at least 10 characters"),
 });

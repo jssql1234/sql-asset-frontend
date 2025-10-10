@@ -44,6 +44,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   const updateMutation = useUpdateDowntimeIncident(() => {
     handleClose();
@@ -64,7 +65,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         description: incident.description,
         startTime: incident.startTime,
         endTime: incident.endTime,
-        resolutionNotes: incident.resolutionNotes || "",
+  resolutionNotes: incident.resolutionNotes ?? "",
         reportedBy: incident.reportedBy,
         resolvedBy: incident.resolvedBy,
       });
@@ -74,15 +75,23 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
 
   const handleClose = () => {
     setErrors({});
+    setIsDeleteDialogOpen(false);
     onClose();
   };
 
-  const handleDelete = () => {
+  const handleDeleteClick = () => {
     if (!incident) return;
-    
-    if (window.confirm(`Are you sure you want to delete incident for ${incident.assetName}?`)) {
-      deleteMutation.mutate(incident.id);
-    }
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!incident) return;
+    deleteMutation.mutate(incident.id);
+    setIsDeleteDialogOpen(false);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteDialogOpen(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -118,30 +127,37 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   };
 
   const handleStatusSelect = (status: EditDowntimeInput["status"]) => {
-    setFormData(prev => ({ 
-      ...prev, 
+    setFormData((prev) => ({
+      ...prev,
       status,
       // If resolving, set end time to now if not already set
-      endTime: status === "Resolved" && !prev.endTime ? new Date().toISOString() : prev.endTime
+      endTime: status === "Resolved" && !prev.endTime ? new Date().toISOString() : prev.endTime,
     }));
-    setErrors(prev => ({ ...prev, status: "", endTime: "", resolutionNotes: "" }));
+    setErrors((prev) => ({ ...prev, status: "", endTime: "", resolutionNotes: "" }));
   };
 
   const handleDateTimeChange = (field: "startTime" | "endTime") => (date: string | Date | Date[] | string[] | undefined) => {
     if (date instanceof Date) {
-      setFormData(prev => ({ ...prev, [field]: date.toISOString() }));
-    } else if (typeof date === 'string') {
-      setFormData(prev => ({ ...prev, [field]: date }));
-    } else if (field === 'endTime' && date === undefined) {
-      setFormData(prev => ({ ...prev, [field]: undefined }));
+      setFormData((prev) => ({ ...prev, [field]: date.toISOString() }));
+    } else if (typeof date === "string") {
+      setFormData((prev) => ({ ...prev, [field]: date }));
+    } else if (field === "endTime" && date === undefined) {
+      setFormData((prev) => ({ ...prev, [field]: undefined }));
     }
-    setErrors(prev => ({ ...prev, [field]: "" }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   if (!incident) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          handleClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Incident</DialogTitle>
@@ -165,7 +181,9 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                 {priorityOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => handlePrioritySelect(option.value)}
+                    onClick={() => {
+                      handlePrioritySelect(option.value);
+                    }}
                   >
                     {option.label}
                   </DropdownMenuItem>
@@ -183,7 +201,9 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                 {statusOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => handleStatusSelect(option.value)}
+                    onClick={() => {
+                      handleStatusSelect(option.value);
+                    }}
                   >
                     {option.label}
                   </DropdownMenuItem>
@@ -243,7 +263,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
             <div className="flex flex-col gap-2">
               <label className="label-medium text-onSurface">Resolution Notes*</label>
               <TextArea
-                value={formData.resolutionNotes || ""}
+                value={formData.resolutionNotes ?? ""}
                 onChange={handleInputChange("resolutionNotes")}
                 placeholder="Describe how the issue was resolved... (minimum 10 characters)"
                 className="min-h-[80px]"
@@ -258,7 +278,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
             <Button
               variant="ghost"
               type="button"
-              onClick={handleDelete}
+              onClick={handleDeleteClick}
               className="text-error hover:text-error hover:bg-errorContainer"
               disabled={deleteMutation.isPending}
             >
@@ -281,6 +301,59 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           </DialogFooter>
         </form>
       </DialogContent>
+      <Dialog
+        open={isDeleteDialogOpen}
+        onOpenChange={(isOpen) => {
+          if (isOpen) {
+            setIsDeleteDialogOpen(true);
+          } else {
+            handleCancelDelete();
+          }
+        }}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-error">
+              Delete incident?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-onSurfaceVariant text-sm">
+              This will permanently remove the downtime incident for
+              {" "}
+              <span className="font-medium text-onSurface">
+                {incident.assetName} ({incident.assetId})
+              </span>
+              . This action cannot be undone.
+            </p>
+            <div className="flex items-start gap-3 rounded-lg border border-error bg-errorContainer/40 p-3">
+              <Trash2 className="h-5 w-5 text-error mt-0.5" />
+              <div className="text-sm text-error">
+                Please confirm you want to proceed.
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={handleCancelDelete}
+              disabled={deleteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              type="button"
+              onClick={handleConfirmDelete}
+              disabled={deleteMutation.isPending}
+            >
+              {deleteMutation.isPending ? "Deleting..." : "Delete Incident"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };

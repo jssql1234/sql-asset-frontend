@@ -17,10 +17,10 @@ export const calculateDuration = (startTime: string, endTime: string): string =>
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
   
   if (hours === 0) {
-    return `${minutes}m`;
+    return `${minutes.toString()}m`;
   }
   
-  return `${hours}h ${minutes}m`;
+  return `${hours.toString()}h ${minutes.toString()}m`;
 };
 
 /**
@@ -110,7 +110,7 @@ export const getStatusVariant = (
     Resolved: "green",
   };
 
-  return statusMap[status] || "grey";
+  return statusMap[status];
 };
 
 /**
@@ -131,7 +131,7 @@ export const getPriorityVariant = (
     Low: "blue",
   };
 
-  return priorityMap[priority] || "grey";
+  return priorityMap[priority];
 };
 
 /**
@@ -156,7 +156,7 @@ export const isOverdue = (incident: DowntimeIncident): boolean => {
  */
 export const getUniqueAssets = (
   incidents: DowntimeIncident[]
-): Array<{ id: string; name: string }> => {
+): { id: string; name: string }[] => {
   const assetMap = new Map<string, string>();
 
   incidents.forEach((incident) => {

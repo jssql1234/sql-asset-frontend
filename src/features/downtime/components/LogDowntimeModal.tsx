@@ -6,20 +6,14 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
+import { downtimeAssets } from "@/features/downtime/mockData";
 
 interface LogDowntimeModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const assetOptions = [
-  { value: "CBT-001", label: "Conveyor Belt A1" },
-  { value: "PMP-002", label: "Pump System B2" },
-  { value: "GEN-003", label: "Generator C3" },
-  { value: "CMP-004", label: "Compressor D4" },
-  { value: "HP-005", label: "Hydraulic Press E5" },
-  { value: "CS-006", label: "Cooling System F6" },
-];
+const assetOptions = downtimeAssets.map(({ id, name }) => ({ value: id, label: name }));
 
 const priorityOptions = [
   { value: "Low", label: "Low" },
@@ -70,8 +64,8 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   };
 
   const getSelectedAssetLabel = () => {
-    const option = assetOptions.find(opt => opt.value === formData.assetId);
-    return option?.label || "Select Asset";
+    const option = assetOptions.find((opt) => opt.value === formData.assetId);
+    return option?.label ?? "Select Asset";
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -96,30 +90,37 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   };
 
   const handleAssetSelect = (assetId: string) => {
-    setFormData(prev => ({ ...prev, assetId }));
-    setErrors(prev => ({ ...prev, assetId: "" }));
+    setFormData((prev) => ({ ...prev, assetId }));
+    setErrors((prev) => ({ ...prev, assetId: "" }));
   };
 
   const handlePrioritySelect = (priority: CreateDowntimeInput["priority"]) => {
-    setFormData(prev => ({ ...prev, priority }));
+    setFormData((prev) => ({ ...prev, priority }));
   };
 
   const handleDateTimeChange = (date: string | Date | Date[] | string[] | undefined) => {
     if (date instanceof Date) {
-      setFormData(prev => ({ ...prev, startTime: date.toISOString() }));
-    } else if (typeof date === 'string') {
-      setFormData(prev => ({ ...prev, startTime: date }));
+      setFormData((prev) => ({ ...prev, startTime: date.toISOString() }));
+    } else if (typeof date === "string") {
+      setFormData((prev) => ({ ...prev, startTime: date }));
     }
-    setErrors(prev => ({ ...prev, startTime: "" }));
+    setErrors((prev) => ({ ...prev, startTime: "" }));
   };
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData(prev => ({ ...prev, description: e.target.value }));
-    setErrors(prev => ({ ...prev, description: "" }));
+    setFormData((prev) => ({ ...prev, description: e.target.value }));
+    setErrors((prev) => ({ ...prev, description: "" }));
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && handleClose()}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          handleClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Log New Downtime Incident</DialogTitle>
@@ -138,7 +139,9 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
                 {assetOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => handleAssetSelect(option.value)}
+                    onClick={() => {
+                      handleAssetSelect(option.value);
+                    }}
                   >
                     {option.label}
                   </DropdownMenuItem>
@@ -162,7 +165,9 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
                 {priorityOptions.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
-                    onClick={() => handlePrioritySelect(option.value)}
+                    onClick={() => {
+                      handlePrioritySelect(option.value);
+                    }}
                   >
                     {option.label}
                   </DropdownMenuItem>

@@ -1,17 +1,9 @@
-import { useDataQuery } from "@/hooks/useDataQuery";
+import { useDataQuery, type QueryOptions } from "@/hooks/useDataQuery";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 import type { DowntimeIncident, DowntimeSummary } from "../types";
-import type { CreateDowntimeInput, EditDowntimeInput, ResolveDowntimeInput } from "../zod/downtimeSchemas";
-import {
-  fetchDowntimeIncidents,
-  fetchResolvedIncidents,
-  fetchDowntimeSummary,
-  createDowntimeIncident,
-  updateDowntimeIncident,
-  resolveDowntimeIncident,
-  deleteDowntimeIncident,
-} from "../services/downtimeService";
+import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
+import { fetchDowntimeIncidents, fetchResolvedIncidents, fetchDowntimeSummary, createDowntimeIncident, updateDowntimeIncident, deleteDowntimeIncident } from "../services/downtimeService";
 
 /**
  * Query keys for React Query cache management
@@ -37,12 +29,15 @@ export function useGetDowntimeIncidents() {
 /**
  * Hook to fetch resolved downtime incidents
  */
-export function useGetResolvedIncidents() {
+type ResolvedIncidentsQueryOptions = Pick<QueryOptions, "enabled">;
+
+export function useGetResolvedIncidents(options?: ResolvedIncidentsQueryOptions) {
   return useDataQuery<DowntimeIncident[]>({
     key: DOWNTIME_QUERY_KEYS.resolved,
     queryFn: fetchResolvedIncidents,
     title: "Failed to load resolved incidents",
     description: "Please try again later",
+    options,
   });
 }
 
@@ -86,10 +81,11 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
     },
 
     onError: (error) => {
+      const description = error.message.trim().length > 0 ? error.message : "Please try again";
       addToast({
         variant: "error",
         title: "Failed to create downtime incident",
-        description: error.message || "Please try again",
+        description,
       });
     },
   });
@@ -123,47 +119,11 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
     },
 
     onError: (error) => {
+      const description = error.message.trim().length > 0 ? error.message : "Please try again";
       addToast({
         variant: "error",
         title: "Failed to update incident",
-        description: error.message || "Please try again",
-      });
-    },
-  });
-}
-
-/**
- * Hook to resolve a downtime incident
- */
-export function useResolveDowntimeIncident(onSuccess?: () => void) {
-  const queryClient = useQueryClient();
-  const { addToast } = useToast();
-
-  return useMutation<DowntimeIncident, Error, ResolveDowntimeInput>({
-    mutationFn: resolveDowntimeIncident,
-
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
-      ]);
-
-      addToast({
-        variant: "success",
-        title: "Incident Resolved",
-        description: "The incident has been marked as resolved",
-        duration: 5000,
-      });
-
-      onSuccess?.();
-    },
-
-    onError: (error) => {
-      addToast({
-        variant: "error",
-        title: "Failed to resolve incident",
-        description: error.message || "Please try again",
+        description,
       });
     },
   });
@@ -176,7 +136,7 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<void, Error, string>({
+  return useMutation<undefined, Error, string>({
     mutationFn: deleteDowntimeIncident,
 
     onSuccess: async () => {
@@ -196,10 +156,11 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
     },
 
     onError: (error) => {
+      const description = error.message.trim().length > 0 ? error.message : "Please try again";
       addToast({
         variant: "error",
         title: "Failed to delete incident",
-        description: error.message || "Please try again",
+        description,
       });
     },
   });

@@ -40,8 +40,12 @@ const DowntimeTrackingPage: React.FC = () => {
         
       <div className="flex flex-col gap-6 p-1">
         <DowntimeTabHeader
-          onViewResolved={() => setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true }))}
-          onLogDowntime={() => setModals((prev: ModalState) => ({ ...prev, logDowntime: true }))}
+          onViewResolved={() => {
+            setModals((prev: ModalState) => ({ ...prev, resolvedIncidents: true }));
+          }}
+          onLogDowntime={() => {
+            setModals((prev: ModalState) => ({ ...prev, logDowntime: true }));
+          }}
         />
 
         {isLoadingSummary ? (
@@ -66,18 +70,24 @@ const DowntimeTrackingPage: React.FC = () => {
 
       <LogDowntimeModal
         open={modals.logDowntime}
-        onClose={() => handleModalClose("logDowntime")}
+        onClose={() => {
+          handleModalClose("logDowntime");
+        }}
       />
       
       <EditIncidentModal
         open={modals.editIncident}
         incident={selectedIncident}
-        onClose={() => handleModalClose("editIncident")}
+        onClose={() => {
+          handleModalClose("editIncident");
+        }}
       />
       
       <ResolvedIncidentsModal
         open={modals.resolvedIncidents}
-        onClose={() => handleModalClose("resolvedIncidents")}
+        onClose={() => {
+          handleModalClose("resolvedIncidents");
+        }}
       />
     </SidebarHeader>
   );

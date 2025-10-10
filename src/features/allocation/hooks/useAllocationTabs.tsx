@@ -1,21 +1,17 @@
 import AllocationTab from "../components/tab/AllocationTab";
 import RentalsTab from "../components/tab/RentalsTab";
 import CalendarTab from "../components/tab/CalendarTab";
-import type { AllocationFilters, AllocationSummary, AssetRecord } from "../types";
+import type { AllocationSummary, AssetRecord } from "../types";
 
 interface UseAllocationTabsProps {
   filteredAssets: AssetRecord[];
-  filters: AllocationFilters;
   summary: AllocationSummary;
-  onFilterChange: (filters: AllocationFilters) => void;
   onOpenAllocationModal: () => void;
 }
 
 export const useAllocationTabs = ({
   filteredAssets,
-  filters,
   summary,
-  onFilterChange,
   onOpenAllocationModal,
 }: UseAllocationTabsProps) => {
   const tabs = [
@@ -25,9 +21,7 @@ export const useAllocationTabs = ({
       content: (
         <AllocationTab
           assets={filteredAssets}
-          filters={filters}
           summary={summary}
-          onFilterChange={onFilterChange}
           onOpenAllocationModal={onOpenAllocationModal}
         />
       ),

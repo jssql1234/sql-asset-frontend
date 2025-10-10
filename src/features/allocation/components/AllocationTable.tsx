@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge, Button } from "@/components/ui/components";
-import { DataTable } from "@/components/ui/components/Table";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import type { AssetRecord, RentalRecord } from "../types";
 
 const allocationStatusVariantMap: Record<AssetRecord["status"], string> = {
@@ -63,6 +63,8 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             </div>
           );
         },
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "total",
@@ -73,6 +75,8 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           </div>
         ),
         size: 96,
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "allocated",
@@ -83,6 +87,8 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           </div>
         ),
         size: 112,
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "remaining",
@@ -93,6 +99,8 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           </div>
         ),
         size: 116,
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "status",
@@ -105,6 +113,9 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           />
         ),
         size: 150,
+        filterFn: "multiSelect",
+        enableColumnFilter: true,
+        enableSorting: true,
       },
       {
         accessorKey: "location",
@@ -117,6 +128,9 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             </span>
           </div>
         ),
+        filterFn: "multiSelect",
+        enableColumnFilter: true,
+        enableSorting: true,
       },
     ],
     []
@@ -124,7 +138,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
 
   return (
     <div className="flex h-full flex-col">
-      <DataTable<AssetRecord, unknown>
+      <DataTableExtended<AssetRecord, unknown>
         columns={columns}
         data={assets}
         showPagination
@@ -159,6 +173,8 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
             </span>
           </div>
         ),
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "customerName",
@@ -171,6 +187,8 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
             </span>
           </div>
         ),
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "location",
@@ -179,6 +197,9 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
           <span className="body-medium text-onSurfaceVariant">{row.original.location}</span>
         ),
         size: 150,
+        filterFn: "multiSelect",
+        enableColumnFilter: true,
+        enableSorting: true,
       },
       {
         accessorKey: "status",
@@ -191,6 +212,9 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
           />
         ),
         size: 130,
+        filterFn: "multiSelect",
+        enableColumnFilter: true,
+        enableSorting: true,
       },
       {
         id: "window",
@@ -206,6 +230,8 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
           </div>
         ),
         size: 180,
+        enableSorting: false,
+        enableColumnFilter: false,
       },
       {
         accessorKey: "quantity",
@@ -216,6 +242,8 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
           </div>
         ),
         size: 80,
+        enableSorting: true,
+        enableColumnFilter: false,
       },
       {
         id: "actions",
@@ -235,7 +263,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
 
   return (
     <div className="flex h-full flex-col">
-      <DataTable<RentalRecord, unknown>
+      <DataTableExtended<RentalRecord, unknown>
         columns={columns}
         data={rentals}
         showPagination

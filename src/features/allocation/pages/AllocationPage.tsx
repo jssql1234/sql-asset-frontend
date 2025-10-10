@@ -3,14 +3,26 @@ import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/AllocationModal";
 import { useAllocationState } from "../hooks/useAllocationState";
 import { useAllocationTabs } from "../hooks/useAllocationTabs";
+import { useMemo } from "react";
 
 const AllocationPage: React.FC = () => {
-  const { filters, filteredAssets, summary, isAllocationModalOpen, locations, pics, assets,
-    handleFilterChange, openAllocationModal, closeAllocationModal, handleAllocationSubmit,
+  const { filteredAssets, summary, isAllocationModalOpen, assets,
+    openAllocationModal, closeAllocationModal, handleAllocationSubmit,
   } = useAllocationState();
 
-  const tabs = useAllocationTabs({ filteredAssets, filters, summary,
-    onFilterChange: handleFilterChange, onOpenAllocationModal: openAllocationModal,
+  // Extract unique locations and users from assets for modal dropdowns
+  const locations = useMemo(() => {
+    const locationSet = new Set(filteredAssets.map(asset => asset.location));
+    return Array.from(locationSet).sort();
+  }, [filteredAssets]);
+
+  const users = useMemo(() => {
+    const userSet = new Set(filteredAssets.map(asset => asset.pic));
+    return Array.from(userSet).sort();
+  }, [filteredAssets]);
+
+  const tabs = useAllocationTabs({ filteredAssets, summary,
+    onOpenAllocationModal: openAllocationModal,
   });
 
   return (
@@ -27,7 +39,7 @@ const AllocationPage: React.FC = () => {
         onSubmit={handleAllocationSubmit}
         assets={assets}
         locations={locations}
-        users={pics}
+        users={users}
       />
     </SidebarHeader>
   );

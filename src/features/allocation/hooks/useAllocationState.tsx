@@ -1,29 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
 import { MOCK_ASSETS } from "../mockData";
-import type { AllocationActionPayload, AllocationFilters, AllocationSummary } from "../types";
-
-const DEFAULT_FILTERS: AllocationFilters = {
-  search: "",
-};
+import type { AllocationActionPayload, AllocationSummary } from "../types";
 
 export const useAllocationState = () => {
-  const [filters, setFilters] = useState<AllocationFilters>(DEFAULT_FILTERS);
   const [isAllocationModalOpen, setIsAllocationModalOpen] = useState(false);
 
-  const filteredAssets = useMemo(() => {
-    const normalizedSearch = filters.search.trim().toLowerCase();
-
-    return MOCK_ASSETS.filter((asset) => {
-      return normalizedSearch
-        ? `${asset.name} ${asset.code} ${asset.status} ${asset.location}`
-            .toLowerCase()
-            .includes(normalizedSearch)
-        : true;
-    });
-  }, [filters.search]);
-
   const summary: AllocationSummary = useMemo(() => {
-    const totals = filteredAssets.reduce(
+    const totals = MOCK_ASSETS.reduce(
       (acc, asset) => {
         acc.total += asset.total;
         acc.allocated += asset.allocated;
@@ -43,10 +26,6 @@ export const useAllocationState = () => {
       availableAssets: totals.available,
       utilizationRate: utilization,
     };
-  }, [filteredAssets]);
-
-  const handleFilterChange = useCallback((nextFilters: AllocationFilters) => {
-    setFilters(nextFilters);
   }, []);
 
   const openAllocationModal = useCallback(() => setIsAllocationModalOpen(true), []);
@@ -58,12 +37,10 @@ export const useAllocationState = () => {
   }, []);
 
   return {
-    filters,
-    filteredAssets,
+    filteredAssets: MOCK_ASSETS,
     summary,
     isAllocationModalOpen,
     assets: MOCK_ASSETS,
-    handleFilterChange,
     openAllocationModal,
     closeAllocationModal,
     handleAllocationSubmit,

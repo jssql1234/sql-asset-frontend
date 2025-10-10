@@ -5,34 +5,26 @@ import AllocationTable from "../AllocationTable";
 import Search from "@/components/Search";
 import { MOCK_RENTALS } from "../../mockData.ts";
 import { getRentalSummaryCards } from "../AllocationSummaryCards.tsx";
-import type {
-  RentalFilters as RentalFiltersState,
-  RentalRecord,
-} from "../../types.ts";
-
-const DEFAULT_FILTERS: RentalFiltersState = {
-  search: "",
-};
 
 const RentalsTab: React.FC = () => {
-  const [filters, setFilters] = useState<RentalFiltersState>(DEFAULT_FILTERS);
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Filter rentals based on search query
   const filteredRentals = useMemo(() => {
-    const normalizedSearch = filters.search.trim().toLowerCase();
+    if (!searchQuery.trim()) return MOCK_RENTALS;
 
-    return MOCK_RENTALS.filter((rental) => {
-      const target =
-        `${rental.assetName} ${rental.customerName} ${rental.status}`.toLowerCase();
-      return normalizedSearch ? target.includes(normalizedSearch) : true;
-    });
-  }, [filters.search]);
+    const query = searchQuery.toLowerCase();
+    return MOCK_RENTALS.filter((rental) =>
+      rental.assetName.toLowerCase().includes(query) ||
+      rental.customerName.toLowerCase().includes(query) ||
+      rental.status.toLowerCase().includes(query)
+    );
+  }, [searchQuery]);
 
   const summaryCards = useMemo(
     () => getRentalSummaryCards(filteredRentals),
     [filteredRentals]
   );
-
-  const rentalsForTable: RentalRecord[] = filteredRentals;
 
   return (
     <div className="flex h-full flex-col gap-6 p-2">
@@ -50,14 +42,14 @@ const RentalsTab: React.FC = () => {
       <SummaryCards data={summaryCards} columns={4} />
 
       <Search
-        searchValue={filters.search}
+        searchValue={searchQuery}
         searchPlaceholder="Search by asset, customer, or status"
-        onSearch={(value) => setFilters((prev) => ({ ...prev, search: value }))}
+        onSearch={setSearchQuery}
         live
       />
 
     <div className="flex-1 border-t border-outline">
-       <AllocationTable variant="rental" rentals={rentalsForTable} />
+       <AllocationTable variant="rental" rentals={filteredRentals} />
       </div>
     </div>
   );

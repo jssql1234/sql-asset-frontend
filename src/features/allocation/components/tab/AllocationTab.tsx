@@ -1,26 +1,37 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import Search from "@/components/Search";
 import AllocationTable from "../AllocationTable";
 import { getAllocationSummaryCards } from "../AllocationSummaryCards";
-import type { AllocationFilters, AllocationSummary, AssetRecord } from "../../types";
+import type { AllocationSummary, AssetRecord } from "../../types";
 
 interface AllocationTabProps {
   assets: AssetRecord[];
-  filters: AllocationFilters;
   summary: AllocationSummary;
-  onFilterChange: (filters: AllocationFilters) => void;
   onOpenAllocationModal?: () => void;
 }
 
 const AllocationTab: React.FC<AllocationTabProps> = ({
   assets,
-  filters,
   summary,
-  onFilterChange,
   onOpenAllocationModal,
 }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter assets based on search query
+  const filteredAssets = useMemo(() => {
+    if (!searchQuery.trim()) return assets;
+    
+    const query = searchQuery.toLowerCase();
+    return assets.filter((asset) => 
+      asset.name.toLowerCase().includes(query) ||
+      asset.code.toLowerCase().includes(query) ||
+      asset.status.toLowerCase().includes(query) ||
+      asset.location.toLowerCase().includes(query)
+    );
+  }, [assets, searchQuery]);
+
   const summaryCards = useMemo(
     () => getAllocationSummaryCards(summary),
     [summary]
@@ -43,15 +54,15 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
       <SummaryCards data={summaryCards} />
 
       <Search
-        searchValue={filters.search}
+        searchValue={searchQuery}
         searchPlaceholder="Search by asset, status, or location"
-        onSearch={(value) => onFilterChange({ ...filters, search: value })}
+        onSearch={setSearchQuery}
         live
       />
         <div className="flex-1 border-t border-outline">
           <AllocationTable
             variant="allocation"
-            assets={assets}
+            assets={filteredAssets}
           />
         </div>
     </div>

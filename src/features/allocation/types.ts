@@ -39,14 +39,6 @@ export interface AllocationSummary {
   utilizationRate: number;
 }
 
-export interface AllocationFilters {
-  search: string;
-}
-
-export interface RentalFilters {
-  search: string;
-}
-
 export type AllocationType = "location" | "user";
 
 export interface AllocationSelection {

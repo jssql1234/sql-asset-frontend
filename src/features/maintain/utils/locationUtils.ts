@@ -85,7 +85,6 @@ export function createLocationFromForm(
     categoryId: formData.categoryId,
     contactPerson: formData.contactPerson,
     contactDetails: formData.contactDetails,
-    status: 'Active',
     createdAt: timestamp,
     updatedAt: timestamp,
   };

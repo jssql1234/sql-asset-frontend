@@ -3,7 +3,6 @@ import { Button, Card } from '@/components/ui/components';
 import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
-import { Badge } from '@/components/ui/components/Badge';
 import type { Location } from '../types/locations';
 
 interface LocationsTableProps {
@@ -14,13 +13,6 @@ interface LocationsTableProps {
   onEditLocation: (location: Location) => void;
   onDeleteMultipleLocations: (ids: string[]) => void;
 }
-
-const STATUS_VARIANT_MAP: Record<Location['status'], string> = {
-  Active: 'green',
-  Inactive: 'grey',
-  'Under Maintenance': 'yellow',
-  Reserved: 'blue',
-};
 
 export const LocationsTable: React.FC<LocationsTableProps> = ({
   locations,
@@ -85,17 +77,6 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
           </div>
         );
       },
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <Badge
-          text={row.original.status.toUpperCase()}
-          variant={STATUS_VARIANT_MAP[row.original.status]}
-          className="h-6 px-3 uppercase tracking-wide"
-        />
-      ),
     },
   ]), []);
 

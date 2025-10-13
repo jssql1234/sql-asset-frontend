@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import { Plus, ExportFile, Settings } from '@/assets/icons';
+import { Plus, ExportFile} from '@/assets/icons';
 import { SparePartsFormModal } from '../components/SparePartsFormModal';
 import { SparePartsTable } from '../components/SparePartsTable';
 import { SparePartsSearchAndFilter } from '../components/SparePartsSearchAndFilter';
@@ -17,10 +17,8 @@ const MaintainSparePartPage: React.FC = () => {
     updateFilters,
     addSparePart,
     updateSparePart,
-    deleteSparePart,
     deleteMultipleSpareParts,
     toggleSparePartSelection,
-    resetToSampleData,
     exportData,
   } = useSpareParts();
 
@@ -45,42 +43,23 @@ const MaintainSparePartPage: React.FC = () => {
         addToast({
           title: "Success",
           description: "Spare part updated successfully!",
-          variant: "default",
+          variant: "success",
         });
       } else {
         addSparePart(formData);
         addToast({
           title: "Success",
           description: "Spare part added successfully!",
-          variant: "default",
+          variant: "success",
         });
       }
     } catch (error) {
       addToast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while saving the spare part.",
-        variant: "destructive",
+        variant: "error",
       });
       throw error; // Re-throw so the modal can handle it too
-    }
-  };
-
-  const handleDeleteSparePart = (id: string) => {
-    if (confirm('Are you sure you want to delete this spare part?')) {
-      try {
-        deleteSparePart(id);
-        addToast({
-          title: "Success",
-          description: "Spare part deleted successfully!",
-          variant: "default",
-        });
-      } catch (error) {
-        addToast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "An error occurred while deleting the spare part.",
-          variant: "destructive",
-        });
-      }
     }
   };
 
@@ -91,36 +70,18 @@ const MaintainSparePartPage: React.FC = () => {
         addToast({
           title: "Success",
           description: `${String(ids.length)} spare parts deleted successfully!`,
-          variant: "default",
+          variant: "success",
         });
       } catch (error) {
         addToast({
           title: "Error",
           description: error instanceof Error ? error.message : "An error occurred while deleting the spare parts.",
-          variant: "destructive",
+          variant: "error",
         });
       }
     }
   };
 
-  const handleResetToSampleData = () => {
-    if (confirm('Are you sure you want to reset to sample data? This will overwrite any existing data.')) {
-      try {
-        resetToSampleData();
-        addToast({
-          title: "Success",
-          description: "Data reset to sample data successfully!",
-          variant: "default",
-        });
-      } catch (error) {
-        addToast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "An error occurred while resetting the data.",
-          variant: "destructive",
-        });
-      }
-    }
-  };
 
   const handleExportData = () => {
     try {
@@ -128,13 +89,13 @@ const MaintainSparePartPage: React.FC = () => {
       addToast({
         title: "Success",
         description: "Data exported successfully!",
-        variant: "default",
+        variant: "success",
       });
     } catch (error) {
       addToast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while exporting the data.",
-        variant: "destructive",
+        variant: "error",
       });
     }
   };
@@ -169,15 +130,6 @@ const MaintainSparePartPage: React.FC = () => {
                 <ExportFile className="w-4 h-4" />
                 Export Data
               </button>
-              <button
-                type="button"
-                onClick={handleResetToSampleData}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
-                title="Reset to Sample"
-              >
-                <Settings className="w-4 h-4" />
-                Reset to Sample
-              </button>
             </div>
           }
         />
@@ -193,8 +145,8 @@ const MaintainSparePartPage: React.FC = () => {
             spareParts={filteredSpareParts}
             selectedParts={selectedSpareParts}
             onToggleSelection={toggleSparePartSelection}
+            onAddPart={handleAddSparePart}
             onEditPart={handleEditSparePart}
-            onDeletePart={handleDeleteSparePart}
             onDeleteMultipleParts={handleDeleteMultipleSpareParts}
           />
         </div>

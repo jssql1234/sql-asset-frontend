@@ -25,6 +25,7 @@ import type {
 } from "@/types/meter";
 import type { Asset } from "@/types/asset";
 import { Plus } from "@/assets/icons";
+import TabHeader from "@/components/TabHeader";
 
 const boundaryOptions: Array<{ value: MeterGroupInput["boundaryTrigger"]; label: string }> = [
   { value: "none", label: "No automation" },
@@ -355,20 +356,19 @@ export const MeterGroupsView = ({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-3 rounded-md border border-outlineVariant bg-surfaceContainer p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-xl font-semibold text-onSurface">Meter groups</h2>
-          <p className="text-sm text-onSurfaceVariant">
-            Organize meters by asset group and define boundary actions for automated workflows.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="primary" onClick={openCreateGroupModal}>
-            <Plus className="size-5" />
-            New group
-          </Button>
-        </div>
-      </div>
+      <TabHeader
+        title="Meter groups"
+        subtitle="Organize meters by asset group and define boundary actions for automated workflows."
+        actions={[
+          {
+            label: "New group",
+            onAction: openCreateGroupModal,
+            icon: <Plus className="size-5" />,
+            variant: "primary",
+          },
+        ]}
+        className=" pl-2 pr-2"
+      />
 
       <div className="space-y-4">
         {groups.length === 0 ? (

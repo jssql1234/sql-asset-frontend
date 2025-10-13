@@ -28,6 +28,7 @@ import { SampleForm } from "./SampleForm";
 import DialogExample from "./DialogExample";
 
 import SearchWithDropdownExample from "@/example/SearchWithDropdownExample";
+import MeterTableExample from "@/example/MeterManagementExample";
 
 export default function Testing() {
   const tabItems = [
@@ -357,8 +358,15 @@ function Component() {
 
       <div className="space-y-2">
         <div className="title-small text-onSurface"> The Search With Dropdown</div>
-        <div className="max-w-md">
+        <div className="">
           <SearchWithDropdownExample /> 
+        </div>
+      </div>
+
+      <div className="">
+        <div className="title-small text-onSurface"> The Meter Table</div>
+        <div className="">
+          <MeterTableExample />
         </div>
       </div>
     </div>

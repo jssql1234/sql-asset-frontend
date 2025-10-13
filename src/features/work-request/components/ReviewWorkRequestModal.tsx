@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from '@/components/ui/components/Dialog';
 
-import { AssetTags } from './AssetTags';
+import { SearchWithDropdown } from '@/components/SearchWithDropdown';
 import { WorkRequestStatusBadge } from './WorkRequestBadges';
 import { MaintenanceHistoryTable } from './MaintenanceHistoryTable';
 import { workRequestService, maintenanceHistoryService } from '../services/workRequestService';
@@ -37,6 +37,20 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory[]>([]);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+
+  // Asset categories for SearchWithDropdown (disabled in review mode)
+  const assetCategories = [
+    { id: "all", label: "All Assets" },
+  ];
+
+  // Convert selected assets to SearchWithDropdown format
+  const selectedAssetItems = workRequest?.selectedAssets.map((asset) => ({
+    id: asset.main.code,
+    label: asset.main.name,
+    sublabel: asset.main.code,
+  })) || [];
+
+  const selectedAssetIds = workRequest?.selectedAssets.map((asset) => asset.main.code) || [];
 
   // Load maintenance history when a work request is selected for review
   useEffect(() => {
@@ -95,7 +109,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
     <>
       {/* Review Work Request Modal */}
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-6xl max-h-[90vh] w-full flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Review Work Request</DialogTitle>
           </DialogHeader>
@@ -137,9 +151,17 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
             {/* Selected Assets */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-onSurface">Selected Assets</label>
-              <div className="min-h-[60px] border border-outlineVariant rounded-md p-3 bg-surfaceContainerHigh">
-                <AssetTags assets={workRequest.selectedAssets} readonly />
-              </div>
+              <SearchWithDropdown
+                categories={assetCategories}
+                selectedCategoryId="all"
+                onCategoryChange={() => {}} // Disabled, no-op
+                items={selectedAssetItems}
+                selectedIds={selectedAssetIds}
+                onSelectionChange={() => {}} // Disabled, no-op
+                placeholder="Assets selected for this request"
+                emptyMessage="No assets selected"
+                disable={true}
+              />
             </div>
 
             {/* Request Details */}
@@ -180,6 +202,26 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
                   rows={3}
                   className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surfaceContainerHigh text-onSurface resize-none"
                 />
+              </div>
+            )}
+
+            {/* Uploaded Photos */}
+            {workRequest.photos && workRequest.photos.length > 0 && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-onSurface">Uploaded Photos</label>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {workRequest.photos.map((photo) => (
+                    <div key={photo.id} className="space-y-2">
+                      <div className="aspect-square border border-outlineVariant rounded-md overflow-hidden bg-surfaceContainerHigh">
+                        <img
+                          src={photo.url}
+                          alt={photo.filename}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/components/Button';
 import { Input } from '@/components/ui/components/Input/Input';
+import { FileInput } from '@/components/ui/components/Input/FileInput';
 import {
   Dialog,
   DialogContent,
@@ -8,11 +9,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/components/Dialog';
+import { SearchWithDropdown } from '@/components/SearchWithDropdown';
 
-import { AssetSelector } from './AssetSelector';
 import { useUserManagement } from '../hooks/useUserManagement';
-import { useAssetSelection } from '../hooks/useAssetSelection';
 import { workRequestService } from '../services/workRequestService';
+import { MOCK_ASSETS } from '../../work-order/mockData';
 
 import type { 
   WorkRequest, 
@@ -31,14 +32,6 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
   onSuccess,
 }) => {
   const { currentUser, isGuestUser } = useUserManagement();
-  
-  // Asset selection for create form
-  const {
-    selectedAssets: createSelectedAssets,
-    selectAsset: createSelectAsset,
-    removeAsset: createRemoveAsset,
-    clearSelectedAssets: createClearAssets,
-  } = useAssetSelection();
 
   // Form state for create work request
   const [createForm, setCreateForm] = useState<Partial<CreateWorkRequestForm>>({
@@ -48,6 +41,20 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
     problemDescription: '',
     additionalNotes: '',
   });
+
+  // SearchWithDropdown state
+  const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [uploadedPhotos, setUploadedPhotos] = useState<FileList | null>(null);
+
+  // Asset categories for SearchWithDropdown
+  const assetCategories = [
+    { id: "all", label: "All Categories" },
+    { id: "heavy", label: "Heavy Equipment", sublabel: "qty: 2" },
+    { id: "power", label: "Power Equipment", sublabel: "Generators, Compressors" },
+    { id: "material", label: "Material Handling", sublabel: "Forklifts" },
+    { id: "tools", label: "Tools & Machinery", sublabel: "Welding Machines" },
+  ];
 
   // Update form fields when user changes
   useEffect(() => {
@@ -66,6 +73,10 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
     }
   }, [currentUser, isGuestUser]);
 
+  const handleAssetSelectionChange = (assetIds: string[]) => {
+    setSelectedAssets(assetIds);
+  };
+
   const handleCreateWorkRequest = useCallback(async () => {
     try {
       if (!createForm.technicianName || !createForm.department || !createForm.requestType || !createForm.problemDescription) {
@@ -73,7 +84,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
         return;
       }
 
-      if (createSelectedAssets.length === 0) {
+      if (selectedAssets.length === 0) {
         alert('Please select at least one asset.');
         return;
       }
@@ -81,12 +92,27 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
       const newWorkRequest = workRequestService.createWorkRequest({
         requesterName: createForm.technicianName,
         department: createForm.department,
-        selectedAssets: createSelectedAssets,
+        selectedAssets: selectedAssets.map(id => {
+          const asset = MOCK_ASSETS.find(a => a.id === id);
+          return asset ? {
+            main: {
+              code: asset.code,
+              name: asset.name,
+              description: asset.name, // Use name as description since it's not available
+              location: 'Unknown' // Default location since it's not available
+            }
+          } : null;
+        }).filter(asset => asset !== null) as WorkRequest['selectedAssets'],
         requestType: createForm.requestType,
         problemDescription: createForm.problemDescription,
         additionalNotes: createForm.additionalNotes,
         status: 'Pending',
-        photos: [],
+        photos: uploadedPhotos ? Array.from(uploadedPhotos).map((file, index) => ({
+          id: `temp-${Date.now()}-${index}`,
+          filename: file.name,
+          url: URL.createObjectURL(file),
+          uploadDate: new Date().toISOString(),
+        })) : [],
       });
 
       // Reset form
@@ -97,7 +123,9 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
         problemDescription: '',
         additionalNotes: '',
       });
-      createClearAssets();
+      setSelectedAssets([]);
+      setSelectedCategory("all");
+      setUploadedPhotos(null);
       
       onSuccess(newWorkRequest);
       onClose();
@@ -107,7 +135,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
       console.error('Error creating work request:', error);
       alert('Error creating work request. Please try again.');
     }
-  }, [createForm, createSelectedAssets, isGuestUser, currentUser, createClearAssets, onSuccess, onClose]);
+  }, [createForm, selectedAssets, isGuestUser, currentUser, onSuccess, onClose]);
 
   const handleClose = useCallback(() => {
     // Reset form when closing
@@ -118,13 +146,15 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
       problemDescription: '',
       additionalNotes: '',
     });
-    createClearAssets();
+    setSelectedAssets([]);
+    setSelectedCategory("all");
+    setUploadedPhotos(null);
     onClose();
-  }, [isGuestUser, currentUser, createClearAssets, onClose]);
+  }, [isGuestUser, currentUser, onClose]);
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] w-full overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create Work Request</DialogTitle>
         </DialogHeader>
@@ -161,12 +191,25 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
           </div>
 
           {/* Asset Selection */}
-          <AssetSelector
-            selectedAssets={createSelectedAssets}
-            onAssetSelect={createSelectAsset}
-            onAssetRemove={createRemoveAsset}
-            onClearAll={createClearAssets}
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-onSurface">
+              Search Assets <span className="text-error">*</span>
+            </label>
+            <SearchWithDropdown
+              categories={assetCategories}
+              selectedCategoryId={selectedCategory}
+              onCategoryChange={setSelectedCategory}
+              items={MOCK_ASSETS.map((asset) => ({
+                id: asset.id,
+                label: asset.name,
+                sublabel: asset.code,
+              }))}
+              selectedIds={selectedAssets}
+              onSelectionChange={handleAssetSelectionChange}
+              placeholder="Search asset by name or ID..."
+              emptyMessage="No assets found"
+            />
+          </div>
 
           {/* Request Type */}
           <div className="space-y-2">
@@ -197,6 +240,22 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
               placeholder="Describe the problem or maintenance needed..."
               rows={4}
               className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-vertical"
+            />
+          </div>
+
+          {/* Upload Photos */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-onSurface">
+              Upload Photos
+            </label>
+            <FileInput
+              label=""
+              fileHint="Upload photos related to the problem (optional)"
+              fileValue={uploadedPhotos}
+              onFilesChange={setUploadedPhotos}
+              accept="image/*"
+              multiple
+              isPreviewUrl={true}
             />
           </div>
 

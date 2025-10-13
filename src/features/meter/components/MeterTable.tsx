@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/components/Table";
 import type { Meter } from "../../../types/meter";
+import { Delete, Edit } from "@/assets/icons";
 
 export type MeterWithConditions = Meter;
 
@@ -92,14 +93,14 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
                         variant="ghost"
                         onClick={() => onEdit(meter.id)}
                       >
-                        <span className="text-lg">✏️</span>
+                        <Edit />
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => onRemove(meter.id)}
                       >
-                        <span className="text-lg">🗑️</span>
+                        <Delete />
                       </Button>
                     </div>
                   </TableCell>
@@ -143,14 +144,14 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
                         variant="ghost"
                         onClick={() => onEdit(meter.id)}
                       >
-                        <span className="text-lg">✏️</span>
+                        <Edit className="text-lg" />
                       </Button>
                       <Button
                         size="sm"
                         variant="destructive"
                         onClick={() => onRemove(meter.id)}
                       >
-                        <span className="text-lg">🗑️</span>
+                        <Delete className="text-lg" />
                       </Button>
                     </div>
                   </TableCell>

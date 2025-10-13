@@ -24,6 +24,7 @@ import type {
   MeterInput,
 } from "@/types/meter";
 import type { Asset } from "@/types/asset";
+import { Plus } from "@/assets/icons";
 
 const boundaryOptions: Array<{ value: MeterGroupInput["boundaryTrigger"]; label: string }> = [
   { value: "none", label: "No automation" },
@@ -362,7 +363,8 @@ export const MeterGroupsView = ({
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="secondary" onClick={openCreateGroupModal}>
+          <Button variant="primary" onClick={openCreateGroupModal}>
+            <Plus className="size-5" />
             New group
           </Button>
         </div>

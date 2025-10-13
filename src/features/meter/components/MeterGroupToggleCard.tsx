@@ -3,6 +3,7 @@ import ToggleList from "@/components/ToggleList";
 import { Button } from "@/components/ui/components";
 import { cn } from "@/utils/utils";
 import type { MeterGroup } from "../../../types/meter";
+import { Copy, Delete, Edit } from "@/assets/icons";
 
 export type MeterGroupToggleCardProps = {
   group: MeterGroup;
@@ -61,12 +62,15 @@ const MeterGroupToggleCard = ({
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="secondary" onClick={onEdit}>
+              <Edit className="size-5" />
               Edit group
             </Button>
             <Button size="sm" variant="secondary" onClick={onClone}>
+              <Copy className="size-5" />
               Clone
             </Button>
             <Button size="" variant="destructive" onClick={onDelete}>
+              <Delete className="size-5" />
               Delete
             </Button>
           </div>

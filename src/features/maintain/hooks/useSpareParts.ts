@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import type {
   SparePart,
-  SparePartsState,
   SparePartsFilters,
   SparePartFormData,
 } from '../types/spareParts';
@@ -82,18 +81,16 @@ const sampleSpareParts: SparePart[] = [
 ];
 
 export function useSpareParts() {
-  const [state, setState] = useState<SparePartsState>({
-    spareParts: [],
-    filteredSpareParts: [],
-    selectedSpareParts: [],
-    filters: {
-      search: '',
-      category: '',
-      status: ''
-    },
-    isLoading: true,
-    error: null
+  const [spareParts, setSpareParts] = useState<SparePart[]>([]);
+  const [filteredSpareParts, setFilteredSpareParts] = useState<SparePart[]>([]);
+  const [selectedSpareParts, setSelectedSpareParts] = useState<string[]>([]);
+  const [filters, setFilters] = useState<SparePartsFilters>({
+    search: '',
+    category: '',
+    status: ''
   });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Initialize data
   useEffect(() => {
@@ -101,60 +98,48 @@ export function useSpareParts() {
       try {
         // Load from localStorage or use sample data
         const storedData = localStorage.getItem('sparePartsData');
-        let spareParts: SparePart[] = [];
+        let initialSpareParts: SparePart[] = [];
 
         if (storedData) {
-          spareParts = JSON.parse(storedData) as SparePart[];
+          initialSpareParts = JSON.parse(storedData) as SparePart[];
         } else {
-          spareParts = sampleSpareParts;
-          localStorage.setItem('sparePartsData', JSON.stringify(spareParts));
+          initialSpareParts = sampleSpareParts;
+          localStorage.setItem('sparePartsData', JSON.stringify(initialSpareParts));
         }
 
-        setState(prevState => ({
-          ...prevState,
-          spareParts,
-          filteredSpareParts: spareParts,
-          isLoading: false
-        }));
+        setSpareParts(initialSpareParts);
+        setFilteredSpareParts(initialSpareParts);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error loading spare parts data:', error);
-        setState(prevState => ({
-          ...prevState,
-          spareParts: sampleSpareParts,
-          filteredSpareParts: sampleSpareParts,
-          isLoading: false,
-          error: 'Failed to load data'
-        }));
+        setSpareParts(sampleSpareParts);
+        setFilteredSpareParts(sampleSpareParts);
+        setIsLoading(false);
+        setError('Failed to load data');
       }
     };
 
     initializeData();
   }, []);
 
-  // Apply filters when filters change
   useEffect(() => {
-    const filtered = filterSpareParts(
-      state.spareParts,
-      state.filters.search,
-      state.filters.category,
-      state.filters.status
-    );
+    if (spareParts.length > 0) {
+      const filtered = filterSpareParts(
+        spareParts,
+        filters.search,
+        filters.category,
+        filters.status
+      );
+      setFilteredSpareParts(filtered);
+    } else {
+      setFilteredSpareParts([]);
+    }
+  }, [spareParts, filters]);
 
-    setState(prevState => ({
-      ...prevState,
-      filteredSpareParts: filtered
-    }));
-  }, [state.filters, state.spareParts]);
-
-  // Update filters
   const updateFilters = useCallback((newFilters: Partial<SparePartsFilters>) => {
-    setState(prevState => ({
-      ...prevState,
-      filters: { ...prevState.filters, ...newFilters }
-    }));
+    setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
   }, []);
 
-  // Add new spare part
   const addSparePart = useCallback((formData: SparePartFormData) => {
     // Validate form data
     const validationErrors = validateSparePartForm(formData);
@@ -163,26 +148,28 @@ export function useSpareParts() {
     }
 
     // Check for duplicate ID
-    if (isDuplicateSparePartId(state.spareParts, formData.id)) {
+    if (isDuplicateSparePartId(spareParts, formData.id)) {
       throw new Error('Part ID already exists');
     }
 
     const newSparePart = createSparePartFromForm(formData);
 
-    setState(prevState => {
-      const updatedSpareParts = [...prevState.spareParts, newSparePart];
-      localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+    const updatedSpareParts = [...spareParts, newSparePart];
+    setSpareParts(updatedSpareParts);
 
-      return {
-        ...prevState,
-        spareParts: updatedSpareParts
-      };
-    });
+    const filtered = filterSpareParts(
+      updatedSpareParts,
+      filters.search,
+      filters.category,
+      filters.status
+    );
+    setFilteredSpareParts(filtered);
+
+    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
 
     return newSparePart;
-  }, [state.spareParts]);
+  }, [spareParts, filters]);
 
-  // Update existing spare part
   const updateSparePart = useCallback((formData: SparePartFormData) => {
     // Validate form data
     const validationErrors = validateSparePartForm(formData);
@@ -191,93 +178,96 @@ export function useSpareParts() {
     }
 
     // Check for duplicate ID (excluding current item)
-    if (isDuplicateSparePartId(state.spareParts, formData.id, formData.id)) {
+    if (isDuplicateSparePartId(spareParts, formData.id, formData.id)) {
       throw new Error('Part ID already exists');
     }
 
     const updatedSparePart = createSparePartFromForm(formData);
 
-    setState(prevState => {
-      const updatedSpareParts = prevState.spareParts.map(part =>
-        part.id === formData.id ? updatedSparePart : part
-      );
-      localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+    const updatedSpareParts = spareParts.map(part =>
+      part.id === formData.id ? updatedSparePart : part
+    );
+    setSpareParts(updatedSpareParts);
 
-      return {
-        ...prevState,
-        spareParts: updatedSpareParts
-      };
-    });
+    const filtered = filterSpareParts(
+      updatedSpareParts,
+      filters.search,
+      filters.category,
+      filters.status
+    );
+    setFilteredSpareParts(filtered);
+
+    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
 
     return updatedSparePart;
-  }, [state.spareParts]);
+  }, [spareParts, filters]);
 
-  // Delete spare part
   const deleteSparePart = useCallback((id: string) => {
-    setState(prevState => {
-      const updatedSpareParts = prevState.spareParts.filter(part => part.id !== id);
-      localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+    const updatedSpareParts = spareParts.filter(part => part.id !== id);
+    setSpareParts(updatedSpareParts);
 
-      return {
-        ...prevState,
-        spareParts: updatedSpareParts,
-        selectedSpareParts: prevState.selectedSpareParts.filter(selectedId => selectedId !== id)
-      };
-    });
-  }, []);
+    const filtered = filterSpareParts(
+      updatedSpareParts,
+      filters.search,
+      filters.category,
+      filters.status
+    );
+    setFilteredSpareParts(filtered);
 
-  // Delete multiple spare parts
+    setSelectedSpareParts(prev => prev.filter(selectedId => selectedId !== id));
+    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+  }, [spareParts, filters]);
+
   const deleteMultipleSpareParts = useCallback((ids: string[]) => {
-    setState(prevState => {
-      const updatedSpareParts = prevState.spareParts.filter(part => !ids.includes(part.id));
-      localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+    const updatedSpareParts = spareParts.filter(part => !ids.includes(part.id));
+    setSpareParts(updatedSpareParts);
 
-      return {
-        ...prevState,
-        spareParts: updatedSpareParts,
-        selectedSpareParts: prevState.selectedSpareParts.filter(selectedId => !ids.includes(selectedId))
-      };
-    });
-  }, []);
+    const filtered = filterSpareParts(
+      updatedSpareParts,
+      filters.search,
+      filters.category,
+      filters.status
+    );
+    setFilteredSpareParts(filtered);
 
-  // Toggle selection
+    setSelectedSpareParts(prev => prev.filter(selectedId => !ids.includes(selectedId)));
+    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+  }, [spareParts, filters]);
+
   const toggleSparePartSelection = useCallback((id: string) => {
-    setState(prevState => ({
-      ...prevState,
-      selectedSpareParts: prevState.selectedSpareParts.includes(id)
-        ? prevState.selectedSpareParts.filter(selectedId => selectedId !== id)
-        : [...prevState.selectedSpareParts, id]
-    }));
+    setSelectedSpareParts(prev =>
+      prev.includes(id)
+        ? prev.filter(selectedId => selectedId !== id)
+        : [...prev, id]
+    );
   }, []);
 
-  // Clear all selections
   const clearSelection = useCallback(() => {
-    setState(prevState => ({
-      ...prevState,
-      selectedSpareParts: []
-    }));
+    setSelectedSpareParts([]);
   }, []);
 
-  // Get spare part by ID
   const getSparePartById = useCallback((id: string): SparePart | undefined => {
-    return state.spareParts.find(part => part.id === id);
-  }, [state.spareParts]);
+    return spareParts.find(part => part.id === id);
+  }, [spareParts]);
 
-  // Reset to sample data
   const resetToSampleData = useCallback(() => {
-    setState(prevState => ({
-      ...prevState,
-      spareParts: sampleSpareParts,
-      filteredSpareParts: sampleSpareParts,
-      selectedSpareParts: [],
-      filters: { search: '', category: '', status: '' }
-    }));
+    setSpareParts(sampleSpareParts);
+
+    const filtered = filterSpareParts(
+      sampleSpareParts,
+      '',
+      '',
+      ''
+    );
+    setFilteredSpareParts(filtered);
+
+    setSelectedSpareParts([]);
+    setFilters({ search: '', category: '', status: '' });
     localStorage.setItem('sparePartsData', JSON.stringify(sampleSpareParts));
   }, []);
 
-  // Export data
   const exportData = useCallback(() => {
-    const dataStr = JSON.stringify(state.spareParts, null, 2);
+    const dataStr = JSON.stringify(spareParts, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
@@ -285,10 +275,15 @@ export function useSpareParts() {
     link.download = `spare_parts_data_${new Date().toISOString().split('T')[0]}.json`;
     link.click();
     URL.revokeObjectURL(url);
-  }, [state.spareParts]);
+  }, [spareParts]);
 
   return {
-    ...state,
+    spareParts,
+    filteredSpareParts,
+    selectedSpareParts,
+    filters,
+    isLoading,
+    error,
     updateFilters,
     addSparePart,
     updateSparePart,

@@ -104,7 +104,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
       cell: ({ row }) => (
         <Badge
           text={row.original.status.toUpperCase()}
-          variant={STATUS_VARIANT_MAP[row.original.status] ?? 'grey'}
+          variant={STATUS_VARIANT_MAP[row.original.status]}
           className="h-6 px-3 uppercase tracking-wide"
         />
       ),

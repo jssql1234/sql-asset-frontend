@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card, Button } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { useSerialNumberValidation } from "../hooks/useSerialNumberValidation";
@@ -61,26 +61,45 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   const [startingNumber, setStartingNumber] = useState(1);
   const validation = useSerialNumberValidation(serialData);
 
+
+  const notifyParentRef = useRef(false);
+
   useEffect(() => {
     const assetsInBatch = isBatchMode ? quantity : 1;
     const totalSerialFields = assetsInBatch * quantityPerUnit;
 
-    const newSerialData: SerialNumberData[] = [];
-    for (let i = 0; i < totalSerialFields; i++) {
-      if (serialNumbers[i]) {
-        newSerialData.push({ ...serialNumbers[i] });
-      } else {
-        newSerialData.push({ serial: '', remark: '' });
+    // Check if we need to update serialData by comparing expected vs current length
+    setSerialData(prevData => {
+      if (prevData.length === totalSerialFields) {
+        notifyParentRef.current = false;
+        return prevData;
       }
-    }
 
-    setSerialData(newSerialData);
+      const newSerialData: SerialNumberData[] = [];
+
+      for (let i = 0; i < totalSerialFields; i++) {
+        // Try to preserve existing data from props first, then from current state
+        if (i < serialNumbers.length && serialNumbers[i]) {
+          newSerialData.push({ ...serialNumbers[i] });
+        } else if (i < prevData.length && prevData[i]) {
+          newSerialData.push({ ...prevData[i] });
+        } else {
+          newSerialData.push({ serial: '', remark: '' });
+        }
+      }
+
+      notifyParentRef.current = true;
+      return newSerialData;
+    });
   }, [quantity, quantityPerUnit, isBatchMode, serialNumbers]);
 
-
+  // Separate effect to notify parent after state update
   useEffect(() => {
-    onSerialNumbersChange?.(serialData);
-  }, [onSerialNumbersChange, serialData]);
+    if (notifyParentRef.current && serialData.length > 0) {
+      onSerialNumbersChange?.(serialData);
+      notifyParentRef.current = false;
+    }
+  }, [serialData, onSerialNumbersChange]);
 
   const updateSerialNumber = useCallback((index: number, field: 'serial' | 'remark', value: string) => {
     setSerialData(prevData => {
@@ -281,3 +300,4 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
 
 export default SerialNumberTab;
+

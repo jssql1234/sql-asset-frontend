@@ -504,10 +504,14 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     setValue("serialNumbers", serialNumbers);
   }, [setValue]);
 
+  // Watch form values for reactivity
   const serialNumbersValue = watch("serialNumbers");
-  const memoizedSerialNumbers = useMemo(() => serialNumbersValue, [serialNumbersValue]);
-
+  const quantity = watch("quantity");
+  const quantityPerUnit = watch("quantityPerUnit");
   const inactive = watch("inactive");
+
+  // Memoize serialNumbers to prevent unnecessary re-renders
+  const memoizedSerialNumbers = useMemo(() => serialNumbersValue, [serialNumbersValue]);
 
   useEffect(() => {
     if (inactive) {
@@ -573,8 +577,8 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
           value: "serial-no",
           content: (
             <SerialNumberTab
-              quantity={watch("quantity")}
-              quantityPerUnit={watch("quantityPerUnit")}
+              quantity={quantity}
+              quantityPerUnit={quantityPerUnit}
               isBatchMode={batchMode}
               serialNumbers={memoizedSerialNumbers}
               onSerialNumbersChange={handleSerialNumbersChange}
@@ -615,8 +619,8 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
           value: "serial-no",
           content: (
             <SerialNumberTab
-              quantity={watch("quantity")}
-              quantityPerUnit={watch("quantityPerUnit")}
+              quantity={quantity}
+              quantityPerUnit={quantityPerUnit}
               isBatchMode={batchMode}
               serialNumbers={memoizedSerialNumbers}
               onSerialNumbersChange={handleSerialNumbersChange}
@@ -630,7 +634,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         },
       ];
     }
-  }, [batchMode, register, setValue, watch, control, errors, memoizedSerialNumbers, handleSerialNumbersChange]);
+  }, [batchMode, register, setValue, watch, control, errors, quantity, quantityPerUnit, memoizedSerialNumbers, handleSerialNumbersChange]);
 
   return (
     <div className="bg-surface min-h-screen">

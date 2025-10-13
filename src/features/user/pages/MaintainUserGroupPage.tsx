@@ -7,13 +7,12 @@ import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 import * as UserGroupService from '../services/userGroupService';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { ExportFile, Upload } from '@/assets/icons';
-import { use } from 'react';
-import { UserContext } from '@/context/UserContext';
+import { useUserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 import TabHeader from '@/components/TabHeader';
 
 const MaintainUserGroupPage: React.FC = () => {
-  const { addGroup } = use(UserContext);
+  const { addGroup } = useUserContext();
   const {
     groups,
     isModalOpen,

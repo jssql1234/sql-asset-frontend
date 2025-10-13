@@ -1,5 +1,5 @@
 import { use } from 'react';
-import { UserContext, type UserContextType } from '@/context/UserContext';
+import { UserContext } from '@/context/UserContext';
 import { hasPermission } from '@/utils/permissionUtils';
 import type { PermissionAction } from '@/types/permission';
 
@@ -7,7 +7,7 @@ import type { PermissionAction } from '@/types/permission';
  * Hook to check user permissions
  */
 export function usePermissions() {
-  const context = use(UserContext) as UserContextType | undefined;
+  const context = use(UserContext);
   if (!(context)) {
     throw new Error('usePermissions must be used within a UserProvider');
   }

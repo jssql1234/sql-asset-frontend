@@ -3,6 +3,7 @@ import { Button, Card } from '@/components/ui/components';
 import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
+import { Badge } from '@/components/ui/components/Badge';
 import type { SparePart } from '../types/spareParts';
 import {
   calculateStockStatus,
@@ -141,12 +142,20 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
           row.original.operationalStatus
         );
 
-        const statusColor = status === 'In Stock' ? 'bg-green-500' :
-                            status === 'Low Stock' ? 'bg-yellow-500' :
-                            status === 'Out of Stock' ? 'bg-red-500' : 'bg-gray-500';
+        const variant = status === 'In Stock'
+          ? 'green'
+          : status === 'Low Stock'
+            ? 'yellow'
+            : status === 'Out of Stock'
+              ? 'red'
+              : 'grey';
 
         return (
-          <div className={`w-3 h-3 rounded-full ${statusColor}`} />
+          <Badge
+            text={status.toUpperCase()}
+            variant={variant}
+            className="h-6 px-3 uppercase font-semibold tracking-wide"
+          />
         );
       },
     },

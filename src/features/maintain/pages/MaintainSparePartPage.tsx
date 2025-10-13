@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import { Plus, ExportFile, Settings } from '@/assets/icons';
+import { Plus, ExportFile} from '@/assets/icons';
 import { SparePartsFormModal } from '../components/SparePartsFormModal';
 import { SparePartsTable } from '../components/SparePartsTable';
 import { SparePartsSearchAndFilter } from '../components/SparePartsSearchAndFilter';
@@ -19,7 +19,6 @@ const MaintainSparePartPage: React.FC = () => {
     updateSparePart,
     deleteMultipleSpareParts,
     toggleSparePartSelection,
-    resetToSampleData,
     exportData,
   } = useSpareParts();
 
@@ -83,24 +82,6 @@ const MaintainSparePartPage: React.FC = () => {
     }
   };
 
-  const handleResetToSampleData = () => {
-    if (confirm('Are you sure you want to reset to sample data? This will overwrite any existing data.')) {
-      try {
-        resetToSampleData();
-        addToast({
-          title: "Success",
-          description: "Data reset to sample data successfully!",
-          variant: "success",
-        });
-      } catch (error) {
-        addToast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "An error occurred while resetting the data.",
-          variant: "error",
-        });
-      }
-    }
-  };
 
   const handleExportData = () => {
     try {
@@ -148,15 +129,6 @@ const MaintainSparePartPage: React.FC = () => {
               >
                 <ExportFile className="w-4 h-4" />
                 Export Data
-              </button>
-              <button
-                type="button"
-                onClick={handleResetToSampleData}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
-                title="Reset to Sample"
-              >
-                <Settings className="w-4 h-4" />
-                Reset to Sample
               </button>
             </div>
           }

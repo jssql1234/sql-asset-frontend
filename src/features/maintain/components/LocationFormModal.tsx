@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/components/Button';
 import type {
   Location,
   LocationFormData,
-  LocationTypeOption,
   LocationValidationErrors,
 } from '../types/locations';
 import { generateLocationId, validateLocationForm } from '../utils/locationUtils';
@@ -24,7 +23,6 @@ interface LocationFormModalProps {
   onSave: (data: LocationFormData) => Promise<void> | void;
   editingLocation?: Location | null;
   existingLocations: Location[];
-  locationTypes: LocationTypeOption[];
 }
 
 const initialFormState: LocationFormData = {
@@ -42,7 +40,6 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
   onSave,
   editingLocation,
   existingLocations,
-  locationTypes,
 }) => {
   const [formData, setFormData] = useState<LocationFormData>(initialFormState);
   const [errors, setErrors] = useState<LocationValidationErrors>({});
@@ -78,7 +75,7 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
       [field]: value,
     }));
 
-    if (field === 'name' || field === 'categoryId') {
+    if (field === 'name') {
       if (errors[field]) {
         setErrors(prevErrors => ({
           ...prevErrors,
@@ -175,40 +172,16 @@ export const LocationFormModal: React.FC<LocationFormModalProps> = ({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="locationType" className="block text-sm font-medium text-onSurface mb-1">
-                Type / Category <span className="text-error">*</span>
-              </label>
-              <select
-                id="locationType"
-                value={formData.categoryId}
-                onChange={(event) => { handleInputChange('categoryId', event.target.value); }}
-                className={`w-full px-3 py-2 border rounded-md bg-surfaceContainerHighest text-onSurface focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.categoryId ? 'border-error' : 'border-outlineVariant'
-                }`}
-              >
-                <option value="">Select Type</option>
-                {locationTypes.map(type => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
-              {errors.categoryId && <p className="text-sm text-error mt-1">{errors.categoryId}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="locationContactPerson" className="block text-sm font-medium text-onSurface mb-1">
-                Contact Person
-              </label>
-              <Input
-                id="locationContactPerson"
-                value={formData.contactPerson}
-                onChange={(event) => { handleInputChange('contactPerson', event.target.value); }}
-                placeholder="e.g., Jane Smith"
-              />
-            </div>
+          <div>
+            <label htmlFor="locationContactPerson" className="block text-sm font-medium text-onSurface mb-1">
+              Contact Person
+            </label>
+            <Input
+              id="locationContactPerson"
+              value={formData.contactPerson}
+              onChange={(event) => { handleInputChange('contactPerson', event.target.value); }}
+              placeholder="e.g., Jane Smith"
+            />
           </div>
 
           <div>

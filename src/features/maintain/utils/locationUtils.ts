@@ -98,9 +98,5 @@ export function validateLocationForm(formData: LocationFormData): LocationValida
     errors.name = 'Location name is required';
   }
 
-  if (!formData.categoryId.trim()) {
-    errors.categoryId = 'Location type is required';
-  }
-
   return errors;
 }

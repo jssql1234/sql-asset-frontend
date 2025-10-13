@@ -108,7 +108,6 @@ const MaintainLocationPage: React.FC = () => {
         <div className="flex-1 overflow-hidden">
           <LocationsTable
             locations={filteredLocations}
-            locationTypes={locationTypes}
             selectedLocations={selectedLocations}
             onToggleSelection={toggleLocationSelection}
             onAddLocation={handleAddLocation}
@@ -126,7 +125,6 @@ const MaintainLocationPage: React.FC = () => {
           onSave={handleSaveLocation}
           editingLocation={editingLocation}
           existingLocations={locations}
-          locationTypes={locationTypes}
         />
       </div>
     </SidebarHeader>

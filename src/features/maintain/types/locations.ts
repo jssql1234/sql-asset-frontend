@@ -43,5 +43,4 @@ export interface LocationsState {
 
 export interface LocationValidationErrors {
   name?: string;
-  categoryId?: string;
 }

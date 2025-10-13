@@ -4,12 +4,10 @@ import { DataTable, TableColumnVisibility } from '@/components/ui/components/Tab
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
-import type { Location, LocationTypeOption } from '../types/locations';
-import { formatLocationDate, getLocationTypeName } from '../utils/locationUtils';
+import type { Location } from '../types/locations';
 
 interface LocationsTableProps {
   locations: Location[];
-  locationTypes: LocationTypeOption[];
   selectedLocations: string[];
   onToggleSelection: (id: string) => void;
   onAddLocation: () => void;
@@ -26,7 +24,6 @@ const STATUS_VARIANT_MAP: Record<Location['status'], string> = {
 
 export const LocationsTable: React.FC<LocationsTableProps> = ({
   locations,
-  locationTypes,
   selectedLocations,
   onToggleSelection,
   onAddLocation,
@@ -77,15 +74,6 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
       ),
     },
     {
-      id: 'type',
-      header: 'Type',
-      cell: ({ row }) => (
-        <span className="text-sm text-onSurface">
-          {getLocationTypeName(row.original.categoryId, locationTypes)}
-        </span>
-      ),
-    },
-    {
       id: 'contact',
       header: 'Contact',
       cell: ({ row }) => {
@@ -109,16 +97,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
         />
       ),
     },
-    {
-      id: 'updatedAt',
-      header: 'Last Updated',
-      cell: ({ row }) => (
-        <span className="text-sm text-onSurfaceVariant">
-          {formatLocationDate(row.original.updatedAt)}
-        </span>
-      ),
-    },
-  ]), [locationTypes]);
+  ]), []);
 
   const selectionColumn = useMemo(
     () => columnDefs.find(column => column.id === 'select'),

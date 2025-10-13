@@ -2,6 +2,15 @@ import type { Asset } from "./asset";
 
 export type BoundaryTrigger = "none" | "lower" | "upper" | "both";
 
+export interface MeterCondition {
+	id: string;
+	conditionTarget: string;
+	operator: string;
+	value: string | number;
+	triggerAction: string;
+	triggerMode: string;
+}
+
 export interface Meter {
 	id: string;
 	name: string;
@@ -10,6 +19,7 @@ export interface Meter {
 	lowerBoundary?: number;
 	upperBoundary?: number;
 	notesPlaceholder?: string;
+	conditions?: MeterCondition[];
 }
 
 export interface MeterGroup {
@@ -58,6 +68,7 @@ export interface MeterInput {
 	type: "numeric" | "counter" | "boolean" | "text";
 	lowerBoundary?: number;
 	upperBoundary?: number;
+	conditions?: MeterCondition[];
 }
 
 export interface MeterReadingDraft {

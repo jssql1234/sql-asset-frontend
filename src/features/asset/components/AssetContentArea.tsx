@@ -12,6 +12,7 @@ import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
 import PermissionGuard from "@/components/PermissionGuard";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Delete, Edit, Plus } from "@/assets/icons";
 
 
 // Column definitions for TanStack Table
@@ -328,13 +329,14 @@ export default function AssetContentArea() {
                 setView('create');
                 void navigate('/asset/create-asset');
               }}>
+                <Plus className="h-4 w-4" />
                 Add
               </Button>
               </PermissionGuard>
               {selectedRowIds.length > 0 && (
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm">Edit</Button>
-                  <Button variant="destructive" size="sm">Delete</Button>
+                  <Button variant="outline" size="sm"><Edit className="h-4 w-4" />Edit</Button>
+                  <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete</Button>
                   <Button variant="destructive" size="sm" onClick={() => {
                     void navigate('/disposal');
                   }}>Dispose</Button>

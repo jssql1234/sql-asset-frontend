@@ -1,158 +1,133 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import Search from '@/components/Search';
-import { DataTable } from '@/components/ui/components/Table';
-import { type ColumnDef } from '@tanstack/react-table';
-import { Plus } from '@/assets/icons';
-
-interface Department {
-  id: string;
-  name: string;
-  code: string;
-  description: string;
-  manager: string;
-  status: 'Active' | 'Inactive';
-  createdAt: string;
-}
-
-const mockDepartments: Department[] = [
-  {
-    id: '1',
-    name: 'Information Technology',
-    code: 'IT',
-    description: 'Handles all IT infrastructure and support',
-    manager: 'John Smith',
-    status: 'Active',
-    createdAt: '2023-01-15',
-  },
-  {
-    id: '2',
-    name: 'Human Resources',
-    code: 'HR',
-    description: 'Manages employee relations and policies',
-    manager: 'Sarah Johnson',
-    status: 'Active',
-    createdAt: '2023-02-20',
-  },
-  {
-    id: '3',
-    name: 'Finance',
-    code: 'FIN',
-    description: 'Handles financial operations and reporting',
-    manager: 'Mike Davis',
-    status: 'Active',
-    createdAt: '2023-03-10',
-  },
-  {
-    id: '4',
-    name: 'Operations',
-    code: 'OPS',
-    description: 'Oversees daily operations and maintenance',
-    manager: 'Lisa Chen',
-    status: 'Inactive',
-    createdAt: '2023-04-05',
-  },
-];
+import { useToast } from '@/components/ui/components/Toast/useToast';
+import { DepartmentsSearchAndFilter } from '../components/DepartmentsSearchAndFilter';
+import { DepartmentsTable } from '../components/DepartmentsTable';
+import { DepartmentFormModal } from '../components/DepartmentFormModal';
+import { useDepartments } from '../hooks/useDepartments';
+import type { Department, DepartmentFormData } from '../types/departments';
 
 const MaintainDepartmentPage: React.FC = () => {
-  const [searchValue, setSearchValue] = useState('');
-  const [departments] = useState<Department[]>(mockDepartments);
+  const {
+    departments,
+    filteredDepartments,
+    selectedDepartments,
+    filters,
+    departmentTypes,
+    updateFilters,
+    addDepartment,
+    updateDepartment,
+    deleteMultipleDepartments,
+    toggleDepartmentSelection,
+  } = useDepartments();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const { addToast } = useToast();
 
   const handleAddDepartment = () => {
-    // TODO: Implement add department modal
-    console.log('Add department clicked');
+    setEditingDepartment(null);
+    setIsModalOpen(true);
   };
 
-  const filteredDepartments = departments.filter(department =>
-    department.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    department.code.toLowerCase().includes(searchValue.toLowerCase()) ||
-    department.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-    department.manager.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const handleEditDepartment = (department: Department) => {
+    setEditingDepartment(department);
+    setIsModalOpen(true);
+  };
 
-  const columns: ColumnDef<Department>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Department Name',
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-          <div className="text-sm text-onSurfaceVariant">Code: {row.original.code}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'manager',
-      header: 'Manager',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.manager}</div>
-      ),
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }) => (
-        <div className="text-sm text-onSurfaceVariant">{row.original.description}</div>
-      ),
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.status === 'Active'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {row.original.status}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created Date',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.createdAt}</div>
-      ),
-    },
-  ];
+  const handleSaveDepartment = (formData: DepartmentFormData) => {
+    try {
+      if (editingDepartment) {
+        updateDepartment(formData);
+        addToast({
+          title: 'Success',
+          description: 'Department updated successfully!',
+          variant: 'success',
+        });
+      } else {
+        addDepartment(formData);
+        addToast({
+          title: 'Success',
+          description: 'Department added successfully!',
+          variant: 'success',
+        });
+      }
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while saving the department.',
+        variant: 'error',
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteMultipleDepartments = (ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete ${String(ids.length)} selected departments?`)) {
+      try {
+        deleteMultipleDepartments(ids);
+        addToast({
+          title: 'Success',
+          description: `${String(ids.length)} departments deleted successfully!`,
+          variant: 'success',
+        });
+      } catch (error) {
+        addToast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'An error occurred while deleting the departments.',
+          variant: 'error',
+        });
+      }
+    }
+  };
 
   return (
     <SidebarHeader
       breadcrumbs={[
-        { label: "Tools" },
-        { label: "Maintain Department" },
+        { label: 'Tools' },
+        { label: 'Maintain Department' },
       ]}
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <TabHeader
-          title="Maintain Department"
+          title="Department Management"
           subtitle="Manage department information and configurations"
-          actions={[
-            {
-              label: "Add Department",
-              onAction: handleAddDepartment,
-              icon: <Plus />,
-              variant: "default",
-            },
-          ]}
         />
 
-        <Search
-          searchValue={searchValue}
-          searchPlaceholder="Search departments..."
-          onSearch={setSearchValue}
-          live
+        <DepartmentsSearchAndFilter
+          filters={filters}
+          onFiltersChange={updateFilters}
+          departmentTypes={departmentTypes}
         />
 
         <div className="flex-1 overflow-hidden">
-          <DataTable
-            columns={columns}
-            data={filteredDepartments}
-            showPagination
+          <DepartmentsTable
+            departments={filteredDepartments}
+            departmentTypes={departmentTypes}
+            selectedDepartments={selectedDepartments}
+            onToggleSelection={toggleDepartmentSelection}
+            onAddDepartment={handleAddDepartment}
+            onEditDepartment={handleEditDepartment}
+            onDeleteMultipleDepartments={handleDeleteMultipleDepartments}
           />
         </div>
+
+        <DepartmentFormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingDepartment(null);
+          }}
+          onSave={handleSaveDepartment}
+          editingDepartment={editingDepartment}
+          existingDepartments={departments}
+          departmentTypes={departmentTypes}
+        />
       </div>
     </SidebarHeader>
   );

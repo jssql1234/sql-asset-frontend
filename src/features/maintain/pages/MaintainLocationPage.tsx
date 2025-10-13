@@ -1,138 +1,133 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import Search from '@/components/Search';
-import { DataTable } from '@/components/ui/components/Table';
-import { type ColumnDef } from '@tanstack/react-table';
-import { Plus } from '@/assets/icons';
-
-interface Location {
-  id: string;
-  name: string;
-  description: string;
-  status: 'Active' | 'Inactive';
-  createdAt: string;
-}
-
-const mockLocations: Location[] = [
-  {
-    id: '1',
-    name: 'HQ - IT Store',
-    description: 'Main IT storage facility at headquarters',
-    status: 'Active',
-    createdAt: '2023-01-15',
-  },
-  {
-    id: '2',
-    name: 'Plant Room',
-    description: 'Equipment storage in plant room',
-    status: 'Active',
-    createdAt: '2023-02-20',
-  },
-  {
-    id: '3',
-    name: 'Warehouse',
-    description: 'General warehouse storage',
-    status: 'Active',
-    createdAt: '2023-03-10',
-  },
-  {
-    id: '4',
-    name: 'Data Center',
-    description: 'Secure data center location',
-    status: 'Inactive',
-    createdAt: '2023-04-05',
-  },
-];
+import { useToast } from '@/components/ui/components/Toast/useToast';
+import { LocationsSearchAndFilter } from '../components/LocationsSearchAndFilter';
+import { LocationsTable } from '../components/LocationsTable';
+import { LocationFormModal } from '../components/LocationFormModal';
+import { useLocations } from '../hooks/useLocations';
+import type { Location, LocationFormData } from '../types/locations';
 
 const MaintainLocationPage: React.FC = () => {
-  const [searchValue, setSearchValue] = useState('');
-  const [locations] = useState<Location[]>(mockLocations);
+  const {
+    locations,
+    filteredLocations,
+    selectedLocations,
+    filters,
+    locationTypes,
+    updateFilters,
+    addLocation,
+    updateLocation,
+    deleteMultipleLocations,
+    toggleLocationSelection,
+  } = useLocations();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const { addToast } = useToast();
 
   const handleAddLocation = () => {
-    // TODO: Implement add location modal
-    console.log('Add location clicked');
+    setEditingLocation(null);
+    setIsModalOpen(true);
   };
 
-  const filteredLocations = locations.filter(location =>
-    location.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    location.description.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const handleEditLocation = (location: Location) => {
+    setEditingLocation(location);
+    setIsModalOpen(true);
+  };
 
-  const columns: ColumnDef<Location>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Location Name',
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }) => (
-        <div className="text-sm text-onSurfaceVariant">{row.original.description}</div>
-      ),
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.status === 'Active'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {row.original.status}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created Date',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.createdAt}</div>
-      ),
-    },
-  ];
+  const handleSaveLocation = (formData: LocationFormData) => {
+    try {
+      if (editingLocation) {
+        updateLocation(formData);
+        addToast({
+          title: 'Success',
+          description: 'Location updated successfully!',
+          variant: 'success',
+        });
+      } else {
+        addLocation(formData);
+        addToast({
+          title: 'Success',
+          description: 'Location added successfully!',
+          variant: 'success',
+        });
+      }
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while saving the location.',
+        variant: 'error',
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteMultipleLocations = (ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete ${String(ids.length)} selected locations?`)) {
+      try {
+        deleteMultipleLocations(ids);
+        addToast({
+          title: 'Success',
+          description: `${String(ids.length)} locations deleted successfully!`,
+          variant: 'success',
+        });
+      } catch (error) {
+        addToast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'An error occurred while deleting the locations.',
+          variant: 'error',
+        });
+      }
+    }
+  };
 
   return (
     <SidebarHeader
       breadcrumbs={[
-        { label: "Tools" },
-        { label: "Maintain Location" },
+        { label: 'Tools' },
+        { label: 'Maintain Location' },
       ]}
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <TabHeader
-          title="Maintain Location"
-          subtitle="Manage location information and settings"
-          actions={[
-            {
-              label: "Add Location",
-              onAction: handleAddLocation,
-              icon: <Plus />,
-              variant: "default",
-            },
-          ]}
+          title="Location Management"
+          subtitle="Manage locations and related information"
         />
 
-        <Search
-          searchValue={searchValue}
-          searchPlaceholder="Search locations..."
-          onSearch={setSearchValue}
-          live
+        <LocationsSearchAndFilter
+          filters={filters}
+          onFiltersChange={updateFilters}
+          locationTypes={locationTypes}
         />
 
         <div className="flex-1 overflow-hidden">
-          <DataTable
-            columns={columns}
-            data={filteredLocations}
-            showPagination
+          <LocationsTable
+            locations={filteredLocations}
+            locationTypes={locationTypes}
+            selectedLocations={selectedLocations}
+            onToggleSelection={toggleLocationSelection}
+            onAddLocation={handleAddLocation}
+            onEditLocation={handleEditLocation}
+            onDeleteMultipleLocations={handleDeleteMultipleLocations}
           />
         </div>
+
+        <LocationFormModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setEditingLocation(null);
+          }}
+          onSave={handleSaveLocation}
+          editingLocation={editingLocation}
+          existingLocations={locations}
+          locationTypes={locationTypes}
+        />
       </div>
     </SidebarHeader>
   );

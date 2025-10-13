@@ -1,12 +1,11 @@
 import { type ChangeEvent, useMemo, useState } from "react";
-import { AssetChip, RemovableAssetChip } from "@/components/AssetChip";
-import MeterGroupToggleCard from "../components/MeterGroupToggleCard";
-import MeterTable from "../components/MeterTable";
-import EditMeterModal from "../components/EditMeterModal";
-import type { MeterWithConditions } from "../components/MeterTable";
+import type { ColumnDef } from "@tanstack/react-table";
+import { AssetChip } from "@/components/AssetChip";
+import { DataTableExtended } from "@/components/DataTableExtended";
+import Search from "@/components/Search";
 import {
   Button,
-  Card,
+  Badge,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -15,138 +14,40 @@ import {
   DialogTitle,
 } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
-import { cn } from "@/utils/utils";
 import type {
-  Meter,
-  MeterAssignmentStrategy,
   MeterGroup,
   MeterGroupInput,
-  MeterInput,
 } from "@/types/meter";
-import type { Asset } from "@/types/asset";
 import { Plus } from "@/assets/icons";
 import TabHeader from "@/components/TabHeader";
 
-const boundaryOptions: Array<{ value: MeterGroupInput["boundaryTrigger"]; label: string }> = [
-  { value: "none", label: "No automation" },
-  { value: "lower", label: "Trigger when readings drop below the lower boundary" },
-  { value: "upper", label: "Trigger when readings exceed the upper boundary" },
-  { value: "both", label: "Trigger on either lower or upper boundary" },
-];
-
-const meterTypeOptions: Array<{
-  value: MeterInput["type"];
-  label: string;
-  helper: string;
-}> = [
-  {
-    value: "numeric",
-    label: "Numeric",
-    helper: "Captures decimal readings such as temperatures or vibration levels.",
-  },
-  {
-    value: "counter",
-    label: "Counter",
-    helper: "Accumulates totals such as hours run or production counts.",
-  },
-  {
-    value: "boolean",
-    label: "Boolean",
-    helper: "Tracks simple true/false or on/off readings.",
-  },
-  {
-    value: "text",
-    label: "Text",
-    helper: "Stores free-form inspection notes or qualitative observations.",
-  },
-];
-
 type GroupModalState = { mode: "create" } | { mode: "edit"; group: MeterGroup };
-type MeterModalState =
-  | { mode: "create"; group: MeterGroup }
-  | { mode: "edit"; group: MeterGroup; meter: Meter };
-type DeleteMeterState = { group: MeterGroup; meter: Meter };
-type AssignModalState = { group: MeterGroup };
 
 type MeterGroupsViewProps = {
   groups: MeterGroup[];
-  availableAssets: Asset[];
   onCreateGroup: (input: MeterGroupInput) => void;
   onUpdateGroup: (groupId: string, input: Partial<MeterGroupInput>) => void;
   onDeleteGroup: (groupId: string) => void;
   onCloneGroup: (groupId: string) => void;
-  onAddMeter: (groupId: string, input: MeterInput) => Meter;
-  onUpdateMeter: (
-    groupId: string,
-    meterId: string,
-    input: Partial<MeterInput>
-  ) => void;
-  onRemoveMeter: (
-    groupId: string,
-    meterId: string,
-    options?: { deleteReadings?: boolean }
-  ) => void;
-  onAssignAssets: (
-    groupId: string,
-    assetIds: string[],
-    strategy: MeterAssignmentStrategy
-  ) => void;
-  onRemoveAsset: (groupId: string, assetId: string) => void;
 };
 
 const defaultGroupForm: MeterGroupInput = {
   name: "",
   description: "",
-  boundaryTrigger: "none",
-};
-
-const defaultMeterForm: MeterInput = {
-  name: "",
-  unit: "",
-  type: "numeric",
-  lowerBoundary: undefined,
-  upperBoundary: undefined,
+  boundaryTrigger: "none", // Default value, conditions will handle automation
 };
 
 export const MeterGroupsView = ({
   groups,
-  availableAssets,
   onCreateGroup,
   onUpdateGroup,
   onDeleteGroup,
   onCloneGroup,
-  onAddMeter,
-  onUpdateMeter,
-  onRemoveMeter,
-  onAssignAssets,
-  onRemoveAsset,
 }: MeterGroupsViewProps) => {
   const [groupModal, setGroupModal] = useState<GroupModalState | null>(null);
-  const [meterModal, setMeterModal] = useState<MeterModalState | null>(null);
-  const [deleteMeterState, setDeleteMeterState] = useState<DeleteMeterState | null>(
-    null
-  );
-  const [assignModal, setAssignModal] = useState<AssignModalState | null>(null);
   const [groupForm, setGroupForm] = useState<MeterGroupInput>(defaultGroupForm);
-  const [meterForm, setMeterForm] = useState<MeterInput>(defaultMeterForm);
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
-  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
-  
-  // EditMeterModal state
-  const [editMeterModalOpen, setEditMeterModalOpen] = useState(false);
-  const [editingMeter, setEditingMeter] = useState<MeterWithConditions | null>(null);
-  const [editingMeterGroup, setEditingMeterGroup] = useState<MeterGroup | null>(null);
-
-  const assetAssignments = useMemo(() => {
-    const map = new Map<string, { groupId: string; groupName: string }>();
-    groups.forEach((group) => {
-      group.assignedAssets.forEach((asset) => {
-        map.set(asset.id, { groupId: group.id, groupName: group.name });
-      });
-    });
-    return map;
-  }, [groups]);
 
   const openCreateGroupModal = () => {
     setGroupForm(defaultGroupForm);
@@ -158,7 +59,7 @@ export const MeterGroupsView = ({
     setGroupForm({
       name: group.name,
       description: group.description ?? "",
-      boundaryTrigger: group.boundaryTrigger,
+      boundaryTrigger: group.boundaryTrigger, // Keep existing value but hidden from UI
     });
     setFormError(null);
     setGroupModal({ mode: "edit", group });
@@ -189,176 +90,170 @@ export const MeterGroupsView = ({
     setGroupModal(null);
   };
 
-  const openCreateMeterModal = (group: MeterGroup) => {
-    setMeterForm(defaultMeterForm);
-    setFormError(null);
-    setMeterModal({ mode: "create", group });
-  };
 
-  const openEditMeterModal = (group: MeterGroup, meter: Meter) => {
-    // Convert Meter to MeterWithConditions
-    const meterWithConditions: MeterWithConditions = {
-      ...meter,
-      conditions: meter.conditions || [],
-    };
-    setEditingMeter(meterWithConditions);
-    setEditingMeterGroup(group);
-    setEditMeterModalOpen(true);
-  };
 
-  const handleSaveEditedMeter = (updatedMeter: MeterWithConditions) => {
-    if (!editingMeterGroup) return;
-    
-    // Update the meter in the group
-    onUpdateMeter(editingMeterGroup.id, updatedMeter.id, {
-      name: updatedMeter.name,
-      unit: updatedMeter.unit,
-      type: updatedMeter.type,
-      lowerBoundary: updatedMeter.lowerBoundary,
-      upperBoundary: updatedMeter.upperBoundary,
-      conditions: updatedMeter.conditions,
-    });
-    
-    setEditMeterModalOpen(false);
-    setEditingMeter(null);
-    setEditingMeterGroup(null);
-  };
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const handleMeterSubmit = () => {
-    if (!meterForm.name.trim()) {
-      setFormError("Meter name is required");
-      return;
-    }
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) return groups;
 
-    if (!meterForm.unit.trim()) {
-      setFormError("Measurement unit is required");
-      return;
-    }
-
-    if (meterModal?.mode === "create") {
-      onAddMeter(meterModal.group.id, {
-        ...meterForm,
-        name: meterForm.name.trim(),
-        unit: meterForm.unit.trim(),
-      });
-    }
-
-    if (meterModal?.mode === "edit") {
-      onUpdateMeter(meterModal.group.id, meterModal.meter.id, {
-        ...meterForm,
-        name: meterForm.name.trim(),
-        unit: meterForm.unit.trim(),
-      });
-    }
-
-    setMeterModal(null);
-  };
-
-  const handleDeleteMeter = (deleteReadings: boolean) => {
-    if (!deleteMeterState) return;
-    onRemoveMeter(deleteMeterState.group.id, deleteMeterState.meter.id, {
-      deleteReadings,
-    });
-    setDeleteMeterState(null);
-  };
-
-  const renderGroupCard = (group: MeterGroup) => {
-    const boundaryLabel =
-      boundaryOptions.find((option) => option.value === group.boundaryTrigger)?.label ??
-      "—";
-    const isEditing = editingGroupId === group.id;
-
-    const handleStartEditing = () => setEditingGroupId(group.id);
-    const handleFinishEditing = () => setEditingGroupId(null);
-
-    return (
-      <MeterGroupToggleCard
-        key={group.id}
-        group={group}
-        boundaryLabel={boundaryLabel}
-        onEdit={() => openEditGroupModal(group)}
-        onClone={() => onCloneGroup(group.id)}
-        onDelete={() => setDeleteGroupId(group.id)}
-      >
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h4 className="text-sm font-semibold uppercase tracking-wide text-onSurfaceVariant">
-              Meters configuration
-            </h4>
-            <div className="flex flex-wrap items-center gap-2">
-              {isEditing ? (
-                <>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => openCreateMeterModal(group)}
-                  >
-                    Add meter
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={() => setAssignModal({ group })}
-                  >
-                    Assign assets
-                  </Button>
-                  <Button size="sm" onClick={handleFinishEditing}>
-                    Done
-                  </Button>
-                </>
-              ) : (
-                <Button size="sm" variant="secondary" onClick={handleStartEditing}>
-                  Edit
-                </Button>
-              )}
-            </div>
-          </div>
-          <MeterTable
-            meters={group.meters}
-            onEdit={(meterId) => {
-              const meter = group.meters.find(m => m.id === meterId);
-              if (meter) openEditMeterModal(group, meter);
-            }}
-            onRemove={(meterId) => {
-              const meter = group.meters.find(m => m.id === meterId);
-              if (meter) setDeleteMeterState({ group, meter });
-            }}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <h4 className="text-sm font-semibold uppercase tracking-wide text-onSurfaceVariant">
-            Assigned assets
-          </h4>
-          {group.assignedAssets.length === 0 ? (
-            <div className="text-sm text-onSurfaceVariant">
-              No assets assigned yet.
-            </div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {group.assignedAssets.map((asset) =>
-                isEditing ? (
-                  <RemovableAssetChip
-                    key={asset.id}
-                    asset={asset}
-                    onDelete={() => onRemoveAsset(group.id, asset.id)}
-                  />
-                ) : (
-                  <AssetChip key={asset.id} asset={asset} />
-                )
-              )}
-            </div>
-          )}
-        </div>
-      </MeterGroupToggleCard>
+    const query = searchQuery.toLowerCase();
+    return groups.filter((group) => 
+      group.name.toLowerCase().includes(query) ||
+      group.description?.toLowerCase().includes(query) ||
+      group.meters.some((meter) => 
+        meter.name.toLowerCase().includes(query) ||
+        meter.unit.toLowerCase().includes(query)
+      ) ||
+      group.assignedAssets.some((asset) => 
+        asset.id.toLowerCase().includes(query) || 
+        asset.name.toLowerCase().includes(query)
+      )
     );
+  }, [groups, searchQuery]);
+
+  const columns = useMemo<ColumnDef<MeterGroup>[]>(
+    () => [
+      {
+        accessorKey: "name",
+        header: "Group Name",
+        enableColumnFilter: false,
+        cell: ({ row }) => {
+          const group = row.original;
+          return (
+            <div className="flex flex-col gap-1">
+              <span className="font-semibold text-onSurface">{group.name}</span>
+              {group.description && (
+                <span className="body-small text-onSurfaceVariant">
+                  {group.description}
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "meters",
+        header: "Meters",
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const meters = row.original.meters;
+          return (
+            <div className="flex flex-col gap-1">
+              <span className="font-medium text-onSurface">
+                {meters.length} {meters.length === 1 ? "meter" : "meters"}
+              </span>
+              {meters.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {meters.slice(0, 3).map((meter) => (
+                    <Badge
+                      key={meter.id}
+                      text={`${meter.name} (${meter.unit})`}
+                      variant="primary"
+                      className="h-6 px-2 py-0.5 text-xs"
+                    />
+                  ))}
+                  {meters.length > 3 && (
+                    <Badge
+                      text={`+${meters.length - 3} more`}
+                      variant="primary"
+                      className="h-6 px-2 py-0.5 text-xs"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "assignedAssets",
+        header: "Assigned Assets",
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const assets = row.original.assignedAssets;
+          return (
+            <div className="flex flex-col gap-1">
+              <span className="font-medium text-onSurface">
+                {assets.length} {assets.length === 1 ? "asset" : "assets"}
+              </span>
+              {assets.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {assets.slice(0, 2).map((asset) => (
+                    <AssetChip key={asset.id} asset={asset} />
+                  ))}
+                  {assets.length > 2 && (
+                    <Badge
+                      text={`+${assets.length - 2} more`}
+                      variant="primary"
+                      className="h-6 px-2 py-0.5 text-xs"
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        id: "actions",
+        header: "Actions",
+        enableColumnFilter: false,
+        enableSorting: false,
+        cell: ({ row }) => {
+          const group = row.original;
+          return (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEditGroupModal(group);
+                }}
+              >
+                Edit
+              </Button>
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCloneGroup(group.id);
+                }}
+              >
+                Clone
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteGroupId(group.id);
+                }}
+              >
+                Delete
+              </Button>
+            </div>
+          );
+        },
+      },
+    ],
+    [openEditGroupModal, onCloneGroup]
+  );
+
+  const handleViewGroup = (group: MeterGroup) => {
+    // Open a detailed view modal or navigate to detail page
+    openEditGroupModal(group);
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
       <TabHeader
         title="Meter groups"
-        subtitle="Organize meters by asset group and define boundary actions for automated workflows."
+        subtitle="Organize meters by asset group. Configure conditions on individual meters to trigger notifications and work orders."
         actions={[
           {
             label: "New group",
@@ -367,18 +262,21 @@ export const MeterGroupsView = ({
             variant: "primary",
           },
         ]}
-        className=" pl-2 pr-2"
       />
 
-      <div className="space-y-4">
-        {groups.length === 0 ? (
-          <Card className="text-center text-onSurfaceVariant">
-            <p>No meter groups created yet. Start by creating your first group.</p>
-          </Card>
-        ) : (
-          groups.map(renderGroupCard)
-        )}
-      </div>
+      <Search
+        searchValue={searchQuery}
+        searchPlaceholder="Search by group name, meter, or asset"
+        onSearch={setSearchQuery}
+        live
+      />
+
+      <DataTableExtended<MeterGroup, unknown>
+        columns={columns}
+        data={filteredGroups}
+        showPagination
+        onRowDoubleClick={handleViewGroup}
+      />
 
       {groupModal ? (
         <Dialog
@@ -395,7 +293,7 @@ export const MeterGroupsView = ({
                   : `Edit ${groupModal.group.name}`}
               </DialogTitle>
               <DialogDescription>
-                Provide a clear name, description, and boundary trigger to control automation.
+                Provide a clear name and description for this meter group. Automation and notifications will be controlled through individual meter conditions.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
@@ -426,42 +324,6 @@ export const MeterGroupsView = ({
                   }
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-onSurface">Boundary trigger</label>
-                <div className="grid gap-2">
-                  {boundaryOptions.map((option) => {
-                    const isActive = groupForm.boundaryTrigger === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() =>
-                          setGroupForm((prev) => ({
-                            ...prev,
-                            boundaryTrigger: option.value,
-                          }))
-                        }
-                        className={cn(
-                          "flex flex-col rounded-md border px-4 py-3 text-left transition",
-                          isActive
-                            ? "border-primary bg-primary text-onPrimary"
-                            : "border-outlineVariant bg-surface hover:border-primary/40"
-                        )}
-                      >
-                        <span className="text-sm font-semibold">{option.label}</span>
-                        <span
-                          className={cn(
-                            "text-xs",
-                            isActive ? "text-onPrimary/80" : "text-onSurfaceVariant"
-                          )}
-                        >
-                          Defines how the system reacts when meter values cross configured thresholds.
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
               {formError ? <p className="text-sm text-error">{formError}</p> : null}
             </div>
             <DialogFooter>
@@ -476,202 +338,6 @@ export const MeterGroupsView = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      ) : null}
-
-      {meterModal ? (
-        <Dialog
-          open
-          onOpenChange={(open) => {
-            if (!open) setMeterModal(null);
-          }}
-        >
-          <DialogContent className="max-w-xl">
-            <DialogHeader>
-              <DialogTitle>
-                {meterModal.mode === "create"
-                  ? `Add meter to ${meterModal.group.name}`
-                  : `Edit meter • ${meterModal.meter.name}`}
-              </DialogTitle>
-              <DialogDescription>
-                Configure the measurement unit and optional boundary thresholds for automated alerts.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-onSurface">Meter name</label>
-                  <Input
-                    value={meterForm.name}
-                    placeholder="e.g. Runtime Hours"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      setMeterForm((prev) => ({
-                        ...prev,
-                        name: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-onSurface">Unit of measure</label>
-                  <Input
-                    value={meterForm.unit}
-                    placeholder="e.g. hrs, °C, %"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      setMeterForm((prev) => ({
-                        ...prev,
-                        unit: event.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-              <div className="space-y-3">
-                <span className="text-sm font-medium text-onSurface">Meter type</span>
-                <div className="grid gap-2 md:grid-cols-2">
-                  {meterTypeOptions.map((option) => {
-                    const isActive = meterForm.type === option.value;
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() =>
-                          setMeterForm((prev) => ({
-                            ...prev,
-                            type: option.value,
-                          }))
-                        }
-                        className={cn(
-                          "flex flex-col rounded-md border px-4 py-3 text-left transition",
-                          isActive
-                            ? "border-primary bg-primary text-onPrimary"
-                            : "border-outlineVariant bg-surface hover:border-primary/40"
-                        )}
-                      >
-                        <span className="text-sm font-semibold">{option.label}</span>
-                        <span
-                          className={cn(
-                            "text-xs",
-                            isActive ? "text-onPrimary/80" : "text-onSurfaceVariant"
-                          )}
-                        >
-                          {option.helper}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-onSurface">Lower boundary</label>
-                  <Input
-                    type="number"
-                    value={meterForm.lowerBoundary ?? ""}
-                    placeholder="Optional"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      setMeterForm((prev) => ({
-                        ...prev,
-                        lowerBoundary: event.target.value
-                          ? Number(event.target.value)
-                          : undefined,
-                      }))
-                    }
-                  />
-                  <p className="text-xs text-onSurfaceVariant">
-                    Automation will trigger when reading drops below this value.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-onSurface">Upper boundary</label>
-                  <Input
-                    type="number"
-                    value={meterForm.upperBoundary ?? ""}
-                    placeholder="Optional"
-                    onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                      setMeterForm((prev) => ({
-                        ...prev,
-                        upperBoundary: event.target.value
-                          ? Number(event.target.value)
-                          : undefined,
-                      }))
-                    }
-                  />
-                  <p className="text-xs text-onSurfaceVariant">
-                    Automation will trigger when reading rises above this value.
-                  </p>
-                </div>
-              </div>
-              {formError ? <p className="text-sm text-error">{formError}</p> : null}
-            </div>
-            <DialogFooter>
-              <div className="flex w-full justify-end gap-2">
-                <Button variant="secondary" onClick={() => setMeterModal(null)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleMeterSubmit}>
-                  {meterModal.mode === "create" ? "Add meter" : "Save changes"}
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      ) : null}
-
-      {deleteMeterState ? (
-        <Dialog
-          open
-          onOpenChange={(open) => {
-            if (!open) setDeleteMeterState(null);
-          }}
-        >
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Remove meter "{deleteMeterState.meter.name}"</DialogTitle>
-              <DialogDescription>
-                Decide whether you want to keep historical readings for audit purposes or remove them entirely.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4 text-sm">
-              <p>
-                Removing this meter will detach it from group "{deleteMeterState.group.name}". You can either preserve existing readings as archived records or permanently delete them.
-              </p>
-              <div className="rounded-md border border-outlineVariant bg-surfaceContainer p-4 text-xs text-onSurfaceVariant">
-                <p className="font-semibold text-onSurface">What happens next?</p>
-                <ul className="mt-2 list-disc space-y-1 pl-5">
-                  <li>Assigned assets will no longer capture future readings for this meter.</li>
-                  <li>Preserved readings remain visible in history marked as archived.</li>
-                  <li>Deleted readings are permanently removed from the history list.</li>
-                </ul>
-              </div>
-            </div>
-            <DialogFooter>
-              <div className="flex w-full flex-wrap justify-end gap-2">
-                <Button variant="secondary" onClick={() => setDeleteMeterState(null)}>
-                  Cancel
-                </Button>
-                <Button variant="secondary" onClick={() => handleDeleteMeter(false)}>
-                  Keep readings &amp; remove
-                </Button>
-                <Button variant="destructive" onClick={() => handleDeleteMeter(true)}>
-                  Delete meter &amp; readings
-                </Button>
-              </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      ) : null}
-
-      {assignModal ? (
-        <AssignAssetsDialog
-          group={assignModal.group}
-          availableAssets={availableAssets}
-          assetAssignments={assetAssignments}
-          onClose={() => setAssignModal(null)}
-          onAssign={(assetIds, strategy) => {
-            onAssignAssets(assignModal.group.id, assetIds, strategy);
-            setAssignModal(null);
-          }}
-        />
       ) : null}
 
       {deleteGroupId ? (
@@ -696,7 +362,6 @@ export const MeterGroupsView = ({
                 <Button
                   variant="destructive"
                   onClick={() => {
-                    setEditingGroupId((current) => (current === deleteGroupId ? null : current));
                     onDeleteGroup(deleteGroupId);
                     setDeleteGroupId(null);
                   }}
@@ -708,223 +373,7 @@ export const MeterGroupsView = ({
           </DialogContent>
         </Dialog>
       ) : null}
-
-      {/* Edit Meter Modal */}
-      <EditMeterModal
-        open={editMeterModalOpen}
-        onOpenChange={setEditMeterModalOpen}
-        meter={editingMeter}
-        onSave={handleSaveEditedMeter}
-      />
     </div>
-  );
-};
-
-interface AssignAssetsDialogProps {
-  group: MeterGroup;
-  availableAssets: Asset[];
-  assetAssignments: Map<string, { groupId: string; groupName: string }>;
-  onAssign: (assetIds: string[], strategy: MeterAssignmentStrategy) => void;
-  onClose: () => void;
-}
-
-const AssignAssetsDialog = ({
-  group,
-  availableAssets,
-  assetAssignments,
-  onAssign,
-  onClose,
-}: AssignAssetsDialogProps) => {
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
-    group.assignedAssets.map((asset) => asset.id)
-  );
-  const [strategy, setStrategy] = useState<MeterAssignmentStrategy>("move");
-  const [searchText, setSearchText] = useState("");
-
-  const toggleAssetSelection = (assetId: string) => {
-    setSelectedAssetIds((prev) => {
-      const set = new Set(prev);
-      if (set.has(assetId)) {
-        set.delete(assetId);
-      } else {
-        set.add(assetId);
-      }
-      return Array.from(set);
-    });
-  };
-
-  const filteredAssets = availableAssets.filter((asset) => {
-    const search = searchText.trim().toLowerCase();
-    if (!search) return true;
-    return (
-      asset.name.toLowerCase().includes(search) ||
-      asset.id.toLowerCase().includes(search) ||
-      asset.group?.toLowerCase().includes(search)
-    );
-  });
-
-  return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Assign assets to {group.name}</DialogTitle>
-          <DialogDescription>
-            Selected assets will capture meter readings defined for this group. Choose whether to move assets out of other groups or allow sharing.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 rounded-md border border-outlineVariant bg-surfaceContainer p-3">
-            <span className="text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant">
-              Assignment strategy
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  { value: "move", label: "Move" },
-                  { value: "share", label: "Share" },
-                ] as const
-              ).map((option) => {
-                const isActive = strategy === option.value;
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setStrategy(option.value)}
-                    className={cn(
-                      "rounded-md border px-4 py-2 text-sm font-semibold transition",
-                      isActive
-                        ? "border-primary bg-primary text-onPrimary"
-                        : "border-outlineVariant bg-surface hover:border-primary/40"
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-xs text-onSurfaceVariant">
-              <strong>Move</strong> removes assets from other groups. <strong>Share</strong> keeps them linked to their current groups.
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-              <Input
-                value={searchText}
-                onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                  setSearchText(event.target.value)
-                }
-                placeholder="Search asset name, code, or category"
-              />
-              <span className="text-sm text-onSurfaceVariant">
-                {selectedAssetIds.length} selected
-              </span>
-            </div>
-            <div className="max-h-[360px] overflow-y-auto rounded-md border border-outlineVariant">
-              <table className="w-full text-sm">
-                <thead className="bg-secondaryContainer text-left text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant">
-                  <tr>
-                    <th className="px-4 py-3">Asset</th>
-                    <th className="w-32 px-4 py-3">Category</th>
-                    <th className="w-32 px-4 py-3">Status</th>
-                    <th className="w-40 px-4 py-3">Current group</th>
-                    <th className="w-24 px-4 py-3 text-right">Select</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outlineVariant bg-surface">
-                  {filteredAssets.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={5}
-                        className="px-4 py-6 text-center text-sm text-onSurfaceVariant"
-                      >
-                        No assets match the current filters.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredAssets.map((asset) => {
-                      const assignment = assetAssignments.get(asset.id);
-                      const isSelected = selectedAssetIds.includes(asset.id);
-                      const isAssignedToOtherGroup =
-                        assignment && assignment.groupId !== group.id;
-
-                      return (
-                        <tr key={asset.id} className="text-onSurface">
-                          <td className="px-4 py-3">
-                            <div className="flex flex-col">
-                              <span className="font-semibold">{asset.name}</span>
-                              <span className="text-xs text-onSurfaceVariant">{asset.id}</span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-onSurfaceVariant">
-                            {asset.group ?? "—"}
-                          </td>
-                          <td className="px-4 py-3 text-onSurfaceVariant">
-                            {assignment ? (
-                              <span
-                                className={cn(
-                                  "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold",
-                                  assignment.groupId === group.id
-                                    ? "bg-emerald-100 text-emerald-700"
-                                    : "bg-amber-100 text-amber-700"
-                                )}
-                              >
-                                {assignment.groupName}
-                              </span>
-                            ) : (
-                              <span className="text-xs text-onSurfaceVariant">Not assigned</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => toggleAssetSelection(asset.id)}
-                              className={cn(
-                                "rounded-full border px-3 py-1 text-xs font-semibold transition",
-                                isSelected
-                                  ? "border-primary bg-primary text-onPrimary"
-                                  : "border-outlineVariant bg-surface hover:border-primary/40"
-                              )}
-                            >
-                              {isSelected ? "Selected" : "Select"}
-                            </button>
-                            {isAssignedToOtherGroup && strategy === "share" ? (
-                              <p className="mt-1 text-[11px] text-amber-600">
-                                Sharing with {assignment.groupName}
-                              </p>
-                            ) : null}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <div className="flex w-full justify-end gap-2">
-            <Button variant="secondary" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => onAssign(selectedAssetIds, strategy)}
-              disabled={selectedAssetIds.length === 0}
-            >
-              Assign selected assets
-            </Button>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 };
 

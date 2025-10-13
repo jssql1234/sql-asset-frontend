@@ -78,7 +78,7 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
               return (
                 <TableRow key={meter.id} className="text-sm">
                   <TableCell className="border-r border-outlineVariant bg-surfaceContainerLow px-4 py-3 font-medium text-onSurface">
-                    {meter.unit}
+                    {meter.uom}
                   </TableCell>
                   <TableCell
                     colSpan={5}
@@ -115,7 +115,7 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
                     rowSpan={conditions.length}
                     className="border-r border-outlineVariant bg-surfaceContainerLow px-4 py-3 font-medium text-onSurface"
                   >
-                    {meter.unit}
+                    {meter.uom}
                   </TableCell>
                 )}
                 <TableCell className="px-4 py-3 text-onSurface">

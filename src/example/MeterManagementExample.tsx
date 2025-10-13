@@ -7,9 +7,7 @@ const MeterManagement = () => {
   const [meters, setMeters] = useState<MeterWithConditions[]>([
     {
       id: "meter-1",
-      name: "Production Machine Meter",
-      unit: "mL",
-      type: "numeric",
+      uom: "mL",
       conditions: [
         {
           id: "cond-1",
@@ -63,16 +61,12 @@ const MeterManagement = () => {
     },
     {
       id: "meter-2",
-      name: "Weight Meter",
-      unit: "kg",
-      type: "numeric",
+      uom: "kWh",
       conditions: [],
     },
     {
       id: "meter-3",
-      name: "Count Meter",
-      unit: "ea",
-      type: "counter",
+      uom: "Liters",
       conditions: [],
     },
   ]);

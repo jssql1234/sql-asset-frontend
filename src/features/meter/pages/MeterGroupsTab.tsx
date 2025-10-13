@@ -104,8 +104,7 @@ export const MeterGroupsView = ({
       group.name.toLowerCase().includes(query) ||
       group.description?.toLowerCase().includes(query) ||
       group.meters.some((meter) => 
-        meter.name.toLowerCase().includes(query) ||
-        meter.unit.toLowerCase().includes(query)
+        meter.uom.toLowerCase().includes(query)
       ) ||
       group.assignedAssets.some((asset) => 
         asset.id.toLowerCase().includes(query) || 
@@ -151,7 +150,7 @@ export const MeterGroupsView = ({
                   {meters.slice(0, 3).map((meter) => (
                     <Badge
                       key={meter.id}
-                      text={`${meter.name} (${meter.unit})`}
+                      text={`${meter.uom}`}
                       variant="primary"
                       className="h-6 px-2 py-0.5 text-xs"
                     />

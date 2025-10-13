@@ -1,17 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { meterIdGenerator } from "@/utils/id";
 import {
-  type Asset,
   type BoundaryTrigger,
   type Meter,
   type MeterAssignmentStrategy,
   type MeterGroup,
   type MeterGroupInput,
-  type MeterInput,
   type MeterReading,
   type MeterReadingDraft,
   type MeterState,
 } from "../../../types/meter";
+import type { Asset } from "@/types/asset";
 import {
   loadMeterState,
   persistMeterState,
@@ -27,19 +26,6 @@ interface SaveReadingsPayload {
   assetId: string;
   entries: MeterReadingDraft[];
 }
-
-const findBoundaryViolation = (
-  meter: Meter,
-  value: number
-): "lower" | "upper" | undefined => {
-  if (typeof meter.lowerBoundary === "number" && value < meter.lowerBoundary) {
-    return "lower";
-  }
-  if (typeof meter.upperBoundary === "number" && value > meter.upperBoundary) {
-    return "upper";
-  }
-  return undefined;
-};
 
 const buildMeterLookup = (groups: MeterGroup[]) => {
   const meterMap = new Map<string, { meter: Meter; group: MeterGroup }>();
@@ -193,14 +179,11 @@ export const useMeterManagement = () => {
   }, []);
 
   const addMeterToGroup = useCallback(
-    (groupId: string, meterInput: MeterInput) => {
+    (groupId: string, Meter: Meter) => {
       const meter: Meter = {
         id: meterIdGenerator("meter"),
-        name: meterInput.name,
-        unit: meterInput.unit,
-        type: meterInput.type,
-        lowerBoundary: meterInput.lowerBoundary,
-        upperBoundary: meterInput.upperBoundary,
+        uom: Meter.uom,
+        conditions: Meter.conditions,
       };
 
       setState((prev) => ({
@@ -222,7 +205,7 @@ export const useMeterManagement = () => {
   );
 
   const updateMeter = useCallback(
-    (groupId: string, meterId: string, input: Partial<MeterInput>) => {
+    (groupId: string, meterId: string, input: Partial<Meter>) => {
       setState((prev) => ({
         ...prev,
         meterGroups: prev.meterGroups.map((group) => {
@@ -233,17 +216,11 @@ export const useMeterManagement = () => {
               meter.id === meterId
                 ? {
                     ...meter,
-                    name: input.name ?? meter.name,
-                    unit: input.unit ?? meter.unit,
-                    type: (input.type as Meter["type"]) ?? meter.type,
-                    lowerBoundary:
-                      input.lowerBoundary !== undefined
-                        ? input.lowerBoundary
-                        : meter.lowerBoundary,
-                    upperBoundary:
-                      input.upperBoundary !== undefined
-                        ? input.upperBoundary
-                        : meter.upperBoundary,
+                    uom: input.uom ?? meter.uom,
+                    conditions:
+                      input.conditions !== undefined
+                        ? input.conditions
+                        : meter.conditions,
                   }
                 : meter
             ),
@@ -365,14 +342,13 @@ export const useMeterManagement = () => {
           groupId,
           meterId: meter.id,
           assetId: asset.id,
-          assetCode: asset.code,
+          assetCode: asset.id,
           assetName: asset.name,
           recordedBy: state.activeUser,
           recordedAt: new Date().toISOString(),
           value: entry.value,
           notes: entry.notes ?? undefined,
-          unit: meter.unit,
-          boundaryViolation: findBoundaryViolation(meter, entry.value),
+          uom: meter.uom,
         });
 
         return acc;

@@ -57,13 +57,13 @@ const EditMeterModal = ({
 
   useEffect(() => {
     if (meter) {
-      setUom(meter.unit);
+      setUom(meter.uom);
       setConditions(meter.conditions || []);
     } else {
       setUom("");
       setConditions([]);
     }
-  }, [meter]);
+  }, [meter, open]);
 
   const handleAddCondition = () => {
     const newCondition: MeterCondition = {
@@ -96,7 +96,7 @@ const EditMeterModal = ({
 
     const updatedMeter: MeterWithConditions = {
       ...meter,
-      unit: uom,
+      uom: uom,
       conditions,
     };
 
@@ -110,11 +110,13 @@ const EditMeterModal = ({
 
   if (!meter) return null;
 
+  const isAddMode = meter?.id.startsWith('m-');
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-7xl overflow-auto" dialogClose={true}>
         <DialogHeader>
-          <DialogTitle>Edit Meter</DialogTitle>
+          <DialogTitle>{isAddMode ? 'Add New Meter' : 'Edit Meter'}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-6">
@@ -285,8 +287,8 @@ const EditMeterModal = ({
           <Button variant="secondary" onClick={handleCancel}>
             Cancel
           </Button>
-          <Button variant="default" onClick={handleSave}>
-            Save Meter
+          <Button variant="default" onClick={handleSave} disabled={!uom.trim()}>
+            {isAddMode ? 'Add Meter' : 'Save Meter'}
           </Button>
         </DialogFooter>
       </DialogContent>

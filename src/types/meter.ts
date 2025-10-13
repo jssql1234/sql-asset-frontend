@@ -13,12 +13,7 @@ export interface MeterCondition {
 
 export interface Meter {
 	id: string;
-	name: string;
-	unit: string;
-	type: "numeric" | "counter" | "boolean" | "text";
-	lowerBoundary?: number;
-	upperBoundary?: number;
-	notesPlaceholder?: string;
+	uom: string;
 	conditions?: MeterCondition[];
 }
 
@@ -44,8 +39,7 @@ export interface MeterReading {
 	recordedAt: string;
 	value: number;
 	notes?: string;
-	unit: string;
-	boundaryViolation?: "lower" | "upper";
+	uom: string;
 	meterDeleted?: boolean;
 }
 
@@ -60,15 +54,6 @@ export interface MeterGroupInput {
 	name: string;
 	description?: string;
 	boundaryTrigger: BoundaryTrigger;
-}
-
-export interface MeterInput {
-	name: string;
-	unit: string;
-	type: "numeric" | "counter" | "boolean" | "text";
-	lowerBoundary?: number;
-	upperBoundary?: number;
-	conditions?: MeterCondition[];
 }
 
 export interface MeterReadingDraft {

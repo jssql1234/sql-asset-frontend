@@ -98,7 +98,6 @@ export function createDepartmentFromForm(
     manager: formData.manager,
     contact: formData.contact,
     description: formData.description,
-    status: 'Active',
     createdAt: timestamp,
     updatedAt: timestamp,
   };

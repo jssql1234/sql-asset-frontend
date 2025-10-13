@@ -3,7 +3,6 @@ import { Button, Card } from '@/components/ui/components';
 import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
-import { Badge } from '@/components/ui/components/Badge';
 import type { Department } from '../types/departments';
 
 interface DepartmentsTableProps {
@@ -14,12 +13,6 @@ interface DepartmentsTableProps {
   onEditDepartment: (department: Department) => void;
   onDeleteMultipleDepartments: (ids: string[]) => void;
 }
-
-const STATUS_VARIANT_MAP: Record<Department['status'], string> = {
-  Active: 'green',
-  Inactive: 'grey',
-  'Under Review': 'yellow',
-};
 
 export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
   departments,
@@ -133,17 +126,6 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
         <span className="text-sm text-onSurfaceVariant">
           {departmentStaffCounts[row.original.id] ?? 0} staff
         </span>
-      ),
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <Badge
-          text={row.original.status.toUpperCase()}
-          variant={STATUS_VARIANT_MAP[row.original.status]}
-          className="h-6 px-3 uppercase tracking-wide"
-        />
       ),
     },
   ]), [departmentStaffCounts]);

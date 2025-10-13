@@ -4,12 +4,10 @@ import { DataTable, TableColumnVisibility } from '@/components/ui/components/Tab
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
-import type { Department, DepartmentTypeOption } from '../types/departments';
-import { formatDepartmentDate, getDepartmentTypeName } from '../utils/departmentUtils';
+import type { Department } from '../types/departments';
 
 interface DepartmentsTableProps {
   departments: Department[];
-  departmentTypes: DepartmentTypeOption[];
   selectedDepartments: string[];
   onToggleSelection: (id: string) => void;
   onAddDepartment: () => void;
@@ -25,13 +23,41 @@ const STATUS_VARIANT_MAP: Record<Department['status'], string> = {
 
 export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
   departments,
-  departmentTypes,
   selectedDepartments,
   onToggleSelection,
   onAddDepartment,
   onEditDepartment,
   onDeleteMultipleDepartments,
 }) => {
+  const departmentStaffCounts = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return {} as Record<string, number>;
+    }
+
+    let staffCountMap: Record<string, number> = {};
+
+    try {
+      const stored = window.localStorage.getItem('staffData');
+      const parsed = stored ? JSON.parse(stored) as { staff?: { departmentId?: string }[] } : null;
+      const staff = Array.isArray(parsed?.staff) ? parsed.staff : [];
+      staffCountMap = staff.reduce<Record<string, number>>((acc, item) => {
+        if (item.departmentId) {
+          acc[item.departmentId] = (acc[item.departmentId] ?? 0) + 1;
+        }
+        return acc;
+      }, {});
+    } catch (error) {
+      console.error('Error reading staff data for department counts:', error);
+    }
+
+    const counts: Record<string, number> = { ...staffCountMap };
+    departments.forEach(department => {
+      counts[department.id] = counts[department.id] ?? 0;
+    });
+
+    return counts;
+  }, [departments]);
+
   const columnDefs: ColumnDef<Department>[] = useMemo(() => ([
     {
       id: 'select',
@@ -74,15 +100,6 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       ),
     },
     {
-      id: 'type',
-      header: 'Type',
-      cell: ({ row }) => (
-        <span className="text-sm text-onSurface">
-          {getDepartmentTypeName(row.original.typeId, departmentTypes)}
-        </span>
-      ),
-    },
-    {
       id: 'manager',
       header: 'Manager',
       cell: ({ row }) => (
@@ -110,6 +127,15 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       ),
     },
     {
+      id: 'staffCount',
+      header: 'Staff Count',
+      cell: ({ row }) => (
+        <span className="text-sm text-onSurfaceVariant">
+          {departmentStaffCounts[row.original.id] ?? 0} staff
+        </span>
+      ),
+    },
+    {
       id: 'status',
       header: 'Status',
       cell: ({ row }) => (
@@ -120,16 +146,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
         />
       ),
     },
-    {
-      id: 'updatedAt',
-      header: 'Last Updated',
-      cell: ({ row }) => (
-        <span className="text-sm text-onSurfaceVariant">
-          {formatDepartmentDate(row.original.updatedAt)}
-        </span>
-      ),
-    },
-  ]), [departmentTypes]);
+  ]), [departmentStaffCounts]);
 
   const selectionColumn = useMemo(
     () => columnDefs.find(column => column.id === 'select'),

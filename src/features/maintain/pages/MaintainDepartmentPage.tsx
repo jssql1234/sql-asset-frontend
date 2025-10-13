@@ -108,7 +108,6 @@ const MaintainDepartmentPage: React.FC = () => {
         <div className="flex-1 overflow-hidden">
           <DepartmentsTable
             departments={filteredDepartments}
-            departmentTypes={departmentTypes}
             selectedDepartments={selectedDepartments}
             onToggleSelection={toggleDepartmentSelection}
             onAddDepartment={handleAddDepartment}

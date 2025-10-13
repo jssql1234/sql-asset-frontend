@@ -3,6 +3,7 @@ import { Button, Card } from '@/components/ui/components';
 import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
+import { Badge } from '@/components/ui/components/Badge';
 import type { Department } from '../types/departments';
 
 interface DepartmentsTableProps {
@@ -123,9 +124,10 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       id: 'staffCount',
       header: 'Staff Count',
       cell: ({ row }) => (
-        <span className="text-sm text-onSurfaceVariant">
-          {departmentStaffCounts[row.original.id] ?? 0} staff
-        </span>
+        <Badge
+          text={departmentStaffCounts[row.original.id] ?? 0}
+          className="h-6 px-3 text-sm font-semibold"
+        />
       ),
     },
   ]), [departmentStaffCounts]);

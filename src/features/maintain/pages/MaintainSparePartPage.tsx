@@ -45,21 +45,21 @@ const MaintainSparePartPage: React.FC = () => {
         addToast({
           title: "Success",
           description: "Spare part updated successfully!",
-          variant: "default",
+          variant: "success",
         });
       } else {
         addSparePart(formData);
         addToast({
           title: "Success",
           description: "Spare part added successfully!",
-          variant: "default",
+          variant: "success",
         });
       }
     } catch (error) {
       addToast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while saving the spare part.",
-        variant: "destructive",
+        variant: "error",
       });
       throw error; // Re-throw so the modal can handle it too
     }
@@ -72,13 +72,13 @@ const MaintainSparePartPage: React.FC = () => {
         addToast({
           title: "Success",
           description: "Spare part deleted successfully!",
-          variant: "default",
+          variant: "success",
         });
       } catch (error) {
         addToast({
           title: "Error",
           description: error instanceof Error ? error.message : "An error occurred while deleting the spare part.",
-          variant: "destructive",
+          variant: "error",
         });
       }
     }
@@ -91,13 +91,13 @@ const MaintainSparePartPage: React.FC = () => {
         addToast({
           title: "Success",
           description: `${String(ids.length)} spare parts deleted successfully!`,
-          variant: "default",
+          variant: "success",
         });
       } catch (error) {
         addToast({
           title: "Error",
           description: error instanceof Error ? error.message : "An error occurred while deleting the spare parts.",
-          variant: "destructive",
+          variant: "error",
         });
       }
     }
@@ -110,13 +110,13 @@ const MaintainSparePartPage: React.FC = () => {
         addToast({
           title: "Success",
           description: "Data reset to sample data successfully!",
-          variant: "default",
+          variant: "success",
         });
       } catch (error) {
         addToast({
           title: "Error",
           description: error instanceof Error ? error.message : "An error occurred while resetting the data.",
-          variant: "destructive",
+          variant: "error",
         });
       }
     }
@@ -128,13 +128,13 @@ const MaintainSparePartPage: React.FC = () => {
       addToast({
         title: "Success",
         description: "Data exported successfully!",
-        variant: "default",
+        variant: "success",
       });
     } catch (error) {
       addToast({
         title: "Error",
         description: error instanceof Error ? error.message : "An error occurred while exporting the data.",
-        variant: "destructive",
+        variant: "error",
       });
     }
   };

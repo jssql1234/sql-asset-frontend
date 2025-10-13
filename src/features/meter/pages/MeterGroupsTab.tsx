@@ -2,6 +2,8 @@ import { type ChangeEvent, useMemo, useState } from "react";
 import { AssetChip, RemovableAssetChip } from "@/components/AssetChip";
 import MeterGroupToggleCard from "../components/MeterGroupToggleCard";
 import MeterTable from "../components/MeterTable";
+import EditMeterModal from "../components/EditMeterModal";
+import type { MeterWithConditions } from "../components/MeterTable";
 import {
   Button,
   Card,
@@ -128,6 +130,11 @@ export const MeterGroupsView = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  
+  // EditMeterModal state
+  const [editMeterModalOpen, setEditMeterModalOpen] = useState(false);
+  const [editingMeter, setEditingMeter] = useState<MeterWithConditions | null>(null);
+  const [editingMeterGroup, setEditingMeterGroup] = useState<MeterGroup | null>(null);
 
   const assetAssignments = useMemo(() => {
     const map = new Map<string, { groupId: string; groupName: string }>();
@@ -187,15 +194,32 @@ export const MeterGroupsView = ({
   };
 
   const openEditMeterModal = (group: MeterGroup, meter: Meter) => {
-    setMeterForm({
-      name: meter.name,
-      unit: meter.unit,
-      type: meter.type,
-      lowerBoundary: meter.lowerBoundary,
-      upperBoundary: meter.upperBoundary,
+    // Convert Meter to MeterWithConditions
+    const meterWithConditions: MeterWithConditions = {
+      ...meter,
+      conditions: meter.conditions || [],
+    };
+    setEditingMeter(meterWithConditions);
+    setEditingMeterGroup(group);
+    setEditMeterModalOpen(true);
+  };
+
+  const handleSaveEditedMeter = (updatedMeter: MeterWithConditions) => {
+    if (!editingMeterGroup) return;
+    
+    // Update the meter in the group
+    onUpdateMeter(editingMeterGroup.id, updatedMeter.id, {
+      name: updatedMeter.name,
+      unit: updatedMeter.unit,
+      type: updatedMeter.type,
+      lowerBoundary: updatedMeter.lowerBoundary,
+      upperBoundary: updatedMeter.upperBoundary,
+      conditions: updatedMeter.conditions,
     });
-    setFormError(null);
-    setMeterModal({ mode: "edit", group, meter });
+    
+    setEditMeterModalOpen(false);
+    setEditingMeter(null);
+    setEditingMeterGroup(null);
   };
 
   const handleMeterSubmit = () => {
@@ -289,9 +313,14 @@ export const MeterGroupsView = ({
           </div>
           <MeterTable
             meters={group.meters}
-            onEdit={(meter) => openEditMeterModal(group, meter)}
-            onRemove={(meter) => setDeleteMeterState({ group, meter })}
-            isEditing={isEditing}
+            onEdit={(meterId) => {
+              const meter = group.meters.find(m => m.id === meterId);
+              if (meter) openEditMeterModal(group, meter);
+            }}
+            onRemove={(meterId) => {
+              const meter = group.meters.find(m => m.id === meterId);
+              if (meter) setDeleteMeterState({ group, meter });
+            }}
           />
         </div>
 
@@ -677,6 +706,14 @@ export const MeterGroupsView = ({
           </DialogContent>
         </Dialog>
       ) : null}
+
+      {/* Edit Meter Modal */}
+      <EditMeterModal
+        open={editMeterModalOpen}
+        onOpenChange={setEditMeterModalOpen}
+        meter={editingMeter}
+        onSave={handleSaveEditedMeter}
+      />
     </div>
   );
 };
@@ -720,7 +757,7 @@ const AssignAssetsDialog = ({
     return (
       asset.name.toLowerCase().includes(search) ||
       asset.id.toLowerCase().includes(search) ||
-      asset.category?.toLowerCase().includes(search)
+      asset.group?.toLowerCase().includes(search)
     );
   });
 
@@ -824,7 +861,7 @@ const AssignAssetsDialog = ({
                             </div>
                           </td>
                           <td className="px-4 py-3 text-onSurfaceVariant">
-                            {asset.category ?? "—"}
+                            {asset.group ?? "—"}
                           </td>
                           <td className="px-4 py-3 text-onSurfaceVariant">
                             {assignment ? (

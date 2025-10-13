@@ -168,17 +168,19 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
     },
   ];
 
-  const handleRowSelectionChange = (_selectedRows: SparePart[], selectedRowIds: string[]) => {
-    // Update parent component with selected IDs
-    selectedRowIds.forEach(id => {
+  const handleRowSelectionChange = (
+    selectedRows: SparePart[],
+  ) => {
+    const selectedIds = new Set(selectedRows.map(part => part.id));
+
+    selectedIds.forEach(id => {
       if (!selectedParts.includes(id)) {
         onToggleSelection(id);
       }
     });
 
-    // Remove deselected items
     selectedParts.forEach(id => {
-      if (!selectedRowIds.includes(id)) {
+      if (!selectedIds.has(id)) {
         onToggleSelection(id);
       }
     });
@@ -186,6 +188,13 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
 
   const selectedCount = selectedParts.length;
   const hasSelection = selectedCount > 0;
+  const rowSelection = selectedParts.reduce<Record<string, boolean>>((acc, partId) => {
+    const index = spareParts.findIndex(part => part.id === partId);
+    if (index !== -1) {
+      acc[index.toString()] = true;
+    }
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-4">
@@ -225,9 +234,9 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
         columns={columns}
         data={spareParts}
         showPagination
-        enableRowClickSelection={false}
+        enableRowClickSelection={true}
         onRowSelectionChange={handleRowSelectionChange}
-        rowSelection={selectedParts.reduce((acc, id) => ({ ...acc, [id]: true }), {})}
+        rowSelection={rowSelection}
       />
     </div>
   );

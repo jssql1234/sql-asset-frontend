@@ -1,4 +1,5 @@
 import { type ChangeEvent, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AssetChip } from "@/components/AssetChip";
 import { DataTableExtended } from "@/components/DataTableExtended";
@@ -44,6 +45,7 @@ export const MeterGroupsView = ({
   onDeleteGroup,
   onCloneGroup,
 }: MeterGroupsViewProps) => {
+  const navigate = useNavigate();
   const [groupModal, setGroupModal] = useState<GroupModalState | null>(null);
   const [groupForm, setGroupForm] = useState<MeterGroupInput>(defaultGroupForm);
   const [formError, setFormError] = useState<string | null>(null);
@@ -245,8 +247,8 @@ export const MeterGroupsView = ({
   );
 
   const handleViewGroup = (group: MeterGroup) => {
-    // Open a detailed view modal or navigate to detail page
-    openEditGroupModal(group);
+    // Navigate to detail page
+    navigate(`/meter-reading/group/${group.id}`);
   };
 
   return (

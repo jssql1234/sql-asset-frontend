@@ -10,6 +10,7 @@ import WorkRequestPage from "./features/work-request/pages/WorkRequestPage";
 import DowntimeTrackingPage from "./features/downtime/pages/DowntimeTrackingPage";
 import CoveragePage from "./features/coverage/pages/CoveragePage";
 import MeterPage from "./features/meter/pages/MeterPage";
+import MeterGroupDetailPage from "./features/meter/pages/MeterGroupDetailPage";
 import DisposalMainPage from "./features/disposal/pages/DisposalMainPage";
 import UserAccessRightsPage from "./features/user/pages/UserAccessRightsPage";
 import MaintainUserGroupPage from "./features/user/pages/MaintainUserGroupPage";
@@ -54,6 +55,7 @@ function AppRoutes() {
       <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
       <Route path="/insurance" element={<CoveragePage />} />
       <Route path="/meter-reading" element={<MeterPage />} />
+      <Route path="/meter-reading/group/:groupId" element={<MeterGroupDetailPage />} />
 
       {/* Maintenance Routes */}
       <Route path="/user-access-rights" element={<UserAccessRightsPage />} />

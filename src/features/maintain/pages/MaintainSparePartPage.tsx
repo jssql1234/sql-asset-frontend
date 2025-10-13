@@ -17,7 +17,6 @@ const MaintainSparePartPage: React.FC = () => {
     updateFilters,
     addSparePart,
     updateSparePart,
-    deleteSparePart,
     deleteMultipleSpareParts,
     toggleSparePartSelection,
     resetToSampleData,
@@ -62,25 +61,6 @@ const MaintainSparePartPage: React.FC = () => {
         variant: "error",
       });
       throw error; // Re-throw so the modal can handle it too
-    }
-  };
-
-  const handleDeleteSparePart = (id: string) => {
-    if (confirm('Are you sure you want to delete this spare part?')) {
-      try {
-        deleteSparePart(id);
-        addToast({
-          title: "Success",
-          description: "Spare part deleted successfully!",
-          variant: "success",
-        });
-      } catch (error) {
-        addToast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "An error occurred while deleting the spare part.",
-          variant: "error",
-        });
-      }
     }
   };
 
@@ -193,8 +173,8 @@ const MaintainSparePartPage: React.FC = () => {
             spareParts={filteredSpareParts}
             selectedParts={selectedSpareParts}
             onToggleSelection={toggleSparePartSelection}
+            onAddPart={handleAddSparePart}
             onEditPart={handleEditSparePart}
-            onDeletePart={handleDeleteSparePart}
             onDeleteMultipleParts={handleDeleteMultipleSpareParts}
           />
         </div>

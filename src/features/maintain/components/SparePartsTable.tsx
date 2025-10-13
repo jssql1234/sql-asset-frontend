@@ -1,7 +1,8 @@
-import { DataTable } from '@/components/ui/components/Table';
+import { useEffect, useMemo, useState } from 'react';
+import { Button, Card } from '@/components/ui/components';
+import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
-import { Button } from '@/components/ui/components/Button';
-import { Edit, Delete } from '@/assets/icons';
+import { Edit, Delete, Plus } from '@/assets/icons';
 import type { SparePart } from '../types/spareParts';
 import {
   calculateStockStatus,
@@ -13,8 +14,8 @@ interface SparePartsTableProps {
   spareParts: SparePart[];
   selectedParts: string[];
   onToggleSelection: (id: string) => void;
+  onAddPart: () => void;
   onEditPart: (part: SparePart) => void;
-  onDeletePart: (id: string) => void;
   onDeleteMultipleParts: (ids: string[]) => void;
 }
 
@@ -22,12 +23,12 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
   spareParts,
   selectedParts,
   onToggleSelection,
+  onAddPart,
   onEditPart,
-  onDeletePart,
   onDeleteMultipleParts,
 }) => {
 
-  const columns: ColumnDef<SparePart>[] = [
+  const columnDefs: ColumnDef<SparePart>[] = useMemo(() => ([
     {
       id: 'select',
       header: ({ table }) => (
@@ -50,6 +51,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       enableHiding: false,
     },
     {
+      id: 'partId',
       accessorKey: 'id',
       header: 'Part ID',
       cell: ({ row }) => (
@@ -59,6 +61,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       ),
     },
     {
+      id: 'name',
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => (
@@ -71,6 +74,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       ),
     },
     {
+      id: 'category',
       accessorKey: 'category',
       header: 'Category',
       cell: ({ row }) => (
@@ -78,6 +82,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       ),
     },
     {
+      id: 'stockQty',
       accessorKey: 'stockQty',
       header: 'Stock Qty',
       cell: ({ row }) => {
@@ -93,6 +98,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       },
     },
     {
+      id: 'unitPrice',
       accessorKey: 'unitPrice',
       header: 'Unit Price',
       cell: ({ row }) => (
@@ -102,6 +108,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       ),
     },
     {
+      id: 'supplier',
       accessorKey: 'supplier',
       header: 'Supplier',
       cell: ({ row }) => (
@@ -109,6 +116,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       ),
     },
     {
+      id: 'location',
       accessorKey: 'location',
       header: 'Location',
       cell: ({ row }) => (
@@ -116,6 +124,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       ),
     },
     {
+      id: 'lastUpdated',
       accessorKey: 'lastUpdated',
       header: 'Last Updated',
       cell: ({ row }) => (
@@ -141,32 +150,32 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
         );
       },
     },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { onEditPart(row.original); }}
-            className="h-8 w-8 p-0"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => { onDeletePart(row.original.id); }}
-            className="h-8 w-8 p-0 text-error hover:text-error"
-          >
-            <Delete className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-      enableSorting: false,
-    },
-  ];
+  ]), []);
+
+  const selectionColumn = useMemo(
+    () => columnDefs.find(column => column.id === 'select'),
+    [columnDefs],
+  );
+
+  const visibilityColumns = useMemo(
+    () => columnDefs.filter(column => column.id !== 'select'),
+    [columnDefs],
+  );
+
+  const [visibleColumns, setVisibleColumns] = useState(visibilityColumns);
+
+  useEffect(() => {
+    setVisibleColumns(visibilityColumns);
+  }, [visibilityColumns]);
+
+  const displayedColumns = useMemo(() => {
+    const cols: ColumnDef<SparePart>[] = [];
+    if (selectionColumn) {
+      cols.push(selectionColumn);
+    }
+    cols.push(...visibleColumns);
+    return cols;
+  }, [selectionColumn, visibleColumns]);
 
   const handleRowSelectionChange = (
     selectedRows: SparePart[],
@@ -196,48 +205,85 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
     return acc;
   }, {});
 
-  return (
-    <div className="space-y-4">
-      {/* Selection Actions Bar */}
-      {hasSelection && (
-        <div className="flex items-center justify-between p-3 bg-surfaceContainerLow rounded-lg border border-outlineVariant">
-          <div className="text-sm text-onSurface">
-            {selectedCount} item{selectedCount !== 1 ? 's' : ''} selected
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                onDeleteMultipleParts(selectedParts);
-              }}
-              className="text-error hover:text-error"
-            >
-              <Delete className="h-4 w-4 mr-2" />
-              Delete Selected
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                selectedParts.forEach(id => { onToggleSelection(id); });
-              }}
-            >
-              Clear Selection
-            </Button>
-          </div>
-        </div>
-      )}
+  const selectedPartForEdit = useMemo(() => {
+    if (selectedParts.length === 1) {
+      return spareParts.find(part => part.id === selectedParts[0]);
+    }
+    return undefined;
+  }, [selectedParts, spareParts]);
 
-      {/* Table */}
+  return (
+    <Card className="p-3 space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <TableColumnVisibility
+            columns={visibilityColumns}
+            visibleColumns={visibleColumns}
+            setVisibleColumns={setVisibleColumns}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            size="sm"
+            onClick={onAddPart}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add
+          </Button>
+          {selectedPartForEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => { onEditPart(selectedPartForEdit); }}
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Edit
+            </Button>
+          )}
+          {hasSelection && (
+            <>
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  onDeleteMultipleParts(selectedParts);
+                }}
+                className="flex items-center gap-2"
+              >
+                <Delete className="h-4 w-4" />
+                Delete Selected
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  selectedParts.forEach(id => { onToggleSelection(id); });
+                }}
+              >
+                Clear Selection
+              </Button>
+              <div className="body-small text-onSurfaceVariant">
+                {selectedCount} selected
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
       <DataTable
-        columns={columns}
+        columns={displayedColumns}
         data={spareParts}
         showPagination
         enableRowClickSelection={true}
         onRowSelectionChange={handleRowSelectionChange}
         rowSelection={rowSelection}
       />
-    </div>
+    </Card>
   );
 };

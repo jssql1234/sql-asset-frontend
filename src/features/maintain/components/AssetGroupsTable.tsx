@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
+import { DataTableExtended } from '@/components/DataTableExtended';
+import { TableColumnVisibility } from '@/components/ui/components/Table';
 import { Button, Card } from '@/components/ui/components';
 import { Badge } from '@/components/ui/components/Badge';
 import { Plus, Edit, Delete } from '@/assets/icons';
@@ -228,7 +229,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
         </div>
       </div>
 
-      <DataTable
+      <DataTableExtended
         columns={displayedColumns}
         data={assetGroups}
         showPagination

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, Card } from '@/components/ui/components';
-import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
+import { DataTableExtended } from '@/components/DataTableExtended';
+import { TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
@@ -285,7 +286,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
         </div>
       </div>
 
-      <DataTable
+      <DataTableExtended
         columns={displayedColumns}
         data={spareParts}
         showPagination

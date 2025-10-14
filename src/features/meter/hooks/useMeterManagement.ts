@@ -271,14 +271,10 @@ export const useMeterManagement = () => {
 
         const nextGroups = prev.meterGroups.map((group) => {
           if (group.id === groupId) {
-            const existingIds = new Set(group.assignedAssets.map((a) => a.id));
-            const mergedAssets = assetsToAssign.filter(
-              (asset) => !existingIds.has(asset.id)
-            );
-
+            // Replace assigned assets entirely with the selected ones
             return {
               ...group,
-              assignedAssets: [...group.assignedAssets, ...mergedAssets],
+              assignedAssets: assetsToAssign,
               updatedAt: new Date().toISOString(),
             };
           }

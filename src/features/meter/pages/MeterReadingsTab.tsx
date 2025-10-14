@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { Button, Card } from "@/components/ui/components";
+import { Banner } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { DataTable } from "@/components/ui/components/Table/DataTable";
 import { SearchableDropdown } from "@/components/SearchableDropdown";
+import { useToast } from "@/components/ui/components/Toast/useToast";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   type Meter,
@@ -68,6 +70,7 @@ export const MeterReadingsView = ({
   onDeleteReading,
   getReadingsByAssetId,
 }: MeterReadingsViewProps) => {
+  const { addToast } = useToast();
   const assetOptions = useMemo<AssetOption[]>(() => {
     return groups.flatMap((group) =>
       group.assignedAssets.map((asset) => ({ group, asset }))
@@ -91,7 +94,6 @@ export const MeterReadingsView = ({
     buildEmptyDraft(assetOptions[0]?.group.meters ?? [])
   );
   const [formError, setFormError] = useState<string | null>(null);
-  const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
   const selectedOption = useMemo(() =>
     assetOptions.find((option) => option.asset.id.toString() === selectedAssetId),
@@ -118,12 +120,10 @@ export const MeterReadingsView = ({
 
     setMeterDrafts(buildEmptyDraft(selectedGroup.meters));
     setFormError(null);
-    setFormSuccess(null);
   }, [selectedGroup?.id]);
 
   const handleValueChange = (meterId: string, value: string) => {
     setFormError(null);
-    setFormSuccess(null);
     setMeterDrafts((prev) => ({
       ...prev,
       [meterId]: {
@@ -134,7 +134,6 @@ export const MeterReadingsView = ({
   };
 
   const handleNotesChange = (meterId: string, notes: string) => {
-    setFormSuccess(null);
     setMeterDrafts((prev) => ({
       ...prev,
       [meterId]: {
@@ -205,7 +204,13 @@ export const MeterReadingsView = ({
 
     setMeterDrafts(buildEmptyDraft(selectedGroup.meters));
     setFormError(null);
-    setFormSuccess(`New readings saved as ${activeUser}.`);
+    addToast({
+      title: "Success",
+      description: `New readings saved as ${activeUser}.`,
+      variant: "success",
+      duration: 5000,
+      dismissible: false,
+    });
   };
 
   const assetHistory = selectedAsset?.id
@@ -379,15 +384,12 @@ export const MeterReadingsView = ({
             </div>
             
             {formError && (
-              <div className="rounded-md border border-error bg-error/5 px-4 py-3 text-sm text-error">
-                {formError}
-              </div>
-            )}
-            
-            {formSuccess && (
-              <div className="rounded-md border border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                {formSuccess}
-              </div>
+              <Banner
+                variant="error"
+                description={formError}
+                dismissible={false}
+                onClose={() => setFormError(null)}
+              />
             )}
             
             <div className="flex justify-end gap-2">

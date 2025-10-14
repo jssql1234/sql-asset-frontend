@@ -1,5 +1,3 @@
-export type DepartmentStatus = 'Active' | 'Inactive' | 'Under Review';
-
 export interface DepartmentTypeOption {
   id: string;
   name: string;
@@ -13,7 +11,6 @@ export interface Department {
   manager: string;
   contact: string;
   description: string;
-  status: DepartmentStatus;
   createdAt: string;
   updatedAt: string;
 }

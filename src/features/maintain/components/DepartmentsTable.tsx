@@ -15,12 +15,6 @@ interface DepartmentsTableProps {
   onDeleteMultipleDepartments: (ids: string[]) => void;
 }
 
-const STATUS_VARIANT_MAP: Record<Department['status'], string> = {
-  Active: 'green',
-  Inactive: 'grey',
-  'Under Review': 'yellow',
-};
-
 export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
   departments,
   selectedDepartments,
@@ -130,19 +124,9 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       id: 'staffCount',
       header: 'Staff Count',
       cell: ({ row }) => (
-        <span className="text-sm text-onSurfaceVariant">
-          {departmentStaffCounts[row.original.id] ?? 0} staff
-        </span>
-      ),
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
         <Badge
-          text={row.original.status.toUpperCase()}
-          variant={STATUS_VARIANT_MAP[row.original.status]}
-          className="h-6 px-3 uppercase tracking-wide"
+          text={departmentStaffCounts[row.original.id] ?? 0}
+          className="h-6 px-3 text-sm font-semibold"
         />
       ),
     },

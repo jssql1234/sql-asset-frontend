@@ -18,6 +18,46 @@ export type MeterTableProps = {
   onRemove: (meterId: string) => void;
 };
 
+// Mapping functions to convert stored values to display labels
+const getConditionTargetLabel = (value: string): string => {
+  const options = {
+    absolute: "New Reading",
+    changed: "Relative Reading",
+    cumulative: "Cumulative Reading",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
+const getOperatorLabel = (value: string): string => {
+  const options = {
+    "=": "Equal to(=)",
+    "<": "Less than (<)",
+    ">": "Greater than (>)",
+    "<=": "Less than or equal to (≤)",
+    ">=": "Greater than or equal to (≥)",
+    "!=": "Not equal to (≠)",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
+const getTriggerActionLabel = (value: string): string => {
+  const options = {
+    none: "No Action",
+    notification: "Send Notification",
+    work_order: "Create Work Order & Send Notification",
+    work_request: "Create Work Request & Send Notification",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
+const getTriggerModeLabel = (value: string): string => {
+  const options = {
+    once: "Once",
+    every_time: "Every Time",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
 const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
   if (meters.length === 0) {
     return (
@@ -119,19 +159,19 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
                   </TableCell>
                 )}
                 <TableCell className="px-4 py-3 text-onSurface">
-                  {condition.conditionTarget}
+                  {getConditionTargetLabel(condition.conditionTarget)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-center text-onSurface">
-                  {condition.operator}
+                  {getOperatorLabel(condition.operator)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-onSurface">
                   {condition.value}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-onSurface">
-                  {condition.triggerAction}
+                  {getTriggerActionLabel(condition.triggerAction)}
                 </TableCell>
                 <TableCell className="border-r border-outlineVariant px-4 py-3 text-onSurface">
-                  {condition.triggerMode}
+                  {getTriggerModeLabel(condition.triggerMode)}
                 </TableCell>
                 {index === 0 && (
                   <TableCell

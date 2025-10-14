@@ -93,7 +93,7 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
           </TableRow>
           <TableRow>
             <TableHead className="w-[15%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
-              Condition Target
+              Target Reading
             </TableHead>
             <TableHead className="w-[12%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
               Operator
@@ -161,7 +161,7 @@ const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
                 <TableCell className="px-4 py-3 text-onSurface">
                   {getConditionTargetLabel(condition.conditionTarget)}
                 </TableCell>
-                <TableCell className="px-4 py-3 text-center text-onSurface">
+                <TableCell className="px-4 py-3 text-onSurface">
                   {getOperatorLabel(condition.operator)}
                 </TableCell>
                 <TableCell className="px-4 py-3 text-onSurface">

@@ -445,6 +445,10 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   }, [editableFlags.usefulLife, isMonthly, setValue, usefulLife]);
 
   useEffect(() => {
+    if (method === "Manual") {
+      return;
+    }
+
     const computed = computeDependentValues(
       costValue,
       usefulLife,
@@ -483,6 +487,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
       }
     }
   }, [
+    method,
     costValue,
     depreciationRate,
     depreciationRateNumber,
@@ -787,7 +792,6 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                 checked={editableFlags.usefulLife}
                 onChange={() => { toggleEditable("usefulLife"); }}
               />
-              <span className="body-small text-onSurfaceVariant">Edit</span>
             </div>
           </div>
           <Controller
@@ -812,7 +816,6 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                 checked={editableFlags.residualValue}
                 onChange={() => { toggleEditable("residualValue"); }}
               />
-              <span className="body-small text-onSurfaceVariant">Edit</span>
             </div>
           </div>
           <Controller
@@ -844,7 +847,6 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                 checked={editableFlags.depreciationRate}
                 onChange={() => { toggleEditable("depreciationRate"); }}
               />
-              <span className="body-small text-onSurfaceVariant">Edit</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -872,7 +874,6 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                 checked={editableFlags.totalDepreciation}
                 onChange={() => { toggleEditable("totalDepreciation"); }}
               />
-              <span className="body-small text-onSurfaceVariant">Edit</span>
             </div>
           </div>
           <Controller

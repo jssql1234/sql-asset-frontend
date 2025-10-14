@@ -507,7 +507,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("allocation");
+  const [activeTab, setActiveTab] = useState("allowance");
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
 
   const {
@@ -603,16 +603,14 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   ];
 
   // Define tabs based on batch mode
-  const tabs: TabItem[] = useMemo(() => {
-    const commonProps = { register, setValue, watch, control, errors };
+  const commonTabProps: TabProps = { register, setValue, watch, control, errors };
 
-    if (batchMode) {
-      // Batch mode: only show allocation, serial no, and warranty tabs
-      return [
+  const tabs: TabItem[] = batchMode
+    ? [
         {
           label: "Allocation",
           value: "allocation",
-          content: <AllocationTab {...commonProps} />,
+          content: <AllocationTab {...commonTabProps} />,
         },
         {
           label: "Serial No",
@@ -630,21 +628,19 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         {
           label: "Warranty",
           value: "warranty",
-          content: <WarrantyTab {...commonProps} />,
+          content: <WarrantyTab {...commonTabProps} />,
         },
-      ];
-    } else {
-      // Normal mode: show all tabs
-      return [
+      ]
+    : [
         {
           label: "Allowance",
           value: "allowance",
-          content: <AllowanceTab {...commonProps} />,
+          content: <AllowanceTab {...commonTabProps} />,
         },
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonProps} />,
+          content: <HirePurchaseTab {...commonTabProps} />,
         },
         {
           label: "Depreciation",
@@ -661,7 +657,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         {
           label: "Allocation",
           value: "allocation",
-          content: <AllocationTab {...commonProps} />,
+          content: <AllocationTab {...commonTabProps} />,
         },
         {
           label: "Serial No",
@@ -679,11 +675,9 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         {
           label: "Warranty",
           value: "warranty",
-          content: <WarrantyTab {...commonProps} />,
+          content: <WarrantyTab {...commonTabProps} />,
         },
       ];
-    }
-  }, [batchMode, register, setValue, watch, control, errors, quantity, quantityPerUnit, memoizedSerialNumbers, handleSerialNumbersChange]);
 
   return (
     <div className="bg-surface min-h-screen">

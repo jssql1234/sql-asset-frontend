@@ -61,6 +61,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
           {row.original.id}
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'name',
@@ -74,6 +75,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
           </div>
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'category',
@@ -98,6 +100,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
           </div>
         );
       },
+      enableColumnFilter: false,
     },
     {
       id: 'unitPrice',
@@ -108,6 +111,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
           {formatCurrency(row.original.unitPrice)}
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'supplier',
@@ -116,6 +120,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       cell: ({ row }) => (
         <div className="text-sm">{row.original.supplier}</div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'location',
@@ -124,6 +129,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       cell: ({ row }) => (
         <div className="text-sm">{row.original.location}</div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'lastUpdated',
@@ -132,16 +138,19 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
       cell: ({ row }) => (
         <div className="text-sm">{formatDate(row.original.lastUpdated)}</div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'status',
+      accessorFn: (row) => calculateStockStatus(
+        row.stockQty,
+        row.lowStockThreshold,
+        row.operationalStatus
+      ),
       header: 'Status',
       cell: ({ row }) => {
-        const status = calculateStockStatus(
-          row.original.stockQty,
-          row.original.lowStockThreshold,
-          row.original.operationalStatus
-        );
+        const rawStatus = row.getValue('status');
+        const status = typeof rawStatus === 'string' && rawStatus.length > 0 ? rawStatus : 'Unknown';
 
         const variant = status === 'In Stock'
           ? 'green'
@@ -159,6 +168,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
           />
         );
       },
+      enableColumnFilter: true,
     },
   ]), []);
 

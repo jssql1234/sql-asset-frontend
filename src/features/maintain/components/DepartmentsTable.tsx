@@ -82,6 +82,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       cell: ({ row }) => (
         <span className="font-mono text-sm font-medium">{row.original.id}</span>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'name',
@@ -93,15 +94,18 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
           <div className="text-sm text-onSurfaceVariant">Code: {row.original.code}</div>
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'manager',
+      accessorKey: 'manager',
       header: 'Manager',
       cell: ({ row }) => (
         <span className="text-sm text-onSurface">
           {row.original.manager || 'Not assigned'}
         </span>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'contact',
@@ -123,6 +127,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
     },
     {
       id: 'staffCount',
+      accessorFn: (row) => departmentStaffCounts[row.id] ?? 0,
       header: 'Staff Count',
       cell: ({ row }) => (
         <Badge
@@ -130,6 +135,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
           className="h-6 px-3 text-sm font-semibold"
         />
       ),
+      enableColumnFilter: false,
     },
   ]), [departmentStaffCounts]);
 

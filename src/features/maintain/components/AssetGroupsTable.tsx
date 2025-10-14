@@ -49,7 +49,6 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
         />
       ),
       enableSorting: false,
-      enableHiding: false,
     },
     {
       id: 'assetGroupCode',
@@ -58,6 +57,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
       cell: ({ row }) => (
         <span className="font-mono text-sm font-medium">{row.original.id}</span>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'name',
@@ -71,9 +71,11 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           </div>
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'assetCount',
+      accessorFn: (row) => assetCounts[row.id] ?? 0,
       header: 'Asset Count',
       cell: ({ row }) => (
         <Badge
@@ -82,9 +84,13 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           variant={(assetCounts[row.original.id] ?? 0) > 0 ? 'blue' : 'grey'}
         />
       ),
+      enableSorting: true,
+      sortingFn: 'basic',
+      enableColumnFilter: false,
     },
     {
       id: 'status',
+      accessorKey: 'status',
       header: 'Status',
       cell: ({ row }) => (
         <Badge
@@ -92,6 +98,8 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           variant={row.original.status === 'Active' ? 'green' : 'grey'}
         />
       ),
+      enableColumnFilter: true,
+      enableSorting: false,
     },
     {
       id: 'createdAt',
@@ -102,6 +110,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           {formatAssetGroupDate(row.original.createdAt) || '-'}
         </span>
       ),
+      enableColumnFilter: false,
     }
   ]), [assetCounts]);
 

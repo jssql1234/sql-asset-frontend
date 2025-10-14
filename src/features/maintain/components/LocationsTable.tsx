@@ -52,6 +52,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
       cell: ({ row }) => (
         <span className="font-mono text-sm font-medium">{row.original.id}</span>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'name',
@@ -65,6 +66,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
           )}
         </div>
       ),
+      enableColumnFilter: false,
     },
     {
       id: 'contact',

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { Button, Card, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Option } from "@/components/ui/components";
@@ -333,8 +333,8 @@ const computeDependentValues = (
     if (!flags.depreciationRate) {
       next.rate = 0;
     }
-    if (!flags.usefulLife) {
-      const defaultLife = isMonthly ? 12 : 10;
+    if (!flags.usefulLife && isMonthly) {
+      const defaultLife = 12;
       next.usefulLife = defaultLife;
     }
     return next;
@@ -362,7 +362,7 @@ const computeDependentValues = (
   }
 
   if (!flags.depreciationRate) {
-    const safeLife = life > 0 ? life : isMonthly ? 12 : 10;
+    const safeLife = life > 0 ? life : isMonthly ? 12 : life;
     rate = ((costValue - residual) / (costValue * safeLife)) * 100;
     next.rate = Number.isFinite(rate) ? rate : 0;
   }
@@ -371,13 +371,13 @@ const computeDependentValues = (
     if (rate > 0) {
       life = (costValue - residual) / (costValue * (rate / 100));
       if (!Number.isFinite(life) || life <= 0) {
-        life = isMonthly ? 12 : 10;
+        life = isMonthly ? 12 : life;
       }
     } else if (total > 0) {
       const estimated = (costValue - residual) / (total / (life || 1));
-      life = Number.isFinite(estimated) && estimated > 0 ? estimated : isMonthly ? 12 : 10;
+      life = Number.isFinite(estimated) && estimated > 0 ? estimated : isMonthly ? 12 : life;
     } else {
-      life = isMonthly ? 12 : 10;
+      life = isMonthly ? 12 : life;
     }
     life = Math.max(1, Math.round(life));
     next.usefulLife = life;
@@ -417,6 +417,9 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   
   const isMonthly = frequency === "Monthly";
 
+  const previousFrequencyRef = useRef<string | null>(null);
+  const skipNextUsefulLifeComputeRef = useRef(false);
+
   const [editableFlags, setEditableFlags] = useState<EditableFlags>({
     usefulLife: false,
     residualValue: false,
@@ -436,13 +439,18 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   const depreciationRateNumber = useMemo(() => parseRate(depreciationRate), [depreciationRate]);
 
   useEffect(() => {
-    if (!editableFlags.usefulLife) {
-      const defaultLife = isMonthly ? 12 : 10;
-      if (usefulLife !== defaultLife) {
+    if (previousFrequencyRef.current !== frequency) {
+      const switchedToMonthly = frequency === "Monthly";
+      skipNextUsefulLifeComputeRef.current = switchedToMonthly;
+
+      if (switchedToMonthly && !editableFlags.usefulLife) {
+        const defaultLife = 12;
         setValue("usefulLife", defaultLife, { shouldDirty: false });
       }
+
+      previousFrequencyRef.current = frequency;
     }
-  }, [editableFlags.usefulLife, isMonthly, setValue, usefulLife]);
+  }, [editableFlags.usefulLife, frequency, setValue]);
 
   useEffect(() => {
     if (method === "Manual") {
@@ -481,9 +489,13 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     }
 
     if (computed.usefulLife !== undefined && !editableFlags.usefulLife) {
-      const rounded = Math.max(1, Math.round(computed.usefulLife));
-      if (rounded !== usefulLife) {
-        setValue("usefulLife", rounded, { shouldDirty: false });
+      if (isMonthly && skipNextUsefulLifeComputeRef.current) {
+        skipNextUsefulLifeComputeRef.current = false;
+      } else {
+        const rounded = Math.max(1, Math.round(computed.usefulLife));
+        if (rounded !== usefulLife) {
+          setValue("usefulLife", rounded, { shouldDirty: false });
+        }
       }
     }
   }, [

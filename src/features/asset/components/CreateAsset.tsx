@@ -106,9 +106,9 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
         <table className="w-full text-left border-collapse">
           <thead className="text-onSurfaceVariant text-sm">
             <tr>
-              <th className="pb-2 pr-4 font-medium">{state.isMonthly ? "Month" : "Year"}</th>
-              <th className="pb-2 pr-4 font-medium">Depreciation</th>
-              <th className="pb-2 font-medium">Net Book Value</th>
+              <th className="pb-2 pr-4 font-medium w-1/3">{state.isMonthly ? "Month" : "Year"}</th>
+              <th className="pb-2 pr-4 font-medium w-1/3">Net Book Value</th>
+              <th className="pb-2 font-medium w-1/3">Depreciation</th>
             </tr>
           </thead>
           <tbody className="text-sm">
@@ -121,8 +121,9 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
             ) : (
               rows.map((row, index) => (
                 <tr key={row.label} className="border-t border-outlineVariant/30">
-                  <td className="py-3 pr-4 whitespace-nowrap">{row.label}</td>
-                  <td className="py-3 pr-4">
+                  <td className="py-3 pr-4 whitespace-nowrap w-1/3">{row.label}</td>
+                  <td className="py-3 pr-4 whitespace-nowrap w-1/3">{formatScheduleCurrency(row.netBookValue)}</td>
+                  <td className="py-3 w-1/3">
                     {state.isEditing ? (
                       <Input
                         type="number"
@@ -135,7 +136,6 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
                       <span>{formatScheduleCurrency(row.depreciation)}</span>
                     )}
                   </td>
-                  <td className="py-3 whitespace-nowrap">{formatScheduleCurrency(row.netBookValue)}</td>
                 </tr>
               ))
             )}
@@ -720,7 +720,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         </div>
 
         {/* Split into left and right */}
-        <div className="flex flex-row gap-6 items-stretch px-6 pb-20">
+        <div className="flex flex-row gap-6 items-stretch px-6 pb-10">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
             <form ref={formRef} onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} action="" className="space-y-6">

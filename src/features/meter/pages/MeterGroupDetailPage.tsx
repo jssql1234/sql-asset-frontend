@@ -1,13 +1,16 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
+import { Button } from "@/components/ui/components";
 import MeterTable from "../components/MeterTable";
 import EditMeterModal from "../components/EditMeterModal";
 import EditGroupModal from "../components/EditGroupModal";
+import DeleteMeterModal from "../components/DeleteMeterModal";
+import MeterGroupHeader from "../components/MeterGroupHeader";
+import AssignedAssetsSection from "../components/AssignedAssetsSection";
+import AssignAssetsModal from "../components/AssignAssetsModal";
 import { useMeterManagement } from "../hooks/useMeterManagement";
 import { ArrowLeft } from "@/assets/icons";
-import { AssetChip } from "@/components/AssetChip";
 import type { Meter } from "@/types/meter";
 
 const MeterGroupDetailPage = () => {
@@ -16,10 +19,12 @@ const MeterGroupDetailPage = () => {
 
   const {
     meterGroups,
+    availableAssets,
     addMeterToGroup,
     updateMeter,
     removeMeter,
     updateGroup,
+    assignAssetsToGroup,
   } = useMeterManagement();
 
   const [editingMeter, setEditingMeter] = useState<Meter | null>(null);
@@ -27,6 +32,7 @@ const MeterGroupDetailPage = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [meterToDelete, setMeterToDelete] = useState<string | null>(null);
   const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
+  const [isAssignAssetsModalOpen, setIsAssignAssetsModalOpen] = useState(false);
 
   const group = meterGroups.find(g => g.id === groupId);
 
@@ -86,6 +92,11 @@ const MeterGroupDetailPage = () => {
     updateGroup(groupId, { name, description });
   };
 
+  const handleAssignAssets = (assetIds: string[]) => {
+    if (!groupId) return;
+    assignAssetsToGroup(groupId, assetIds);
+  };
+
   if (!group) {
     return (
       <SidebarHeader
@@ -129,35 +140,12 @@ const MeterGroupDetailPage = () => {
         </div>
 
         <div className="space-y-4">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-onSurface">{group.name}</h1>
-              {group.description && (
-                <p className="mt-2 text-onSurfaceVariant">{group.description}</p>
-              )}
-            </div>
-            <Button variant="secondary" size="sm" onClick={handleEditGroup}>
-              Edit Group
-            </Button>
-          </div>
+          <MeterGroupHeader group={group} onEdit={handleEditGroup} />
 
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-onSurface">Assigned Assets</h2>
-              <Button variant="primary" size="sm">
-                Assign Assets
-              </Button>
-            </div>
-            {group.assignedAssets.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {group.assignedAssets.map((asset) => (
-                  <AssetChip key={asset.id} asset={asset} />
-                ))}
-              </div>
-            ) : (
-              <p className="text-onSurfaceVariant">No assets assigned to this group.</p>
-            )}
-          </div>
+          <AssignedAssetsSection
+            assets={group.assignedAssets}
+            onAssignAssets={() => setIsAssignAssetsModalOpen(true)}
+          />
 
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -192,27 +180,12 @@ const MeterGroupDetailPage = () => {
         onSave={handleSaveMeter}
       />
 
-      {/* Delete Confirmation Dialog */}
-      {meterToDelete && (
-        <Dialog open onOpenChange={() => setMeterToDelete(null)}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Delete Meter</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete this meter? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="secondary" onClick={() => setMeterToDelete(null)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={confirmRemoveMeter}>
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      {/* Delete Meter Modal */}
+      <DeleteMeterModal
+        open={!!meterToDelete}
+        onOpenChange={(open) => !open && setMeterToDelete(null)}
+        onConfirm={confirmRemoveMeter}
+      />
 
       {/* Edit Group Modal */}
       <EditGroupModal
@@ -220,6 +193,15 @@ const MeterGroupDetailPage = () => {
         onOpenChange={setIsEditGroupModalOpen}
         group={group}
         onSave={handleSaveGroup}
+      />
+
+      {/* Assign Assets Modal */}
+      <AssignAssetsModal
+        open={isAssignAssetsModalOpen}
+        onOpenChange={setIsAssignAssetsModalOpen}
+        availableAssets={availableAssets}
+        currentAssets={group.assignedAssets}
+        onAssign={handleAssignAssets}
       />
     </SidebarHeader>
   );

@@ -1,10 +1,10 @@
 import {
-  type Asset,
   type Meter,
   type MeterGroup,
   type MeterState,
   type MeterReading,
-} from "../../../types/meter";
+} from "@/types/meter";
+import type { Asset } from "@/types/asset";
 import { meterIdGenerator } from "@/utils/id";
 
 const STORAGE_KEY = "sql-asset-meter-state";
@@ -12,37 +12,70 @@ const STORAGE_KEY = "sql-asset-meter-state";
 const buildDefaultMeters = (): MeterGroup[] => {
   const runtimeHours: Meter = {
     id: meterIdGenerator(),
-    name: "Runtime Hours",
-    unit: "hrs",
-    type: "counter",
-    lowerBoundary: 0,
-    notesPlaceholder: "Any anomalies observed during inspection",
+    uom: "hrs",
+    conditions: [
+      {
+        id: meterIdGenerator(),
+        conditionTarget: "cumulative",
+        operator: ">=",
+        value: 500,
+        triggerAction: "work_order",
+        triggerMode: "once",
+      }
+    ],
   };
 
   const temperature: Meter = {
     id: meterIdGenerator(),
-    name: "Coolant Temperature",
-    unit: "°C",
-    type: "numeric",
-    lowerBoundary: 15,
-    upperBoundary: 75,
+    uom: "°C",
+    conditions: [
+      {
+        id: meterIdGenerator(),
+        conditionTarget: "absolute",
+        operator: "<",
+        value: 15,
+        triggerAction: "notification",
+        triggerMode: "every_time",
+      },
+      {
+        id: meterIdGenerator(),
+        conditionTarget: "absolute",
+        operator: ">",
+        value: 75,
+        triggerAction: "notification",
+        triggerMode: "every_time",
+      }
+    ],
   };
 
   const vibration: Meter = {
     id: meterIdGenerator(),
-    name: "Vibration Level",
-    unit: "mm/s",
-    type: "numeric",
-    upperBoundary: 8,
+    uom: "mm/s",
+    conditions: [
+      {
+        id: meterIdGenerator(),
+        conditionTarget: "absolute",
+        operator: ">",
+        value: 8,
+        triggerAction: "work_order",
+        triggerMode: "once",
+      }
+    ],
   };
 
   const fuelLevel: Meter = {
     id: meterIdGenerator(),
-    name: "Fuel Level",
-    unit: "%",
-    type: "numeric",
-    lowerBoundary: 10,
-    upperBoundary: 100,
+    uom: "%",
+    conditions: [
+      {
+        id: meterIdGenerator(),
+        conditionTarget: "absolute",
+        operator: "<",
+        value: 10,
+        triggerAction: "notification",
+        triggerMode: "every_time",
+      }
+    ],
   };
 
   return [
@@ -51,20 +84,31 @@ const buildDefaultMeters = (): MeterGroup[] => {
       name: "Plant Utilities",
       description:
         "Tracks the key utilities consumption and boundary violations across production lines.",
-      boundaryTrigger: "both",
       meters: [runtimeHours, temperature, vibration],
       assignedAssets: [
         {
           id: "AST-1001",
-          code: "AST-1001",
+          batchId: "BATCH-001",
           name: "Air Compressor 01",
-          category: "Utilities",
+          group: "Utilities",
+          description: "Primary air compressor",
+          acquireDate: "2023-01-15",
+          purchaseDate: "2023-01-10",
+          cost: 15000,
+          qty: 1,
+          active: true,
         },
         {
           id: "AST-1002",
-          code: "AST-1002",
+          batchId: "BATCH-001",
           name: "Chiller 01",
-          category: "HVAC",
+          group: "HVAC",
+          description: "Main cooling chiller",
+          acquireDate: "2023-02-20",
+          purchaseDate: "2023-02-15",
+          cost: 25000,
+          qty: 1,
+          active: true,
         },
       ],
       createdAt: new Date().toISOString(),
@@ -74,23 +118,26 @@ const buildDefaultMeters = (): MeterGroup[] => {
       name: "Mobility Fleet",
       description:
         "Monitors fuel and mileage readings for the logistics vehicle fleet.",
-      boundaryTrigger: "lower",
       meters: [
         {
           id: meterIdGenerator(),
-          name: "Odometer",
-          unit: "km",
-          type: "counter",
-          lowerBoundary: 0,
+          uom: "km",
+          conditions: [],
         },
         fuelLevel,
       ],
       assignedAssets: [
         {
           id: "AST-1201",
-          code: "AST-1201",
+          batchId: "BATCH-002",
           name: "Delivery Van 01",
-          category: "Vehicles",
+          group: "Vehicles",
+          description: "Primary delivery vehicle",
+          acquireDate: "2023-03-10",
+          purchaseDate: "2023-03-05",
+          cost: 30000,
+          qty: 1,
+          active: true,
         },
       ],
       createdAt: new Date().toISOString(),
@@ -100,44 +147,28 @@ const buildDefaultMeters = (): MeterGroup[] => {
 
 const buildDefaultAssets = (): Asset[] => [
   {
-    id: "AST-1001",
-    code: "AST-1001",
-    name: "Air Compressor 01",
-    category: "Utilities",
-    location: "Plant Room",
-    status: "assigned",
-  },
-  {
-    id: "AST-1002",
-    code: "AST-1002",
-    name: "Chiller 01",
-    category: "HVAC",
-    location: "Plant Room",
-    status: "assigned",
-  },
-  {
     id: "AST-1003",
-    code: "AST-1003",
+    batchId: "BATCH-001",
     name: "Cooling Tower 01",
-    category: "Utilities",
-    location: "Roof Deck",
-    status: "available",
-  },
-  {
-    id: "AST-1201",
-    code: "AST-1201",
-    name: "Delivery Van 01",
-    category: "Vehicles",
-    location: "Garage",
-    status: "assigned",
+    group: "Utilities",
+    description: "Roof cooling tower",
+    acquireDate: "2023-01-20",
+    purchaseDate: "2023-01-15",
+    cost: 20000,
+    qty: 1,
+    active: true,
   },
   {
     id: "AST-1301",
-    code: "AST-1301",
+    batchId: "BATCH-003",
     name: "Forklift 01",
-    category: "Vehicles",
-    location: "Warehouse",
-    status: "available",
+    group: "Vehicles",
+    description: "Warehouse forklift",
+    acquireDate: "2023-04-10",
+    purchaseDate: "2023-04-05",
+    cost: 18000,
+    qty: 1,
+    active: true,
   },
 ];
 
@@ -158,12 +189,12 @@ const buildDefaultReadings = (groups: MeterGroup[]): MeterReading[] => {
           groupId: plantUtilities.id,
           meterId: runtimeMeter.id,
           assetId: compressor.id,
-          assetCode: compressor.code,
+          assetCode: compressor.id,
           assetName: compressor.name,
           recordedBy: "Administrator",
           recordedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
           value: 6123,
-          unit: runtimeMeter.unit,
+          uom: runtimeMeter.uom,
           notes: "Quarterly preventive maintenance completed.",
         },
         {
@@ -171,12 +202,12 @@ const buildDefaultReadings = (groups: MeterGroup[]): MeterReading[] => {
           groupId: plantUtilities.id,
           meterId: temperatureMeter.id,
           assetId: compressor.id,
-          assetCode: compressor.code,
+          assetCode: compressor.id,
           assetName: compressor.name,
           recordedBy: "Administrator",
           recordedAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
           value: 68,
-          unit: temperatureMeter.unit,
+          uom: temperatureMeter.uom,
           notes: "Stable temperature post-maintenance.",
         }
       );
@@ -195,12 +226,12 @@ const buildDefaultReadings = (groups: MeterGroup[]): MeterReading[] => {
           groupId: mobilityFleet.id,
           meterId: odometer.id,
           assetId: van.id,
-          assetCode: van.code,
+          assetCode: van.id,
           assetName: van.name,
           recordedBy: "Administrator",
           recordedAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
           value: 43812,
-          unit: odometer.unit,
+          uom: odometer.uom,
           notes: "Delivery route completed.",
         },
         {
@@ -208,12 +239,12 @@ const buildDefaultReadings = (groups: MeterGroup[]): MeterReading[] => {
           groupId: mobilityFleet.id,
           meterId: fuel.id,
           assetId: van.id,
-          assetCode: van.code,
+          assetCode: van.id,
           assetName: van.name,
           recordedBy: "Administrator",
           recordedAt: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
           value: 42,
-          unit: fuel.unit,
+          uom: fuel.uom,
           notes: "Topped up at central depot.",
         }
       );

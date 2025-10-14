@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/components";
 import {
   Table,
@@ -7,40 +8,74 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/components/Table";
+import DeleteConfirmationDialog from "../../work-request/components/DeleteConfirmationDialog";
 import type { Meter } from "../../../types/meter";
+import { Delete, Edit } from "@/assets/icons";
+
+export type MeterWithConditions = Meter;
 
 export type MeterTableProps = {
-  meters: Meter[];
-  onEdit: (meter: Meter) => void;
-  onRemove: (meter: Meter) => void;
-  isEditing?: boolean;
+  meters: MeterWithConditions[];
+  onEdit: (meterId: string) => void;
+  onRemove: (meterId: string) => void;
 };
 
-const formatBoundary = (meter: Meter) => {
-  if (
-    typeof meter.lowerBoundary === "number" &&
-    typeof meter.upperBoundary === "number"
-  ) {
-    return `${meter.lowerBoundary} – ${meter.upperBoundary} ${meter.unit}`;
-  }
-
-  if (typeof meter.lowerBoundary === "number") {
-    return `≥ ${meter.lowerBoundary} ${meter.unit}`;
-  }
-
-  if (typeof meter.upperBoundary === "number") {
-    return `≤ ${meter.upperBoundary} ${meter.unit}`;
-  }
-
-  return "—";
+// Mapping functions to convert stored values to display labels
+const getConditionTargetLabel = (value: string): string => {
+  const options = {
+    absolute: "New Reading",
+    changed: "Relative Reading",
+    cumulative: "Cumulative Reading",
+  };
+  return options[value as keyof typeof options] || value;
 };
 
-const MeterTable = ({
-  meters,
-  onEdit,
-  onRemove,
-  isEditing = false,
-}: MeterTableProps) => {
+const getOperatorLabel = (value: string): string => {
+  const options = {
+    "=": "Equal to(=)",
+    "<": "Less than (<)",
+    ">": "Greater than (>)",
+    "<=": "Less than or equal to (≤)",
+    ">=": "Greater than or equal to (≥)",
+    "!=": "Not equal to (≠)",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
+const getTriggerActionLabel = (value: string): string => {
+  const options = {
+    none: "No Action",
+    notification: "Send Notification",
+    work_order: "Create Work Order & Send Notification",
+    work_request: "Create Work Request & Send Notification",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
+const getTriggerModeLabel = (value: string): string => {
+  const options = {
+    once: "Once",
+    every_time: "Every Time",
+  };
+  return options[value as keyof typeof options] || value;
+};
+
+const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [meterToDelete, setMeterToDelete] = useState<Meter | null>(null);
+
+  const handleDeleteClick = (meter: Meter) => {
+    setMeterToDelete(meter);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (meterToDelete) {
+      onRemove(meterToDelete.id);
+      setDeleteDialogOpen(false);
+      setMeterToDelete(null);
+    }
+  };
   if (meters.length === 0) {
     return (
       <div className="rounded border border-dashed border-outlineVariant bg-surfaceContainer p-6 text-center text-sm text-onSurfaceVariant">
@@ -50,73 +85,154 @@ const MeterTable = ({
   }
 
   return (
-    <div className="overflow-hidden rounded border border-outlineVariant bg-surface">
-      <Table className="min-w-[720px]">
-        <TableHeader className="bg-secondaryContainer uppercase tracking-wide text-onSurfaceVariant">
-          <TableRow>
-            <TableHead className="w-[240px] px-4 py-3 text-xs font-semibold">
-              Meter name
-            </TableHead>
-            <TableHead className="w-[96px] px-4 py-3 text-xs font-semibold">
-              Unit
-            </TableHead>
-            <TableHead className="w-[144px] px-4 py-3 text-xs font-semibold">
-              Type
-            </TableHead>
-            <TableHead className="w-[192px] px-4 py-3 text-xs font-semibold">
-              Boundary
-            </TableHead>
-            <TableHead className="w-[192px] px-4 py-3 text-xs font-semibold">
-              Notes
-            </TableHead>
-            {isEditing ? (
-              <TableHead className="px-4 py-3 text-right text-xs font-semibold">
+    <>
+      <div className="overflow-hidden rounded border border-outlineVariant bg-surface">
+        <Table className="min-w-[1200px]">
+          <TableHeader className="bg-secondaryContainer">
+            <TableRow>
+              <TableHead
+                rowSpan={2}
+                className="w-[120px] border-r border-outlineVariant px-4 py-3 text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant"
+              >
+                UOM
+              </TableHead>
+              <TableHead
+                colSpan={5}
+                className="border-r border-outlineVariant px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant"
+              >
+                Condition
+              </TableHead>
+              <TableHead
+                rowSpan={2}
+                className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant"
+              >
                 Actions
               </TableHead>
-            ) : null}
-          </TableRow>
-        </TableHeader>
-        <TableBody className="divide-y divide-outlineVariant">
-          {meters.map((meter) => (
-            <TableRow key={meter.id} className="text-sm text-onSurface">
-              <TableCell className="px-4 py-3 font-medium">
-                {meter.name}
-              </TableCell>
-              <TableCell className="px-4 py-3">{meter.unit}</TableCell>
-              <TableCell className="px-4 py-3 capitalize">
-                {meter.type}
-              </TableCell>
-              <TableCell className="px-4 py-3 text-onSurfaceVariant">
-                {formatBoundary(meter)}
-              </TableCell>
-              <TableCell className="px-4 py-3 text-onSurfaceVariant">
-                {meter.notesPlaceholder ?? "—"}
-              </TableCell>
-              {isEditing ? (
-                <TableCell className="px-4 py-2">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => onEdit(meter)}
-                    >
-                      Edit
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => onRemove(meter)}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                </TableCell>
-              ) : null}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+            <TableRow>
+              <TableHead className="w-[15%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
+                Target Reading
+              </TableHead>
+              <TableHead className="w-[12%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
+                Operator
+              </TableHead>
+              <TableHead className="w-[14%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
+                Value
+              </TableHead>
+              <TableHead className="w-[24%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
+                Trigger Action
+              </TableHead>
+              <TableHead className="w-[15%] border-r border-outlineVariant px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
+                Trigger Mode
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {meters.map((meter) => {
+              const conditions = meter.conditions || [];
+              const hasConditions = conditions.length > 0;
+
+              if (!hasConditions) {
+                return (
+                  <TableRow key={meter.id} className="text-sm">
+                    <TableCell className="border-r border-outlineVariant bg-surfaceContainerLow px-4 py-3 font-medium text-onSurface">
+                      {meter.uom}
+                    </TableCell>
+                    <TableCell
+                      colSpan={5}
+                      className="border-r border-outlineVariant px-4 py-4 text-center text-onSurfaceVariant"
+                    >
+                      No conditions set
+                    </TableCell>
+                    <TableCell className="px-4 py-2">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onEdit(meter.id)}
+                        >
+                          <Edit />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteClick(meter)}
+                        >
+                          <Delete />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+
+              return conditions.map((condition, index) => (
+                <TableRow key={`${meter.id}-${condition.id}`} className="text-sm">
+                  {index === 0 && (
+                    <TableCell
+                      rowSpan={conditions.length}
+                      className="border-r border-outlineVariant bg-surfaceContainerLow px-4 py-3 font-medium text-onSurface"
+                    >
+                      {meter.uom}
+                    </TableCell>
+                  )}
+                  <TableCell className="px-4 py-3 text-onSurface">
+                    {getConditionTargetLabel(condition.conditionTarget)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-onSurface">
+                    {getOperatorLabel(condition.operator)}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-onSurface">
+                    {condition.value}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-onSurface">
+                    {getTriggerActionLabel(condition.triggerAction)}
+                  </TableCell>
+                  <TableCell className="border-r border-outlineVariant px-4 py-3 text-onSurface">
+                    {getTriggerModeLabel(condition.triggerMode)}
+                  </TableCell>
+                  {index === 0 && (
+                    <TableCell
+                      rowSpan={conditions.length}
+                      className="px-4 py-2"
+                    >
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onEdit(meter.id)}
+                        >
+                          <Edit className="text-lg" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteClick(meter)}
+                        >
+                          <Delete className="text-lg" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ));
+            })}
+          </TableBody>
+        </Table>
+      </div>
+
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        itemCount={1}
+        itemType="meter"
+        title="Delete Meter"
+        description="Are you sure you want to delete this meter? This action cannot be undone."
+        itemIds={meterToDelete ? [meterToDelete.id] : []}
+        itemNames={meterToDelete ? [meterToDelete.uom] : []}
+      />
+    </>
   );
 };
 

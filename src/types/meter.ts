@@ -2,21 +2,25 @@ import type { Asset } from "./asset";
 
 export type BoundaryTrigger = "none" | "lower" | "upper" | "both";
 
+export interface MeterCondition {
+	id: string;
+	conditionTarget: string;
+	operator: string;
+	value: string | number;
+	triggerAction: string;
+	triggerMode: string;
+}
+
 export interface Meter {
 	id: string;
-	name: string;
-	unit: string;
-	type: "numeric" | "counter" | "boolean" | "text";
-	lowerBoundary?: number;
-	upperBoundary?: number;
-	notesPlaceholder?: string;
+	uom: string;
+	conditions?: MeterCondition[];
 }
 
 export interface MeterGroup {
 	id: string;
 	name: string;
 	description?: string;
-	boundaryTrigger: BoundaryTrigger;
 	meters: Meter[];
 	assignedAssets: Asset[];
 	createdAt: string;
@@ -34,8 +38,7 @@ export interface MeterReading {
 	recordedAt: string;
 	value: number;
 	notes?: string;
-	unit: string;
-	boundaryViolation?: "lower" | "upper";
+	uom: string;
 	meterDeleted?: boolean;
 }
 
@@ -49,15 +52,6 @@ export interface MeterState {
 export interface MeterGroupInput {
 	name: string;
 	description?: string;
-	boundaryTrigger: BoundaryTrigger;
-}
-
-export interface MeterInput {
-	name: string;
-	unit: string;
-	type: "numeric" | "counter" | "boolean" | "text";
-	lowerBoundary?: number;
-	upperBoundary?: number;
 }
 
 export interface MeterReadingDraft {

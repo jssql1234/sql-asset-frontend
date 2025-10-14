@@ -50,12 +50,8 @@ const MeterGroupDetailPage = () => {
     if (!groupId) return;
 
     if (isAddModalOpen) {
-      // Adding a new meter
-      addMeterToGroup(groupId, {
-        id: meter.id,
-        uom: meter.uom,
-        conditions: meter.conditions,
-    });
+      // Adding a new meter - pass the meter directly
+      addMeterToGroup(groupId, meter);
       setIsAddModalOpen(false);
     } else {
       // Updating existing meter

@@ -234,10 +234,10 @@ export const MeterReadingsView = ({
         cell: ({ row }) => (
           <div className="flex flex-col text-sm text-onSurface">
             <span className="font-medium">
-              {meterMetadata.get(row.original.meterId)?.meter.name ?? "Unknown"}
+              Meter {row.original.meterId}
             </span>
             <span className="text-xs text-onSurfaceVariant">
-              {row.original.unit}
+              {row.original.uom}
             </span>
           </div>
         ),
@@ -347,11 +347,11 @@ export const MeterReadingsView = ({
                     className="flex flex-col gap-3 rounded-md border border-outlineVariant bg-surfaceContainer p-3 min-w-0"
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-semibold text-onSurface truncate" title={meter.name}>
-                        {meter.name}
+                      <span className="text-sm font-semibold text-onSurface truncate" title={meter.id}>
+                        Meter {meter.id}
                       </span>
                       <span className="text-xs text-onSurfaceVariant">
-                        Unit: {meter.unit}
+                        Unit: {meter.uom}
                       </span>
                     </div>
 
@@ -359,7 +359,7 @@ export const MeterReadingsView = ({
                       <Input
                         value={draft.value}
                         inputMode="decimal"
-                        placeholder={`Enter ${meter.unit}`}
+                        placeholder={`Enter ${meter.uom}`}
                         onChange={(event: ChangeEvent<HTMLInputElement>) =>
                           handleValueChange(meter.id, event.target.value)
                         }
@@ -370,7 +370,7 @@ export const MeterReadingsView = ({
                         <div className="animate-in slide-in-from-top-2 duration-200">
                           <TextArea
                             rows={2}
-                            placeholder={meter.notesPlaceholder ?? "Optional notes"}
+                            placeholder="Optional notes"
                             value={draft.notes}
                             onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
                               handleNotesChange(meter.id, event.target.value)

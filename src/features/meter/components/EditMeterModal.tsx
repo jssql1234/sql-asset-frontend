@@ -21,7 +21,7 @@ interface EditMeterModalProps {
 
 const CONDITION_TARGET_OPTIONS = [
   { value: "absolute", label: "New Reading" },
-  { value: "changed", label: "(New - Old) Reading" },
+  { value: "changed", label: "Relative Reading" },
   { value: "cumulative", label: "Cumulative Reading" },
 ];
 

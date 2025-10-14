@@ -84,7 +84,6 @@ const buildDefaultMeters = (): MeterGroup[] => {
       name: "Plant Utilities",
       description:
         "Tracks the key utilities consumption and boundary violations across production lines.",
-      boundaryTrigger: "both",
       meters: [runtimeHours, temperature, vibration],
       assignedAssets: [
         {
@@ -119,7 +118,6 @@ const buildDefaultMeters = (): MeterGroup[] => {
       name: "Mobility Fleet",
       description:
         "Monitors fuel and mileage readings for the logistics vehicle fleet.",
-      boundaryTrigger: "lower",
       meters: [
         {
           id: meterIdGenerator(),

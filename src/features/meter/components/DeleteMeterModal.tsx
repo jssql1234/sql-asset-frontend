@@ -8,32 +8,47 @@ import {
   Button,
 } from "@/components/ui/components";
 
-type DeleteMeterModalProps = {
+type DeleteConfirmationDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  title?: string;
+  description?: string;
+  itemDetails?: React.ReactNode;
+  confirmText?: string;
+  cancelText?: string;
 };
 
-export const DeleteMeterModal = ({
+export const DeleteConfirmationDialog = ({
   open,
   onOpenChange,
   onConfirm,
-}: DeleteMeterModalProps) => {
+  title = "Delete Item",
+  description = "Are you sure you want to delete this item? This action cannot be undone.",
+  itemDetails,
+  confirmText = "Delete",
+  cancelText = "Cancel",
+}: DeleteConfirmationDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Delete Meter</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete this meter? This action cannot be undone.
+            {description}
+            {itemDetails && (
+              <div className="mt-2 p-3 bg-surfaceContainer rounded-md">
+                {itemDetails}
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <Button variant="secondary" onClick={() => onOpenChange(false)}>
-            Cancel
+            {cancelText}
           </Button>
           <Button variant="destructive" onClick={onConfirm}>
-            Delete
+            {confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -41,4 +56,7 @@ export const DeleteMeterModal = ({
   );
 };
 
-export default DeleteMeterModal;
+// Keep the old name for backward compatibility
+export const DeleteMeterModal = DeleteConfirmationDialog;
+
+export default DeleteConfirmationDialog;

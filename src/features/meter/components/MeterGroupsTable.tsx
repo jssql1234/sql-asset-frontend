@@ -1,9 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AssetChip } from "@/components/AssetChip";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { Button, Badge } from "@/components/ui/components";
+import DeleteConfirmationDialog from "../../work-request/components/DeleteConfirmationDialog";
 import type { MeterGroup } from "@/types/meter";
+import { Delete } from "@/assets/icons";
+import { Copy } from "lucide-react";
 
 type MeterGroupsTableProps = {
   groups: MeterGroup[];
@@ -18,6 +21,21 @@ export const MeterGroupsTable = ({
   onCloneGroup,
   onDeleteGroup,
 }: MeterGroupsTableProps) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [groupToDelete, setGroupToDelete] = useState<MeterGroup | null>(null);
+
+  const handleDeleteClick = (group: MeterGroup) => {
+    setGroupToDelete(group);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (groupToDelete) {
+      onDeleteGroup(groupToDelete.id);
+      setDeleteDialogOpen(false);
+      setGroupToDelete(null);
+    }
+  };
   const columns = useMemo<ColumnDef<MeterGroup>[]>(
     () => [
       {
@@ -120,17 +138,17 @@ export const MeterGroupsTable = ({
                   onCloneGroup(group.id);
                 }}
               >
-                Clone
+                <Copy className="size-5" />Clone
               </Button>
               <Button
                 size="sm"
                 variant="destructive"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onDeleteGroup(group.id);
+                  handleDeleteClick(group);
                 }}
               >
-                Delete
+                <Delete className="size-5" />Delete
               </Button>
             </div>
           );
@@ -141,12 +159,26 @@ export const MeterGroupsTable = ({
   );
 
   return (
-    <DataTableExtended<MeterGroup, unknown>
-      columns={columns}
-      data={groups}
-      showPagination
-      onRowDoubleClick={onViewGroup}
-    />
+    <>
+      <DataTableExtended<MeterGroup, unknown>
+        columns={columns}
+        data={groups}
+        showPagination
+        onRowDoubleClick={onViewGroup}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        itemCount={1}
+        itemType="meter group"
+        title="Delete Meter Group"
+        description="Are you sure you want to delete this meter group? This action cannot be undone."
+        itemIds={groupToDelete ? [groupToDelete.id] : []}
+        itemNames={groupToDelete ? [groupToDelete.name] : []}
+      />
+    </>
   );
 };
 

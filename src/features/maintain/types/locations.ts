@@ -1,5 +1,3 @@
-export type LocationStatus = 'Active' | 'Inactive' | 'Under Maintenance' | 'Reserved';
-
 export interface LocationTypeOption {
   id: string;
   name: string;
@@ -12,7 +10,6 @@ export interface Location {
   categoryId: string;
   contactPerson: string;
   contactDetails: string;
-  status: LocationStatus;
   createdAt: string;
   updatedAt: string;
 }
@@ -43,5 +40,4 @@ export interface LocationsState {
 
 export interface LocationValidationErrors {
   name?: string;
-  categoryId?: string;
 }

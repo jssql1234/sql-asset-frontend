@@ -85,7 +85,6 @@ export function createLocationFromForm(
     categoryId: formData.categoryId,
     contactPerson: formData.contactPerson,
     contactDetails: formData.contactDetails,
-    status: 'Active',
     createdAt: timestamp,
     updatedAt: timestamp,
   };
@@ -96,10 +95,6 @@ export function validateLocationForm(formData: LocationFormData): LocationValida
 
   if (!formData.name.trim()) {
     errors.name = 'Location name is required';
-  }
-
-  if (!formData.categoryId.trim()) {
-    errors.categoryId = 'Location type is required';
   }
 
   return errors;

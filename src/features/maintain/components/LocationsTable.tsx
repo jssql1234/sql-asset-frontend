@@ -3,13 +3,10 @@ import { Button, Card } from '@/components/ui/components';
 import { DataTable, TableColumnVisibility } from '@/components/ui/components/Table';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
-import { Badge } from '@/components/ui/components/Badge';
-import type { Location, LocationTypeOption } from '../types/locations';
-import { formatLocationDate, getLocationTypeName } from '../utils/locationUtils';
+import type { Location } from '../types/locations';
 
 interface LocationsTableProps {
   locations: Location[];
-  locationTypes: LocationTypeOption[];
   selectedLocations: string[];
   onToggleSelection: (id: string) => void;
   onAddLocation: () => void;
@@ -17,16 +14,8 @@ interface LocationsTableProps {
   onDeleteMultipleLocations: (ids: string[]) => void;
 }
 
-const STATUS_VARIANT_MAP: Record<Location['status'], string> = {
-  Active: 'green',
-  Inactive: 'grey',
-  'Under Maintenance': 'yellow',
-  Reserved: 'blue',
-};
-
 export const LocationsTable: React.FC<LocationsTableProps> = ({
   locations,
-  locationTypes,
   selectedLocations,
   onToggleSelection,
   onAddLocation,
@@ -77,15 +66,6 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
       ),
     },
     {
-      id: 'type',
-      header: 'Type',
-      cell: ({ row }) => (
-        <span className="text-sm text-onSurface">
-          {getLocationTypeName(row.original.categoryId, locationTypes)}
-        </span>
-      ),
-    },
-    {
       id: 'contact',
       header: 'Contact',
       cell: ({ row }) => {
@@ -98,27 +78,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
         );
       },
     },
-    {
-      id: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <Badge
-          text={row.original.status.toUpperCase()}
-          variant={STATUS_VARIANT_MAP[row.original.status]}
-          className="h-6 px-3 uppercase tracking-wide"
-        />
-      ),
-    },
-    {
-      id: 'updatedAt',
-      header: 'Last Updated',
-      cell: ({ row }) => (
-        <span className="text-sm text-onSurfaceVariant">
-          {formatLocationDate(row.original.updatedAt)}
-        </span>
-      ),
-    },
-  ]), [locationTypes]);
+  ]), []);
 
   const selectionColumn = useMemo(
     () => columnDefs.find(column => column.id === 'select'),

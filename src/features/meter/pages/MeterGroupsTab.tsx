@@ -34,8 +34,7 @@ type MeterGroupsViewProps = {
 
 const defaultGroupForm: MeterGroupInput = {
   name: "",
-  description: "",
-  boundaryTrigger: "none", // Default value, conditions will handle automation
+  description: "", 
 };
 
 export const MeterGroupsView = ({
@@ -61,7 +60,6 @@ export const MeterGroupsView = ({
     setGroupForm({
       name: group.name,
       description: group.description ?? "",
-      boundaryTrigger: group.boundaryTrigger, // Keep existing value but hidden from UI
     });
     setFormError(null);
     setGroupModal({ mode: "edit", group });

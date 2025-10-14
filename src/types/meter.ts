@@ -21,7 +21,6 @@ export interface MeterGroup {
 	id: string;
 	name: string;
 	description?: string;
-	boundaryTrigger: BoundaryTrigger;
 	meters: Meter[];
 	assignedAssets: Asset[];
 	createdAt: string;
@@ -53,7 +52,6 @@ export interface MeterState {
 export interface MeterGroupInput {
 	name: string;
 	description?: string;
-	boundaryTrigger: BoundaryTrigger;
 }
 
 export interface MeterReadingDraft {

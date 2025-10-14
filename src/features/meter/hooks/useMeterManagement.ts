@@ -104,7 +104,6 @@ export const useMeterManagement = () => {
         id: meterIdGenerator("group"),
         name: input.name,
         description: input.description,
-        boundaryTrigger: input.boundaryTrigger,
         meters: [],
         assignedAssets: [],
         createdAt: now,
@@ -130,9 +129,6 @@ export const useMeterManagement = () => {
                 ...group,
                 name: update.name ?? group.name,
                 description: update.description ?? group.description,
-                boundaryTrigger:
-                  (update.boundaryTrigger as BoundaryTrigger | undefined) ??
-                  group.boundaryTrigger,
                 updatedAt: new Date().toISOString(),
               }
             : group

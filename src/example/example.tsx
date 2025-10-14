@@ -29,6 +29,7 @@ import DialogExample from "./DialogExample";
 
 import SearchWithDropdownExample from "@/example/SearchWithDropdownExample";
 import MeterTableExample from "@/example/MeterManagementExample";
+import * as Icons from "@/assets/icons";
 
 export default function Testing() {
   const tabItems = [
@@ -56,6 +57,11 @@ export default function Testing() {
       label: "Tabs",
       value: "tabs",
       content: <Tab />,
+    },
+    {
+      label: "Icons",
+      value: "icons",
+      content: <IconsTab />,
     },
   ];
 
@@ -692,6 +698,20 @@ function Tab() {
         <div className="title-medium text-onSurface">Underline Long Tabs</div>
         <Tabs tabs={longTabItems} defaultValue="tab1" variant="underline" />
       </div>
+    </div>
+  );
+}
+
+function IconsTab() {
+  const iconEntries = Object.entries(Icons);
+  return (
+    <div className="mt-4 grid grid-cols-6 gap-4">
+      {iconEntries.map(([name, IconComponent]) => (
+        <div key={name} className="flex flex-col items-center space-y-2">
+          <IconComponent className="h-6 w-6" />
+          <span className="text-xs text-onSurface">{name}</span>
+        </div>
+      ))}
     </div>
   );
 }

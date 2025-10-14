@@ -22,12 +22,11 @@ import type {
 import { Plus } from "@/assets/icons";
 import TabHeader from "@/components/TabHeader";
 
-type GroupModalState = { mode: "create" } | { mode: "edit"; group: MeterGroup };
+type GroupModalState = { mode: "create" };
 
 type MeterGroupsViewProps = {
   groups: MeterGroup[];
   onCreateGroup: (input: MeterGroupInput) => void;
-  onUpdateGroup: (groupId: string, input: Partial<MeterGroupInput>) => void;
   onDeleteGroup: (groupId: string) => void;
   onCloneGroup: (groupId: string) => void;
 };
@@ -40,7 +39,6 @@ const defaultGroupForm: MeterGroupInput = {
 export const MeterGroupsView = ({
   groups,
   onCreateGroup,
-  onUpdateGroup,
   onDeleteGroup,
   onCloneGroup,
 }: MeterGroupsViewProps) => {
@@ -56,15 +54,6 @@ export const MeterGroupsView = ({
     setGroupModal({ mode: "create" });
   };
 
-  const openEditGroupModal = (group: MeterGroup) => {
-    setGroupForm({
-      name: group.name,
-      description: group.description ?? "",
-    });
-    setFormError(null);
-    setGroupModal({ mode: "edit", group });
-  };
-
   const handleGroupSubmit = () => {
     if (!groupForm.name.trim()) {
       setFormError("Group name is required");
@@ -76,14 +65,6 @@ export const MeterGroupsView = ({
         ...groupForm,
         name: groupForm.name.trim(),
         description: groupForm.description?.trim() || "",
-      });
-    }
-
-    if (groupModal?.mode === "edit") {
-      onUpdateGroup(groupModal.group.id, {
-        ...groupForm,
-        name: groupForm.name.trim(),
-        description: groupForm.description?.trim(),
       });
     }
 
@@ -210,16 +191,6 @@ export const MeterGroupsView = ({
                 variant="secondary"
                 onClick={(e) => {
                   e.stopPropagation();
-                  openEditGroupModal(group);
-                }}
-              >
-                Edit
-              </Button>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={(e) => {
-                  e.stopPropagation();
                   onCloneGroup(group.id);
                 }}
               >
@@ -240,7 +211,7 @@ export const MeterGroupsView = ({
         },
       },
     ],
-    [openEditGroupModal, onCloneGroup]
+    [onCloneGroup]
   );
 
   const handleViewGroup = (group: MeterGroup) => {
@@ -287,9 +258,7 @@ export const MeterGroupsView = ({
           <DialogContent className="max-w-xl">
             <DialogHeader>
               <DialogTitle>
-                {groupModal.mode === "create"
-                  ? "Create meter group"
-                  : `Edit ${groupModal.group.name}`}
+                Create meter group
               </DialogTitle>
               <DialogDescription>
                 Provide a clear name and description for this meter group. Automation and notifications will be controlled through individual meter conditions.
@@ -331,7 +300,7 @@ export const MeterGroupsView = ({
                   Cancel
                 </Button>
                 <Button onClick={handleGroupSubmit}>
-                  {groupModal.mode === "create" ? "Create group" : "Save changes"}
+                  Create group
                 </Button>
               </div>
             </DialogFooter>

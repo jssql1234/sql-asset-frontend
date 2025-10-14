@@ -4,6 +4,7 @@ import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import MeterTable from "../components/MeterTable";
 import EditMeterModal from "../components/EditMeterModal";
+import EditGroupModal from "../components/EditGroupModal";
 import { useMeterManagement } from "../hooks/useMeterManagement";
 import { ArrowLeft } from "@/assets/icons";
 import { AssetChip } from "@/components/AssetChip";
@@ -18,12 +19,14 @@ const MeterGroupDetailPage = () => {
     addMeterToGroup,
     updateMeter,
     removeMeter,
+    updateGroup,
   } = useMeterManagement();
 
   const [editingMeter, setEditingMeter] = useState<Meter | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [meterToDelete, setMeterToDelete] = useState<string | null>(null);
+  const [isEditGroupModalOpen, setIsEditGroupModalOpen] = useState(false);
 
   const group = meterGroups.find(g => g.id === groupId);
 
@@ -75,6 +78,14 @@ const MeterGroupDetailPage = () => {
     }
   };
 
+  const handleEditGroup = () => {
+    setIsEditGroupModalOpen(true);
+  };
+
+  const handleSaveGroup = (groupId: string, name: string, description: string) => {
+    updateGroup(groupId, { name, description });
+  };
+
   if (!group) {
     return (
       <SidebarHeader
@@ -118,11 +129,16 @@ const MeterGroupDetailPage = () => {
         </div>
 
         <div className="space-y-4">
-          <div>
-            <h1 className="text-2xl font-bold text-onSurface">{group.name}</h1>
-            {group.description && (
-              <p className="mt-2 text-onSurfaceVariant">{group.description}</p>
-            )}
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-onSurface">{group.name}</h1>
+              {group.description && (
+                <p className="mt-2 text-onSurfaceVariant">{group.description}</p>
+              )}
+            </div>
+            <Button variant="secondary" size="sm" onClick={handleEditGroup}>
+              Edit Group
+            </Button>
           </div>
 
           <div className="space-y-4">
@@ -197,6 +213,14 @@ const MeterGroupDetailPage = () => {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Edit Group Modal */}
+      <EditGroupModal
+        open={isEditGroupModalOpen}
+        onOpenChange={setIsEditGroupModalOpen}
+        group={group}
+        onSave={handleSaveGroup}
+      />
     </SidebarHeader>
   );
 };

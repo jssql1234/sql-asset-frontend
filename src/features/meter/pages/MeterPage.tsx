@@ -35,7 +35,6 @@ const MeterPage = () => {
           <MeterGroupsView
             groups={meterGroups}
             onCreateGroup={createGroup}
-            onUpdateGroup={updateGroup}
             onDeleteGroup={deleteGroup}
             onCloneGroup={cloneGroup}
           />

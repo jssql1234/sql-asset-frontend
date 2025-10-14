@@ -1,115 +1,104 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import Search from '@/components/Search';
-import { DataTable } from '@/components/ui/components/Table';
-import { type ColumnDef } from '@tanstack/react-table';
-import { Plus } from '@/assets/icons';
-
-interface AssetGroup {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  status: 'Active' | 'Inactive';
-  createdAt: string;
-}
-
-const mockAssetGroups: AssetGroup[] = [
-  {
-    id: '1',
-    name: 'IT Equipment',
-    description: 'Computers, laptops, and IT peripherals',
-    category: 'Technology',
-    status: 'Active',
-    createdAt: '2023-01-15',
-  },
-  {
-    id: '2',
-    name: 'Machinery',
-    description: 'Production and manufacturing equipment',
-    category: 'Equipment',
-    status: 'Active',
-    createdAt: '2023-02-20',
-  },
-  {
-    id: '3',
-    name: 'Vehicles',
-    description: 'Company vehicles and transportation assets',
-    category: 'Transportation',
-    status: 'Active',
-    createdAt: '2023-03-10',
-  },
-  {
-    id: '4',
-    name: 'Furniture',
-    description: 'Office furniture and fixtures',
-    category: 'Facilities',
-    status: 'Inactive',
-    createdAt: '2023-04-05',
-  },
-];
+import { useToast } from '@/components/ui/components/Toast/useToast';
+import AssetGroupsSearchAndFilter from '../components/AssetGroupsSearchAndFilter';
+import { AssetGroupsTable } from '../components/AssetGroupsTable';
+import AssetGroupFormModal from '../components/AssetGroupFormModal';
+import { useAssetGroups } from '../hooks/useAssetGroups';
+import type { AssetGroup, AssetGroupFormData } from '../types/assetGroups';
+import { ExportFile } from '@/assets/icons';
 
 const MaintainAssetGroupPage: React.FC = () => {
-  const [searchValue, setSearchValue] = useState('');
-  const [assetGroups] = useState<AssetGroup[]>(mockAssetGroups);
+  const {
+    assetGroups,
+    filteredAssetGroups,
+    selectedAssetGroupIds,
+    filters,
+    isFormModalOpen,
+    editingAssetGroup,
+    formErrors,
+    assetGroupAssetCounts,
+    createAssetGroup,
+    updateAssetGroup,
+    deleteSelectedAssetGroups,
+    toggleAssetGroupSelection,
+    updateFilters,
+    clearFilters,
+    openAddModal,
+    openEditModal,
+    closeFormModal,
+    exportData,
+    hasSingleSelection,
+    clearFormFieldError,
+  } = useAssetGroups();
+
+  const { addToast } = useToast();
 
   const handleAddAssetGroup = () => {
-    // TODO: Implement add asset group modal
-    console.log('Add asset group clicked');
+    openAddModal();
   };
 
-  const filteredAssetGroups = assetGroups.filter(assetGroup =>
-    assetGroup.name.toLowerCase().includes(searchValue.toLowerCase()) ||
-    assetGroup.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-    assetGroup.category.toLowerCase().includes(searchValue.toLowerCase())
-  );
+  const handleEditAssetGroup = (assetGroup: AssetGroup) => {
+    openEditModal(assetGroup);
+  };
 
-  const columns: ColumnDef<AssetGroup>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Asset Group Name',
-      cell: ({ row }) => (
-        <div>
-          <div className="font-medium">{row.original.name}</div>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'category',
-      header: 'Category',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.category}</div>
-      ),
-    },
-    {
-      accessorKey: 'description',
-      header: 'Description',
-      cell: ({ row }) => (
-        <div className="text-sm text-onSurfaceVariant">{row.original.description}</div>
-      ),
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <span className={`px-2 py-1 rounded-full text-xs ${
-          row.original.status === 'Active'
-            ? 'bg-green-100 text-green-800'
-            : 'bg-gray-100 text-gray-800'
-        }`}>
-          {row.original.status}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created Date',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.createdAt}</div>
-      ),
-    },
-  ];
+  
+
+  const handleDeleteSelected = () => {
+    if (selectedAssetGroupIds.length === 0) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${String(selectedAssetGroupIds.length)} selected asset groups?`)) {
+      return;
+    }
+
+    try {
+      deleteSelectedAssetGroups();
+      addToast({
+        variant: 'success',
+        title: 'Selected asset groups deleted successfully',
+      });
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Failed to delete selected asset groups',
+        description: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  };
+
+  const handleFormSubmit = (formData: AssetGroupFormData) => {
+    const success = editingAssetGroup
+      ? updateAssetGroup(formData)
+      : createAssetGroup(formData);
+
+    if (success) {
+      addToast({
+        variant: 'success',
+        title: editingAssetGroup
+          ? 'Asset group updated successfully'
+          : 'Asset group created successfully',
+      });
+      closeFormModal();
+    } else {
+      addToast({
+        variant: 'error',
+        title: 'Unable to save asset group',
+        description: 'Please resolve the highlighted errors and try again.',
+      });
+    }
+    return success;
+  };
+
+  const handleExport = () => {
+    exportData();
+    addToast({
+      variant: 'success',
+      title: 'Asset groups exported successfully'
+    });
+  };
 
   return (
     <SidebarHeader
@@ -120,32 +109,51 @@ const MaintainAssetGroupPage: React.FC = () => {
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <TabHeader
-          title="Maintain Asset Group"
+          title="Asset Group Management"
           subtitle="Manage asset group information and settings"
-          actions={[
-            {
-              label: "Add Asset Group",
-              onAction: handleAddAssetGroup,
-              icon: <Plus />,
-              variant: "default",
-            },
-          ]}
+          customActions={
+            <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+                  title="Export CSV"
+                >
+                <ExportFile className="w-4 h-4" />
+                  Export Data
+                </button>
+              </div>
+            }
         />
 
-        <Search
-          searchValue={searchValue}
-          searchPlaceholder="Search asset groups..."
-          onSearch={setSearchValue}
-          live
+        <AssetGroupsSearchAndFilter
+          searchValue={filters.searchValue}
+          onSearchChange={(value) => { updateFilters({ searchValue: value }); }}
+          onClearFilters={clearFilters}
         />
 
         <div className="flex-1 overflow-hidden">
-          <DataTable
-            columns={columns}
-            data={filteredAssetGroups}
-            showPagination
+          <AssetGroupsTable
+            assetGroups={filteredAssetGroups}
+            selectedIds={selectedAssetGroupIds}
+            assetCounts={assetGroupAssetCounts}
+            onSelectAssetGroup={toggleAssetGroupSelection}
+            onAddAssetGroup={handleAddAssetGroup}
+            onEditAssetGroup={handleEditAssetGroup}
+            onDeleteSelected={handleDeleteSelected}
+            hasSingleSelection={hasSingleSelection}
           />
         </div>
+
+        <AssetGroupFormModal
+          isOpen={isFormModalOpen}
+          onClose={closeFormModal}
+          editingAssetGroup={editingAssetGroup}
+          onSubmit={handleFormSubmit}
+          errors={formErrors}
+          existingAssetGroups={assetGroups}
+          onClearFieldError={clearFormFieldError}
+        />
       </div>
     </SidebarHeader>
   );

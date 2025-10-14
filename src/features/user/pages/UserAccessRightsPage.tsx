@@ -154,7 +154,7 @@ const UserAccessRightsPage: React.FC = () => {
             items={groupItems}
             selectedId={selectedGroup ?? undefined}
             onSelect={(groupId) => {
-              setSelectedGroup(groupId);
+              setSelectedGroup(() => groupId);
               initializeDraftPermissions(groupId);
             }}
             placeholder="Select a group..."

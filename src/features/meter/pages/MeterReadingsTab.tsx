@@ -234,9 +234,6 @@ export const MeterReadingsView = ({
         cell: ({ row }) => (
           <div className="flex flex-col text-sm text-onSurface">
             <span className="font-medium">
-              Meter {row.original.meterId}
-            </span>
-            <span className="text-xs text-onSurfaceVariant">
               {row.original.uom}
             </span>
           </div>
@@ -299,19 +296,19 @@ export const MeterReadingsView = ({
 
   if (assetOptions.length === 0) {
     return (
-      <Card className="text-center text-onSurfaceVariant">
+      <>
         <h3 className="text-lg font-semibold text-onSurface">No assets assigned</h3>
         <p className="mt-2 text-sm">
           Assign at least one asset to a meter group to start capturing readings.
         </p>
-      </Card>
+
+      </>
     );
   }
 
   return (
     <div className="flex flex-col gap-6">
       {/* Section 1: Asset Selection */}
-      <Card className="space-y-4 shadow-xl">
         <header className="flex flex-col gap-2">
           <h2 className="text-lg font-semibold text-onSurface">Asset Selection</h2>
         </header>
@@ -327,7 +324,6 @@ export const MeterReadingsView = ({
             emptyMessage="No assets found"
           />
         </div>
-      </Card>
 
       {/* Section 2: Record Readings */}
       <Card className="space-y-4 shadow-xl">
@@ -347,11 +343,8 @@ export const MeterReadingsView = ({
                     className="flex flex-col gap-3 rounded-md border border-outlineVariant bg-surfaceContainer p-3 min-w-0"
                   >
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-semibold text-onSurface truncate" title={meter.id}>
-                        Meter {meter.id}
-                      </span>
-                      <span className="text-xs text-onSurfaceVariant">
-                        Unit: {meter.uom}
+                      <span className="text-sm font-semibold text-onSurface truncate">
+                        {meter.uom}
                       </span>
                     </div>
 

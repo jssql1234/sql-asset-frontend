@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import { Plus, ExportFile} from '@/assets/icons';
+import { ExportFile} from '@/assets/icons';
 import { SparePartsFormModal } from '../components/SparePartsFormModal';
 import { SparePartsTable } from '../components/SparePartsTable';
 import { SparePartsSearchAndFilter } from '../components/SparePartsSearchAndFilter';
@@ -111,14 +111,6 @@ const MaintainSparePartPage: React.FC = () => {
         <TabHeader
           title="Spare Parts Management"
           subtitle="Manage spare parts inventory and information"
-          actions={[
-            {
-              label: "Add Spare Part",
-              onAction: handleAddSparePart,
-              icon: <Plus />,
-              variant: "default",
-            },
-          ]}
           customActions={
             <div className="flex gap-2">
               <button

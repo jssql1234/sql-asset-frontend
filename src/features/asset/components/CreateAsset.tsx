@@ -20,6 +20,7 @@ import { ChevronDown } from "@/assets/icons";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
+import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 
 interface SerialNumberData {
@@ -43,6 +44,107 @@ interface CreateAssetProps {
 interface CreateAssetRef {
   submit: () => void;
 }
+
+const scheduleCurrencyFormatter = new Intl.NumberFormat("en-US", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
+const formatScheduleCurrency = (value: number): string => `RM ${scheduleCurrencyFormatter.format(Number.isFinite(value) ? value : 0)}`;
+
+const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState | null }> = ({ view }) => {
+  if (!view) {
+    return (
+      <Card className="p-6 shadow-md">
+        <h3 className="title-small text-onSurface mb-2">Depreciation Schedule</h3>
+        <p className="body-medium text-onSurfaceVariant">Complete the depreciation details to generate the schedule.</p>
+      </Card>
+    );
+  }
+
+  const { state, controls } = view;
+  const rows = state.rows;
+
+  const handleDepreciationChange = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number.parseFloat(event.target.value);
+    controls.updateEditableRow(index, Number.isFinite(value) ? value : 0);
+  };
+
+  return (
+    <Card className="p-6 sticky top-24 shadow-md space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h3 className="title-small text-onSurface">Depreciation Schedule</h3>
+          <p className="body-small text-onSurfaceVariant">
+            {state.isManual ? "Manual schedule" : "Straight line schedule"}
+            {state.floorApplied && !state.isEditing ? " \u00b7 floor rounded" : ""}
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={controls.applyFloorRounding}
+            disabled={rows.length === 0 || (!state.isEditing && state.floorApplied)}
+          >
+            Floor Rounding
+          </Button>
+          {state.isEditing ? (
+            <>
+              <Button size="sm" onClick={controls.saveEditMode}>Save</Button>
+              <Button size="sm" variant="outline" onClick={controls.cancelEditMode}>Cancel</Button>
+              <Button size="sm" variant="ghost" onClick={controls.addEditableRow}>+ Row</Button>
+              <Button size="sm" variant="ghost" onClick={controls.removeEditableRow} disabled={rows.length <= 1}>- Row</Button>
+            </>
+          ) : (
+            <Button size="sm" onClick={controls.enterEditMode} disabled={rows.length === 0}>Edit</Button>
+          )}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead className="text-onSurfaceVariant text-sm">
+            <tr>
+              <th className="pb-2 pr-4 font-medium w-1/3">{state.isMonthly ? "Month" : "Year"}</th>
+              <th className="pb-2 pr-4 font-medium w-1/3">Net Book Value</th>
+              <th className="pb-2 font-medium w-1/3">Depreciation</th>
+            </tr>
+          </thead>
+          <tbody className="text-sm">
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={3} className="py-6 text-center text-onSurfaceVariant">
+                  Schedule will be generated once depreciation inputs are provided.
+                </td>
+              </tr>
+            ) : (
+              rows.map((row, index) => (
+                <tr key={row.label} className="border-t border-outlineVariant/30">
+                  <td className="py-3 pr-4 whitespace-nowrap w-1/3">{row.label}</td>
+                  <td className="py-3 pr-4 whitespace-nowrap w-1/3">{formatScheduleCurrency(row.netBookValue)}</td>
+                  <td className="py-3 w-1/3">
+                    {state.isEditing ? (
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        value={Number.isFinite(row.depreciation) ? row.depreciation : 0}
+                        onChange={handleDepreciationChange(index)}
+                        min={0}
+                      />
+                    ) : (
+                      <span>{formatScheduleCurrency(row.depreciation)}</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </Card>
+  );
+};
 
 // Tab Components
 const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
@@ -215,67 +317,6 @@ const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, contro
         <div>
           <label className="block text-sm font-medium text-onSurface">Finance</label>
           <Input {...register("hpFinance")} placeholder="0.00" />
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-const DepreciationTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
-  return (
-    <Card className="p-6 shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Depreciation Method</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button  variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("depreciationMethod")}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("depreciationMethod", "Straight Line"); }}>Straight Line</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("depreciationMethod", "Manual"); }}>Manual</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Frequency</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("depreciationFrequency") || "- Choose Frequency -"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-fit">
-              <DropdownMenuItem onClick={() => { setValue("depreciationFrequency", "Yearly"); }}>Yearly</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("depreciationFrequency", "Monthly"); }}>Monthly</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Useful Life (Years)</label>
-          <Input type="number" {...register("usefulLife", { valueAsNumber: true })} min="1" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Residual Value</label>
-          <Input {...register("residualValue")} placeholder="0.00" />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Depreciation Rate</label>
-          <Input {...register("depreciationRate")} readOnly />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Total Depreciation</label>
-          <Input {...register("totalDepreciation")} readOnly />
         </div>
       </div>
     </Card>
@@ -466,7 +507,8 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("allocation");
+  const [activeTab, setActiveTab] = useState("allowance");
+  const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
 
   const {
     register,
@@ -561,16 +603,14 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   ];
 
   // Define tabs based on batch mode
-  const tabs: TabItem[] = useMemo(() => {
-    const commonProps = { register, setValue, watch, control, errors };
+  const commonTabProps: TabProps = { register, setValue, watch, control, errors };
 
-    if (batchMode) {
-      // Batch mode: only show allocation, serial no, and warranty tabs
-      return [
+  const tabs: TabItem[] = batchMode
+    ? [
         {
           label: "Allocation",
           value: "allocation",
-          content: <AllocationTab {...commonProps} />,
+          content: <AllocationTab {...commonTabProps} />,
         },
         {
           label: "Serial No",
@@ -588,31 +628,36 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         {
           label: "Warranty",
           value: "warranty",
-          content: <WarrantyTab {...commonProps} />,
+          content: <WarrantyTab {...commonTabProps} />,
         },
-      ];
-    } else {
-      // Normal mode: show all tabs
-      return [
+      ]
+    : [
         {
           label: "Allowance",
           value: "allowance",
-          content: <AllowanceTab {...commonProps} />,
+          content: <AllowanceTab {...commonTabProps} />,
         },
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonProps} />,
+          content: <HirePurchaseTab {...commonTabProps} />,
         },
         {
           label: "Depreciation",
           value: "depreciation",
-          content: <DepreciationTab {...commonProps} />,
+          content: (
+            <DepreciationTab
+              control={control}
+              watch={watch}
+              setValue={setValue}
+              onScheduleStateChange={setDepreciationScheduleView}
+            />
+          ),
         },
         {
           label: "Allocation",
           value: "allocation",
-          content: <AllocationTab {...commonProps} />,
+          content: <AllocationTab {...commonTabProps} />,
         },
         {
           label: "Serial No",
@@ -630,11 +675,9 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         {
           label: "Warranty",
           value: "warranty",
-          content: <WarrantyTab {...commonProps} />,
+          content: <WarrantyTab {...commonTabProps} />,
         },
       ];
-    }
-  }, [batchMode, register, setValue, watch, control, errors, quantity, quantityPerUnit, memoizedSerialNumbers, handleSerialNumbersChange]);
 
   return (
     <div className="bg-surface min-h-screen">
@@ -677,7 +720,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         </div>
 
         {/* Split into left and right */}
-        <div className="flex flex-row gap-6 items-stretch px-6 pb-20">
+        <div className="flex flex-row gap-6 items-stretch px-6 pb-10">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
             <form ref={formRef} onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} action="" className="space-y-6">
@@ -935,10 +978,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
           {/* Right: Reserved section - Only show when Depreciation tab is active */}
           {activeTab === "depreciation" && (
             <div className="flex-1 max-w-md">
-              <Card className="p-6 sticky top-24 shadow-md">
-                <h3 className="title-small text-onSurface mb-2">Depreciation Schedule</h3>
-                <p className="body-medium text-onSurfaceVariant">Work in Progress</p>
-              </Card>
+              <DepreciationSchedulePanel view={depreciationScheduleView} />
             </div>
           )}
         </div>

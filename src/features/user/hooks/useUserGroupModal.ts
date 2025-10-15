@@ -7,8 +7,8 @@ import type { UserGroup } from '@/types/user-group';
 
 export function useUserGroupModal(
   editingGroup: UserGroup | null,
+  onOpenChange: (open: boolean) => void,
   onSave: (groupData: UserGroup, onSuccess?:() => void) => void,
-  handleCancel: () => void
 ) {
 
   const { groups } = useUserContext();
@@ -55,6 +55,10 @@ export function useUserGroupModal(
     e.preventDefault();
     void handleSubmit();
   };
+
+  const handleCancel = () => {
+    onOpenChange(false);
+  }
 
   return {
     form,

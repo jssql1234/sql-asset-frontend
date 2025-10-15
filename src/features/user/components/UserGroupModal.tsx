@@ -1,4 +1,3 @@
-// src/features/user/components/UserGroupModal.tsx
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/DialogExtended';
 import { Button } from '@/components/ui/components';
@@ -23,8 +22,8 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
   
   const { form, handleFormSubmit, handleCancel } = useUserGroupModal(
     editingGroup,
-    onSave,
-    () => { onOpenChange(false) }
+    onOpenChange,
+    onSave
   );
 
   const { register, formState: { errors } } = form;

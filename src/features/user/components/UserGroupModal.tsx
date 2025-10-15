@@ -1,6 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from '@/components/ui/components';
-import { Input, TextArea } from '@/components/ui/components/Input';
+import React, { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+// import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/Dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/DialogExtended';
+import { Button } from '@/components/ui/components';
+import { Input } from '@/components/ui/components/Input';
+import { TextArea } from '@/components/ui/components/Input';
+import { userGroupFormSchema, type UserGroupFormData } from '../zod/userGroupForm';
+import { useUserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 
 interface UserGroupModalProps {
@@ -16,125 +23,137 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
   editingGroup,
   onSave,
 }) => {
-  const [formData, setFormData] = useState({
-    id: '',
-    name: '',
-    description: '',
-    defaultPermissions: {},
+  const { groups } = useUserContext();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors },
+  } = useForm<UserGroupFormData>({
+    resolver: zodResolver(userGroupFormSchema),
+    defaultValues: {
+      id: '',
+      name: '',
+      description: '',
+    },
   });
-
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (editingGroup) {
-      setFormData(() => ({
+      reset({
         id: editingGroup.id,
         name: editingGroup.name,
         description: editingGroup.description,
-        defaultPermissions: editingGroup.defaultPermissions,
-      }));
+      });
     } else {
-      setFormData(() => ({
+      reset({
         id: '',
         name: '',
         description: '',
-        defaultPermissions: {},
-      }));
+      });
     }
-    setErrors(() => ({}));
-  }, [editingGroup, open]);
+  }, [editingGroup, reset]);
 
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.id.trim()) {
-      newErrors.id = 'Group ID is required';
+  const onSubmit = (data: UserGroupFormData) => {
+    // Check for duplicate ID when creating new group
+    if (!editingGroup) {
+      const isDuplicateId = groups.some(g => g.id === data.id);
+      if (isDuplicateId) {
+        setError('id', {
+          type: 'manual',
+          message: 'Group ID already exists. Please choose a different ID.',
+        });
+        return;
+      }
     }
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Group name is required';
-    }
+    const groupData: UserGroup = {
+      id: editingGroup?.id ?? data.id,
+      name: data.name,
+      description: data.description ?? "",
+      defaultPermissions: editingGroup?.defaultPermissions ?? {},
+    };
 
-    setErrors(() => newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSave = () => {
-    if (!validateForm()) return;
-
-    onSave({
-      id: formData.id.trim(),
-      name: formData.name.trim(),
-      description: formData.description.trim(),
-      defaultPermissions: formData.defaultPermissions,
-    });
+    onSave(groupData);
   };
 
   const handleCancel = () => {
     onOpenChange(false);
   };
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void handleSubmit(onSubmit)();
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-xl">
-        <DialogHeader>
-          <DialogTitle>
-            {editingGroup ? 'Edit User Group' : 'Add User Group'}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-xl max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingGroup ? 'Edit User Group' : 'Create User Group'}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Group ID *
-            </label>
-            <Input
-              value={formData.id}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData(prev => ({ ...prev, id: e.target.value }))}}
-              placeholder="Enter group ID"
-              disabled={!!editingGroup} // Can't change ID when editing any group
-            />
-            {errors.id && (
-              <p className="text-sm text-error mt-1">{errors.id}</p>
-            )}
-          </div>
+          <form onSubmit={handleFormSubmit} className="space-y-4 py-4">
+            <div className="grid grid-cols-1 gap-4">
+              {/* Group ID */}
+              {!editingGroup && (
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Group ID *
+                  </label>
+                  <Input
+                    {...register('id')}
+                    placeholder="Enter group ID (e.g., managers, developers)"
+                  />
+                  {errors.id && (
+                    <p className="text-sm text-error mt-1">{errors.id.message}</p>
+                  )}
+                </div>
+              )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Group Name *
-            </label>
-            <Input
-              value={formData.name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {setFormData(prev => ({ ...prev, name: e.target.value }))}}
-              placeholder="Enter group name"
-            />
-            {errors.name && (
-              <p className="text-sm text-error mt-1">{errors.name}</p>
-            )}
-          </div>
+              {/* Group Name */}
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Group Name *
+                </label>
+                <Input
+                  {...register('name')}
+                  placeholder="Enter group name"
+                />
+                {errors.name && (
+                  <p className="text-sm text-error mt-1">{errors.name.message}</p>
+                )}
+              </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
-            <TextArea
-              value={formData.description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {setFormData(prev => ({ ...prev, description: e.target.value }))}}
-              placeholder="Enter group description"
-              rows={3}
-            />
-          </div>
-        </div>
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Description
+                </label>
+                <TextArea
+                  {...register('description')}
+                  placeholder="Enter group description"
+                  rows={3}
+                />
+                {errors.description && (
+                  <p className="text-sm text-error mt-1">{errors.description.message}</p>
+                )}
+              </div>
+            </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={handleCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>
-            {editingGroup ? 'Update' : 'Create'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {editingGroup ? 'Update' : 'Create'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  };

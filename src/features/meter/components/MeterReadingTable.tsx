@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import DeleteConfirmationDialog from "../../work-request/components/DeleteConfirmationDialog";
 import { Delete } from "@/assets/icons";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, GroupingState, ExpandedState } from "@tanstack/react-table";
 import type { MeterReading, MeterGroup, Meter } from "@/types/meter";
 
 interface MeterReadingHistoryTableProps {
@@ -38,6 +38,8 @@ export const MeterReadingHistoryTable = ({
 }: MeterReadingHistoryTableProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [readingToDelete, setReadingToDelete] = useState<MeterReading | null>(null);
+  const [grouping, setGrouping] = useState<GroupingState>(["meter"]);
+  const [expanded, setExpanded] = useState<ExpandedState>(true);
 
   const handleDeleteClick = (reading: MeterReading) => {
     setReadingToDelete(reading);
@@ -51,11 +53,13 @@ export const MeterReadingHistoryTable = ({
       setReadingToDelete(null);
     }
   };
+
   const readingColumns = useMemo<ColumnDef<MeterReading>[]>(
     () => [
       {
         id: "timestamp",
         header: "DateTime",
+        accessorFn: (row) => row.recordedAt,
         cell: ({ row }) => (
           <div className="flex flex-col text-sm">
             <span className="font-semibold text-onSurface">
@@ -70,77 +74,133 @@ export const MeterReadingHistoryTable = ({
       {
         id: "meter",
         header: "Meter",
-        cell: ({ row }) => (
-          <div className="flex flex-col text-sm text-onSurface">
-            <span className="font-medium">
-              {row.original.uom}
-            </span>
-          </div>
-        ),
+        accessorKey: "uom",
+        cell: ({ row, getValue }) => {
+          if (row.getIsGrouped()) {
+            return (
+              <button
+                onClick={row.getToggleExpandedHandler()}
+                className="flex items-center gap-2 font-semibold text-onSurface hover:text-primary"
+              >
+                <span>{row.getIsExpanded() ? "▼" : "▶"}</span>
+                <span>{getValue() as string}</span>
+                <span className="text-xs text-onSurfaceVariant">
+                  ({row.subRows.length} readings)
+                </span>
+              </button>
+            );
+          }
+          return (
+            <div className="flex flex-col text-sm text-onSurface">
+              <span className="font-medium">{row.original.uom}</span>
+            </div>
+          );
+        },
+        enableGrouping: true,
       },
       {
         id: "group",
         header: "Group",
-        cell: ({ row }) => (
-          <span className="text-sm text-onSurfaceVariant">
-            {meterMetadata.get(row.original.meterId)?.group.name ?? "—"}
-          </span>
-        ),
+        accessorFn: (row) => meterMetadata.get(row.meterId)?.group.name ?? "—",
+        cell: ({ row, getValue }) => {
+          if (row.getIsGrouped()) return null;
+          return (
+            <span className="text-sm text-onSurfaceVariant">
+              {getValue() as string}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "value",
         header: "Reading",
-        cell: ({ row }) => (
-          <span className="text-sm font-semibold text-onSurface">
-            {row.original.value}
-          </span>
-        ),
+        cell: ({ row, getValue }) => {
+          if (row.getIsGrouped()) return null;
+          return (
+            <span className="text-sm font-semibold text-onSurface">
+              {getValue() as number}
+            </span>
+          );
+        },
+        aggregationFn: "count",
       },
       {
         id: "user",
         header: "Recorded by",
-        cell: ({ row }) => (
-          <span className="text-sm text-onSurfaceVariant">
-            {row.original.recordedBy}
-          </span>
-        ),
+        accessorKey: "recordedBy",
+        cell: ({ row, getValue }) => {
+          if (row.getIsGrouped()) return null;
+          return (
+            <span className="text-sm text-onSurfaceVariant">
+              {getValue() as string}
+            </span>
+          );
+        },
       },
       {
         id: "notes",
         header: "Notes",
-        cell: ({ row }) => (
-          <span className="text-sm text-onSurfaceVariant">
-            {row.original.notes ?? "—"}
-          </span>
-        ),
+        accessorKey: "notes",
+        cell: ({ row, getValue }) => {
+          if (row.getIsGrouped()) return null;
+          return (
+            <span className="text-sm text-onSurfaceVariant">
+              {(getValue() as string) ?? "—"}
+            </span>
+          );
+        },
       },
       {
         id: "actions",
         header: "Actions",
-        cell: ({ row }) => (
-          <div className="flex">
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => handleDeleteClick(row.original)}
-            >
-              <Delete></Delete>
-            </Button>
-          </div>
-        ),
+        cell: ({ row }) => {
+          if (row.getIsGrouped()) return null;
+          return (
+            <div className="flex">
+              <Button
+                size="sm"
+                variant="destructive"
+                onClick={() => handleDeleteClick(row.original)}
+              >
+                <Delete></Delete>
+              </Button>
+            </div>
+          );
+        },
       },
     ],
-    [meterMetadata, onDeleteReading]
+    [meterMetadata]
   );
 
   return (
     <>
-      <DataTableExtended
-        data={readings}
-        columns={readingColumns}
-        showCheckbox={false}
-        showPagination={true}
-      />
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <label className="flex items-center gap-2 text-sm text-onSurface">
+            <input
+              type="checkbox"
+              checked={grouping.includes("meter")}
+              onChange={(e) => {
+                setGrouping(e.target.checked ? ["meter"] : []);
+              }}
+              className="rounded border-outline"
+            />
+            Group by Meter
+          </label>
+        </div>
+
+        <DataTableExtended
+          data={readings}
+          columns={readingColumns}
+          showCheckbox={false}
+          showPagination={true}
+          enableGrouping={true}
+          grouping={grouping}
+          onGroupingChange={setGrouping}
+          expanded={expanded}
+          onExpandedChange={setExpanded}
+        />
+      </div>
 
       <DeleteConfirmationDialog
         isOpen={deleteDialogOpen}

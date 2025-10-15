@@ -11,7 +11,7 @@ import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
 import PermissionGuard from "@/components/PermissionGuard";
-import { useNavigate, useLocation } from "react-router-dom";
+ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Delete, Edit, Plus } from "@/assets/icons";
 
 
@@ -193,9 +193,11 @@ export default function AssetContentArea() {
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const params = useParams();
   const { data: assets, isLoading: assetsLoading } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => {
     setView('list');
+    setEditingAsset(null);
     void navigate('/asset');
   });
 
@@ -205,14 +207,28 @@ export default function AssetContentArea() {
     void navigate('/asset');
   });
 
-  // Sync view state with URL
-  useEffect(() => {
-    if (location.pathname === '/asset/create-asset') {
-      setView('create');
-    } else if (location.pathname === '/asset') {
-      setView('list');
-    }
-  }, [location.pathname, setView]);
+   // Sync view state with URL
+   useEffect(() => {
+     if (location.pathname === '/asset/create-asset') {
+       setView('create');
+       setEditingAsset(null);
+     } else if (location.pathname.startsWith('/asset/edit-asset/')) {
+       const assetId = params.id;
+       if (assetId && assets) {
+         const asset = assets.find(a => a.id === assetId);
+         if (asset) {
+           setEditingAsset(asset);
+           setView('edit');
+         } else {
+           // Asset not found, redirect to list
+           void navigate('/asset');
+         }
+       }
+     } else if (location.pathname === '/asset') {
+       setView('list');
+       setEditingAsset(null);
+     }
+   }, [location.pathname, params.id, assets, navigate]);
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
@@ -356,20 +372,19 @@ export default function AssetContentArea() {
                          return;
                        }
 
-                       if (selectedAssetIds.length === 1 && assets && assets.length > 0) {
-                         const asset = assets.find(a => a.id === selectedAssetIds[0]);
+                        if (selectedAssetIds.length === 1 && assets && assets.length > 0) {
+                          const asset = assets.find(a => a.id === selectedAssetIds[0]);
 
-                         if (asset) {
-                           setEditingAsset(asset);
-                           setView('edit');
-                         }
-                       }
+                          if (asset) {
+                            void navigate(`/asset/edit-asset/${asset.id}`);
+                          }
+                        }
                      }}
                      disabled={selectedAssetIds.length !== 1 || assetsLoading}
                    >
                      <Edit className="h-4 w-4" />Edit
                    </Button>
-                   <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete</Button>
+                   <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete Selected</Button>
                    <Button variant="destructive" size="sm" onClick={() => {
                      void navigate('/disposal');
                    }}>Dispose</Button>
@@ -393,10 +408,11 @@ export default function AssetContentArea() {
       ) : view === 'create' ? (
         <AssetForm
           editingAsset={null}
-          onBack={() => {
-            setView('list');
-            void navigate('/asset');
-          }}
+           onBack={() => {
+             setView('list');
+             setEditingAsset(null);
+             void navigate('/asset');
+           }}
           onSuccess={(data) => {
             const asset: Asset = {
               id: data.code,

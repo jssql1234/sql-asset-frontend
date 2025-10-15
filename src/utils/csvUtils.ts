@@ -1,5 +1,3 @@
-import type { User } from '@/types/user';
-
 // Generic CSV row interface
 export type CSVRow = Record<string, string>;
 
@@ -10,49 +8,6 @@ export interface CSVConfig<T> {
   transformFromRow: (row: CSVRow) => { data: T; errors: string[] };
   filename: string;
 }
-
-// User CSV configuration
-export const userCSVConfig: CSVConfig<User> = {
-  headers: ['Name', 'Email', 'Phone', 'Position', 'Department', 'Location', 'User Group'],
-  filename: 'users.csv',
-  transformToRow: (user: User): CSVRow => ({
-    Name: user.name,
-    Email: user.email,
-    Phone: user.phone ?? '',
-    Position: user.position ?? '',
-    Department: user.department ?? '',
-    Location: user.location ?? '',
-    'User Group': user.groupId
-  }),
-  transformFromRow: (row: CSVRow) => {
-    const errors: string[] = [];
-
-    const name = row.Name.trim();
-    const email = row.Email.trim();
-    const phone = row.Phone.trim();
-    const position = row.Position.trim();
-    const department = row.Department.trim();
-    const location = row.Location.trim();
-    const groupId = row['User Group'].trim();
-
-    if (!name) errors.push('Name is required');
-    if (!email) errors.push('Email is required');
-    if (!groupId) errors.push('User Group is required');
-
-    const data: User = {
-      id: `user_${String(Date.now())}_${String(Math.random())}`, // Generate unique ID
-      name,
-      email,
-      phone: phone || undefined,
-      position: position || undefined,
-      department: department || undefined,
-      location: location || undefined,
-      groupId
-    };
-
-    return { data, errors };
-  }
-};
 
 // Generic CSV service functions
 export function exportToCSV<T>(items: T[], config: CSVConfig<T>): void {

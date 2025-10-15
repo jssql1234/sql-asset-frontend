@@ -106,7 +106,7 @@ export const useMaintainUserGroup = () => {
 
   const handleConfirmDelete = () => {
     if (groupToDelete) {
-      handleDeleteGroup(groupToDelete.id);
+      handleDeleteGroup(groupToDelete);
       setDeleteDialogOpen(() => false);
       setGroupToDelete(() => null);
     }
@@ -117,13 +117,13 @@ export const useMaintainUserGroup = () => {
     setGroupToDelete(() => null);
   };
 
-  const handleDeleteGroup = useCallback((groupId: string) => {
-    const { success } = deleteGroup(groupId);
+  const handleDeleteGroup = useCallback((group: UserGroup) => {
+    const { success } = deleteGroup(group.id);
     if (success) {
       addToast({
         variant: 'success',
         title: 'Success',
-        description: 'Group deleted successfully',
+        description: `Group "${group.name}" deleted successfully.`,
       });
     } else {
       addToast({

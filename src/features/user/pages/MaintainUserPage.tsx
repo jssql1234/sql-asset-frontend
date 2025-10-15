@@ -7,6 +7,7 @@ import TabHeader from '@/components/TabHeader';
 import { ExportFile, Upload } from '@/assets/icons';
 import { useMaintainUser } from '../hooks/useMaintainUser';
 import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
+import DeleteUserConfirmationDialog from '../components/DeleteUserConfirmationDialog';
 
 const MaintainUserPage: React.FC = () => {
   
@@ -16,11 +17,15 @@ const MaintainUserPage: React.FC = () => {
     fileInputRef,
     isModalOpen,
     editingUser,
+    deleteDialogOpen,
+    userToDelete,
     handleAddUser,
     handleEditUser,
     handleSaveUser,
-    handleDeleteUser,
     handleCloseModal,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleCancelDelete,
     handleExportCSV,
     handleImportCSV,
     handleFileChange,
@@ -81,7 +86,7 @@ const MaintainUserPage: React.FC = () => {
             users={users}
             groups={groups.map(g => ({ id: g.id, name: g.name }))}
             onEdit={handleEditUser}
-            onDelete={handleDeleteUser}
+            onDelete={handleDeleteClick}
           />
         </div>
       </div>
@@ -94,6 +99,14 @@ const MaintainUserPage: React.FC = () => {
         onSave={handleSaveUser}
         onCreateGroup={handleAddGroup}
       />
+
+      <DeleteUserConfirmationDialog
+        isOpen={deleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        userName={userToDelete?.name ?? ''}
+      />
+
       <UserGroupModal
         open={isGroupModalOpen}
         onOpenChange={handleCloseGroupModal}

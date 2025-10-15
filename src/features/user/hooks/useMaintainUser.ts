@@ -53,6 +53,9 @@ export const useMaintainUser = () => {
 	const fileInputRef = useRef<HTMLInputElement>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 	const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  
 
   /*** Add User ***/ 
 
@@ -100,26 +103,50 @@ export const useMaintainUser = () => {
       });
 		}
 	};
-
-  /*** Delete User ***/ 
-
-	const handleDeleteUser = (user: User) => {
-		if (window.confirm('Are you sure you want to delete this user?')) {
-		deleteUser(user.id);
-		addToast({
-			variant: 'success',
-			title: 'User Deleted',
-			description: `User "${user.name}" has been deleted successfully.`,
-		});
-		}
-	};
-
+  
   /*** Close Add/Edit Modal ***/ 
   
   const handleCloseModal = () => {
     setIsModalOpen(() => false);
     setEditingUser(() => null);
   };
+
+  /*** Delete User ***/ 
+
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(() => user);
+    setDeleteDialogOpen(() => true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (userToDelete) {
+      handleDeleteUser(userToDelete);
+      setDeleteDialogOpen(() => false);
+      setUserToDelete(() => null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(() => false);
+    setUserToDelete(() => null);
+  };
+
+	const handleDeleteUser = (user: User) => {
+		const success = deleteUser(user.id);
+    if (success) {
+      addToast({
+        variant: 'success',
+        title: 'Success',
+        description: `User "${user.name}" deleted successfully.`,
+      });
+    } else {
+      addToast({
+        variant: 'error',
+        title: 'Delete Failed',
+        description: 'User delete failed',
+      });
+    }
+	};
 
   /*** CSV Import/Export ***/ 
 
@@ -198,11 +225,15 @@ export const useMaintainUser = () => {
     fileInputRef,
     isModalOpen,
     editingUser,
+    deleteDialogOpen,
+    userToDelete,
     handleAddUser,
     handleEditUser,
     handleSaveUser,
-    handleDeleteUser,
     handleCloseModal,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleCancelDelete,
     handleExportCSV,
     handleImportCSV,
     handleFileChange,

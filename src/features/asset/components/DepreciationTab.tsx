@@ -1,10 +1,10 @@
  import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { Button, Card, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, Option } from "@/components/ui/components";
+import { Card, Option } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
-import { ChevronDown } from "@/assets/icons";
+import SelectDropdown from "@/components/SelectDropdown";
 
 interface DepreciationTabProps {
   control: Control<CreateAssetFormData>;
@@ -757,40 +757,41 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
 
   const usefulLifeLabel = isMonthly ? "Useful Life (Months)" : "Useful Life (Years)";
   const rateUnit = isMonthly ? "% per month" : "% per year";
-  const frequencyDisplay = isMonthly ? "Monthly" : "Yearly";
 
   return (
     <Card className="p-6 shadow-sm space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Depreciation Method</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {method}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("depreciationMethod", "Straight Line"); }}>Straight Line</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("depreciationMethod", "Manual"); }}>Manual</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={method}
+            placeholder="Select method"
+            options={[
+              { value: "Straight Line", label: "Straight Line" },
+              { value: "Manual", label: "Manual" },
+            ]}
+            onChange={(nextValue) => {
+              setValue("depreciationMethod", nextValue);
+            }}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Frequency</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {frequencyDisplay}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-fit">
-              <DropdownMenuItem onClick={() => { setValue("depreciationFrequency", "Yearly"); }}>Yearly</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("depreciationFrequency", "Monthly"); }}>Monthly</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={frequency}
+            placeholder="Select frequency"
+            options={[
+              { value: "Yearly", label: "Yearly" },
+              { value: "Monthly", label: "Monthly" },
+            ]}
+            onChange={(nextValue) => {
+              setValue("depreciationFrequency", nextValue);
+            }}
+            matchTriggerWidth={false}
+            contentClassName="w-fit"
+          />
         </div>
       </div>
 

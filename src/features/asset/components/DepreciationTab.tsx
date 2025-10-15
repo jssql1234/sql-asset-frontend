@@ -806,18 +806,18 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
               />
             </div>
           </div>
-          <Controller
-            name="usefulLife"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                type="number"
-                min={1}
-                readOnly={!editableFlags.usefulLife}
-              />
-            )}
-          />
+           <Controller
+             name="usefulLife"
+             control={control}
+             render={({ field }) => (
+               <Input
+                 {...field}
+                 type="number"
+                 min={1}
+                 disabled={!editableFlags.usefulLife}
+               />
+             )}
+           />
         </div>
         <div>
           <div className="flex items-center justify-between">
@@ -830,22 +830,22 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
               />
             </div>
           </div>
-          <Controller
-            name="residualValue"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                inputMode="decimal"
-                readOnly={!editableFlags.residualValue}
-                value={field.value ?? ""}
-                onBlur={(event) => {
-                  const numeric = parseCurrency(event.target.value);
-                  field.onChange(formatCurrency(numeric));
-                }}
-              />
-            )}
-          />
+           <Controller
+             name="residualValue"
+             control={control}
+             render={({ field }) => (
+               <Input
+                 {...field}
+                 inputMode="decimal"
+                 disabled={!editableFlags.residualValue}
+                 value={field.value ?? ""}
+                 onBlur={(event) => {
+                   const numeric = parseCurrency(event.target.value);
+                   field.onChange(formatCurrency(numeric));
+                 }}
+               />
+             )}
+           />
         </div>
       </div>
 
@@ -862,18 +862,18 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Controller
-              name="depreciationRate"
-              control={control}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  inputMode="decimal"
-                  readOnly={!editableFlags.depreciationRate}
-                  value={field.value ?? ""}
-                />
-              )}
-            />
+             <Controller
+               name="depreciationRate"
+               control={control}
+               render={({ field }) => (
+                 <Input
+                   {...field}
+                   inputMode="decimal"
+                   disabled={!editableFlags.depreciationRate}
+                   value={field.value ?? ""}
+                 />
+               )}
+             />
             <span className="body-small text-onSurfaceVariant whitespace-nowrap">{rateUnit}</span>
           </div>
         </div>
@@ -888,22 +888,22 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
               />
             </div>
           </div>
-          <Controller
-            name="totalDepreciation"
-            control={control}
-            render={({ field }) => (
-              <Input
-                {...field}
-                inputMode="decimal"
-                readOnly={!editableFlags.totalDepreciation}
-                value={field.value ?? ""}
-                onBlur={(event) => {
-                  const numeric = parseCurrency(event.target.value);
-                  field.onChange(formatCurrency(numeric));
-                }}
-              />
-            )}
-          />
+           <Controller
+             name="totalDepreciation"
+             control={control}
+             render={({ field }) => (
+               <Input
+                 {...field}
+                 inputMode="decimal"
+                 disabled={!editableFlags.totalDepreciation}
+                 value={field.value ?? ""}
+                 onBlur={(event) => {
+                   const numeric = parseCurrency(event.target.value);
+                   field.onChange(formatCurrency(numeric));
+                 }}
+               />
+             )}
+           />
         </div>
       </div>
     </Card>

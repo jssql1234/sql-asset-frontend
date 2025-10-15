@@ -1,82 +1,37 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { UserTable } from '../components/UserTable';
+import { UserModal } from '../components/UserModal';
+import { UserGroupModal } from '../components/UserGroupModal';
 import TabHeader from '@/components/TabHeader';
 import { ExportFile, Upload } from '@/assets/icons';
-import { useUserContext } from '@/context/UserContext';
-import { useToast } from '@/components/ui/components/Toast/useToast';
-import type { User } from '@/types/user';
+import { useMaintainUser } from '../hooks/useMaintainUser';
+import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 
 const MaintainUserPage: React.FC = () => {
-  const { users, groups, deleteUser } = useUserContext();
-  const { addToast } = useToast();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const {
+    users,
+    groups,
+    fileInputRef,
+    isModalOpen,
+    editingUser,
+    handleAddUser,
+    handleEditUser,
+    handleSaveUser,
+    handleDeleteUser,
+    handleCloseModal,
+    handleExportCSV,
+    handleImportCSV,
+    handleFileChange,
+  } = useMaintainUser();
 
-  const handleAddUser = () => {
-    // TODO: Implement add user modal
-    addToast({
-      variant: 'info',
-      title: 'Add User',
-      description: 'Add user functionality will be implemented in Phase 2.',
-    });
-  };
-
-  const handleEditUser = (user: User) => {
-    // TODO: Implement edit user modal
-    addToast({
-      variant: 'info',
-      title: 'Edit User',
-      description: `Edit functionality for "${user.name}" will be implemented in Phase 2.`,
-    });
-  };
-
-  const handleDeleteUser = (user: User) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      deleteUser(user.id);
-      addToast({
-        variant: 'success',
-        title: 'User Deleted',
-        description: `User "${user.name}" has been deleted successfully.`,
-      });
-    }
-  };
-
-  const handleExportCSV = () => {
-    // TODO: Implement CSV export
-    addToast({
-      variant: 'info',
-      title: 'Export Feature',
-      description: 'CSV export functionality will be implemented in Phase 2.',
-    });
-  };
-
-  const handleImportCSV = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      addToast({
-        variant: 'error',
-        title: 'Invalid File',
-        description: 'Please select a CSV file',
-      });
-      return;
-    }
-
-    // TODO: Implement CSV import
-    addToast({
-      variant: 'info',
-      title: 'Import Feature',
-      description: 'CSV import functionality will be implemented in Phase 2.',
-    });
-
-    // Clear the input
-    event.target.value = '';
-  };
+  const {
+    isModalOpen: isGroupModalOpen,
+    handleAddGroup,
+    handleCloseModal: handleCloseGroupModal,
+    handleSaveGroup,
+  } = useMaintainUserGroup();
 
   return (
     <SidebarHeader
@@ -130,6 +85,22 @@ const MaintainUserPage: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Modals */}
+      <UserModal
+        open={isModalOpen}
+        onOpenChange={handleCloseModal}
+        editingUser={editingUser}
+        onSave={handleSaveUser}
+        onCreateGroup={handleAddGroup}
+      />
+      <UserGroupModal
+        open={isGroupModalOpen}
+        onOpenChange={handleCloseGroupModal}
+        editingGroup={null}
+        onSave={handleSaveGroup}
+      />
+
     </SidebarHeader>
   );
 };

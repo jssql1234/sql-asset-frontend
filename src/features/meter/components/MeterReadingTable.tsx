@@ -78,16 +78,13 @@ export const MeterReadingHistoryTable = ({
         cell: ({ row, getValue }) => {
           if (row.getIsGrouped()) {
             return (
-              <button
-                onClick={row.getToggleExpandedHandler()}
-                className="flex items-center gap-2 font-semibold text-onSurface hover:text-primary"
-              >
+              <div className="flex items-center gap-2 font-semibold text-onSurface hover:text-primary py-2 px-1 rounded">
                 <span>{row.getIsExpanded() ? "▼" : "▶"}</span>
                 <span>{getValue() as string}</span>
                 <span className="text-xs text-onSurfaceVariant">
                   ({row.subRows.length} readings)
                 </span>
-              </button>
+              </div>
             );
           }
           return (

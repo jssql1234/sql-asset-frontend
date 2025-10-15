@@ -1,25 +1,72 @@
-import type { UserGroup } from '@/types/user-group';
+import type { User } from '@/types/user';
 
-export interface CSVRow {
-  ID: string;
-  Name: string;
-  Description: string;
+// Generic CSV row interface
+export type CSVRow = Record<string, string>;
+
+// Configuration for different data types
+export interface CSVConfig<T> {
+  headers: string[];
+  transformToRow: (item: T) => CSVRow;
+  transformFromRow: (row: CSVRow) => { data: T; errors: string[] };
+  filename: string;
 }
 
-export function exportToCSV(groups: UserGroup[]): void {
-  const csvData: CSVRow[] = groups.map(group => ({
-    ID: group.id,
-    Name: group.name,
-    Description: group.description || ''
-  }));
+// User CSV configuration
+export const userCSVConfig: CSVConfig<User> = {
+  headers: ['Name', 'Email', 'Phone', 'Position', 'Department', 'Location', 'User Group'],
+  filename: 'users.csv',
+  transformToRow: (user: User): CSVRow => ({
+    Name: user.name,
+    Email: user.email,
+    Phone: user.phone ?? '',
+    Position: user.position ?? '',
+    Department: user.department ?? '',
+    Location: user.location ?? '',
+    'User Group': user.groupId
+  }),
+  transformFromRow: (row: CSVRow) => {
+    const errors: string[] = [];
 
+    const name = row.Name.trim();
+    const email = row.Email.trim();
+    const phone = row.Phone.trim();
+    const position = row.Position.trim();
+    const department = row.Department.trim();
+    const location = row.Location.trim();
+    const groupId = row['User Group'].trim();
+
+    if (!name) errors.push('Name is required');
+    if (!email) errors.push('Email is required');
+    if (!groupId) errors.push('User Group is required');
+
+    const data: User = {
+      id: `user_${String(Date.now())}_${String(Math.random())}`, // Generate unique ID
+      name,
+      email,
+      phone: phone || undefined,
+      position: position || undefined,
+      department: department || undefined,
+      location: location || undefined,
+      groupId
+    };
+
+    return { data, errors };
+  }
+};
+
+// Generic CSV service functions
+export function exportToCSV<T>(items: T[], config: CSVConfig<T>): void {
+  const csvData: CSVRow[] = items.map(config.transformToRow);
   const csvContent = convertToCSV(csvData);
-  downloadCSV(csvContent, 'user-groups.csv');
+  downloadCSV(csvContent, config.filename);
 }
 
-export function importFromCSV(csvText: string): { groups: UserGroup[]; errors: string[] } {
+export function importFromCSV<T>(
+  csvText: string,
+  config: CSVConfig<T>
+): { items: T[]; errors: string[] } {
   const errors: string[] = [];
-  const groups: UserGroup[] = [];
+  const items: T[] = [];
 
   try {
     const rows = parseCSV(csvText);
@@ -27,11 +74,11 @@ export function importFromCSV(csvText: string): { groups: UserGroup[]; errors: s
     // Validate headers
     if (rows.length === 0) {
       errors.push('CSV file is empty');
-      return { groups, errors };
+      return { items, errors };
     }
 
     const headers = rows[0];
-    const expectedHeaders = ['ID', 'Name', 'Description'];
+    const expectedHeaders = config.headers;
 
     for (const expected of expectedHeaders) {
       if (!headers.includes(expected)) {
@@ -40,51 +87,41 @@ export function importFromCSV(csvText: string): { groups: UserGroup[]; errors: s
     }
 
     if (errors.length > 0) {
-      return { groups, errors };
+      return { items, errors };
     }
 
     // Process data rows
     for (let i = 1; i < rows.length; i++) {
+      const rowData: CSVRow = {};
       const row = rows[i];
-      if (row.length !== 3) {
+
+      if (row.length !== expectedHeaders.length) {
         errors.push(`Row ${(i + 1).toString()}: Invalid number of columns`);
         continue;
       }
 
-      const [id, name, description] = row;
-
-      // Validate required fields
-      if (!id.trim()) {
-        errors.push(`Row ${(i + 1).toString()}: ID is required`);
-        continue;
-      }
-
-      if (!name.trim()) {
-        errors.push(`Row ${(i + 1).toString()}: Name is required`);
-        continue;
-      }
-
-      // Check for duplicate IDs in the import
-      if (groups.some(g => g.id === id.trim())) {
-        errors.push(`Row ${(i + 1).toString()}: Duplicate ID "${id.trim()}" in import file`);
-        continue;
-      }
-
-      // Create group with empty permissions (can be edited later)
-      groups.push({
-        id: id.trim(),
-        name: name.trim(),
-        description: description.trim() || '',
-        defaultPermissions: {} // Empty permissions for imported groups
+      // Map row values to headers
+      headers.forEach((header, index) => {
+        rowData[header] = row[index] || '';
       });
+
+      const { data, errors: rowErrors } = config.transformFromRow(rowData);
+
+      if (rowErrors.length > 0) {
+        errors.push(`Row ${(i + 1).toString()}: ${rowErrors.join(', ')}`);
+        continue;
+      }
+
+      items.push(data);
     }
   } catch (error) {
     errors.push(`Failed to parse CSV: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 
-  return { groups, errors };
+  return { items, errors };
 }
 
+// Utility functions
 function convertToCSV(data: CSVRow[]): string {
   if (data.length === 0) return '';
 
@@ -93,7 +130,7 @@ function convertToCSV(data: CSVRow[]): string {
 
   for (const row of data) {
     const values = headers.map(header => {
-      const value = row[header as keyof CSVRow];
+      const value = row[header];
       // Escape commas and quotes in CSV
       if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
         return `"${value.replace(/"/g, '""')}"`;

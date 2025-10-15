@@ -3,29 +3,33 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "./Dialog";
 import { Button } from "@/components/ui/components";
 import { useToast } from "@/components/ui/components/Toast/useToast";
-import CreateAsset from "./CreateAsset";
+import AssetForm from "./AssetForm";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
+import type { Asset } from "@/types/asset";
 
-interface CreateAssetModalProps {
+interface AssetFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  editingAsset?: Asset | null;
 }
 
-interface CreateAssetRef {
+interface AssetFormRef {
   submit: () => void;
 }
 
-export default function CreateAssetModal({ open, onOpenChange }: CreateAssetModalProps) {
+export default function AssetFormModal({ open, onOpenChange, editingAsset }: AssetFormModalProps) {
   const { addToast } = useToast();
-  const createAssetRef = useRef<CreateAssetRef>(null);
+  const assetFormRef = useRef<AssetFormRef>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isEditMode = Boolean(editingAsset);
 
   const handleSuccess = (data: CreateAssetFormData) => {
     addToast({
       variant: "success",
-      title: "Asset Created",
-      description: `Asset "${data.assetName}" has been created successfully.`,
+      title: isEditMode ? "Asset Updated" : "Asset Created",
+      description: `Asset "${data.assetName}" has been ${isEditMode ? "updated" : "created"} successfully.`,
       duration: 5000,
     });
     onOpenChange(false);
@@ -37,7 +41,7 @@ export default function CreateAssetModal({ open, onOpenChange }: CreateAssetModa
     setTimeout(() => {
       addToast({
         variant: "success",
-        title: "Asset Created (Fake)",
+        title: isEditMode ? "Asset Updated (Fake)" : "Asset Created (Fake)",
         description: "This is a fake submission for testing purposes.",
         duration: 5000,
       });
@@ -50,19 +54,26 @@ export default function CreateAssetModal({ open, onOpenChange }: CreateAssetModa
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="min-w-4xl max-h-[90vh] overflow-y-auto flex flex-col bg-onPrimary py-0" dialogClose={false}>
         <DialogHeader className="sticky z-99 top-0 flex flex-row items-center bg-onPrimary py-6 mb-4 border-b border-outline">
-          <DialogTitle className="title-medium text-onSurface m-0">Create Asset</DialogTitle>
+          <DialogTitle className="title-medium text-onSurface m-0">
+            {isEditMode ? "Edit Asset" : "Create Asset"}
+          </DialogTitle>
           <DialogClose className="static"/>
         </DialogHeader>
 
         <div className="flex-grow">
-          <CreateAsset ref={createAssetRef} onSuccess={handleSuccess} />
+          <AssetForm ref={assetFormRef} editingAsset={editingAsset} onSuccess={handleSuccess} />
         </div>
 
         <div className="sticky bottom-0 bg-onPrimary p-4 flex gap-6 justify-end border-t border-outline">
-          <Button onClick={handleFakeSubmit} disabled={isSubmitting} className="bg-warning text-onWarning rounded-md hover:bg-warning/80">{isSubmitting ? "Creating..." : "Fake Submit (Test)"}</Button>
-          <Button onClick={() => createAssetRef.current?.submit()}>Create Asset</Button>
+          <Button onClick={handleFakeSubmit} disabled={isSubmitting} className="bg-warning text-onWarning rounded-md hover:bg-warning/80">
+            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
+          </Button>
+          <Button onClick={() => assetFormRef.current?.submit()}>
+            {isEditMode ? "Update Asset" : "Create Asset"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
+

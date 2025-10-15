@@ -4,7 +4,7 @@ import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
-import CreateAsset from "./CreateAsset";
+import AssetForm from "./AssetForm";
 import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset, useUpdateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
@@ -391,7 +391,8 @@ export default function AssetContentArea() {
         </Card>
         </div>
       ) : view === 'create' ? (
-        <CreateAsset
+        <AssetForm
+          editingAsset={null}
           onBack={() => {
             setView('list');
             void navigate('/asset');
@@ -413,52 +414,8 @@ export default function AssetContentArea() {
           }}
         />
       ) : (
-        <CreateAsset
-          title="Edit Asset"
-          initialData={editingAsset ? {
-            code: editingAsset.id,
-            batchID: editingAsset.batchId,
-            assetName: editingAsset.name,
-            assetGroup: editingAsset.group,
-            description: editingAsset.description,
-            acquireDate: editingAsset.acquireDate,
-            purchaseDate: editingAsset.purchaseDate,
-            cost: editingAsset.cost.toString(),
-            quantity: editingAsset.qty || 1,
-            quantityPerUnit: 1,
-            inactive: !editingAsset.active,
-            // Add defaults for other required fields
-            depreciationMethod: "Straight Line",
-            depreciationFrequency: "Yearly",
-            usefulLife: 10,
-            aca: false,
-            extraCheckbox: false,
-            extraCommercial: false,
-            extraNewVehicle: false,
-            serialNumbers: [],
-            // Optional fields with defaults
-            caAssetGroup: "",
-            allowanceClass: "",
-            subClass: "",
-            iaRate: "",
-            aaRate: "",
-            qeValue: "",
-            residualExpenditure: "",
-            branch: "",
-            department: "",
-            location: "",
-            personInCharge: "",
-            allocationNotes: "",
-            hpCheck: false,
-            hpStartDate: "",
-            hpInstalment: "",
-            hpDeposit: "",
-            hpFinance: "",
-            warrantyProvider: "",
-            warrantyStartDate: "",
-            warrantyEndDate: "",
-            warrantyNotes: "",
-          } : undefined}
+        <AssetForm
+          editingAsset={editingAsset}
           onBack={() => {
             setView('list');
             setEditingAsset(null);

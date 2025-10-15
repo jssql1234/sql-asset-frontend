@@ -22,6 +22,7 @@ import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
 import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
+import type { Asset } from "@/types/asset";
 
 interface SerialNumberData {
   serial: string;
@@ -36,14 +37,13 @@ interface TabProps {
   errors?: FieldErrors<CreateAssetFormData>;
 }
 
-interface CreateAssetProps {
+interface AssetFormProps {
   onSuccess?: (data: CreateAssetFormData) => void;
   onBack?: () => void;
-  initialData?: Partial<CreateAssetFormData>;
-  title?: string;
+  editingAsset?: Asset | null;
 }
 
-interface CreateAssetRef {
+interface AssetFormRef {
   submit: () => void;
 }
 
@@ -79,7 +79,7 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
           <h3 className="title-small text-onSurface">Depreciation Schedule</h3>
           <p className="body-small text-onSurfaceVariant">
             {state.isManual ? "Manual schedule" : "Straight line schedule"}
-            {state.floorApplied && !state.isEditing ? " \u00b7 floor rounded" : ""}
+            {state.floorApplied && !state.isEditing ? " · floor rounded" : ""}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -504,13 +504,34 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
   );
 };
 
-const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObject<CreateAssetRef | null> }) => {
-  const { onSuccess, onBack, initialData, title = "Create Asset" } = props;
+const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
+  const { onSuccess, onBack, editingAsset } = props;
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("allowance");
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
+
+  const defaultValues: CreateAssetFormData = useMemo(() => ({
+    inactive: false,
+    quantity: 1,
+    quantityPerUnit: 1,
+    depreciationMethod: "Straight Line",
+    depreciationFrequency: "Yearly",
+    usefulLife: 10,
+    aca: false,
+    extraCheckbox: false,
+    extraCommercial: false,
+    extraNewVehicle: false,
+    serialNumbers: [],
+    code: "",
+    assetName: "",
+    assetGroup: "",
+    cost: "",
+    description: "",
+    purchaseDate: "",
+    acquireDate: "",
+  }), []);
 
   const {
     register,
@@ -522,33 +543,42 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     formState: { errors },
   } = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetFormSchema),
-    defaultValues: {
-      inactive: false,
-      quantity: 1,
-      quantityPerUnit: 1,
-      depreciationMethod: "Straight Line",
-      depreciationFrequency: "Yearly",
-      usefulLife: 10,
-      aca: false,
-      extraCheckbox: false,
-      extraCommercial: false,
-      extraNewVehicle: false,
-      serialNumbers: [],
-      code: "",
-      assetName: "",
-      assetGroup: "",
-      cost: "",
-      description: "",
-      purchaseDate: "",
-      acquireDate: "",
-    },
+    defaultValues,
   });
 
+  // Populate form when editingAsset changes (following department pattern)
   useEffect(() => {
-    if (initialData) {
-      reset(initialData);
+    if (editingAsset) {
+      reset({
+        code: editingAsset.id,
+        batchID: editingAsset.batchId,
+        assetName: editingAsset.name,
+        assetGroup: editingAsset.group,
+        description: editingAsset.description,
+        acquireDate: editingAsset.acquireDate,
+        purchaseDate: editingAsset.purchaseDate,
+        cost: editingAsset.cost.toString(),
+        quantity: editingAsset.qty || 1,
+        quantityPerUnit: 1,
+        inactive: !editingAsset.active,
+        // Keep defaults for other fields
+        depreciationMethod: "Straight Line",
+        depreciationFrequency: "Yearly",
+        usefulLife: 10,
+        aca: false,
+        extraCheckbox: false,
+        extraCommercial: false,
+        extraNewVehicle: false,
+        serialNumbers: [],
+      });
+    } else {
+      reset(defaultValues);
     }
-  }, [initialData, reset]);
+  }, [editingAsset, reset, defaultValues]);
+
+  // Determine if we're in edit mode
+  const isEditMode = Boolean(editingAsset);
+  const title = isEditMode ? "Edit Asset" : "Create Asset";
 
   // Memoize the serial numbers change handler to prevent unnecessary re-renders
   const handleSerialNumbersChange = useCallback((serialNumbers: SerialNumberData[]) => {
@@ -591,7 +621,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     setTimeout(() => {
       addToast({
         variant: "success",
-        title: "Asset Created (Fake)",
+        title: isEditMode ? "Asset Updated (Fake)" : "Asset Created (Fake)",
         description: "This is a fake submission for testing purposes.",
         duration: 5000,
       });
@@ -693,7 +723,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
         {/* Header/Title */}
         <div className="flex h-full flex-col gap-6 p-2 md:p-6">
           <TabHeader title={title}
-          subtitle="Fill in the details to create a new asset."
+          subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}
           actions={[
             {
               label: "Back",
@@ -991,14 +1021,18 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
           )}
         </div>
 
-        {/* Footer (Create Asset) */}
+        {/* Footer */}
         <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg">
-          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">{isSubmitting ? "Creating..." : "Fake Submit (Test)"}</Button>
-          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>Create Asset</Button>
+          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
+            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
+          </Button>
+          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+            {isEditMode ? "Update Asset" : "Create Asset"}
+          </Button>
         </div>
       </div>
     </div>
   );
 };
 
-export default CreateAsset;
+export default AssetForm;

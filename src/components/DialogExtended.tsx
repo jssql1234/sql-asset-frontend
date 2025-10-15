@@ -61,7 +61,7 @@ import { Button } from "@/components/ui/components/Button";
 
 const DIALOG_STYLES = {
   dialogPortal: {
-    base: "fixed inset-0 flex items-center justify-center bg-scrim p-4",
+    base: "fixed inset-0 flex items-center justify-center bg-scrim p-4 z-10",
     className: "",
   },
   dialogTrigger: {
@@ -238,12 +238,11 @@ const DialogPortal: React.FC<{ children: ReactNode }> = ({
     if (existingEntry) {
       zIndex = existingEntry.zIndex;
     } else {
-      zIndex = 1000 + activeDialogs.size;
+      zIndex = activeDialogs.size;
     }
 
     // Update portal element z-index
     div.className = cn(DIALOG_STYLES.dialogPortal.base, DIALOG_STYLES.dialogPortal.className);
-    div.setAttribute("style", `z-index: ${String(zIndex)}`)
 
     // Register dialog
     activeDialogs.set(dialogId, {

@@ -1,7 +1,7 @@
 import { useDataQuery } from "@/hooks/useDataQuery";
 import type { Asset } from "@/types/asset";
 import { t } from "i18next";
-import { createAsset, fetchAssetList } from "../services/assetService";
+import { createAsset, fetchAssetList, updateAsset } from "../services/assetService";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 
@@ -17,8 +17,10 @@ export function useCreateAsset(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<unknown, Error, Asset>({
-    mutationFn: createAsset,
+  return useMutation({
+    mutationFn: async (payload: Asset) => {
+      await createAsset(payload);
+    },
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
@@ -37,6 +39,37 @@ export function useCreateAsset(onSuccess?: () => void) {
       addToast({
         variant: "error",
         title: t("asset:toast.createAssetFail"),
+      });
+    },
+  });
+}
+
+export function useUpdateAsset(onSuccess?: () => void) {
+  const queryClient = useQueryClient();
+  const { addToast } = useToast();
+
+  return useMutation({
+    mutationFn: async (payload: Asset) => {
+      await updateAsset(payload);
+    },
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["assetList"],
+      });
+      addToast({
+        variant: "success",
+        title: "Asset Updated",
+        description: "Asset has been updated successfully.",
+        duration: 5000,
+      });
+      onSuccess?.();
+    },
+
+    onError: () => {
+      addToast({
+        variant: "error",
+        title: t("asset:toast.updateAssetFail"),
       });
     },
   });

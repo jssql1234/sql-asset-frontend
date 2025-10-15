@@ -39,6 +39,8 @@ interface TabProps {
 interface CreateAssetProps {
   onSuccess?: (data: CreateAssetFormData) => void;
   onBack?: () => void;
+  initialData?: Partial<CreateAssetFormData>;
+  title?: string;
 }
 
 interface CreateAssetRef {
@@ -442,10 +444,10 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
           <label className="block text-sm font-medium text-onSurface">Warranty Provider</label>
           <Input {...register("warrantyProvider")} placeholder="Enter warranty provider" />
         </div>
-        </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div>
           <label className="block text-sm font-medium text-onSurface">Start Date</label>
           <Controller
             name="warrantyStartDate"
@@ -492,8 +494,8 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
             )}
           />
         </div>
-        </div>
-      
+      </div>
+
       <div className="mt-6">
         <label className="block text-sm font-medium text-onSurface">Notes</label>
         <TextArea {...register("warrantyNotes")} rows={3} placeholder="Additional warranty notes" />
@@ -503,7 +505,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 };
 
 const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObject<CreateAssetRef | null> }) => {
-  const { onSuccess, onBack } = props;
+  const { onSuccess, onBack, initialData, title = "Create Asset" } = props;
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -516,6 +518,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     watch,
     setValue,
     control,
+    reset,
     formState: { errors },
   } = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetFormSchema),
@@ -540,6 +543,12 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
       acquireDate: "",
     },
   });
+
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData);
+    }
+  }, [initialData, reset]);
 
   // Memoize the serial numbers change handler to prevent unnecessary re-renders
   const handleSerialNumbersChange = useCallback((serialNumbers: SerialNumberData[]) => {
@@ -572,7 +581,6 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   }));
 
   const onSubmit = (data: CreateAssetFormData): void => {
-    console.log("Form data:", data);
     // Handle form submission
     onSuccess?.(data);
   };
@@ -684,7 +692,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
       <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
         <div className="flex h-full flex-col gap-6 p-2 md:p-6">
-          <TabHeader title="Create Asset"
+          <TabHeader title={title}
           subtitle="Fill in the details to create a new asset."
           actions={[
             {

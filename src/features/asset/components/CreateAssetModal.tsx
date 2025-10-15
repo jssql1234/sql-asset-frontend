@@ -22,7 +22,6 @@ export default function CreateAssetModal({ open, onOpenChange }: CreateAssetModa
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSuccess = (data: CreateAssetFormData) => {
-    console.log("Asset created successfully:", data);
     addToast({
       variant: "success",
       title: "Asset Created",

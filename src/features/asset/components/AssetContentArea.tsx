@@ -6,7 +6,7 @@ import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
 import CreateAsset from "./CreateAsset";
 import type { Asset } from "@/types/asset";
-import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
+import { useGetAsset, useCreateAsset, useUpdateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
@@ -186,15 +186,22 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
 ];
 
 export default function AssetContentArea() {
-  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-  const [view, setView] = useState<'list' | 'create'>('list');
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
   const [groupByBatch, setGroupByBatch] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: assets } = useGetAsset();
+  const { data: assets, isLoading: assetsLoading } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => {
     setView('list');
+    void navigate('/asset');
+  });
+
+  const updateAssetMutation = useUpdateAsset(() => {
+    setView('list');
+    setEditingAsset(null);
     void navigate('/asset');
   });
 
@@ -211,9 +218,15 @@ export default function AssetContentArea() {
   const allColumns = useMemo(() => createColumns(), []);
   const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
-  // Handle row selection
-  const handleRowSelectionChange = (_rows: Asset[], rowIds: string[]) => {
-    setSelectedRowIds(rowIds);
+  // Handle row selection and maintain asset ID mapping
+  const handleRowSelectionChange = (rows: Asset[]) => {
+
+    if (assets && rows.length > 0) {
+      const assetIds = rows.map(row => row.id);
+      setSelectedAssetIds(assetIds);
+    } else {
+      setSelectedAssetIds([]);
+    }
   };
 
   // Filter assets based on search value
@@ -333,16 +346,36 @@ export default function AssetContentArea() {
                 Add
               </Button>
               </PermissionGuard>
-              {selectedRowIds.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm"><Edit className="h-4 w-4" />Edit</Button>
-                  <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete</Button>
-                  <Button variant="destructive" size="sm" onClick={() => {
-                    void navigate('/disposal');
-                  }}>Dispose</Button>
-                  <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
-                </div>
-              )}
+               {selectedAssetIds.length > 0 && (
+                 <div className="flex items-center gap-2">
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => {
+                       if (assetsLoading) {
+                         return;
+                       }
+
+                       if (selectedAssetIds.length === 1 && assets && assets.length > 0) {
+                         const asset = assets.find(a => a.id === selectedAssetIds[0]);
+
+                         if (asset) {
+                           setEditingAsset(asset);
+                           setView('edit');
+                         }
+                       }
+                     }}
+                     disabled={selectedAssetIds.length !== 1 || assetsLoading}
+                   >
+                     <Edit className="h-4 w-4" />Edit
+                   </Button>
+                   <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete</Button>
+                   <Button variant="destructive" size="sm" onClick={() => {
+                     void navigate('/disposal');
+                   }}>Dispose</Button>
+                   <div className="body-small text-onSurfaceVariant">{selectedAssetIds.length} selected</div>
+                 </div>
+               )}
             </div>
           </div>
 
@@ -353,11 +386,11 @@ export default function AssetContentArea() {
             showCheckbox={true}
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
-            selectedCount={selectedRowIds.length}
+            selectedCount={selectedAssetIds.length}
           />
         </Card>
         </div>
-      ) : (
+      ) : view === 'create' ? (
         <CreateAsset
           onBack={() => {
             setView('list');
@@ -377,6 +410,74 @@ export default function AssetContentArea() {
               active: !data.inactive,
             };
             createAssetMutation.mutate(asset);
+          }}
+        />
+      ) : (
+        <CreateAsset
+          title="Edit Asset"
+          initialData={editingAsset ? {
+            code: editingAsset.id,
+            batchID: editingAsset.batchId,
+            assetName: editingAsset.name,
+            assetGroup: editingAsset.group,
+            description: editingAsset.description,
+            acquireDate: editingAsset.acquireDate,
+            purchaseDate: editingAsset.purchaseDate,
+            cost: editingAsset.cost.toString(),
+            quantity: editingAsset.qty || 1,
+            quantityPerUnit: 1,
+            inactive: !editingAsset.active,
+            // Add defaults for other required fields
+            depreciationMethod: "Straight Line",
+            depreciationFrequency: "Yearly",
+            usefulLife: 10,
+            aca: false,
+            extraCheckbox: false,
+            extraCommercial: false,
+            extraNewVehicle: false,
+            serialNumbers: [],
+            // Optional fields with defaults
+            caAssetGroup: "",
+            allowanceClass: "",
+            subClass: "",
+            iaRate: "",
+            aaRate: "",
+            qeValue: "",
+            residualExpenditure: "",
+            branch: "",
+            department: "",
+            location: "",
+            personInCharge: "",
+            allocationNotes: "",
+            hpCheck: false,
+            hpStartDate: "",
+            hpInstalment: "",
+            hpDeposit: "",
+            hpFinance: "",
+            warrantyProvider: "",
+            warrantyStartDate: "",
+            warrantyEndDate: "",
+            warrantyNotes: "",
+          } : undefined}
+          onBack={() => {
+            setView('list');
+            setEditingAsset(null);
+            void navigate('/asset');
+          }}
+          onSuccess={(data) => {
+            const asset: Asset = {
+              id: data.code,
+              batchId: data.batchID ?? '',
+              name: data.assetName,
+              group: data.assetGroup,
+              description: data.description ?? '',
+              acquireDate: data.acquireDate || '',
+              purchaseDate: data.purchaseDate ?? '',
+              cost: Number(data.cost ?? '0') || 0,
+              qty: data.quantity,
+              active: !data.inactive,
+            };
+            updateAssetMutation.mutate(asset);
           }}
         />
       )}

@@ -403,6 +403,13 @@ function DataTableRow<TData>({
       'button, a, input, select, textarea, [role="button"]'
     );
 
+    // Handle grouped row expansion/collapse
+    if (row.getIsGrouped() && !isInteractiveElement) {
+      event.preventDefault();
+      row.getToggleExpandedHandler()();
+      return;
+    }
+
     if (enableRowClickSelection && !isInteractiveElement && row.getCanSelect()) {
       event.preventDefault();
       row.toggleSelected();
@@ -423,7 +430,7 @@ function DataTableRow<TData>({
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
-              row.getIsGrouped() && 'bg-surfaceContainerLowest font-semibold'
+              row.getIsGrouped() && 'bg-surfaceContainerLowest font-semibold cursor-pointer hover:bg-surfaceContainerLowest/80'
             )}
           >
             {cells.map((cell, i) => (

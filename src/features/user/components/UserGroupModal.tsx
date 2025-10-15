@@ -11,7 +11,7 @@ interface UserGroupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   editingGroup: UserGroup | null;
-  onSave: (groupData: UserGroup) => void;
+  onSave: (groupData: UserGroup, onSuccess?: () => void) => void;
 }
 
 export const UserGroupModal: React.FC<UserGroupModalProps> = ({

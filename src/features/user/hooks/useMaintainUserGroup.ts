@@ -59,7 +59,7 @@ export const useMaintainUserGroup = () => {
 
   /*** Save Add/Edited Group ***/ 
 
-  const handleSaveGroup = useCallback((groupData: UserGroup) => {
+  const handleSaveGroup = useCallback((groupData: UserGroup, onSuccess?: () => void) => {
     try {
       if (editingGroup) {
         // Update existing group
@@ -80,6 +80,7 @@ export const useMaintainUserGroup = () => {
       }
       setIsModalOpen(() => false);
       setEditingGroup(() => null);
+      onSuccess?.();
     } catch {
       addToast({
         variant: 'error',

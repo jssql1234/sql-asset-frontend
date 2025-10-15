@@ -7,7 +7,7 @@ import type { UserGroup } from '@/types/user-group';
 
 export function useUserGroupModal(
   editingGroup: UserGroup | null,
-  onSave: (groupData: UserGroup) => void,
+  onSave: (groupData: UserGroup, onSuccess?:() => void) => void,
   handleCancel: () => void
 ) {
 
@@ -48,7 +48,7 @@ export function useUserGroupModal(
       defaultPermissions: editingGroup?.defaultPermissions ?? {},
     };
 
-    onSave(groupData);
+    onSave(groupData, () => {form.reset();});
   });
 
   const handleFormSubmit = (e: React.FormEvent) => {

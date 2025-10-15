@@ -4,14 +4,14 @@ import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
-import CreateAsset from "./CreateAsset";
+import AssetForm from "./AssetForm";
 import type { Asset } from "@/types/asset";
-import { useGetAsset, useCreateAsset } from "../hooks/useAssetService";
+import { useGetAsset, useCreateAsset, useUpdateAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
 import PermissionGuard from "@/components/PermissionGuard";
-import { useNavigate, useLocation } from "react-router-dom";
+ import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Delete, Edit, Plus } from "@/assets/icons";
 
 
@@ -186,34 +186,63 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
 ];
 
 export default function AssetContentArea() {
-  const [selectedRowIds, setSelectedRowIds] = useState<string[]>([]);
-  const [view, setView] = useState<'list' | 'create'>('list');
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
   const [groupByBatch, setGroupByBatch] = useState(false);
+  const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
-  const { data: assets } = useGetAsset();
+  const params = useParams();
+  const { data: assets, isLoading: assetsLoading } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => {
     setView('list');
+    setEditingAsset(null);
     void navigate('/asset');
   });
 
-  // Sync view state with URL
-  useEffect(() => {
-    if (location.pathname === '/asset/create-asset') {
-      setView('create');
-    } else if (location.pathname === '/asset') {
-      setView('list');
-    }
-  }, [location.pathname, setView]);
+  const updateAssetMutation = useUpdateAsset(() => {
+    setView('list');
+    setEditingAsset(null);
+    void navigate('/asset');
+  });
+
+   // Sync view state with URL
+   useEffect(() => {
+     if (location.pathname === '/asset/create-asset') {
+       setView('create');
+       setEditingAsset(null);
+     } else if (location.pathname.startsWith('/asset/edit-asset/')) {
+       const assetId = params.id;
+       if (assetId && assets) {
+         const asset = assets.find(a => a.id === assetId);
+         if (asset) {
+           setEditingAsset(asset);
+           setView('edit');
+         } else {
+           // Asset not found, redirect to list
+           void navigate('/asset');
+         }
+       }
+     } else if (location.pathname === '/asset') {
+       setView('list');
+       setEditingAsset(null);
+     }
+   }, [location.pathname, params.id, assets, navigate]);
   
   // Create columns and manage visibility
   const allColumns = useMemo(() => createColumns(), []);
   const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
-  // Handle row selection
-  const handleRowSelectionChange = (_rows: Asset[], rowIds: string[]) => {
-    setSelectedRowIds(rowIds);
+  // Handle row selection and maintain asset ID mapping
+  const handleRowSelectionChange = (rows: Asset[]) => {
+
+    if (assets && rows.length > 0) {
+      const assetIds = rows.map(row => row.id);
+      setSelectedAssetIds(assetIds);
+    } else {
+      setSelectedAssetIds([]);
+    }
   };
 
   // Filter assets based on search value
@@ -333,16 +362,35 @@ export default function AssetContentArea() {
                 Add
               </Button>
               </PermissionGuard>
-              {selectedRowIds.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm"><Edit className="h-4 w-4" />Edit</Button>
-                  <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete</Button>
-                  <Button variant="destructive" size="sm" onClick={() => {
-                    void navigate('/disposal');
-                  }}>Dispose</Button>
-                  <div className="body-small text-onSurfaceVariant">{selectedRowIds.length} selected</div>
-                </div>
-              )}
+               {selectedAssetIds.length > 0 && (
+                 <div className="flex items-center gap-2">
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => {
+                       if (assetsLoading) {
+                         return;
+                       }
+
+                        if (selectedAssetIds.length === 1 && assets && assets.length > 0) {
+                          const asset = assets.find(a => a.id === selectedAssetIds[0]);
+
+                          if (asset) {
+                            void navigate(`/asset/edit-asset/${asset.id}`);
+                          }
+                        }
+                     }}
+                     disabled={selectedAssetIds.length !== 1 || assetsLoading}
+                   >
+                     <Edit className="h-4 w-4" />Edit
+                   </Button>
+                   <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete Selected</Button>
+                   <Button variant="destructive" size="sm" onClick={() => {
+                     void navigate('/disposal');
+                   }}>Dispose</Button>
+                   <div className="body-small text-onSurfaceVariant">{selectedAssetIds.length} selected</div>
+                 </div>
+               )}
             </div>
           </div>
 
@@ -353,14 +401,40 @@ export default function AssetContentArea() {
             showCheckbox={true}
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
-            selectedCount={selectedRowIds.length}
+            selectedCount={selectedAssetIds.length}
           />
         </Card>
         </div>
+      ) : view === 'create' ? (
+        <AssetForm
+          editingAsset={null}
+           onBack={() => {
+             setView('list');
+             setEditingAsset(null);
+             void navigate('/asset');
+           }}
+          onSuccess={(data) => {
+            const asset: Asset = {
+              id: data.code,
+              batchId: data.batchID ?? '',
+              name: data.assetName,
+              group: data.assetGroup,
+              description: data.description ?? '',
+              acquireDate: data.acquireDate || '',
+              purchaseDate: data.purchaseDate ?? '',
+              cost: Number(data.cost ?? '0') || 0,
+              qty: data.quantity,
+              active: !data.inactive,
+            };
+            createAssetMutation.mutate(asset);
+          }}
+        />
       ) : (
-        <CreateAsset
+        <AssetForm
+          editingAsset={editingAsset}
           onBack={() => {
             setView('list');
+            setEditingAsset(null);
             void navigate('/asset');
           }}
           onSuccess={(data) => {
@@ -376,7 +450,7 @@ export default function AssetContentArea() {
               qty: data.quantity,
               active: !data.inactive,
             };
-            createAssetMutation.mutate(asset);
+            updateAssetMutation.mutate(asset);
           }}
         />
       )}

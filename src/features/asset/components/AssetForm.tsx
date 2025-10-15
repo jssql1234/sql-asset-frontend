@@ -2,26 +2,17 @@ import React, { useState, useRef, useImperativeHandle, useEffect, useCallback, u
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  Option,
-  Tabs,
-  type TabItem,
-  Button,
-  Card,
-} from "@/components/ui/components";
+import { Option, Tabs, type TabItem, Button, Card } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { Tooltip } from "@/components/ui/components/Tooltip";
-import { ChevronDown } from "@/assets/icons";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
 import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
+import type { Asset } from "@/types/asset";
+import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 
 interface SerialNumberData {
   serial: string;
@@ -36,12 +27,13 @@ interface TabProps {
   errors?: FieldErrors<CreateAssetFormData>;
 }
 
-interface CreateAssetProps {
+interface AssetFormProps {
   onSuccess?: (data: CreateAssetFormData) => void;
   onBack?: () => void;
+  editingAsset?: Asset | null;
 }
 
-interface CreateAssetRef {
+interface AssetFormRef {
   submit: () => void;
 }
 
@@ -77,7 +69,7 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
           <h3 className="title-small text-onSurface">Depreciation Schedule</h3>
           <p className="body-small text-onSurfaceVariant">
             {state.isManual ? "Manual schedule" : "Straight line schedule"}
-            {state.floorApplied && !state.isEditing ? " \u00b7 floor rounded" : ""}
+            {state.floorApplied && !state.isEditing ? " · floor rounded" : ""}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -148,54 +140,64 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
 
 // Tab Components
 const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
+  const caAssetGroupOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "building", label: "Building" },
+    { value: "machinery", label: "Machinery" },
+    { value: "vehicles", label: "Vehicles" },
+  ]), []);
+
+  const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "class1", label: "Class 1" },
+    { value: "class2", label: "Class 2" },
+  ]), []);
+
+  const subClassOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "type1", label: "Type 1" },
+    { value: "type2", label: "Type 2" },
+  ]), []);
+
+  const caAssetGroupValue = watch("caAssetGroup", "");
+  const allowanceClassValue = watch("allowanceClass", "");
+  const subClassValue = watch("subClass", "");
+
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">CA Asset Group</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("caAssetGroup") ?? "-- Choose Group --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("caAssetGroup", "building"); }}>Building</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("caAssetGroup", "machinery"); }}>Machinery</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("caAssetGroup", "vehicles"); }}>Vehicles</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={caAssetGroupValue}
+            placeholder="-- Choose Group --"
+            options={caAssetGroupOptions}
+            onChange={(nextValue) => {
+              setValue("caAssetGroup", nextValue);
+            }}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Allowance Class</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("allowanceClass") ?? "-- Choose Code --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("allowanceClass", "class1"); }}>Class 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("allowanceClass", "class2"); }}>Class 2</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={allowanceClassValue}
+            placeholder="-- Choose Code --"
+            options={allowanceClassOptions}
+            onChange={(nextValue) => {
+              setValue("allowanceClass", nextValue);
+            }}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Sub Class</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("subClass") ?? "-- Choose Type --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("subClass", "type1"); }}>Type 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("subClass", "type2"); }}>Type 2</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={subClassValue}
+            placeholder="-- Choose Type --"
+            options={subClassOptions}
+            onChange={(nextValue) => {
+              setValue("subClass", nextValue);
+            }}
+          />
         </div>
       </div>
 
@@ -250,6 +252,8 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
 };
 
 const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, control }) => {
+  const hpInstalmentValue = watch("hpInstalment", "");
+
   return (
     <Card className="p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-6">
@@ -283,24 +287,24 @@ const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, contro
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">No. Instalment (months)</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("hpInstalment")}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "12"); }}>12</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "24"); }}>24</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "36"); }}>36</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "48"); }}>48</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "60"); }}>60</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("hpInstalment", "other"); }}>Other</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={hpInstalmentValue}
+            placeholder="Select Instalment"
+            options={[
+              { value: "12", label: "12" },
+              { value: "24", label: "24" },
+              { value: "36", label: "36" },
+              { value: "48", label: "48" },
+              { value: "60", label: "60" },
+              { value: "other", label: "Other" },
+            ]}
+            onChange={(nextValue) => {
+              setValue("hpInstalment", nextValue);
+            }}
+          />
         </div>
-        {watch("hpInstalment") === "other" && (
+        {hpInstalmentValue === "other" && (
           <div>
             <label className="block text-sm font-medium text-onSurface">Custom Instalment</label>
             <Input type="number" {...register("hpInstalmentUser")} />
@@ -325,104 +329,117 @@ const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, contro
 
 
 const AllocationTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
+  const branchOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "HQ", label: "Headquarters" },
+    { value: "KL", label: "Kuala Lumpur Branch" },
+    { value: "JB", label: "Johor Bahru Branch" },
+    { value: "PG", label: "Penang Branch" },
+    { value: "KT", label: "Kuantan Branch" },
+    { value: "KC", label: "Kuching Branch" },
+    { value: "KK", label: "Kota Kinabalu Branch" },
+  ]), []);
+
+  const departmentOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "IT", label: "Information Technology" },
+    { value: "HR", label: "Human Resources" },
+    { value: "FIN", label: "Finance" },
+    { value: "OPS", label: "Operations" },
+    { value: "MKT", label: "Marketing" },
+    { value: "ADM", label: "Administration" },
+    { value: "LEG", label: "Legal" },
+    { value: "AUD", label: "Audit" },
+  ]), []);
+
+  const locationOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "HQ-L1", label: "HQ - Level 1" },
+    { value: "HQ-L2", label: "HQ - Level 2" },
+    { value: "HQ-L3", label: "HQ - Level 3" },
+    { value: "HQ-L4", label: "HQ - Level 4" },
+    { value: "HQ-L5", label: "HQ - Level 5" },
+    { value: "KL-L1", label: "KL Branch - Level 1" },
+    { value: "KL-L2", label: "KL Branch - Level 2" },
+    { value: "JB-L1", label: "JB Branch - Level 1" },
+    { value: "JB-L2", label: "JB Branch - Level 2" },
+    { value: "PG-L1", label: "Penang Branch - Level 1" },
+    { value: "PG-L2", label: "Penang Branch - Level 2" },
+    { value: "WAREHOUSE", label: "Warehouse" },
+    { value: "STORAGE", label: "Storage Room" },
+    { value: "MEETING-RM", label: "Meeting Room" },
+    { value: "CONF-RM", label: "Conference Room" },
+  ]), []);
+
+  const personInChargeOptions: SelectDropdownOption[] = useMemo(() => ([
+    { value: "EMP001", label: "John Doe (EMP001) - IT Manager" },
+    { value: "EMP002", label: "Jane Smith (EMP002) - HR Manager" },
+    { value: "EMP003", label: "Michael Chen (EMP003) - Finance Manager" },
+    { value: "EMP004", label: "Sarah Johnson (EMP004) - Operations Manager" },
+    { value: "EMP005", label: "David Lee (EMP005) - IT Technician" },
+    { value: "EMP006", label: "Emma Wilson (EMP006) - HR Executive" },
+    { value: "EMP007", label: "Robert Kim (EMP007) - Finance Executive" },
+    { value: "EMP008", label: "Lisa Brown (EMP008) - Admin Executive" },
+    { value: "EMP009", label: "Kevin Tan (EMP009) - Operations Executive" },
+    { value: "EMP010", label: "Amy Wong (EMP010) - Marketing Executive" },
+    { value: "EMP011", label: "Thomas Lim (EMP011) - Legal Officer" },
+    { value: "EMP012", label: "Rachel Ng (EMP012) - Audit Officer" },
+  ]), []);
+
+  const branchValue = watch("branch", "");
+  const departmentValue = watch("department", "");
+  const locationValue = watch("location", "");
+  const personInChargeValue = watch("personInCharge", "");
+
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Branch</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("branch") ?? "-- Select Branch --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("branch", "HQ"); }}>Headquarters</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("branch", "KL"); }}>Kuala Lumpur Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("branch", "JB"); }}>Johor Bahru Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("branch", "PG"); }}>Penang Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("branch", "KT"); }}>Kuantan Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("branch", "KC"); }}>Kuching Branch</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("branch", "KK"); }}>Kota Kinabalu Branch</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={branchValue}
+            placeholder="-- Select Branch --"
+            options={branchOptions}
+            onChange={(nextValue) => {
+              setValue("branch", nextValue);
+            }}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Department</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("department") ?? "-- Select Department --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("department", "IT"); }}>Information Technology</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "HR"); }}>Human Resources</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "FIN"); }}>Finance</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "OPS"); }}>Operations</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "MKT"); }}>Marketing</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "ADM"); }}>Administration</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "LEG"); }}>Legal</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("department", "AUD"); }}>Audit</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={departmentValue}
+            placeholder="-- Select Department --"
+            options={departmentOptions}
+            onChange={(nextValue) => {
+              setValue("department", nextValue);
+            }}
+          />
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Location</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("location") ?? "-- Select Location --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L1"); }}>HQ - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L2"); }}>HQ - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L3"); }}>HQ - Level 3</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L4"); }}>HQ - Level 4</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "HQ-L5"); }}>HQ - Level 5</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "KL-L1"); }}>KL Branch - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "KL-L2"); }}>KL Branch - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "JB-L1"); }}>JB Branch - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "JB-L2"); }}>JB Branch - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "PG-L1"); }}>Penang Branch - Level 1</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "PG-L2"); }}>Penang Branch - Level 2</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "WAREHOUSE"); }}>Warehouse</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "STORAGE"); }}>Storage Room</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "MEETING-RM"); }}>Meeting Room</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("location", "CONF-RM"); }}>Conference Room</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={locationValue}
+            placeholder="-- Select Location --"
+            options={locationOptions}
+            onChange={(nextValue) => {
+              setValue("location", nextValue);
+            }}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Person in Charge</label>
-          <DropdownMenu className="w-full">
-            <DropdownMenuTrigger>
-              <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                {watch("personInCharge") ?? "-- Select Person --"}
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP001"); }}>John Doe (EMP001) - IT Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP002"); }}>Jane Smith (EMP002) - HR Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP003"); }}>Michael Chen (EMP003) - Finance Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP004"); }}>Sarah Johnson (EMP004) - Operations Manager</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP005"); }}>David Lee (EMP005) - IT Technician</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP006"); }}>Emma Wilson (EMP006) - HR Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP007"); }}>Robert Kim (EMP007) - Finance Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP008"); }}>Lisa Brown (EMP008) - Admin Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP009"); }}>Kevin Tan (EMP009) - Operations Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP010"); }}>Amy Wong (EMP010) - Marketing Executive</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP011"); }}>Thomas Lim (EMP011) - Legal Officer</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => { setValue("personInCharge", "EMP012"); }}>Rachel Ng (EMP012) - Audit Officer</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <SelectDropdown
+            className="w-full"
+            value={personInChargeValue}
+            placeholder="-- Select Person --"
+            options={personInChargeOptions}
+            onChange={(nextValue) => {
+              setValue("personInCharge", nextValue);
+            }}
+          />
         </div>
       </div>
       <div className="mt-6">
@@ -442,10 +459,10 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
           <label className="block text-sm font-medium text-onSurface">Warranty Provider</label>
           <Input {...register("warrantyProvider")} placeholder="Enter warranty provider" />
         </div>
-        </div>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          <div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+        <div>
           <label className="block text-sm font-medium text-onSurface">Start Date</label>
           <Controller
             name="warrantyStartDate"
@@ -492,8 +509,8 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
             )}
           />
         </div>
-        </div>
-      
+      </div>
+
       <div className="mt-6">
         <label className="block text-sm font-medium text-onSurface">Notes</label>
         <TextArea {...register("warrantyNotes")} rows={3} placeholder="Additional warranty notes" />
@@ -502,13 +519,34 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
   );
 };
 
-const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObject<CreateAssetRef | null> }) => {
-  const { onSuccess, onBack } = props;
+const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
+  const { onSuccess, onBack, editingAsset } = props;
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("allowance");
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
+
+  const defaultValues: CreateAssetFormData = useMemo(() => ({
+    inactive: false,
+    quantity: 1,
+    quantityPerUnit: 1,
+    depreciationMethod: "Straight Line",
+    depreciationFrequency: "Yearly",
+    usefulLife: 10,
+    aca: false,
+    extraCheckbox: false,
+    extraCommercial: false,
+    extraNewVehicle: false,
+    serialNumbers: [],
+    code: "",
+    assetName: "",
+    assetGroup: "",
+    cost: "",
+    description: "",
+    purchaseDate: "",
+    acquireDate: "",
+  }), []);
 
   const {
     register,
@@ -516,30 +554,46 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     watch,
     setValue,
     control,
+    reset,
     formState: { errors },
   } = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetFormSchema),
-    defaultValues: {
-      inactive: false,
-      quantity: 1,
-      quantityPerUnit: 1,
-      depreciationMethod: "Straight Line",
-      depreciationFrequency: "Yearly",
-      usefulLife: 10,
-      aca: false,
-      extraCheckbox: false,
-      extraCommercial: false,
-      extraNewVehicle: false,
-      serialNumbers: [],
-      code: "",
-      assetName: "",
-      assetGroup: "",
-      cost: "",
-      description: "",
-      purchaseDate: "",
-      acquireDate: "",
-    },
+    defaultValues,
   });
+
+  // Populate form when editingAsset changes (following department pattern)
+  useEffect(() => {
+    if (editingAsset) {
+      reset({
+        code: editingAsset.id,
+        batchID: editingAsset.batchId,
+        assetName: editingAsset.name,
+        assetGroup: editingAsset.group,
+        description: editingAsset.description,
+        acquireDate: editingAsset.acquireDate,
+        purchaseDate: editingAsset.purchaseDate,
+        cost: editingAsset.cost.toString(),
+        quantity: editingAsset.qty || 1,
+        quantityPerUnit: 1,
+        inactive: !editingAsset.active,
+        // Keep defaults for other fields
+        depreciationMethod: "Straight Line",
+        depreciationFrequency: "Yearly",
+        usefulLife: 10,
+        aca: false,
+        extraCheckbox: false,
+        extraCommercial: false,
+        extraNewVehicle: false,
+        serialNumbers: [],
+      });
+    } else {
+      reset(defaultValues);
+    }
+  }, [editingAsset, reset, defaultValues]);
+
+  // Determine if we're in edit mode
+  const isEditMode = Boolean(editingAsset);
+  const title = isEditMode ? "Edit Asset" : "Create Asset";
 
   // Memoize the serial numbers change handler to prevent unnecessary re-renders
   const handleSerialNumbersChange = useCallback((serialNumbers: SerialNumberData[]) => {
@@ -572,7 +626,6 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
   }));
 
   const onSubmit = (data: CreateAssetFormData): void => {
-    console.log("Form data:", data);
     // Handle form submission
     onSuccess?.(data);
   };
@@ -583,7 +636,7 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
     setTimeout(() => {
       addToast({
         variant: "success",
-        title: "Asset Created (Fake)",
+        title: isEditMode ? "Asset Updated (Fake)" : "Asset Created (Fake)",
         description: "This is a fake submission for testing purposes.",
         duration: 5000,
       });
@@ -595,12 +648,14 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
 
 
   // Mock data for dropdowns
-  const assetGroups = [
+  const assetGroups: SelectDropdownOption[] = [
     { value: "", label: "-- Choose Asset Group --" },
     { value: "computers", label: "Computers" },
     { value: "furniture", label: "Furniture" },
     { value: "vehicles", label: "Vehicles" },
   ];
+
+  const assetGroupValue = watch("assetGroup", "");
 
   // Define tabs based on batch mode
   const commonTabProps: TabProps = { register, setValue, watch, control, errors };
@@ -684,8 +739,8 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
       <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
         <div className="flex h-full flex-col gap-6 p-2 md:p-6">
-          <TabHeader title="Create Asset"
-          subtitle="Fill in the details to create a new asset."
+          <TabHeader title={title}
+          subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}
           actions={[
             {
               label: "Back",
@@ -820,24 +875,17 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
                     <label className="block text-sm font-medium text-onSurface">
                       Asset Group <span className="text-error">*</span>
                     </label>
-                    <DropdownMenu className="w-full">
-                      <DropdownMenuTrigger>
-                        <Button variant="dropdown" size="dropdown" className="w-full justify-between">
-                          {assetGroups.find(g => g.value === watch("assetGroup"))?.label ?? "-- Choose Asset Group --"}
-                          <ChevronDown className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-fit">
-                        {assetGroups.map((group) => (
-                          <DropdownMenuItem
-                            key={group.value}
-                            onClick={() => { setValue("assetGroup", group.value); }}
-                          >
-                            {group.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <SelectDropdown
+                      className="w-full"
+                      value={assetGroupValue}
+                      placeholder="-- Choose Asset Group --"
+                      options={assetGroups}
+                      onChange={(nextValue) => {
+                        setValue("assetGroup", nextValue);
+                      }}
+                      matchTriggerWidth={false}
+                      contentClassName="w-fit"
+                    />
                     {errors.assetGroup && (
                       <span className="body-small text-error mt-1 block">{errors.assetGroup.message}</span>
                     )}
@@ -983,14 +1031,18 @@ const CreateAsset = ({ ref, ...props }: CreateAssetProps & { ref?: React.RefObje
           )}
         </div>
 
-        {/* Footer (Create Asset) */}
+        {/* Footer */}
         <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg">
-          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">{isSubmitting ? "Creating..." : "Fake Submit (Test)"}</Button>
-          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>Create Asset</Button>
+          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
+            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
+          </Button>
+          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+            {isEditMode ? "Update Asset" : "Create Asset"}
+          </Button>
         </div>
       </div>
     </div>
   );
 };
 
-export default CreateAsset;
+export default AssetForm;

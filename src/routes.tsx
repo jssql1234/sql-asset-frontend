@@ -43,9 +43,10 @@ function AppRoutes() {
       <Route path="/testing" element={<Testing />} />
       <Route path="/tabledemo" element={<TableDemo />} />
       
-      {/* Asset Management Routes */}
-      <Route path="/asset" element={<AssetMainPage />} />
-      <Route path="/asset/create-asset" element={<AssetMainPage />} />
+       {/* Asset Management Routes */}
+       <Route path="/asset" element={<AssetMainPage />} />
+       <Route path="/asset/create-asset" element={<AssetMainPage />} />
+       <Route path="/asset/edit-asset/:id" element={<AssetMainPage />} />
       <Route path="/process-ca" element={<ProcessCAPage />} />
       <Route path="/disposal" element={<DisposalMainPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />

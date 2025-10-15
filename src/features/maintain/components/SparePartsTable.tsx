@@ -252,20 +252,19 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
             <Plus className="h-4 w-4" />
             Add
           </Button>
-          {selectedPartForEdit && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => { onEditPart(selectedPartForEdit); }}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </Button>
-          )}
           {hasSelection && (
             <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { if (selectedPartForEdit) onEditPart(selectedPartForEdit); }}
+                disabled={!selectedPartForEdit}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </Button>
               <Button
                 type="button"
                 variant="destructive"

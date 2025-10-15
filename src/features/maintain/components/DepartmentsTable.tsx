@@ -217,20 +217,19 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
             <Plus className="h-4 w-4" />
             Add
           </Button>
-          {selectedDepartmentForEdit && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => { onEditDepartment(selectedDepartmentForEdit); }}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </Button>
-          )}
           {hasSelection && (
             <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { if (selectedDepartmentForEdit) onEditDepartment(selectedDepartmentForEdit); }}
+                disabled={!selectedDepartmentForEdit}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </Button>
               <Button
                 type="button"
                 variant="destructive"

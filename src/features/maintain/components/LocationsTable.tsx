@@ -161,20 +161,19 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
             <Plus className="h-4 w-4" />
             Add
           </Button>
-          {selectedLocationForEdit && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => { onEditLocation(selectedLocationForEdit); }}
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Edit
-            </Button>
-          )}
           {hasSelection && (
             <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { if (selectedLocationForEdit) onEditLocation(selectedLocationForEdit); }}
+                disabled={!selectedLocationForEdit}
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                Edit
+              </Button>
               <Button
                 type="button"
                 variant="destructive"

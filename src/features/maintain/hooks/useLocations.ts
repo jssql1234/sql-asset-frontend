@@ -11,6 +11,7 @@ import {
   generateLocationId,
   validateLocationForm,
 } from '../utils/locationUtils';
+import { useToast } from '@/components/ui/components/Toast';
 
 const LOCATIONS_STORAGE_KEY = 'maintain_locations_data';
 const LOCATION_TYPES_STORAGE_KEY = 'maintain_location_types_data';
@@ -87,6 +88,9 @@ export function useLocations() {
   const [locationTypes, setLocationTypes] = useState<LocationTypeOption[]>(sampleLocationTypes);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLocation, setEditingLocation] = useState<Location | null>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     const initialize = () => {
@@ -251,19 +255,86 @@ export function useLocations() {
 
   const getNewLocationId = useCallback(() => generateLocationId(locations), [locations]);
 
+  const handleAddLocation = () => {
+    setEditingLocation(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditLocation = (location: Location) => {
+    setEditingLocation(location);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveLocation = (formData: LocationFormData) => {
+    try {
+      if (editingLocation) {
+        updateLocation(formData);
+        addToast({
+          title: 'Success',
+          description: 'Location updated successfully!',
+          variant: 'success',
+        });
+      } else {
+        addLocation(formData);
+        addToast({
+          title: 'Success',
+          description: 'Location added successfully!',
+          variant: 'success',
+        });
+      }
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while saving the location.',
+        variant: 'error',
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteMultipleLocations = (ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete ${String(ids.length)} selected locations?`)) {
+      try {
+        deleteMultipleLocations(ids);
+        addToast({
+          title: 'Success',
+          description: `${String(ids.length)} locations deleted successfully!`,
+          variant: 'success',
+        });
+      } catch (error) {
+        addToast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'An error occurred while deleting the locations.',
+          variant: 'error',
+        });
+      }
+    }
+  };
+
   return {
     locations,
     filteredLocations,
     selectedLocations,
     filters,
     locationTypes,
+    isModalOpen,
+    editingLocation,
+    setIsModalOpen,
+    setEditingLocation,
+    updateFilters,
+    toggleLocationSelection,
+    handleAddLocation,
+    handleEditLocation,
+    handleDeleteMultipleLocations,
+    handleSaveLocation,
+
+    // Unused exports?
     isLoading,
     error,
-    updateFilters,
-    addLocation,
-    updateLocation,
-    deleteMultipleLocations,
-    toggleLocationSelection,
     clearSelection,
     getLocationById,
     resetToSampleData,

@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/components';
 import { Input } from '@/components/ui/components/Input';
 import { SearchableDropdown } from '@/components/SearchableDropdown';
-import { useUserContext } from '@/context/UserContext';
 import type { User } from '@/types/user';
 import { useUserModal } from '../hooks/useUserModal';
 
@@ -24,7 +23,7 @@ export const UserModal: React.FC<UserModalProps> = ({
   onCreateGroup,
 }) => {
   
-  const { form, handleFormSubmit, handleCancel,} = useUserModal(
+  const { form, handleFormSubmit, handleCancel, groupItems } = useUserModal(
     editingUser,
     onOpenChange,
     onSave
@@ -32,15 +31,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   const { register, watch, setValue , formState: { errors } } = form;
 
-
-  const { groups } = useUserContext();
   const selectedGroupId = watch('groupId');
-  
-  // Convert groups to SearchableDropdown format
-  const groupItems = groups.map(group => ({
-    id: group.id,
-    label: group.name,
-  }));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} >

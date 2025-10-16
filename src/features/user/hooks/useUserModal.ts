@@ -1,8 +1,9 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { userFormSchema, type UserFormData } from '../zod/userForm';
 import type { User } from '@/types/user';
+import { useUserContext } from '@/context/UserContext';
 
 export function useUserModal(
   editingUser: User | null,
@@ -22,6 +23,14 @@ export function useUserModal(
     groupId: '',
     },
   });
+
+  const { groups } = useUserContext();
+  
+  // Convert groups to SearchableDropdown format
+  const groupItems = useMemo(() => groups.map(group => ({
+    id: group.id,
+    label: group.name,
+  })), [groups]);
 
   useEffect(() => {
     if (editingUser) {
@@ -76,5 +85,6 @@ export function useUserModal(
     form,
     handleFormSubmit,
     handleCancel,
+    groupItems,
   }
 }

@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { DataTableExtended as DataTable } from "@/components/DataTableExtended";
-import { Button } from '@/components/ui/components';
+import { Button, Card } from '@/components/ui/components';
 import Search from '@/components/Search';
 import { Edit, Delete } from '@/assets/icons';
 import type { User } from '@/types/user';
 import type { ColumnDef } from '@tanstack/react-table';
+import { TableColumnVisibility } from '@/components/ui/components/Table';
 
 interface UserTableProps {
   users: User[];
@@ -38,43 +39,60 @@ export const UserTable: React.FC<UserTableProps> = ({
 
   const columns: ColumnDef<User>[] = [
     {
+      id: 'name',
       accessorKey: 'name',
       header: 'Name',
       cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+      enableColumnFilter: false,
     },
     {
+      id: 'email',
       accessorKey: 'email',
       header: 'Email',
       cell: ({ row }) => <span>{row.original.email}</span>,
+      enableColumnFilter: false,
     },
     {
+      id: 'phone',
       accessorKey: 'phone',
       header: 'Phone',
       cell: ({ row }) => <span>{row.original.phone ?? '-'}</span>,
+      enableColumnFilter: false,
     },
     {
+      id: 'position',
       accessorKey: 'position',
       header: 'Position',
       cell: ({ row }) => <span>{row.original.position ?? '-'}</span>,
+      enableColumnFilter: false,
     },
     {
+      id: 'department',
       accessorKey: 'department',
       header: 'Department',
       cell: ({ row }) => <span>{row.original.department ?? '-'}</span>,
     },
     {
+      id: 'location',
       accessorKey: 'location',
       header: 'Location',
       cell: ({ row }) => <span>{row.original.location ?? '-'}</span>,
     },
     {
-      accessorKey: 'groupId',
+      id: 'groupId',
+      accessorFn: (row) => {
+        const group = groups.find(g => g.id === row.groupId);
+        return group?.name ?? row.groupId;
+      },
       header: 'User Group',
       cell: ({ row }) => {
         const group = groups.find(g => g.id === row.original.groupId);
         return <span>{group?.name ?? row.original.groupId}</span>;
       },
     },
+  ];
+
+  const actionCol: ColumnDef<User>[] = [
     {
       id: 'actions',
       header: 'Actions',
@@ -104,6 +122,8 @@ export const UserTable: React.FC<UserTableProps> = ({
       ),
     },
   ];
+    
+  const [visibleColumns, setVisibleColumns] = useState(columns);
 
   return (
     <div className="space-y-4">
@@ -115,13 +135,22 @@ export const UserTable: React.FC<UserTableProps> = ({
         live={true}
         className="w-full"
       />
-      <DataTable
-        columns={columns}
-        data={filteredUsers}
-        showPagination={true}
-        onRowDoubleClick={onEdit}
-        className="w-full"
-      />
+      <Card className="p-3 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <TableColumnVisibility
+            columns={columns}
+            visibleColumns={visibleColumns.concat(actionCol)}
+            setVisibleColumns={setVisibleColumns}
+          />
+        </div>
+        <DataTable
+          columns={visibleColumns.concat(actionCol)}
+          data={filteredUsers}
+          showPagination={true}
+          onRowDoubleClick={onEdit}
+          className="w-full"
+        />
+      </Card>
     </div>
   );
 };

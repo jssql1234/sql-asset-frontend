@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { DataTableExtended as DataTable } from "@/components/DataTableExtended";
-import { Button } from '@/components/ui/components';
+import { Button, Card } from '@/components/ui/components';
 import { TooltipWrapper } from '@/components/TooltipWrapper';
 import Search from '@/components/Search';
 import { Edit, Delete } from '@/assets/icons';
 import type { UserGroup } from '@/types/user-group';
 import type { ColumnDef } from '@tanstack/react-table';
+import { TableColumnVisibility } from '@/components/ui/components/Table';
 
 interface UserGroupTableProps {
   groups: UserGroup[];
@@ -31,6 +32,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
       group.description.toLowerCase().includes(term)
     );
   }, [groups, searchTerm]);
+
   const columns: ColumnDef<UserGroup>[] = [
     {
       accessorKey: 'id',
@@ -38,6 +40,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
       cell: ({ getValue }) => (
         <span className="font-mono text-sm">{getValue<string>()}</span>
       ),
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'name',
@@ -45,6 +48,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
       cell: ({ getValue }) => (
         <span className="font-medium">{getValue<string>()}</span>
       ),
+      enableColumnFilter: false,
     },
     {
       accessorKey: 'description',
@@ -52,7 +56,11 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
       cell: ({ getValue }) => (
         <span className="text-sm text-onSurfaceVariant">{getValue<string>() || '-'}</span>
       ),
+      enableColumnFilter: false,
     },
+  ];
+
+  const actionCol: ColumnDef<UserGroup>[] = [
     {
       id: 'actions',
       header: 'Actions',
@@ -97,6 +105,8 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
     },
   ];
 
+  const [visibleColumns, setVisibleColumns] = useState(columns);
+
   return (
     <div className="space-y-4">
       <Search
@@ -107,13 +117,23 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
         live={true}
         className="w-full"
       />
-      <DataTable
-        columns={columns}
-        data={filteredGroups}
-        showPagination={true}
-        onRowDoubleClick={onEdit}
-        className="w-full"
-      />
+      <Card className="p-3 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <TableColumnVisibility
+            columns={columns}
+            visibleColumns={visibleColumns.concat(actionCol)}
+            setVisibleColumns={setVisibleColumns}
+          />
+        </div>
+        <DataTable
+          columns={visibleColumns.concat(actionCol)}
+          data={filteredGroups}
+          showPagination={true}
+          onRowDoubleClick={onEdit}
+          className="w-full"
+        />
+      </Card>
+      
     </div>
   );
 };

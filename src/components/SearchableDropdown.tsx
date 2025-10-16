@@ -41,8 +41,7 @@ export const SearchableDropdown = ({
   const filteredItems = items.filter(
     (item) =>
       item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.sublabel &&
-        item.sublabel.toLowerCase().includes(searchTerm.toLowerCase()))
+      (item.sublabel?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   useEffect(() => {
@@ -57,7 +56,7 @@ export const SearchableDropdown = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => { document.removeEventListener("mousedown", handleClickOutside); };
   }, []);
 
   useEffect(() => {
@@ -102,7 +101,7 @@ export const SearchableDropdown = ({
             setSearchTerm(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => { setIsOpen(true); }}
           onKeyDown={handleKeyDown}
           className="w-full"
         />
@@ -117,7 +116,7 @@ export const SearchableDropdown = ({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => handleSelect(item.id)}
+                    onClick={() => { handleSelect(item.id); }}
                     className={cn(
                       "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainerLowest focus:bg-surfaceContainerLowest focus:outline-none",
                       selectedId === item.id &&
@@ -190,7 +189,7 @@ export const SearchableDropdown = ({
               type="text"
               placeholder="Search..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); }}
               onKeyDown={handleKeyDown}
               className="text-sm"
             />
@@ -203,7 +202,7 @@ export const SearchableDropdown = ({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleSelect(item.id)}
+                  onClick={() => { handleSelect(item.id); }}
                   className={cn(
                     "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainerLowest focus:bg-surfaceContainerLowest focus:outline-none",
                     selectedId === item.id &&

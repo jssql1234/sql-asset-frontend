@@ -5,6 +5,7 @@ import { userFormSchema, type UserFormData } from '../zod/userForm';
 import type { User } from '@/types/user';
 import { useUserContext } from '@/context/UserContext';
 import { useLocations } from '@/features/maintain/hooks/useLocations';
+import { useDepartments } from '@/features/maintain/hooks/useDepartments';
 
 export function useUserModal(
   editingUser: User | null,
@@ -27,6 +28,7 @@ export function useUserModal(
 
   const { groups } = useUserContext();
   const { locations } = useLocations();
+  const { departments } = useDepartments();
 
   // Convert groups to SearchableDropdown format
   const groupItems = useMemo(() => groups.map(group => ({
@@ -40,6 +42,13 @@ export function useUserModal(
     label: location.name,
     sublabel: location.id, // Show location ID as sublabel
   })), [locations]);
+
+  // Convert departments to SearchableDropdown format
+  const departmentItems = useMemo(() => departments.map(department => ({
+    id: department.id,
+    label: `${department.name} (${department.code})`,
+    sublabel: department.manager, // Show location ID as sublabel
+  })), [departments]);
 
   useEffect(() => {
     if (editingUser) {
@@ -72,7 +81,7 @@ export function useUserModal(
       email: data.email,
       phone: data.phone ?? undefined,
       position: data.position ?? undefined,
-      department: data.department ?? undefined,
+      department: data.department,
       location: data.location,
       groupId: data.groupId,
     };
@@ -96,5 +105,6 @@ export function useUserModal(
     handleCancel,
     groupItems,
     locationItems,
+    departmentItems,
   }
 }

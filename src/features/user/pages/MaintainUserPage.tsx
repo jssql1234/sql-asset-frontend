@@ -10,6 +10,8 @@ import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 import DeleteUserConfirmationDialog from '../components/DeleteUserConfirmationDialog';
 import { LocationFormModal } from '@/features/maintain/components/LocationFormModal';
 import { useLocations } from '@/features/maintain/hooks/useLocations';
+import { useDepartments } from '@/features/maintain/hooks/useDepartments';
+import { DepartmentFormModal } from '@/features/maintain/components/DepartmentFormModal';
 
 const MaintainUserPage: React.FC = () => {
   
@@ -49,6 +51,17 @@ const MaintainUserPage: React.FC = () => {
     handleSaveLocation,
     locations
   } = useLocations();
+
+  const {
+    departments,
+    departmentTypes,
+    isModalOpen: isDepartmentModalOpen,
+    setIsModalOpen: setIsDepartmentModalOpen,
+    editingDepartment,
+    setEditingDepartment,
+    handleAddDepartment,
+    handleSaveDepartment
+  } = useDepartments();
 
   return (
     <SidebarHeader
@@ -111,6 +124,7 @@ const MaintainUserPage: React.FC = () => {
         onSave={handleSaveUser}
         onCreateGroup={handleAddGroup}
         onCreateLocation={handleAddLocation}
+        onCreateDepartment={handleAddDepartment}
       />
 
       <DeleteUserConfirmationDialog
@@ -136,6 +150,18 @@ const MaintainUserPage: React.FC = () => {
         onSave={handleSaveLocation}
         editingLocation={editingLocation}
         existingLocations={locations}
+      />
+
+      <DepartmentFormModal
+        isOpen={isDepartmentModalOpen}
+        onClose={() => {
+          setIsDepartmentModalOpen(false);
+          setEditingDepartment(null);
+        }}
+        onSave={handleSaveDepartment}
+        editingDepartment={editingDepartment}
+        existingDepartments={departments}
+        departmentTypes={departmentTypes}
       />
 
     </SidebarHeader>

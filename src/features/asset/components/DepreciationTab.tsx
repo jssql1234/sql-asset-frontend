@@ -454,6 +454,17 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
 
   useEffect(() => {
     if (method === "Manual") {
+      setEditableFlags({
+        usefulLife: false,
+        residualValue: false,
+        depreciationRate: false,
+        totalDepreciation: false,
+      });
+    }
+  }, [method]);
+
+  useEffect(() => {
+    if (method === "Manual") {
       return;
     }
 
@@ -623,8 +634,22 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   ]);
 
   const toggleEditable = useCallback((key: keyof EditableFlags) => {
-    setEditableFlags((prev) => ({ ...prev, [key]: !prev[key] }));
-  }, []);
+    const willBeChecked = !editableFlags[key];
+    
+    if (method === "Manual" && willBeChecked) {
+      const confirmed = window.confirm(
+        "This will change depreciation method. Changing the depreciation method will clear your custom schedule. Continue?"
+      );
+      
+      if (confirmed) {
+        setValue("depreciationMethod", "Straight Line", { shouldDirty: true });
+        setManualSchedule([]);
+        setEditableFlags((prev) => ({ ...prev, [key]: true }));
+      }
+    } else {
+      setEditableFlags((prev) => ({ ...prev, [key]: !prev[key] }));
+    }
+  }, [editableFlags, method, setValue]);
 
   const handleEnterEditMode = useCallback(() => {
     const base = method === "Manual" ? manualSchedule : scheduleRows;

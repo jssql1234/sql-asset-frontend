@@ -1,5 +1,5 @@
  import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { Control, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import type { Control, UseFormSetValue, UseFormWatch, ControllerRenderProps } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { Card, Option } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
@@ -26,14 +26,14 @@ interface DepreciationScheduleState {
   isEditing: boolean;
   isManual: boolean;
   isMonthly: boolean;
-  floorApplied: boolean;
+  ceilingApplied: boolean;
 }
 
 interface DepreciationScheduleControls {
   enterEditMode: () => void;
   cancelEditMode: () => void;
   saveEditMode: () => void;
-  applyFloorRounding: () => void;
+  applyCeilingRounding: () => void;
   updateEditableRow: (index: number, depreciation: number) => void;
   addEditableRow: () => void;
   removeEditableRow: () => void;
@@ -49,18 +49,20 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 2,
 });
 
-const parseCurrency = (value?: string | null): number => {
+const parseCurrency = (value?: string | number | null): number => {
   if (!value) return 0;
-  const sanitized = value.replace(/[^0-9.-]/g, "");
+  const stringValue = String(value);
+  const sanitized = stringValue.replace(/[^0-9.-]/g, "");
   const parsed = parseFloat(sanitized);
   return Number.isFinite(parsed) ? parsed : 0;
 };
 
 const formatCurrency = (value: number): string => currencyFormatter.format(Number.isFinite(value) ? value : 0);
 
-const parseRate = (value?: string | null): number => {
-  if (!value) return 0;
-  const sanitized = value.replace(/[^0-9.-]/g, "");
+const parseRate = (value?: string | number | null): number => {
+  if (!value || value === "N/A") return 0;
+  const stringValue = String(value);
+  const sanitized = stringValue.replace(/[^0-9.-]/g, "");
   const parsed = parseFloat(sanitized);
   return Number.isFinite(parsed) ? parsed : 0;
 };
@@ -80,29 +82,29 @@ const getAcquireDateInfo = (acquireDate?: string) => {
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const applyFloor = (rows: DepreciationScheduleRow[]): DepreciationScheduleRow[] => {
+const applyCeiling = (rows: DepreciationScheduleRow[]): DepreciationScheduleRow[] => {
   if (rows.length === 0) return rows;
 
   let depAdjustment = 0;
-  let nbvAdjustment = 0;
 
-  const floored = rows.map((row, index) => {
+  const ceiled = rows.map((row, index) => {
     if (index === rows.length - 1) {
       const depreciation = roundToTwo(row.depreciation + depAdjustment);
-      const netBookValue = roundToTwo(row.netBookValue + nbvAdjustment);
-      return { ...row, depreciation, netBookValue };
+      return { ...row, depreciation };
     }
 
-    const flooredDep = Math.floor(row.depreciation);
-    const flooredNBV = Math.floor(row.netBookValue);
+    const ceiledDep = Math.ceil(row.depreciation);
+    depAdjustment += row.depreciation - ceiledDep;
 
-    depAdjustment += row.depreciation - flooredDep;
-    nbvAdjustment += row.netBookValue - flooredNBV;
-
-    return { ...row, depreciation: flooredDep, netBookValue: flooredNBV };
+    return { ...row, depreciation: ceiledDep };
   });
 
-  return floored;
+  // Recalculate net book values based on the ceiled depreciation
+  let currentNBV = rows.length > 0 ? rows[0].netBookValue + rows[0].depreciation : 0;
+  return ceiled.map((row) => {
+    currentNBV = roundToTwo(currentNBV - row.depreciation);
+    return { ...row, netBookValue: currentNBV };
+  });
 };
 
 const updateEditable = (
@@ -283,6 +285,97 @@ const calculateSchedule = (
 
 const clampNonNegative = (value: number): number => (value < 0 ? 0 : value);
 
+interface ValidationOptions {
+  min?: number;
+  max?: number;
+  formatCurrency?: boolean;
+  updateDependentFields?: (numericValue: number) => void;
+}
+
+const createValidationHandler = (
+  field: ControllerRenderProps<CreateAssetFormData, keyof CreateAssetFormData>,
+  options: ValidationOptions,
+  parseValue: (value: string) => number,
+  formatValue?: (value: number) => string
+) => {
+  return (event: React.FocusEvent<HTMLInputElement> | React.KeyboardEvent<HTMLInputElement>) => {
+    const value = parseValue(event.currentTarget.value);
+    let validatedValue = value;
+
+    // Apply minimum validation
+    if (options.min !== undefined && validatedValue < options.min) {
+      validatedValue = options.min;
+    }
+
+    // Apply maximum validation
+    if (options.max !== undefined && validatedValue > options.max) {
+      validatedValue = options.max;
+    }
+
+    // Format and update field
+    if (options.formatCurrency && formatValue) {
+      field.onChange(formatValue(validatedValue));
+    } else {
+      field.onChange(validatedValue);
+    }
+
+    // Update dependent fields if provided
+    if (options.updateDependentFields) {
+      options.updateDependentFields(validatedValue);
+    }
+
+    // Call onBlur for additional processing
+    field.onBlur();
+  };
+};
+
+const resolveEditableFlagsState = (
+  prev: EditableFlags,
+  key: keyof EditableFlags,
+  shouldEnable: boolean,
+): EditableFlags => {
+  const next: EditableFlags = { ...prev };
+
+  if (key === "residualValue" || key === "totalDepreciation") {
+    if (shouldEnable) {
+      next.residualValue = true;
+      next.totalDepreciation = true;
+      next.depreciationRate = false;
+    } else {
+      next.residualValue = false;
+      next.totalDepreciation = false;
+    }
+  } else if (key === "depreciationRate") {
+    next.depreciationRate = shouldEnable;
+    if (shouldEnable) {
+      next.residualValue = false;
+      next.totalDepreciation = false;
+    }
+  } else {
+    next.usefulLife = shouldEnable;
+  }
+
+  if ((next.depreciationRate || next.residualValue || next.totalDepreciation) && !next.usefulLife) {
+    next.usefulLife = true;
+  }
+
+  if (next.usefulLife && next.depreciationRate && next.residualValue && next.totalDepreciation) {
+    next.residualValue = false;
+    next.totalDepreciation = false;
+  }
+
+  if (
+    next.usefulLife === prev.usefulLife &&
+    next.residualValue === prev.residualValue &&
+    next.depreciationRate === prev.depreciationRate &&
+    next.totalDepreciation === prev.totalDepreciation
+  ) {
+    return prev;
+  }
+
+  return next;
+};
+
 interface EditableFlags {
   usefulLife: boolean;
   residualValue: boolean;
@@ -419,6 +512,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
 
   const previousFrequencyRef = useRef<string | null>(null);
   const skipNextUsefulLifeComputeRef = useRef(false);
+  const usefulLifeInputRef = useRef<HTMLInputElement>(null);
 
   const [editableFlags, setEditableFlags] = useState<EditableFlags>({
     usefulLife: false,
@@ -431,26 +525,80 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   const [manualSchedule, setManualSchedule] = useState<DepreciationScheduleRow[]>([]);
   const [editableRows, setEditableRows] = useState<DepreciationScheduleRow[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [floorApplied, setFloorApplied] = useState(false);
+  const [ceilingApplied, setCeilingApplied] = useState(false);
 
   const costValue = useMemo(() => parseCurrency(cost), [cost]);
   const residualValueNumber = useMemo(() => parseCurrency(residualValue), [residualValue]);
   const totalDepreciationNumber = useMemo(() => parseCurrency(totalDepreciation), [totalDepreciation]);
   const depreciationRateNumber = useMemo(() => parseRate(depreciationRate), [depreciationRate]);
 
-  useEffect(() => {
-    if (previousFrequencyRef.current !== frequency) {
-      const switchedToMonthly = frequency === "Monthly";
-      skipNextUsefulLifeComputeRef.current = switchedToMonthly;
+   useEffect(() => {
+     if (previousFrequencyRef.current !== frequency) {
+       const switchedToMonthly = frequency === "Monthly";
+       skipNextUsefulLifeComputeRef.current = switchedToMonthly;
 
-      if (switchedToMonthly && !editableFlags.usefulLife) {
-        const defaultLife = 12;
-        setValue("usefulLife", defaultLife, { shouldDirty: false });
-      }
+       // Recalculate manual schedule when frequency changes in Manual mode
+       if (method === "Manual" && manualSchedule.length > 0 && previousFrequencyRef.current !== null) {
+         const confirmed = window.confirm("This will clear your custom schedule. Continue?");
+          if (confirmed) {
+            const newSchedule = calculateSchedule(
+              frequency,
+              "Straight Line",
+              costValue,
+              residualValueNumber,
+              usefulLife,
+              acquireDate,
+            );
+            setManualSchedule(newSchedule);
+            previousFrequencyRef.current = frequency;
+          } else {
+            // Revert frequency to previous value if canceled
+            setValue("depreciationFrequency", previousFrequencyRef.current, { shouldDirty: false });
+          }
+       } else {
+         // Set useful life only if not in Manual mode with schedule or if confirmed
+         if (switchedToMonthly && !editableFlags.usefulLife) {
+           const defaultLife = 12;
+           setValue("usefulLife", defaultLife, { shouldDirty: false });
+         }
+       }
+     }
+   }, [editableFlags.usefulLife, frequency, setValue, method, manualSchedule.length, costValue, residualValueNumber, usefulLife, acquireDate]);
 
-      previousFrequencyRef.current = frequency;
+   useEffect(() => {
+     if (usefulLifeInputRef.current && editableFlags.usefulLife && editableFlags.depreciationRate && method !== "Manual") {
+       const schedule = calculateSchedule(
+         frequency,
+         method,
+         costValue,
+         residualValueNumber,
+         usefulLife,
+         acquireDate,
+       );
+       const hasZeroResidual = schedule.some(row => row.netBookValue <= 0);
+       if (hasZeroResidual) {
+         usefulLifeInputRef.current.max = String(usefulLife);
+         usefulLifeInputRef.current.title = 'Cannot increase schedule years as residual value has reached 0';
+       } else {
+         usefulLifeInputRef.current.removeAttribute('max');
+         usefulLifeInputRef.current.title = '';
+       }
+     } else if (usefulLifeInputRef.current) {
+       usefulLifeInputRef.current.removeAttribute('max');
+       usefulLifeInputRef.current.title = '';
+     }
+   }, [editableFlags.usefulLife, editableFlags.depreciationRate, method, frequency, costValue, residualValueNumber, usefulLife, acquireDate]);
+
+   useEffect(() => {
+    if (method === "Manual") {
+      setEditableFlags({
+        usefulLife: false,
+        residualValue: false,
+        depreciationRate: false,
+        totalDepreciation: false,
+      });
     }
-  }, [editableFlags.usefulLife, frequency, setValue]);
+  }, [method]);
 
   useEffect(() => {
     if (method === "Manual") {
@@ -529,7 +677,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
 
     setScheduleRows((prevScheduleRows) => {
       if (!areSchedulesEqual(prevScheduleRows, schedule)) {
-        setFloorApplied(false);
+        setCeilingApplied(false);
         return schedule;
       }
       return prevScheduleRows;
@@ -623,8 +771,27 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   ]);
 
   const toggleEditable = useCallback((key: keyof EditableFlags) => {
-    setEditableFlags((prev) => ({ ...prev, [key]: !prev[key] }));
-  }, []);
+    const isPair = key === "residualValue" || key === "totalDepreciation";
+    const currentlyEnabled = isPair
+      ? editableFlags.residualValue && editableFlags.totalDepreciation
+      : editableFlags[key];
+    const shouldEnable = !currentlyEnabled;
+
+    if (method === "Manual" && shouldEnable) {
+      const confirmed = window.confirm(
+        "This will change depreciation method. Changing the depreciation method will clear your custom schedule. Continue?",
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      setValue("depreciationMethod", "Straight Line", { shouldDirty: true });
+      setManualSchedule([]);
+    }
+
+    setEditableFlags((prev) => resolveEditableFlagsState(prev, key, shouldEnable));
+  }, [editableFlags, method, setValue]);
 
   const handleEnterEditMode = useCallback(() => {
     const base = method === "Manual" ? manualSchedule : scheduleRows;
@@ -636,7 +803,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     const base = method === "Manual" ? manualSchedule : scheduleRows;
     setEditableRows(base);
     setIsEditing(false);
-    setFloorApplied(false);
+    setCeilingApplied(false);
   }, [manualSchedule, method, scheduleRows]);
 
   const handleSaveEditMode = useCallback(() => {
@@ -665,7 +832,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     }
 
     setIsEditing(false);
-    setFloorApplied(false);
+    setCeilingApplied(false);
   }, [
     costValue,
     editableFlags,
@@ -692,26 +859,26 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     setEditableRows((prev) => removeManualRow(prev));
   }, []);
 
-  const handleFloorRounding = useCallback(() => {
+  const handleCeilingRounding = useCallback(() => {
     if (isEditing) {
-      setEditableRows((prev) => applyFloor(prev));
-      setFloorApplied(true);
+      setEditableRows((prev) => applyCeiling(prev));
+      setCeilingApplied(true);
       return;
     }
 
     const target = method === "Manual" ? manualSchedule : scheduleRows;
     if (target.length === 0) return;
-    const floored = applyFloor(target);
-    setManualSchedule(floored);
+    const ceiled = applyCeiling(target);
+    setManualSchedule(ceiled);
     setValue("depreciationMethod", "Manual", { shouldDirty: true });
-    setFloorApplied(true);
+    setCeilingApplied(true);
   }, [isEditing, manualSchedule, method, scheduleRows, setValue]);
 
   const scheduleControls = useMemo<DepreciationScheduleControls>(() => ({
     enterEditMode: handleEnterEditMode,
     cancelEditMode: handleCancelEditMode,
     saveEditMode: handleSaveEditMode,
-    applyFloorRounding: handleFloorRounding,
+    applyCeilingRounding: handleCeilingRounding,
     updateEditableRow: handleUpdateEditableRow,
     addEditableRow: handleAddEditableRow,
     removeEditableRow: handleRemoveEditableRow,
@@ -719,7 +886,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     handleAddEditableRow,
     handleCancelEditMode,
     handleEnterEditMode,
-    handleFloorRounding,
+    handleCeilingRounding,
     handleRemoveEditableRow,
     handleSaveEditMode,
     handleUpdateEditableRow,
@@ -739,13 +906,13 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
         isEditing,
         isManual: method === "Manual",
         isMonthly,
-        floorApplied,
+        ceilingApplied,
       },
       controls: scheduleControls,
     });
   }, [
     editableRows,
-    floorApplied,
+    ceilingApplied,
     isEditing,
     isMonthly,
     manualSchedule,
@@ -807,18 +974,40 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
               />
             </div>
           </div>
-           <Controller
-             name="usefulLife"
-             control={control}
-             render={({ field }) => (
-               <Input
-                 {...field}
-                 type="number"
-                 min={1}
-                 disabled={!editableFlags.usefulLife}
-               />
-             )}
-           />
+            <Controller
+              name="usefulLife"
+              control={control}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  ref={usefulLifeInputRef}
+                  type="number"
+                  min={1}
+                  disabled={!editableFlags.usefulLife}
+                  onBlur={createValidationHandler(
+                    field,
+                    {
+                      min: 1,
+                      max: editableFlags.usefulLife && depreciationRateNumber > 0 ? Math.floor(100 / depreciationRateNumber) : undefined,
+                    },
+                    (value: string) => parseInt(value) || 0
+                  )}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      const validationHandler = createValidationHandler(
+                        field,
+                        {
+                          min: 1,
+                          max: editableFlags.usefulLife && depreciationRateNumber > 0 ? Math.floor(100 / depreciationRateNumber) : undefined,
+                        },
+                        (value: string) => parseInt(value) || 0
+                      );
+                      validationHandler(event);
+                    }
+                  }}
+                />
+              )}
+            />
         </div>
         <div>
           <div className="flex items-center justify-between">
@@ -840,9 +1029,50 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                  inputMode="decimal"
                  disabled={!editableFlags.residualValue}
                  value={field.value ?? ""}
-                 onBlur={(event) => {
-                   const numeric = parseCurrency(event.target.value);
-                   field.onChange(formatCurrency(numeric));
+                 onChange={(event) => {
+                   field.onChange(event.target.value);
+                   if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                     const numeric = parseCurrency(event.target.value);
+                     const total = clampNonNegative(costValue - numeric);
+                     setValue("totalDepreciation", formatCurrency(total), { shouldDirty: false });
+                   }
+                 }}
+                 onBlur={createValidationHandler(
+                   field,
+                   {
+                     min: 0,
+                     max: editableFlags.residualValue && costValue > 0 ? costValue : undefined,
+                     formatCurrency: true,
+                     updateDependentFields: (numericValue: number) => {
+                       if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                         const total = clampNonNegative(costValue - numericValue);
+                         setValue("totalDepreciation", formatCurrency(total), { shouldDirty: false });
+                       }
+                     }
+                   },
+                   parseCurrency,
+                   formatCurrency
+                 )}
+                 onKeyDown={(event) => {
+                   if (event.key === "Enter") {
+                     const validationHandler = createValidationHandler(
+                       field,
+                       {
+                         min: 0,
+                         max: editableFlags.residualValue && costValue > 0 ? costValue : undefined,
+                         formatCurrency: true,
+                         updateDependentFields: (numericValue: number) => {
+                           if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                             const total = clampNonNegative(costValue - numericValue);
+                             setValue("totalDepreciation", formatCurrency(total), { shouldDirty: false });
+                           }
+                         }
+                       },
+                       parseCurrency,
+                       formatCurrency
+                     );
+                     validationHandler(event);
+                   }
                  }}
                />
              )}
@@ -863,18 +1093,39 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
             </div>
           </div>
           <div className="flex items-center gap-2">
-             <Controller
-               name="depreciationRate"
-               control={control}
-               render={({ field }) => (
-                 <Input
-                   {...field}
-                   inputMode="decimal"
-                   disabled={!editableFlags.depreciationRate}
-                   value={field.value ?? ""}
-                 />
-               )}
-             />
+              <Controller
+                name="depreciationRate"
+                control={control}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    inputMode="decimal"
+                    disabled={!editableFlags.depreciationRate}
+                    value={field.value ?? ""}
+                    onBlur={createValidationHandler(
+                      field,
+                      {
+                        min: 0,
+                        max: editableFlags.depreciationRate && usefulLife > 0 ? Math.floor(100 / usefulLife) : undefined,
+                      },
+                      (value: string) => parseFloat(value) || 0
+                    )}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        const validationHandler = createValidationHandler(
+                          field,
+                          {
+                            min: 0,
+                            max: editableFlags.depreciationRate && usefulLife > 0 ? Math.floor(100 / usefulLife) : undefined,
+                          },
+                          (value: string) => parseFloat(value) || 0
+                        );
+                        validationHandler(event);
+                      }
+                    }}
+                  />
+                )}
+              />
             <span className="body-small text-onSurfaceVariant whitespace-nowrap">{rateUnit}</span>
           </div>
         </div>
@@ -898,10 +1149,51 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                  inputMode="decimal"
                  disabled={!editableFlags.totalDepreciation}
                  value={field.value ?? ""}
-                 onBlur={(event) => {
-                   const numeric = parseCurrency(event.target.value);
-                   field.onChange(formatCurrency(numeric));
+                 onChange={(event) => {
+                   field.onChange(event.target.value);
+                   if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                     const numeric = parseCurrency(event.target.value);
+                     const residual = clampNonNegative(costValue - numeric);
+                     setValue("residualValue", formatCurrency(residual), { shouldDirty: false });
+                   }
                  }}
+                  onBlur={createValidationHandler(
+                    field,
+                    {
+                      min: 0,
+                      max: editableFlags.totalDepreciation && costValue > 0 ? costValue : undefined,
+                      formatCurrency: true,
+                      updateDependentFields: (numericValue: number) => {
+                        if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                          const residual = clampNonNegative(costValue - numericValue);
+                          setValue("residualValue", formatCurrency(residual), { shouldDirty: false });
+                        }
+                      }
+                    },
+                    parseCurrency,
+                    formatCurrency
+                  )}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      const validationHandler = createValidationHandler(
+                        field,
+                        {
+                          min: 0,
+                          max: editableFlags.totalDepreciation && costValue > 0 ? costValue : undefined,
+                          formatCurrency: true,
+                          updateDependentFields: (numericValue: number) => {
+                            if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                              const residual = clampNonNegative(costValue - numericValue);
+                              setValue("residualValue", formatCurrency(residual), { shouldDirty: false });
+                            }
+                          }
+                        },
+                        parseCurrency,
+                        formatCurrency
+                      );
+                      validationHandler(event);
+                    }
+                  }}
                />
              )}
            />

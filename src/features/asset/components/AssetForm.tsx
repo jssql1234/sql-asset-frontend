@@ -1,6 +1,7 @@
 import React, { useState, useRef, useImperativeHandle, useEffect, useCallback, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
 import { Option, Tabs, type TabItem, Button, Card } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
@@ -45,6 +46,17 @@ const scheduleCurrencyFormatter = new Intl.NumberFormat("en-US", {
 const formatScheduleCurrency = (value: number): string => `RM ${scheduleCurrencyFormatter.format(Number.isFinite(value) ? value : 0)}`;
 
 const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState | null }> = ({ view }) => {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const rows = view?.state.rows ?? [];
+  
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 48,
+    overscan: 5,
+  });
+
   if (!view) {
     return (
       <Card className="p-6 shadow-md">
@@ -55,7 +67,6 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
   }
 
   const { state, controls } = view;
-  const rows = state.rows;
 
   const handleDepreciationChange = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = Number.parseFloat(event.target.value);
@@ -69,17 +80,17 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
           <h3 className="title-small text-onSurface">Depreciation Schedule</h3>
           <p className="body-small text-onSurfaceVariant">
             {state.isManual ? "Manual schedule" : "Straight line schedule"}
-            {state.floorApplied && !state.isEditing ? " · floor rounded" : ""}
+            {state.ceilingApplied && !state.isEditing ? " · ceiling rounded" : ""}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={controls.applyFloorRounding}
-            disabled={rows.length === 0 || (!state.isEditing && state.floorApplied)}
+            onClick={controls.applyCeilingRounding}
+            disabled={rows.length === 0 || (!state.isEditing && state.ceilingApplied)}
           >
-            Floor Rounding
+            Ceiling Rounding
           </Button>
           {state.isEditing ? (
             <>
@@ -95,44 +106,73 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
-          <thead className="text-onSurfaceVariant text-sm">
-            <tr>
-              <th className="pb-2 pr-4 font-medium w-1/3">{state.isMonthly ? "Month" : "Year"}</th>
-              <th className="pb-2 pr-4 font-medium w-1/3">Net Book Value</th>
-              <th className="pb-2 font-medium w-1/3">Depreciation</th>
-            </tr>
-          </thead>
-          <tbody className="text-sm">
-            {rows.length === 0 ? (
+        <div
+          ref={parentRef}
+          className="overflow-y-auto"
+          style={{
+            maxHeight: rows.length > 12 ? '600px' : 'none',
+          }}
+        >
+          <table className="w-full text-left border-collapse" style={{ tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '25%' }} />
+              <col style={{ width: '37.5%' }} />
+              <col style={{ width: '37.5%' }} />
+            </colgroup>
+            <thead className="text-onSurfaceVariant text-sm sticky top-0 bg-surface z-10">
               <tr>
-                <td colSpan={3} className="py-6 text-center text-onSurfaceVariant">
-                  Schedule will be generated once depreciation inputs are provided.
-                </td>
+                <th className="pb-2 pr-4 font-medium" style={{ width: '25%' }}>{state.isMonthly ? "Month" : "Year"}</th>
+                <th className="pb-2 pr-4 font-medium" style={{ width: '37.5%' }}>Net Book Value</th>
+                <th className="pb-2 pr-4 font-medium" style={{ width: '37.5%' }}>Depreciation</th>
               </tr>
-            ) : (
-              rows.map((row, index) => (
-                <tr key={row.label} className="border-t border-outlineVariant/30">
-                  <td className="py-3 pr-4 whitespace-nowrap w-1/3">{row.label}</td>
-                  <td className="py-3 pr-4 whitespace-nowrap w-1/3">{formatScheduleCurrency(row.netBookValue)}</td>
-                  <td className="py-3 w-1/3">
-                    {state.isEditing ? (
-                      <Input
-                        type="number"
-                        inputMode="decimal"
-                        value={Number.isFinite(row.depreciation) ? row.depreciation : 0}
-                        onChange={handleDepreciationChange(index)}
-                        min={0}
-                      />
-                    ) : (
-                      <span>{formatScheduleCurrency(row.depreciation)}</span>
-                    )}
+            </thead>
+            <tbody className="text-sm" style={{ height: `${String(rowVirtualizer.getTotalSize())}px`, position: 'relative' }}>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="py-6 text-center text-onSurfaceVariant">
+                    Schedule will be generated once depreciation inputs are provided.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                  const row = rows[virtualRow.index];
+                  return (
+                    <tr
+                      key={row.label}
+                      className="border-t border-outlineVariant/30"
+                      style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: `${String(virtualRow.size)}px`,
+                        transform: `translateY(${String(virtualRow.start)}px)`,
+                        display: 'table',
+                        tableLayout: 'fixed',
+                      }}
+                    >
+                      <td className="py-3 pr-4 whitespace-nowrap" style={{ width: '25%' }}>{row.label}</td>
+                      <td className="py-3 pr-4 whitespace-nowrap" style={{ width: '37.5%' }}>{formatScheduleCurrency(row.netBookValue)}</td>
+                      <td className="py-3 pr-4" style={{ width: '37.5%' }}>
+                        {state.isEditing ? (
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            value={Number.isFinite(row.depreciation) ? row.depreciation : 0}
+                            onChange={handleDepreciationChange(virtualRow.index)}
+                            min={0}
+                          />
+                        ) : (
+                          <span>{formatScheduleCurrency(row.depreciation)}</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </Card>
   );

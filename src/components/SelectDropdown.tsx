@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/components";
-import { ChevronDown } from "@/assets/icons";
+import { ChevronDown, PointFilled } from "@/assets/icons";
 import { cn } from "@/utils/utils";
 import {
   useDropdownPosition,
@@ -27,6 +27,7 @@ interface SelectDropdownProps {
   icon?: React.ReactNode;
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
   buttonSize?: React.ComponentProps<typeof Button>["size"];
+  showRadio?: boolean; // Optional: Show radio button indicators
 }
 
 // Default styles matching DropdownButton
@@ -53,6 +54,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   icon,
   buttonVariant = "dropdown",
   buttonSize = "dropdown",
+  showRadio = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -217,45 +219,68 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   const originClass = getOriginClass(alignment, openUpwards);
 
   const content = (
-    <div
-      ref={contentRef}
-      onKeyDown={handleKeyDown}
-      onMouseDown={handleMouseDown}
-      role="menu"
-      aria-orientation="vertical"
-      className={cn(
-        DROPDOWN_STYLES.content.base,
-        { "w-[180px]": !matchTriggerWidth },
-        isOpen
-          ? "opacity-100 scale-100"
-          : "opacity-0 pointer-events-none scale-95",
-        "transition-opacity",
-        originClass,
-        contentClassName
+    <>
+      {/* Transparent overlay to block interactions outside dropdown */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[9998]"
+          style={{ background: "transparent" }}
+          onClick={() => setIsOpen(false)}
+        />
       )}
-      style={combinedStyle}
-    >
-      <ul className="py-1 px-1">
-        {options.map((option, index) => {
-          const isFocused = focusedIndex === index;
-          return (
-            <li
-              key={option.value}
-              ref={setItemRef(index)}
-              tabIndex={-1}
-              className={cn(
-                DROPDOWN_STYLES.item.base,
-                { [DROPDOWN_STYLES.item.focus]: isFocused }
-              )}
-              onClick={() => { handleOptionClick(option.value); }}
-              onMouseEnter={() => { handleItemHover(index); }}
-            >
-              {option.label}
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+      
+      {/* Dropdown content */}
+      <div
+        ref={contentRef}
+        onKeyDown={handleKeyDown}
+        onMouseDown={handleMouseDown}
+        role="menu"
+        aria-orientation="vertical"
+        className={cn(
+          DROPDOWN_STYLES.content.base,
+          { "w-[180px]": !matchTriggerWidth },
+          isOpen
+            ? "opacity-100 scale-100"
+            : "opacity-0 pointer-events-none scale-95",
+          "transition-opacity",
+          originClass,
+          contentClassName
+        )}
+        style={combinedStyle}
+      >
+        <ul className="py-1 px-1">
+          {options.map((option, index) => {
+            const isFocused = focusedIndex === index;
+            const isSelected = option.value === value;
+            return (
+              <li
+                key={option.value}
+                ref={setItemRef(index)}
+                tabIndex={-1}
+                className={cn(DROPDOWN_STYLES.item.base, {
+                  [DROPDOWN_STYLES.item.focus]: isFocused,
+                })}
+                onClick={() => {
+                  handleOptionClick(option.value);
+                }}
+                onMouseEnter={() => {
+                  handleItemHover(index);
+                }}
+              >
+                {showRadio ? (
+                  <div className="flex items-center ">
+                    <span className="flex-1">{option.label}</span>
+                    {isSelected && <PointFilled className="w-4 h-4" />}
+                  </div>
+                ) : (
+                  option.label
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </>
   );
 
   return (

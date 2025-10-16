@@ -19,6 +19,8 @@ interface SearchableDropdownProps {
   emptyMessage?: string;
   /** Show search input inside dropdown instead of button */
   searchInDropdown?: boolean;
+  /** Force dropdown to open upward */
+  position?: 'top' | 'bottom' | 'auto';
 }
 
 export const SearchableDropdown = ({
@@ -30,6 +32,7 @@ export const SearchableDropdown = ({
   maxHeight = "max-h-60",
   emptyMessage = "No options found",
   searchInDropdown = false,
+  position = 'bottom',
 }: SearchableDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -41,8 +44,7 @@ export const SearchableDropdown = ({
   const filteredItems = items.filter(
     (item) =>
       item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (item.sublabel &&
-        item.sublabel.toLowerCase().includes(searchTerm.toLowerCase()))
+      (item.sublabel?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export const SearchableDropdown = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => { document.removeEventListener("mousedown", handleClickOutside); };
   }, []);
 
   useEffect(() => {
@@ -102,14 +104,17 @@ export const SearchableDropdown = ({
             setSearchTerm(e.target.value);
             if (!isOpen) setIsOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => { setIsOpen(true); }}
           onKeyDown={handleKeyDown}
           className="w-full"
         />
 
         {/* Dropdown Content */}
         {isOpen && (
-          <div className="absolute top-full z-50 mt-1 w-full rounded-md border border-outlineVariant bg-surface shadow-lg">
+          <div className={cn(
+            "absolute z-50 w-full rounded-md border border-outlineVariant bg-surface shadow-lg",
+            position === 'top' ? "bottom-full mb-1" : "top-full mt-1"
+          )}>
             {/* Options List */}
             <div className={cn("overflow-y-auto", maxHeight)}>
               {filteredItems.length > 0 ? (
@@ -117,7 +122,7 @@ export const SearchableDropdown = ({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => handleSelect(item.id)}
+                    onClick={() => { handleSelect(item.id); }}
                     className={cn(
                       "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainerLowest focus:bg-surfaceContainerLowest focus:outline-none",
                       selectedId === item.id &&
@@ -182,7 +187,10 @@ export const SearchableDropdown = ({
 
       {/* Dropdown Content */}
       {isOpen && (
-        <div className="absolute top-full z-50 mt-1 w-full rounded-md border border-outlineVariant bg-surface shadow-lg">
+        <div className={cn(
+          "absolute z-50 w-full rounded-md border border-outlineVariant bg-surface shadow-lg",
+          position === 'top' ? "bottom-full mb-1" : "top-full mt-1"
+        )}>
           {/* Search Input */}
           <div className="p-2">
             <Input
@@ -190,7 +198,7 @@ export const SearchableDropdown = ({
               type="text"
               placeholder="Search..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => { setSearchTerm(e.target.value); }}
               onKeyDown={handleKeyDown}
               className="text-sm"
             />
@@ -203,7 +211,7 @@ export const SearchableDropdown = ({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => handleSelect(item.id)}
+                  onClick={() => { handleSelect(item.id); }}
                   className={cn(
                     "flex w-full flex-col items-start px-3 py-2 text-left text-sm hover:bg-surfaceContainerLowest focus:bg-surfaceContainerLowest focus:outline-none",
                     selectedId === item.id &&

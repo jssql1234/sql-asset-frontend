@@ -6,7 +6,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/components/Dialog';
+} from '@/components/DialogExtended';
 import { Input } from '@/components/ui/components/Input/Input';
 import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';

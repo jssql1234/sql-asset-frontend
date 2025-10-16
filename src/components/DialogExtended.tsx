@@ -353,7 +353,7 @@ const DialogContent: React.FC<{
   dialogClose = true,
   className,
   buttonClassName,
-  closeOnBackdropClick = false,
+  closeOnBackdropClick = true,
   children,
 }) => {
   const { open } = useDialogContext();

@@ -35,15 +35,15 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} >
-      <DialogContent className="w-xl max-w-2xl overflow-visible" closeOnBackdropClick>
+      <DialogContent className="h-[35rem] max-h-[40rem] w-2xl max-w-2xl overflow-visible" closeOnBackdropClick>
         <DialogHeader>
           <DialogTitle>
             {editingUser ? 'Edit User' : 'Add User'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleFormSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4 pb-4 h-full flex flex-col justify-between">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-5">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -130,45 +130,47 @@ export const UserModal: React.FC<UserModalProps> = ({
                 Location selection will be available in future updates
               </p>
             </div>
-          </div>
 
-          {/* User Group */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              User Group *
-            </label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <SearchableDropdown
-                  items={groupItems}
-                  selectedId={selectedGroupId}
-                  onSelect={(groupId) => {
-                    setValue('groupId', groupId, { shouldValidate: true });
+            {/* User Group */}
+            <div className='col-span-2'>
+              <label className="block text-sm font-medium mb-1">
+                User Group *
+              </label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SearchableDropdown
+                    items={groupItems}
+                    selectedId={selectedGroupId}
+                    onSelect={(groupId) => {
+                      setValue('groupId', groupId, { shouldValidate: true });
+                    }}
+                    placeholder="Select a user group"
+                    emptyMessage="No groups found."
+                    searchInDropdown={false}
+                    className="w-full"
+                    maxHeight="max-h-60"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={() => {
+                    onCreateGroup?.();
                   }}
-                  placeholder="Select a user group"
-                  emptyMessage="No groups found."
-                  searchInDropdown={false}
-                  className="w-full"
-                  maxHeight="max-h-60"
-                />
+                  className="px-3"
+                >
+                  + New
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="default"
-                onClick={() => {
-                  onCreateGroup?.();
-                }}
-                className="px-3"
-              >
-                + New
-              </Button>
-            </div>
-            {errors.groupId && (
-              <p className="text-sm text-error mt-1">{errors.groupId.message}</p>
-            )}
+              {errors.groupId && (
+                <p className="text-sm text-error mt-1">{errors.groupId.message}</p>
+              )}
 
+            </div>
           </div>
+
+          
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel}>

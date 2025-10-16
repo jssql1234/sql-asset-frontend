@@ -225,38 +225,37 @@ const DialogPortal: React.FC<{ children: ReactNode }> = ({
   const [portalElement, setPortalElement] = useState<HTMLElement | null>(null);
 
   React.useEffect(() => {
+    const existingDiv = document.getElementById(`dialog-portal-${dialogId}`);
+    if (existingDiv !== null) {
+      setPortalElement(() => existingDiv);
+      return;
+    }
+
     // Create portal element
     const div = document.createElement("div");
     div.setAttribute("id", `dialog-portal-${dialogId}`);
+    div.className = cn(DIALOG_STYLES.dialogPortal.base, DIALOG_STYLES.dialogPortal.className);
     document.body.appendChild(div);
     setPortalElement(() => div);
 
-    // Get or assign stable z-index
-    const existingEntry = activeDialogs.get(dialogId);
-    let zIndex: number;
+    return () => {
+      if (div.parentNode !== null) {
+        div.parentNode.removeChild(div);
+      }
+    };
+  }, [dialogId]);
 
-    if (existingEntry) {
-      zIndex = existingEntry.zIndex;
-    } else {
-      zIndex = activeDialogs.size;
-    }
+  React.useEffect(() => {
+    const index = activeDialogs.size;
 
-    // Update portal element z-index
-    div.className = cn(DIALOG_STYLES.dialogPortal.base, DIALOG_STYLES.dialogPortal.className);
-
-    // Register dialog
+     // Register dialog
     activeDialogs.set(dialogId, {
-      close: () => {
-        setOpen(false);
-      },
-      zIndex
+      close: () => { setOpen(false) },
+      zIndex: index,
     });
 
     return () => {
       activeDialogs.delete(dialogId);
-      if (div.parentNode) {
-        div.parentNode.removeChild(div);
-      }
     };
   }, [dialogId, setOpen]);
 

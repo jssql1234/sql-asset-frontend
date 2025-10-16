@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/components';
 import { Input } from '@/components/ui/components/Input';
 import { SearchableDropdown } from '@/components/SearchableDropdown';
-import { useUserContext } from '@/context/UserContext';
 import type { User } from '@/types/user';
 import { useUserModal } from '../hooks/useUserModal';
 
@@ -14,6 +13,8 @@ interface UserModalProps {
   editingUser: User | null;
   onSave: (userData: User, onSuccess?: () => void) => void;
   onCreateGroup?: () => void;
+  onCreateLocation?: () => void;
+  onCreateDepartment?: () => void;
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -22,9 +23,11 @@ export const UserModal: React.FC<UserModalProps> = ({
   editingUser,
   onSave,
   onCreateGroup,
+  onCreateLocation,
+  onCreateDepartment,
 }) => {
   
-  const { form, handleFormSubmit, handleCancel,} = useUserModal(
+  const { form, handleFormSubmit, handleCancel, groupItems, locationItems, departmentItems } = useUserModal(
     editingUser,
     onOpenChange,
     onSave
@@ -32,27 +35,21 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   const { register, watch, setValue , formState: { errors } } = form;
 
-
-  const { groups } = useUserContext();
   const selectedGroupId = watch('groupId');
-  
-  // Convert groups to SearchableDropdown format
-  const groupItems = groups.map(group => ({
-    id: group.id,
-    label: group.name,
-  }));
+  const selectedLocationId = watch('location');
+  const selectedDepartmentId = watch('department');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} >
-      <DialogContent className="w-xl max-w-2xl overflow-visible" closeOnBackdropClick>
+      <DialogContent className="h-fit max-h-fit w-2xl max-w-2xl overflow-visible" closeOnBackdropClick>
         <DialogHeader>
           <DialogTitle>
             {editingUser ? 'Edit User' : 'Add User'}
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleFormSubmit} className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4 pb-4 h-full flex flex-col justify-between">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-5">
             {/* Name */}
             <div>
               <label className="block text-sm font-medium mb-1">
@@ -111,73 +108,120 @@ export const UserModal: React.FC<UserModalProps> = ({
             </div>
 
             {/* Department */}
-            <div>
+            <div className='col-span-2'>
               <label className="block text-sm font-medium mb-1">
-                Department
+                Department *
               </label>
-              <Input
-                {...register('department')}
-                placeholder="Department management coming soon"
-                disabled
-              />
-              <p className="text-xs text-onSurfaceVariant mt-1">
-                Department selection will be available in future updates
-              </p>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SearchableDropdown
+                    items={departmentItems}
+                    selectedId={selectedDepartmentId}
+                    onSelect={(departmentId) => {
+                      setValue('department', departmentId, { shouldValidate: true });
+                    }}
+                    placeholder="Select a department"
+                    emptyMessage="No department found."
+                    searchInDropdown={false}
+                    className="w-full"
+                    maxHeight="max-h-60"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={() => {
+                    onCreateDepartment?.();
+                  }}
+                  className="px-3"
+                >
+                  + New
+                </Button>
+              </div>
+              {errors.department && (
+                <p className="text-sm text-error mt-1">{errors.department.message}</p>
+              )}
             </div>
 
             {/* Location */}
-            <div>
+            <div className='col-span-2'>
               <label className="block text-sm font-medium mb-1">
-                Location
+                Location *
               </label>
-              <Input
-                {...register('location')}
-                placeholder="Location management coming soon"
-                disabled
-              />
-              <p className="text-xs text-onSurfaceVariant mt-1">
-                Location selection will be available in future updates
-              </p>
-            </div>
-          </div>
-
-          {/* User Group */}
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              User Group *
-            </label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <SearchableDropdown
-                  items={groupItems}
-                  selectedId={selectedGroupId}
-                  onSelect={(groupId) => {
-                    setValue('groupId', groupId, { shouldValidate: true });
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SearchableDropdown
+                    items={locationItems}
+                    selectedId={selectedLocationId}
+                    onSelect={(locationId) => {
+                      setValue('location', locationId, { shouldValidate: true });
+                    }}
+                    placeholder="Select a location"
+                    emptyMessage="No location found."
+                    searchInDropdown={false}
+                    className="w-full"
+                    maxHeight="max-h-60"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={() => {
+                    onCreateLocation?.();
                   }}
-                  placeholder="Select a user group"
-                  emptyMessage="No groups found."
-                  searchInDropdown={false}
-                  className="w-full"
-                  maxHeight="max-h-60"
-                />
+                  className="px-3"
+                >
+                  + New
+                </Button>
               </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="default"
-                onClick={() => {
-                  onCreateGroup?.();
-                }}
-                className="px-3"
-              >
-                + New
-              </Button>
+              {errors.location && (
+                <p className="text-sm text-error mt-1">{errors.location.message}</p>
+              )}
             </div>
-            {errors.groupId && (
-              <p className="text-sm text-error mt-1">{errors.groupId.message}</p>
-            )}
 
+            {/* User Group */}
+            <div className='col-span-2'>
+              <label className="block text-sm font-medium mb-1">
+                User Group *
+              </label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SearchableDropdown
+                    items={groupItems}
+                    selectedId={selectedGroupId}
+                    onSelect={(groupId) => {
+                      setValue('groupId', groupId, { shouldValidate: true });
+                    }}
+                    placeholder="Select a user group"
+                    emptyMessage="No groups found."
+                    searchInDropdown={false}
+                    className="w-full"
+                    maxHeight="max-h-60"
+                    position="top"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="default"
+                  onClick={() => {
+                    onCreateGroup?.();
+                  }}
+                  className="px-3"
+                >
+                  + New
+                </Button>
+              </div>
+              {errors.groupId && (
+                <p className="text-sm text-error mt-1">{errors.groupId.message}</p>
+              )}
+
+            </div>
           </div>
+
+          
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel}>

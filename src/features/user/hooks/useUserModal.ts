@@ -1,8 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { userFormSchema, type UserFormData } from '../zod/userForm';
 import type { User } from '@/types/user';
+import { useUserContext } from '@/context/UserContext';
+import { useLocations } from '@/features/maintain/hooks/useLocations';
+import { useDepartments } from '@/features/maintain/hooks/useDepartments';
 
 export function useUserModal(
   editingUser: User | null,
@@ -22,6 +25,30 @@ export function useUserModal(
     groupId: '',
     },
   });
+
+  const { groups } = useUserContext();
+  const { locations } = useLocations();
+  const { departments } = useDepartments();
+
+  // Convert groups to SearchableDropdown format
+  const groupItems = useMemo(() => groups.map(group => ({
+    id: group.id,
+    label: group.name,
+  })), [groups]);
+
+  // Convert locations to SearchableDropdown format
+  const locationItems = useMemo(() => locations.map(location => ({
+    id: location.id,
+    label: location.name,
+    sublabel: location.id, // Show location ID as sublabel
+  })), [locations]);
+
+  // Convert departments to SearchableDropdown format
+  const departmentItems = useMemo(() => departments.map(department => ({
+    id: department.id,
+    label: `${department.name} (${department.code})`,
+    sublabel: department.manager, // Show location ID as sublabel
+  })), [departments]);
 
   useEffect(() => {
     if (editingUser) {
@@ -54,8 +81,8 @@ export function useUserModal(
       email: data.email,
       phone: data.phone ?? undefined,
       position: data.position ?? undefined,
-      department: data.department ?? undefined,
-      location: data.location ?? undefined,
+      department: data.department,
+      location: data.location,
       groupId: data.groupId,
     };
 
@@ -76,5 +103,8 @@ export function useUserModal(
     form,
     handleFormSubmit,
     handleCancel,
+    groupItems,
+    locationItems,
+    departmentItems,
   }
 }

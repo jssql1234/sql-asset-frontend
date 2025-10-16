@@ -37,10 +37,9 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleFormSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4 pb-4">
           
-          {/* Form fields remain the same */}
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-5">
             {/* Group ID */}
             {!editingGroup && (
               <div>

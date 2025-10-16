@@ -12,6 +12,7 @@ import {
   normalizeDepartmentCode,
   validateDepartmentForm,
 } from '../utils/departmentUtils';
+import { useToast } from '@/components/ui/components/Toast';
 
 const DEPARTMENTS_STORAGE_KEY = 'maintain_departments_data';
 const DEPARTMENT_TYPES_STORAGE_KEY = 'maintain_department_types_data';
@@ -93,6 +94,9 @@ export function useDepartments() {
   const [departmentTypes, setDepartmentTypes] = useState<DepartmentTypeOption[]>(sampleDepartmentTypes);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const { addToast } = useToast();
 
   useEffect(() => {
     const initialize = () => {
@@ -268,19 +272,89 @@ export function useDepartments() {
 
   const getNewDepartmentId = useCallback(() => generateDepartmentId(departments), [departments]);
 
+  const handleAddDepartment = () => {
+    setEditingDepartment(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditDepartment = (department: Department) => {
+    setEditingDepartment(department);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveDepartment = (formData: DepartmentFormData) => {
+    try {
+      if (editingDepartment) {
+        updateDepartment(formData);
+        addToast({
+          title: 'Success',
+          description: 'Department updated successfully!',
+          variant: 'success',
+        });
+      } else {
+        addDepartment(formData);
+        addToast({
+          title: 'Success',
+          description: 'Department added successfully!',
+          variant: 'success',
+        });
+      }
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while saving the department.',
+        variant: 'error',
+      });
+      throw error;
+    }
+  };
+
+  const handleDeleteMultipleDepartments = (ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete ${String(ids.length)} selected departments?`)) {
+      try {
+        deleteMultipleDepartments(ids);
+        addToast({
+          title: 'Success',
+          description: `${String(ids.length)} departments deleted successfully!`,
+          variant: 'success',
+        });
+      } catch (error) {
+        addToast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'An error occurred while deleting the departments.',
+          variant: 'error',
+        });
+      }
+    }
+  };
+
   return {
     departments,
     filteredDepartments,
     selectedDepartments,
     filters,
     departmentTypes,
+    isModalOpen,
+    editingDepartment,
+    setIsModalOpen,
+    setEditingDepartment,
+    updateFilters,
+    toggleDepartmentSelection,
+    handleAddDepartment,
+    handleEditDepartment,
+    handleDeleteMultipleDepartments,
+    handleSaveDepartment,
+
+    // Unused Exports?
     isLoading,
     error,
-    updateFilters,
     addDepartment,
     updateDepartment,
     deleteMultipleDepartments,
-    toggleDepartmentSelection,
     clearSelection,
     getDepartmentById,
     resetToSampleData,

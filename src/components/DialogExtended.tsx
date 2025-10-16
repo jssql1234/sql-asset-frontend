@@ -9,6 +9,7 @@ import { X } from "@/assets/icons";
 import React from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/components/Button";
+import { usePreventBodyScroll } from "@/hooks/usePreventBodyScroll";
 
 // ******************************  README  ***************************************
 
@@ -357,6 +358,9 @@ const DialogContent: React.FC<{
   children,
 }) => {
   const { open } = useDialogContext();
+
+  // Prevent body scroll when dialog is open
+  usePreventBodyScroll(open);
 
   // If not open, don't render anything
   if (!open) {

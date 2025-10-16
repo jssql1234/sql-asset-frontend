@@ -8,6 +8,8 @@ import { ExportFile, Upload } from '@/assets/icons';
 import { useMaintainUser } from '../hooks/useMaintainUser';
 import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 import DeleteUserConfirmationDialog from '../components/DeleteUserConfirmationDialog';
+import { LocationFormModal } from '@/features/maintain/components/LocationFormModal';
+import { useLocations } from '@/features/maintain/hooks/useLocations';
 
 const MaintainUserPage: React.FC = () => {
   
@@ -37,6 +39,16 @@ const MaintainUserPage: React.FC = () => {
     handleCloseModal: handleCloseGroupModal,
     handleSaveGroup,
   } = useMaintainUserGroup();
+
+  const {
+    isModalOpen: isLocationModalOpen,
+    setIsModalOpen: setIsLocationModalOpen,
+    editingLocation,
+    setEditingLocation,
+    handleAddLocation,
+    handleSaveLocation,
+    locations
+  } = useLocations();
 
   return (
     <SidebarHeader
@@ -98,6 +110,7 @@ const MaintainUserPage: React.FC = () => {
         editingUser={editingUser}
         onSave={handleSaveUser}
         onCreateGroup={handleAddGroup}
+        onCreateLocation={handleAddLocation}
       />
 
       <DeleteUserConfirmationDialog
@@ -112,6 +125,17 @@ const MaintainUserPage: React.FC = () => {
         onOpenChange={handleCloseGroupModal}
         editingGroup={null}
         onSave={handleSaveGroup}
+      />
+
+      <LocationFormModal
+        isOpen={isLocationModalOpen}
+        onClose={() => {
+          setIsLocationModalOpen(false);
+          setEditingLocation(null);
+        }}
+        onSave={handleSaveLocation}
+        editingLocation={editingLocation}
+        existingLocations={locations}
       />
 
     </SidebarHeader>

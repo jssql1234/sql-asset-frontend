@@ -448,9 +448,22 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
         setValue("usefulLife", defaultLife, { shouldDirty: false });
       }
 
+      // Recalculate manual schedule when frequency changes in Manual mode
+      if (method === "Manual" && manualSchedule.length > 0 && previousFrequencyRef.current !== null) {
+        const newSchedule = calculateSchedule(
+          frequency,
+          "Straight Line",
+          costValue,
+          residualValueNumber,
+          usefulLife,
+          acquireDate,
+        );
+        setManualSchedule(newSchedule);
+      }
+
       previousFrequencyRef.current = frequency;
     }
-  }, [editableFlags.usefulLife, frequency, setValue]);
+  }, [editableFlags.usefulLife, frequency, setValue, method, manualSchedule.length, costValue, residualValueNumber, usefulLife, acquireDate]);
 
   useEffect(() => {
     if (method === "Manual") {

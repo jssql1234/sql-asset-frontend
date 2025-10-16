@@ -283,6 +283,53 @@ const calculateSchedule = (
 
 const clampNonNegative = (value: number): number => (value < 0 ? 0 : value);
 
+const resolveEditableFlagsState = (
+  prev: EditableFlags,
+  key: keyof EditableFlags,
+  shouldEnable: boolean,
+): EditableFlags => {
+  const next: EditableFlags = { ...prev };
+
+  if (key === "residualValue" || key === "totalDepreciation") {
+    if (shouldEnable) {
+      next.residualValue = true;
+      next.totalDepreciation = true;
+      next.depreciationRate = false;
+    } else {
+      next.residualValue = false;
+      next.totalDepreciation = false;
+    }
+  } else if (key === "depreciationRate") {
+    next.depreciationRate = shouldEnable;
+    if (shouldEnable) {
+      next.residualValue = false;
+      next.totalDepreciation = false;
+    }
+  } else {
+    next.usefulLife = shouldEnable;
+  }
+
+  if ((next.depreciationRate || next.residualValue || next.totalDepreciation) && !next.usefulLife) {
+    next.usefulLife = true;
+  }
+
+  if (next.usefulLife && next.depreciationRate && next.residualValue && next.totalDepreciation) {
+    next.residualValue = false;
+    next.totalDepreciation = false;
+  }
+
+  if (
+    next.usefulLife === prev.usefulLife &&
+    next.residualValue === prev.residualValue &&
+    next.depreciationRate === prev.depreciationRate &&
+    next.totalDepreciation === prev.totalDepreciation
+  ) {
+    return prev;
+  }
+
+  return next;
+};
+
 interface EditableFlags {
   usefulLife: boolean;
   residualValue: boolean;
@@ -653,21 +700,26 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   ]);
 
   const toggleEditable = useCallback((key: keyof EditableFlags) => {
-    const willBeChecked = !editableFlags[key];
-    
-    if (method === "Manual" && willBeChecked) {
+    const isPair = key === "residualValue" || key === "totalDepreciation";
+    const currentlyEnabled = isPair
+      ? editableFlags.residualValue && editableFlags.totalDepreciation
+      : editableFlags[key];
+    const shouldEnable = !currentlyEnabled;
+
+    if (method === "Manual" && shouldEnable) {
       const confirmed = window.confirm(
-        "This will change depreciation method. Changing the depreciation method will clear your custom schedule. Continue?"
+        "This will change depreciation method. Changing the depreciation method will clear your custom schedule. Continue?",
       );
-      
-      if (confirmed) {
-        setValue("depreciationMethod", "Straight Line", { shouldDirty: true });
-        setManualSchedule([]);
-        setEditableFlags((prev) => ({ ...prev, [key]: true }));
+
+      if (!confirmed) {
+        return;
       }
-    } else {
-      setEditableFlags((prev) => ({ ...prev, [key]: !prev[key] }));
+
+      setValue("depreciationMethod", "Straight Line", { shouldDirty: true });
+      setManualSchedule([]);
     }
+
+    setEditableFlags((prev) => resolveEditableFlagsState(prev, key, shouldEnable));
   }, [editableFlags, method, setValue]);
 
   const handleEnterEditMode = useCallback(() => {
@@ -884,9 +936,22 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                  inputMode="decimal"
                  disabled={!editableFlags.residualValue}
                  value={field.value ?? ""}
+                 onChange={(event) => {
+                   field.onChange(event.target.value);
+                   if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                     const numeric = parseCurrency(event.target.value);
+                     const total = clampNonNegative(costValue - numeric);
+                     setValue("totalDepreciation", formatCurrency(total), { shouldDirty: false });
+                   }
+                 }}
                  onBlur={(event) => {
                    const numeric = parseCurrency(event.target.value);
-                   field.onChange(formatCurrency(numeric));
+                   const formatted = formatCurrency(numeric);
+                   field.onChange(formatted);
+                   if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                     const total = clampNonNegative(costValue - numeric);
+                     setValue("totalDepreciation", formatCurrency(total), { shouldDirty: false });
+                   }
                  }}
                />
              )}
@@ -942,9 +1007,22 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                  inputMode="decimal"
                  disabled={!editableFlags.totalDepreciation}
                  value={field.value ?? ""}
+                 onChange={(event) => {
+                   field.onChange(event.target.value);
+                   if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                     const numeric = parseCurrency(event.target.value);
+                     const residual = clampNonNegative(costValue - numeric);
+                     setValue("residualValue", formatCurrency(residual), { shouldDirty: false });
+                   }
+                 }}
                  onBlur={(event) => {
                    const numeric = parseCurrency(event.target.value);
-                   field.onChange(formatCurrency(numeric));
+                   const formatted = formatCurrency(numeric);
+                   field.onChange(formatted);
+                   if (editableFlags.residualValue && editableFlags.totalDepreciation) {
+                     const residual = clampNonNegative(costValue - numeric);
+                     setValue("residualValue", formatCurrency(residual), { shouldDirty: false });
+                   }
                  }}
                />
              )}

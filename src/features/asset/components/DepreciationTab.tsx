@@ -438,32 +438,38 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   const totalDepreciationNumber = useMemo(() => parseCurrency(totalDepreciation), [totalDepreciation]);
   const depreciationRateNumber = useMemo(() => parseRate(depreciationRate), [depreciationRate]);
 
-  useEffect(() => {
-    if (previousFrequencyRef.current !== frequency) {
-      const switchedToMonthly = frequency === "Monthly";
-      skipNextUsefulLifeComputeRef.current = switchedToMonthly;
+   useEffect(() => {
+     if (previousFrequencyRef.current !== frequency) {
+       const switchedToMonthly = frequency === "Monthly";
+       skipNextUsefulLifeComputeRef.current = switchedToMonthly;
 
-      if (switchedToMonthly && !editableFlags.usefulLife) {
-        const defaultLife = 12;
-        setValue("usefulLife", defaultLife, { shouldDirty: false });
-      }
-
-      // Recalculate manual schedule when frequency changes in Manual mode
-      if (method === "Manual" && manualSchedule.length > 0 && previousFrequencyRef.current !== null) {
-        const newSchedule = calculateSchedule(
-          frequency,
-          "Straight Line",
-          costValue,
-          residualValueNumber,
-          usefulLife,
-          acquireDate,
-        );
-        setManualSchedule(newSchedule);
-      }
-
-      previousFrequencyRef.current = frequency;
-    }
-  }, [editableFlags.usefulLife, frequency, setValue, method, manualSchedule.length, costValue, residualValueNumber, usefulLife, acquireDate]);
+       // Recalculate manual schedule when frequency changes in Manual mode
+       if (method === "Manual" && manualSchedule.length > 0 && previousFrequencyRef.current !== null) {
+         const confirmed = window.confirm("This will clear your custom schedule. Continue?");
+          if (confirmed) {
+            const newSchedule = calculateSchedule(
+              frequency,
+              "Straight Line",
+              costValue,
+              residualValueNumber,
+              usefulLife,
+              acquireDate,
+            );
+            setManualSchedule(newSchedule);
+            previousFrequencyRef.current = frequency;
+          } else {
+            // Revert frequency to previous value if canceled
+            setValue("depreciationFrequency", previousFrequencyRef.current, { shouldDirty: false });
+          }
+       } else {
+         // Set useful life only if not in Manual mode with schedule or if confirmed
+         if (switchedToMonthly && !editableFlags.usefulLife) {
+           const defaultLife = 12;
+           setValue("usefulLife", defaultLife, { shouldDirty: false });
+         }
+       }
+     }
+   }, [editableFlags.usefulLife, frequency, setValue, method, manualSchedule.length, costValue, residualValueNumber, usefulLife, acquireDate]);
 
   useEffect(() => {
     if (method === "Manual") {

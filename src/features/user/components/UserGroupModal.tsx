@@ -30,7 +30,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-xl max-w-2xl">
+      <DialogContent className="w-xl max-w-2xl" closeOnBackdropClick>
         <DialogHeader>
           <DialogTitle>
             {editingGroup ? 'Edit User Group' : 'Create User Group'}

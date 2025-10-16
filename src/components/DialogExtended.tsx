@@ -214,12 +214,11 @@ const DialogTrigger: React.FC<DialogTriggerProps> = ({
   );
 };
 
-
 // Global registry for active dialogs - tracks stable z-indexes
 const activeDialogs = new Map<string, { close: () => void; zIndex: number }>();
 
-const DialogPortal: React.FC<{ children: ReactNode }> = ({
-  children
+const DialogPortal: React.FC<{ closeOnBackdropClick?: boolean; children: ReactNode }> = ({
+  closeOnBackdropClick = false, children
 }) => {
   const { dialogId, setOpen } = useDialogContext();
   const [portalElement, setPortalElement] = useState<HTMLElement | null>(null);
@@ -243,12 +242,12 @@ const DialogPortal: React.FC<{ children: ReactNode }> = ({
         div.parentNode.removeChild(div);
       }
     };
-  }, [dialogId]);
+  }, [dialogId, closeOnBackdropClick]);
 
   React.useEffect(() => {
     const index = activeDialogs.size;
 
-     // Register dialog
+    // Register dialog
     activeDialogs.set(dialogId, {
       close: () => { setOpen(false) },
       zIndex: index,
@@ -259,11 +258,35 @@ const DialogPortal: React.FC<{ children: ReactNode }> = ({
     };
   }, [dialogId, setOpen]);
 
+  // Backdrop Click handler
+  React.useEffect(() => {
+    if (!portalElement || !closeOnBackdropClick) return;
+
+    const handleClick = (e: MouseEvent) => {
+      if (e.target === e.currentTarget) {
+        setOpen(false);
+      }
+    };
+
+    portalElement.addEventListener('click', handleClick);
+    return () => { portalElement.removeEventListener('click', handleClick) }
+  }, [portalElement, closeOnBackdropClick, setOpen]);
+
   // Global ESC key handler
   React.useEffect(() => {
+    let lastEscTime = 0;
+    const ESC_DEBOUNCE_MS = 200;
+
     const handleGlobalEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.preventDefault();
+
+        const now = Date.now();
+        if (now - lastEscTime < ESC_DEBOUNCE_MS) {
+          return; // Ignore if too soon after previous ESC
+        }
+        lastEscTime = now;
+
         const dialogs = Array.from(activeDialogs.values());
         if (dialogs.length > 0) {
           const topDialog = dialogs.reduce((top, current) =>
@@ -292,11 +315,6 @@ const DialogPortal: React.FC<{ children: ReactNode }> = ({
           DIALOG_STYLES.dialogOverlay.base,
           DIALOG_STYLES.dialogOverlay.className
         )}
-        onClick={(e) => {
-          if (e.target === e.currentTarget) {
-            setOpen(false);
-          }
-        }}
       >
         {children}
       </div>
@@ -327,6 +345,7 @@ const DialogContent: React.FC<{
   dialogClose?: boolean;
   className?: string;
   buttonClassName?: string;
+  closeOnBackdropClick?: boolean;
   children?: React.ReactNode;
 }> = ({
   buttonVariant,
@@ -334,6 +353,7 @@ const DialogContent: React.FC<{
   dialogClose = true,
   className,
   buttonClassName,
+  closeOnBackdropClick = false,
   children,
 }) => {
   const { open } = useDialogContext();
@@ -345,7 +365,7 @@ const DialogContent: React.FC<{
 
   // Render through DialogPortal which handles ModalManager registration
   return (
-    <DialogPortal>
+    <DialogPortal closeOnBackdropClick={closeOnBackdropClick}>
       <div
         className={cn(
           DIALOG_STYLES.dialogContent.base,

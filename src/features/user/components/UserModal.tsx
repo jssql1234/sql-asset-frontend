@@ -44,7 +44,7 @@ export const UserModal: React.FC<UserModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} >
-      <DialogContent className="w-xl max-w-2xl overflow-visible">
+      <DialogContent className="w-xl max-w-2xl overflow-visible" closeOnBackdropClick>
         <DialogHeader>
           <DialogTitle>
             {editingUser ? 'Edit User' : 'Add User'}

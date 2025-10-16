@@ -69,17 +69,17 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
           <h3 className="title-small text-onSurface">Depreciation Schedule</h3>
           <p className="body-small text-onSurfaceVariant">
             {state.isManual ? "Manual schedule" : "Straight line schedule"}
-            {state.floorApplied && !state.isEditing ? " · floor rounded" : ""}
+            {state.ceilingApplied && !state.isEditing ? " · ceiling rounded" : ""}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={controls.applyFloorRounding}
-            disabled={rows.length === 0 || (!state.isEditing && state.floorApplied)}
+            onClick={controls.applyCeilingRounding}
+            disabled={rows.length === 0 || (!state.isEditing && state.ceilingApplied)}
           >
-            Floor Rounding
+            Ceiling Rounding
           </Button>
           {state.isEditing ? (
             <>

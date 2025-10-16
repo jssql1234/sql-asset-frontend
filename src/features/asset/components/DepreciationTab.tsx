@@ -26,14 +26,14 @@ interface DepreciationScheduleState {
   isEditing: boolean;
   isManual: boolean;
   isMonthly: boolean;
-  floorApplied: boolean;
+  ceilingApplied: boolean;
 }
 
 interface DepreciationScheduleControls {
   enterEditMode: () => void;
   cancelEditMode: () => void;
   saveEditMode: () => void;
-  applyFloorRounding: () => void;
+  applyCeilingRounding: () => void;
   updateEditableRow: (index: number, depreciation: number) => void;
   addEditableRow: () => void;
   removeEditableRow: () => void;
@@ -80,29 +80,29 @@ const getAcquireDateInfo = (acquireDate?: string) => {
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const applyFloor = (rows: DepreciationScheduleRow[]): DepreciationScheduleRow[] => {
+const applyCeiling = (rows: DepreciationScheduleRow[]): DepreciationScheduleRow[] => {
   if (rows.length === 0) return rows;
 
   let depAdjustment = 0;
-  let nbvAdjustment = 0;
 
-  const floored = rows.map((row, index) => {
+  const ceiled = rows.map((row, index) => {
     if (index === rows.length - 1) {
       const depreciation = roundToTwo(row.depreciation + depAdjustment);
-      const netBookValue = roundToTwo(row.netBookValue + nbvAdjustment);
-      return { ...row, depreciation, netBookValue };
+      return { ...row, depreciation };
     }
 
-    const flooredDep = Math.floor(row.depreciation);
-    const flooredNBV = Math.floor(row.netBookValue);
+    const ceiledDep = Math.ceil(row.depreciation);
+    depAdjustment += row.depreciation - ceiledDep;
 
-    depAdjustment += row.depreciation - flooredDep;
-    nbvAdjustment += row.netBookValue - flooredNBV;
-
-    return { ...row, depreciation: flooredDep, netBookValue: flooredNBV };
+    return { ...row, depreciation: ceiledDep };
   });
 
-  return floored;
+  // Recalculate net book values based on the ceiled depreciation
+  let currentNBV = rows.length > 0 ? rows[0].netBookValue + rows[0].depreciation : 0;
+  return ceiled.map((row) => {
+    currentNBV = roundToTwo(currentNBV - row.depreciation);
+    return { ...row, netBookValue: currentNBV };
+  });
 };
 
 const updateEditable = (
@@ -431,7 +431,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
   const [manualSchedule, setManualSchedule] = useState<DepreciationScheduleRow[]>([]);
   const [editableRows, setEditableRows] = useState<DepreciationScheduleRow[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [floorApplied, setFloorApplied] = useState(false);
+  const [ceilingApplied, setCeilingApplied] = useState(false);
 
   const costValue = useMemo(() => parseCurrency(cost), [cost]);
   const residualValueNumber = useMemo(() => parseCurrency(residualValue), [residualValue]);
@@ -529,7 +529,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
 
     setScheduleRows((prevScheduleRows) => {
       if (!areSchedulesEqual(prevScheduleRows, schedule)) {
-        setFloorApplied(false);
+        setCeilingApplied(false);
         return schedule;
       }
       return prevScheduleRows;
@@ -636,7 +636,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     const base = method === "Manual" ? manualSchedule : scheduleRows;
     setEditableRows(base);
     setIsEditing(false);
-    setFloorApplied(false);
+    setCeilingApplied(false);
   }, [manualSchedule, method, scheduleRows]);
 
   const handleSaveEditMode = useCallback(() => {
@@ -665,7 +665,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     }
 
     setIsEditing(false);
-    setFloorApplied(false);
+    setCeilingApplied(false);
   }, [
     costValue,
     editableFlags,
@@ -692,26 +692,26 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     setEditableRows((prev) => removeManualRow(prev));
   }, []);
 
-  const handleFloorRounding = useCallback(() => {
+  const handleCeilingRounding = useCallback(() => {
     if (isEditing) {
-      setEditableRows((prev) => applyFloor(prev));
-      setFloorApplied(true);
+      setEditableRows((prev) => applyCeiling(prev));
+      setCeilingApplied(true);
       return;
     }
 
     const target = method === "Manual" ? manualSchedule : scheduleRows;
     if (target.length === 0) return;
-    const floored = applyFloor(target);
-    setManualSchedule(floored);
+    const ceiled = applyCeiling(target);
+    setManualSchedule(ceiled);
     setValue("depreciationMethod", "Manual", { shouldDirty: true });
-    setFloorApplied(true);
+    setCeilingApplied(true);
   }, [isEditing, manualSchedule, method, scheduleRows, setValue]);
 
   const scheduleControls = useMemo<DepreciationScheduleControls>(() => ({
     enterEditMode: handleEnterEditMode,
     cancelEditMode: handleCancelEditMode,
     saveEditMode: handleSaveEditMode,
-    applyFloorRounding: handleFloorRounding,
+    applyCeilingRounding: handleCeilingRounding,
     updateEditableRow: handleUpdateEditableRow,
     addEditableRow: handleAddEditableRow,
     removeEditableRow: handleRemoveEditableRow,
@@ -719,7 +719,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     handleAddEditableRow,
     handleCancelEditMode,
     handleEnterEditMode,
-    handleFloorRounding,
+    handleCeilingRounding,
     handleRemoveEditableRow,
     handleSaveEditMode,
     handleUpdateEditableRow,
@@ -739,13 +739,13 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
         isEditing,
         isManual: method === "Manual",
         isMonthly,
-        floorApplied,
+        ceilingApplied,
       },
       controls: scheduleControls,
     });
   }, [
     editableRows,
-    floorApplied,
+    ceilingApplied,
     isEditing,
     isMonthly,
     manualSchedule,

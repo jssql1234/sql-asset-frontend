@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 import { Input } from '@/components/ui/components/Input/Input';
 import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';
+import { SearchableDropdown } from '@/components/SearchableDropdown';
 import type {
   Department,
   DepartmentFormData,
@@ -29,7 +30,6 @@ interface DepartmentFormModalProps {
 
 const initialFormState: DepartmentFormData = {
   id: '',
-  code: '',
   name: '',
   typeId: '',
   manager: '',
@@ -50,11 +50,16 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  // Convert department types to SearchableDropdown format
+  const departmentTypeItems = useMemo(() => departmentTypes.map(type => ({
+    id: type.id,
+    label: type.name,
+  })), [departmentTypes]);
+
   useEffect(() => {
     if (editingDepartment) {
       setFormData({
         id: editingDepartment.id,
-        code: editingDepartment.code,
         name: editingDepartment.name,
         typeId: editingDepartment.typeId,
         manager: editingDepartment.manager,
@@ -80,7 +85,7 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
       [field]: value,
     }));
 
-    if (field === 'code' || field === 'name' || field === 'typeId') {
+    if (field === 'name' || field === 'typeId') {
       if (errors[field]) {
         setErrors(prevErrors => ({
           ...prevErrors,
@@ -148,23 +153,6 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
                 className="bg-surfaceContainerHighest cursor-not-allowed"
               />
             </div>
-
-            <div>
-              <label htmlFor="departmentCode" className="block text-sm font-medium text-onSurface mb-1">
-                Department Code <span className="text-error">*</span>
-              </label>
-              <Input
-                id="departmentCode"
-                value={formData.code}
-                onChange={(event) => { handleInputChange('code', event.target.value); }}
-                placeholder="e.g., IT"
-                className={errors.code ? 'border-error' : ''}
-              />
-              {errors.code && <p className="text-sm text-error mt-1">{errors.code}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="departmentName" className="block text-sm font-medium text-onSurface mb-1">
                 Department Name <span className="text-error">*</span>
@@ -178,31 +166,27 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
               />
               {errors.name && <p className="text-sm text-error mt-1">{errors.name}</p>}
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
 
             <div>
               <label htmlFor="departmentType" className="block text-sm font-medium text-onSurface mb-1">
                 Department Type <span className="text-error">*</span>
               </label>
-              <select
-                id="departmentType"
-                value={formData.typeId}
-                onChange={(event) => { handleInputChange('typeId', event.target.value); }}
-                className={`w-full px-3 py-2 border rounded-md bg-surfaceContainerHighest text-onSurface focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.typeId ? 'border-error' : 'border-outlineVariant'
-                }`}
-              >
-                <option value="">Select Type</option>
-                {departmentTypes.map(type => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </select>
+              <SearchableDropdown
+                items={departmentTypeItems}
+                selectedId={formData.typeId}
+                onSelect={(typeId) => { handleInputChange('typeId', typeId); }}
+                placeholder="Select a department type"
+                emptyMessage="No department types found."
+                searchInDropdown={false}
+                className={errors.typeId ? 'border-error' : ''}
+                maxHeight="max-h-60"
+              />
               {errors.typeId && <p className="text-sm text-error mt-1">{errors.typeId}</p>}
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="departmentManager" className="block text-sm font-medium text-onSurface mb-1">
                 Department Manager
@@ -214,8 +198,10 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
                 placeholder="e.g., John Smith"
               />
             </div>
+          </div>
 
-            <div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="col-span-2">
               <label htmlFor="departmentContact" className="block text-sm font-medium text-onSurface mb-1">
                 Contact Details
               </label>

@@ -43,13 +43,13 @@ const MaintainUserPage: React.FC = () => {
   } = useMaintainUserGroup();
 
   const {
+    locations,
     isModalOpen: isLocationModalOpen,
     setIsModalOpen: setIsLocationModalOpen,
     editingLocation,
     setEditingLocation,
     handleAddLocation,
     handleSaveLocation,
-    locations
   } = useLocations();
 
   const {
@@ -125,6 +125,8 @@ const MaintainUserPage: React.FC = () => {
         onCreateGroup={handleAddGroup}
         onCreateLocation={handleAddLocation}
         onCreateDepartment={handleAddDepartment}
+        locations={locations}
+        departments={departments}
       />
 
       <DeleteUserConfirmationDialog

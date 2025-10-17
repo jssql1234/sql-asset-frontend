@@ -22,14 +22,14 @@ export function useCreateAsset(onSuccess?: () => void) {
       await createAsset(payload);
     },
 
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
         queryKey: ["assetList"],
       });
       addToast({
         variant: "success",
         title: "Asset Created",
-        description: "Asset has been created successfully.",
+        description: `Asset "${variables.name}" has been created successfully.`,
         duration: 5000,
       });
       onSuccess?.();
@@ -53,14 +53,14 @@ export function useUpdateAsset(onSuccess?: () => void) {
       await updateAsset(payload);
     },
 
-    onSuccess: async () => {
+    onSuccess: async (_data, variables) => {
       await queryClient.invalidateQueries({
         queryKey: ["assetList"],
       });
       addToast({
         variant: "success",
         title: "Asset Updated",
-        description: "Asset has been updated successfully.",
+        description: `Asset "${variables.name}" has been updated successfully.`,
         duration: 5000,
       });
       onSuccess?.();

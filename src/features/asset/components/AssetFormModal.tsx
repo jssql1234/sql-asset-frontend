@@ -29,7 +29,7 @@ export default function AssetFormModal({ open, onOpenChange, editingAsset }: Ass
     addToast({
       variant: "success",
       title: isEditMode ? "Asset Updated" : "Asset Created",
-      description: `Asset "${data.assetName}" has been ${isEditMode ? "updated" : "created"} successfully.`,
+      description: `Asset "${data.assetName}" ${isEditMode ? "updated" : "created"} successfully.`,
       duration: 5000,
     });
     onOpenChange(false);

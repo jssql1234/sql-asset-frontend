@@ -1,9 +1,10 @@
 import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Calculator, CalculatorFilled, LayoutDashboard, LayoutDashboardFilled, Clock, ClockFilled, Gauge, GaugeFilled, Bin, BinFilled, HomeFilled, Dots, Location as LocationIcon, LocationFilled, ShieldCheck, ShieldCheckFilled, Calendar, CalendarFilled, Briefcase, BriefcaseFilled } from "@/assets/icons";
+import { Calculator, CalculatorFilled, LayoutDashboard, LayoutDashboardFilled, Clock, ClockFilled, Gauge, GaugeFilled, Bin, BinFilled, HomeFilled, Dots, Location as LocationIcon, LocationFilled, ShieldCheck, ShieldCheckFilled, Calendar, CalendarFilled, Briefcase, BriefcaseFilled, User } from "@/assets/icons";
 import { ProfileDropdown } from "./ProfileDropdown";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarSeparator } from "./SidebarCN";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./SidebarHelper";
+import { useUserContext } from "@/context/UserContext";
 
 const data = {
   user: { name: "Adam", email: "Adam@sql.com.my" },
@@ -33,6 +34,7 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { users, currentUser, setCurrentUser } = useUserContext();
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -99,6 +101,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <DropdownMenu className="w-full">
+              <DropdownMenuTrigger className="w-full">
+                <SidebarMenuButton size="lg" className="w-full data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
+                  <User className="h-4 w-4 group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5" />
+                  <span className="group-data-[collapsible=icon]:hidden">Switch User</span>
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-58 rounded-3xl border border-border" defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
+                <DropdownMenuGroup>
+                  {users.map((user) => (
+                    <DropdownMenuItem
+                      key={user.id}
+                      onClick={() => {
+                        setCurrentUser(user);
+                      }}
+                      className={currentUser?.id === user.id ? "bg-sidebar-accent" : ""}
+                    >
+                      {user.name} ({user.email})
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <DropdownMenu className="w-full">
               <DropdownMenuTrigger className="w-full">

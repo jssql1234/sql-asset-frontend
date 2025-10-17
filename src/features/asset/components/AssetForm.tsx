@@ -818,7 +818,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         <div className="flex flex-row gap-6 items-stretch px-6 pb-10">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
-            <form ref={formRef} onSubmit={(e) => { void handleSubmit(onSubmit)(e); }} action="" className="space-y-6">
+             <form ref={formRef} onSubmit={(e) => { e.preventDefault(); void handleSubmit(onSubmit)(e); }} className="space-y-6">
               {/* Main Form Fields */}
               <Card className="p-6">
                 {/* Inactive Status Section - Compact */}

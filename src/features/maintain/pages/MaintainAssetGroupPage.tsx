@@ -77,9 +77,9 @@ const MaintainAssetGroupPage: React.FC = () => {
     if (success) {
       addToast({
         variant: 'success',
-        title: editingAssetGroup
-          ? 'Asset group updated successfully'
-          : 'Asset group created successfully',
+        title: editingAssetGroup ? 'Asset Group Updated' : 'Asset Group Created',
+        description: `Asset group "${formData.name}" has been ${editingAssetGroup ? 'updated' : 'created'} successfully.`,
+        duration: 5000,
       });
       closeFormModal();
     } else {

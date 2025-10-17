@@ -42,15 +42,17 @@ const MaintainSparePartPage: React.FC = () => {
         updateSparePart(formData);
         addToast({
           title: "Success",
-          description: "Spare part updated successfully!",
+          description: `Spare part "${formData.name}" has been updated successfully.`,
           variant: "success",
+          duration: 5000,
         });
       } else {
         addSparePart(formData);
         addToast({
           title: "Success",
-          description: "Spare part added successfully!",
+          description: `Spare part "${formData.name}" has been created successfully.`,
           variant: "success",
+          duration: 5000,
         });
       }
     } catch (error) {

@@ -1,15 +1,18 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type {
   SparePart,
   SparePartsFilters,
   SparePartFormData,
+  SparePartValidationErrors,
 } from '../types/spareParts';
 import {
-  filterSpareParts,
-  isDuplicateSparePartId,
   createSparePartFromForm,
-  validateSparePartForm
+  filterSpareParts,
+  generateSparePartId,
+  isDuplicateSparePartId,
+  validateSparePartForm,
 } from '../utils/sparePartsUtils';
+import { useToast } from '@/components/ui/components/Toast';
 
 // Sample data for initial development
 const sampleSpareParts: SparePart[] = [
@@ -91,20 +94,29 @@ export function useSpareParts() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingPart, setEditingPart] = useState<SparePart | null>(null);
+  const [formErrors, setFormErrors] = useState<SparePartValidationErrors>({});
+  const { addToast } = useToast();
+  const clearFormErrors = useCallback(() => {
+    setFormErrors({});
+  }, []);
 
   // Initialize data
   useEffect(() => {
     const initializeData = () => {
       try {
         // Load from localStorage or use sample data
-        const storedData = localStorage.getItem('sparePartsData');
+        const storedData = typeof window !== 'undefined' ? window.localStorage.getItem('sparePartsData') : null;
         let initialSpareParts: SparePart[] = [];
 
         if (storedData) {
           initialSpareParts = JSON.parse(storedData) as SparePart[];
         } else {
           initialSpareParts = sampleSpareParts;
-          localStorage.setItem('sparePartsData', JSON.stringify(initialSpareParts));
+          if (typeof window !== 'undefined') {
+            window.localStorage.setItem('sparePartsData', JSON.stringify(initialSpareParts));
+          }
         }
 
         setSpareParts(initialSpareParts);
@@ -124,13 +136,7 @@ export function useSpareParts() {
 
   useEffect(() => {
     if (spareParts.length > 0) {
-      const filtered = filterSpareParts(
-        spareParts,
-        filters.search,
-        filters.category,
-        filters.status
-      );
-      setFilteredSpareParts(filtered);
+      setFilteredSpareParts(filterSpareParts(spareParts, filters.search, filters.category, filters.status));
     } else {
       setFilteredSpareParts([]);
     }
@@ -140,15 +146,29 @@ export function useSpareParts() {
     setFilters(prevFilters => ({ ...prevFilters, ...newFilters }));
   }, []);
 
+  const persistSpareParts = useCallback((nextSpareParts: SparePart[]) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      window.localStorage.setItem('sparePartsData', JSON.stringify(nextSpareParts));
+    } catch (storageError) {
+      console.error('Error saving spare parts data:', storageError);
+    }
+  }, []);
+
   const addSparePart = useCallback((formData: SparePartFormData) => {
     // Validate form data
     const validationErrors = validateSparePartForm(formData);
     if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
       throw new Error('Validation failed');
     }
 
     // Check for duplicate ID
     if (isDuplicateSparePartId(spareParts, formData.id)) {
+      setFormErrors({ id: 'Part ID already exists' });
       throw new Error('Part ID already exists');
     }
 
@@ -156,83 +176,43 @@ export function useSpareParts() {
 
     const updatedSpareParts = [...spareParts, newSparePart];
     setSpareParts(updatedSpareParts);
-
-    const filtered = filterSpareParts(
-      updatedSpareParts,
-      filters.search,
-      filters.category,
-      filters.status
-    );
-    setFilteredSpareParts(filtered);
-
-    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
-
+    persistSpareParts(updatedSpareParts);
+    setFormErrors({});
     return newSparePart;
-  }, [spareParts, filters]);
+  }, [persistSpareParts, spareParts]);
 
   const updateSparePart = useCallback((formData: SparePartFormData) => {
     // Validate form data
     const validationErrors = validateSparePartForm(formData);
     if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
       throw new Error('Validation failed');
     }
 
     // Check for duplicate ID (excluding current item)
-    if (isDuplicateSparePartId(spareParts, formData.id, formData.id)) {
+    if (isDuplicateSparePartId(spareParts, formData.id, editingPart?.id ?? formData.id)) {
+      setFormErrors({ id: 'Part ID already exists' });
       throw new Error('Part ID already exists');
     }
 
     const updatedSparePart = createSparePartFromForm(formData);
 
     const updatedSpareParts = spareParts.map(part =>
-      part.id === formData.id ? updatedSparePart : part
+      part.id === (editingPart?.id ?? formData.id) ? updatedSparePart : part
     );
     setSpareParts(updatedSpareParts);
-
-    const filtered = filterSpareParts(
-      updatedSpareParts,
-      filters.search,
-      filters.category,
-      filters.status
-    );
-    setFilteredSpareParts(filtered);
-
-    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
+    persistSpareParts(updatedSpareParts);
+    setFormErrors({});
 
     return updatedSparePart;
-  }, [spareParts, filters]);
-
-  const deleteSparePart = useCallback((id: string) => {
-    const updatedSpareParts = spareParts.filter(part => part.id !== id);
-    setSpareParts(updatedSpareParts);
-
-    const filtered = filterSpareParts(
-      updatedSpareParts,
-      filters.search,
-      filters.category,
-      filters.status
-    );
-    setFilteredSpareParts(filtered);
-
-    setSelectedSpareParts(prev => prev.filter(selectedId => selectedId !== id));
-    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
-  }, [spareParts, filters]);
+  }, [editingPart?.id, persistSpareParts, spareParts]);
 
   const deleteMultipleSpareParts = useCallback((ids: string[]) => {
     const updatedSpareParts = spareParts.filter(part => !ids.includes(part.id));
     setSpareParts(updatedSpareParts);
-
-    const filtered = filterSpareParts(
-      updatedSpareParts,
-      filters.search,
-      filters.category,
-      filters.status
-    );
-    setFilteredSpareParts(filtered);
-
     setSelectedSpareParts(prev => prev.filter(selectedId => !ids.includes(selectedId)));
-    localStorage.setItem('sparePartsData', JSON.stringify(updatedSpareParts));
-  }, [spareParts, filters]);
+    persistSpareParts(updatedSpareParts);
+  }, [persistSpareParts, spareParts]);
 
   const toggleSparePartSelection = useCallback((id: string) => {
     setSelectedSpareParts(prev =>
@@ -246,27 +226,20 @@ export function useSpareParts() {
     setSelectedSpareParts([]);
   }, []);
 
-  const getSparePartById = useCallback((id: string): SparePart | undefined => {
-    return spareParts.find(part => part.id === id);
-  }, [spareParts]);
-
   const resetToSampleData = useCallback(() => {
     setSpareParts(sampleSpareParts);
-
-    const filtered = filterSpareParts(
-      sampleSpareParts,
-      '',
-      '',
-      ''
-    );
-    setFilteredSpareParts(filtered);
-
+    setFilteredSpareParts(sampleSpareParts);
     setSelectedSpareParts([]);
     setFilters({ search: '', category: '', status: '' });
-    localStorage.setItem('sparePartsData', JSON.stringify(sampleSpareParts));
-  }, []);
+    clearFormErrors();
+    persistSpareParts(sampleSpareParts);
+  }, [clearFormErrors, persistSpareParts]);
 
   const exportData = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const dataStr = JSON.stringify(spareParts, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
@@ -277,6 +250,82 @@ export function useSpareParts() {
     URL.revokeObjectURL(url);
   }, [spareParts]);
 
+  const getNewSparePartId = useCallback(() => generateSparePartId(spareParts), [spareParts]);
+
+  const openModal = useCallback((part: SparePart | null) => {
+    setEditingPart(part);
+    clearFormErrors();
+    setIsModalOpen(true);
+  }, [clearFormErrors]);
+
+  const handleAddSparePart = useCallback(() => {
+    openModal(null);
+  }, [openModal]);
+
+  const handleEditSparePart = useCallback((part: SparePart) => {
+    openModal(part);
+  }, [openModal]);
+
+  const handleSaveSparePart = useCallback((formData: SparePartFormData) => {
+    try {
+      if (editingPart) {
+        updateSparePart(formData);
+        addToast({
+          title: 'Success',
+          description: `Spare part "${formData.name}" has been updated successfully.`,
+          variant: 'success',
+          duration: 5000,
+        });
+      } else {
+        addSparePart(formData);
+        addToast({
+          title: 'Success',
+          description: `Spare part "${formData.name}" has been created successfully.`,
+          variant: 'success',
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while saving the spare part.',
+        variant: 'error',
+      });
+      throw error;
+    }
+  }, [addSparePart, addToast, editingPart, updateSparePart]);
+
+  const handleDeleteMultipleSpareParts = useCallback((ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${String(ids.length)} selected spare part(s)?`)) {
+      return;
+    }
+
+    try {
+      deleteMultipleSpareParts(ids);
+      addToast({
+        title: 'Success',
+        description: `${String(ids.length)} spare part(s) deleted successfully!`,
+        variant: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while deleting the spare parts.',
+        variant: 'error',
+      });
+    }
+  }, [addToast, deleteMultipleSpareParts]);
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    clearFormErrors();
+    setEditingPart(null);
+  }, [clearFormErrors]);
+
   return {
     spareParts,
     filteredSpareParts,
@@ -284,15 +333,20 @@ export function useSpareParts() {
     filters,
     isLoading,
     error,
+    isModalOpen,
+    editingPart,
+    formErrors,
     updateFilters,
-    addSparePart,
-    updateSparePart,
-    deleteSparePart,
-    deleteMultipleSpareParts,
     toggleSparePartSelection,
     clearSelection,
-    getSparePartById,
+    handleAddSparePart,
+    handleEditSparePart,
+    handleDeleteMultipleSpareParts,
+    handleSaveSparePart,
+    clearFormErrors,
+    closeModal,
     resetToSampleData,
-    exportData
+    exportData,
+    getNewSparePartId,
   };
 }

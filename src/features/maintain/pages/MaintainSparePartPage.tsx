@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
 import { ExportFile} from '@/assets/icons';
@@ -6,101 +6,26 @@ import { SparePartsFormModal } from '../components/SparePartsFormModal';
 import { SparePartsTable } from '../components/SparePartsTable';
 import { SparePartsSearchAndFilter } from '../components/SparePartsSearchAndFilter';
 import { useSpareParts } from '../hooks/useSpareParts';
-import type { SparePart, SparePartFormData } from '../types/spareParts';
-import { useToast } from '@/components/ui/components/Toast/useToast';
 
 const MaintainSparePartPage: React.FC = () => {
   const {
+    spareParts,
     filteredSpareParts,
     selectedSpareParts,
     filters,
     updateFilters,
-    addSparePart,
-    updateSparePart,
-    deleteMultipleSpareParts,
+    isModalOpen,
+    editingPart,
+    formErrors,
+    clearFormErrors,
+    closeModal,
     toggleSparePartSelection,
     exportData,
+    handleAddSparePart,
+    handleEditSparePart,
+    handleDeleteMultipleSpareParts,
+    handleSaveSparePart,
   } = useSpareParts();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPart, setEditingPart] = useState<SparePart | null>(null);
-  const { addToast } = useToast();
-
-  const handleAddSparePart = () => {
-    setEditingPart(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditSparePart = (part: SparePart) => {
-    setEditingPart(part);
-    setIsModalOpen(true);
-  };
-
-  const handleSaveSparePart = (formData: SparePartFormData) => {
-    try {
-      if (editingPart) {
-        updateSparePart(formData);
-        addToast({
-          title: "Success",
-          description: `Spare part "${formData.name}" has been updated successfully.`,
-          variant: "success",
-          duration: 5000,
-        });
-      } else {
-        addSparePart(formData);
-        addToast({
-          title: "Success",
-          description: `Spare part "${formData.name}" has been created successfully.`,
-          variant: "success",
-          duration: 5000,
-        });
-      }
-    } catch (error) {
-      addToast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while saving the spare part.",
-        variant: "error",
-      });
-      throw error; // Re-throw so the modal can handle it too
-    }
-  };
-
-  const handleDeleteMultipleSpareParts = (ids: string[]) => {
-    if (confirm(`Are you sure you want to delete ${String(ids.length)} selected spare parts?`)) {
-      try {
-        deleteMultipleSpareParts(ids);
-        addToast({
-          title: "Success",
-          description: `${String(ids.length)} spare parts deleted successfully!`,
-          variant: "success",
-        });
-      } catch (error) {
-        addToast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "An error occurred while deleting the spare parts.",
-          variant: "error",
-        });
-      }
-    }
-  };
-
-
-  const handleExportData = () => {
-    try {
-      exportData();
-      addToast({
-        title: "Success",
-        description: "Data exported successfully!",
-        variant: "success",
-      });
-    } catch (error) {
-      addToast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "An error occurred while exporting the data.",
-        variant: "error",
-      });
-    }
-  };
 
   return (
     <SidebarHeader
@@ -117,7 +42,7 @@ const MaintainSparePartPage: React.FC = () => {
             <div className="flex gap-2">
               <button
                 type="button"
-                onClick={handleExportData}
+                onClick={exportData}
                 className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
                 title="Export Data"
               >
@@ -131,7 +56,6 @@ const MaintainSparePartPage: React.FC = () => {
         <SparePartsSearchAndFilter
           filters={filters}
           onFiltersChange={updateFilters}
-          spareParts={filteredSpareParts}
         />
 
         <div className="flex-1 overflow-hidden">
@@ -147,12 +71,12 @@ const MaintainSparePartPage: React.FC = () => {
 
         <SparePartsFormModal
           isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-          }}
+          onClose={closeModal}
           onSave={handleSaveSparePart}
           editingPart={editingPart}
-          existingParts={filteredSpareParts}
+          existingParts={spareParts}
+          validationErrors={formErrors}
+          clearValidationErrors={clearFormErrors}
         />
       </div>
     </SidebarHeader>

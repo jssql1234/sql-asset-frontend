@@ -68,7 +68,15 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
   const [groups, setGroups] = useState<UserGroup[]>(() => {
     const saved = localStorage.getItem('mockGroups');
-    return saved ? JSON.parse(saved) as UserGroup[] : MOCK_GROUPS;
+    const loadedGroups = saved ? JSON.parse(saved) as UserGroup[] : MOCK_GROUPS;
+
+    // Ensure admin group always has all permissions enabled
+    const adminGroup = loadedGroups.find(g => g.id === 'admin');
+    if (adminGroup) {
+      adminGroup.defaultPermissions = createAllPermissionsEnabled();
+    }
+
+    return loadedGroups;
   });
 
   // Persist to localStorage
@@ -115,9 +123,17 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       updates = otherUpdates;
     }
 
-    setGroups(prev => prev.map(group =>
-      group.id === groupId ? { ...group, ...updates } : group
-    ));
+    setGroups(prev => prev.map(group => {
+      if (group.id === groupId) {
+        const updatedGroup = { ...group, ...updates };
+        // Ensure admin group always has all permissions enabled
+        if (groupId === 'admin') {
+          updatedGroup.defaultPermissions = createAllPermissionsEnabled();
+        }
+        return updatedGroup;
+      }
+      return group;
+    }));
   }, []);
 
   const addGroup = useCallback((group: UserGroup) => {

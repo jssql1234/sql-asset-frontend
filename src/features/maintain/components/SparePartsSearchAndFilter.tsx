@@ -1,11 +1,10 @@
 import React from 'react';
 import Search from '@/components/Search';
-import type { SparePart, SparePartsFilters } from '../types/spareParts';
+import type { SparePartsFilters } from '../types/spareParts';
 
 interface SparePartsSearchAndFilterProps {
   filters: SparePartsFilters;
   onFiltersChange: (filters: Partial<SparePartsFilters>) => void;
-  spareParts: SparePart[];
 }
 
 export const SparePartsSearchAndFilter: React.FC<SparePartsSearchAndFilterProps> = ({
@@ -18,7 +17,7 @@ export const SparePartsSearchAndFilter: React.FC<SparePartsSearchAndFilterProps>
   };
 
   return (
-    <div className="space-y-4">
+    <div>
       {/* Search Bar */}
       <Search
         searchValue={filters.search}
@@ -26,7 +25,6 @@ export const SparePartsSearchAndFilter: React.FC<SparePartsSearchAndFilterProps>
         onSearch={handleSearchChange}
         live
       />
-
     </div>
   );
 };

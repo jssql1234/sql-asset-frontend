@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/components/Input';
 import { SearchableDropdown } from '@/components/SearchableDropdown';
 import type { User } from '@/types/user';
 import { useUserModal } from '../hooks/useUserModal';
+import type { Location } from '@/features/maintain/types/locations'
+import type { Department } from '@/features/maintain/types/departments';
 
 interface UserModalProps {
   open: boolean;
@@ -15,6 +17,8 @@ interface UserModalProps {
   onCreateGroup?: () => void;
   onCreateLocation?: () => void;
   onCreateDepartment?: () => void;
+  locations: Location[];
+  departments: Department[];
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -25,12 +29,16 @@ export const UserModal: React.FC<UserModalProps> = ({
   onCreateGroup,
   onCreateLocation,
   onCreateDepartment,
+  locations,
+  departments,
 }) => {
   
   const { form, handleFormSubmit, handleCancel, groupItems, locationItems, departmentItems } = useUserModal(
     editingUser,
     onOpenChange,
-    onSave
+    onSave,
+    locations,
+    departments,
   );
 
   const { register, watch, setValue , formState: { errors } } = form;

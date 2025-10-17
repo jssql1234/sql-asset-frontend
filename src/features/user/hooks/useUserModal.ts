@@ -4,13 +4,15 @@ import { useEffect, useMemo } from 'react';
 import { userFormSchema, type UserFormData } from '../zod/userForm';
 import type { User } from '@/types/user';
 import { useUserContext } from '@/context/UserContext';
-import { useLocations } from '@/features/maintain/hooks/useLocations';
-import { useDepartments } from '@/features/maintain/hooks/useDepartments';
+import type { Location } from '@/features/maintain/types/locations'
+import type { Department } from '@/features/maintain/types/departments';
 
 export function useUserModal(
   editingUser: User | null,
   onOpenChange: (open: boolean) => void,
   onSave: (userData: User, onSuccess?:() => void) => void,
+  locations: Location[],
+  departments: Department[],
 ) {
 
   const form = useForm<UserFormData>({
@@ -27,8 +29,6 @@ export function useUserModal(
   });
 
   const { groups } = useUserContext();
-  const { locations } = useLocations();
-  const { departments } = useDepartments();
 
   // Convert groups to SearchableDropdown format
   const groupItems = useMemo(() => groups.map(group => ({
@@ -46,8 +46,8 @@ export function useUserModal(
   // Convert departments to SearchableDropdown format
   const departmentItems = useMemo(() => departments.map(department => ({
     id: department.id,
-    label: `${department.name} (${department.code})`,
-    sublabel: department.manager, // Show location ID as sublabel
+    label: `${department.name} (${department.id})`,
+    sublabel: department.manager,
   })), [departments]);
 
   useEffect(() => {
@@ -97,7 +97,6 @@ export function useUserModal(
     e.preventDefault();
     void handleSubmit();
   };
-
 
   return {
     form,

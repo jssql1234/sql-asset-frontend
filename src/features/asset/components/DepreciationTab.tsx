@@ -561,6 +561,8 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
            const defaultLife = 12;
            setValue("usefulLife", defaultLife, { shouldDirty: false });
          }
+         // Update the ref to track the current frequency for future changes
+         previousFrequencyRef.current = frequency;
        }
      }
    }, [editableFlags.usefulLife, frequency, setValue, method, manualSchedule.length, costValue, residualValueNumber, usefulLife, acquireDate]);

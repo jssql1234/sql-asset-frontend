@@ -1,17 +1,18 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   AssetGroup,
   AssetGroupFormData,
   AssetGroupsFilters,
-  AssetGroupsState,
   AssetGroupValidationErrors,
 } from '../types/assetGroups';
 import {
-  filterAssetGroups,
   createAssetGroupFromForm,
-  validateAssetGroupForm,
+  filterAssetGroups,
+  generateAssetGroupId,
   normalizeAssetGroupCode,
+  validateAssetGroupForm,
 } from '../utils/assetGroupUtils';
+import { useToast } from '@/components/ui/components/Toast';
 
 interface StoredAssetMain {
   'asset-group'?: unknown;
@@ -53,154 +54,135 @@ const sampleAssetGroups: AssetGroup[] = [
     name: 'Computer & IT Equipment',
     description: 'Computers, laptops, servers, printers, and IT accessories',
     status: 'Active',
-    createdAt: '2023-01-15'
+    createdAt: '2023-01-15',
   },
   {
     id: 'FURNITURE',
-    name: 'Office Furniture', 
+    name: 'Office Furniture',
     description: 'Desks, chairs, cabinets, and office fixtures',
     status: 'Active',
-    createdAt: '2023-01-20'
+    createdAt: '2023-01-20',
   },
   {
     id: 'VEHICLE',
     name: 'Motor Vehicle',
     description: 'Cars, trucks, motorcycles, and other vehicles',
     status: 'Active',
-    createdAt: '2023-02-10'
+    createdAt: '2023-02-10',
   },
   {
     id: 'MACHINERY',
     name: 'Heavy Machinery',
     description: 'Industrial equipment and heavy machinery',
     status: 'Active',
-    createdAt: '2023-02-15'
+    createdAt: '2023-02-15',
   },
   {
     id: 'BUILDING',
     name: 'Building & Structure',
     description: 'Buildings, structures, and construction assets',
     status: 'Active',
-    createdAt: '2023-03-05'
+    createdAt: '2023-03-05',
   },
   {
     id: 'ELECTRICAL',
     name: 'Electrical Equipment',
     description: 'Electrical systems and equipment',
     status: 'Active',
-    createdAt: '2023-03-10'
+    createdAt: '2023-03-10',
   },
   {
     id: 'SOFTWARE',
     name: 'Software & License',
     description: 'Software licenses and digital assets',
     status: 'Active',
-    createdAt: '2023-03-15'
+    createdAt: '2023-03-15',
   },
   {
     id: 'TOOLS',
     name: 'Tools & Equipment',
     description: 'Hand tools and small equipment',
     status: 'Active',
-    createdAt: '2023-04-01'
+    createdAt: '2023-04-01',
   },
   {
     id: 'SECURITY',
     name: 'Security Equipment',
     description: 'Security systems and surveillance equipment',
     status: 'Active',
-    createdAt: '2023-04-05'
+    createdAt: '2023-04-05',
   },
   {
     id: 'COMMUNICATION',
     name: 'Communication Equipment',
     description: 'Phones, radios, and communication devices',
     status: 'Active',
-    createdAt: '2023-04-10'
-  }
+    createdAt: '2023-04-10',
+  },
 ];
 
 export function useAssetGroups() {
-  const [state, setState] = useState<AssetGroupsState>({
-    assetGroups: [],
-    filteredAssetGroups: [],
-    selectedAssetGroupIds: [],
-    isLoading: false,
-    filters: {
-      searchValue: ''
-    }
-  });
-
-  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [assetGroups, setAssetGroups] = useState<AssetGroup[]>([]);
+  const [filteredAssetGroups, setFilteredAssetGroups] = useState<AssetGroup[]>([]);
+  const [selectedAssetGroupIds, setSelectedAssetGroupIds] = useState<string[]>([]);
+  const [filters, setFilters] = useState<AssetGroupsFilters>({ searchValue: '' });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingAssetGroup, setEditingAssetGroup] = useState<AssetGroup | null>(null);
   const [formErrors, setFormErrors] = useState<AssetGroupValidationErrors>({});
+  const { addToast } = useToast();
 
-  // Load data from localStorage on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      setState(prev => ({
-        ...prev,
-        assetGroups: sampleAssetGroups,
-        filteredAssetGroups: sampleAssetGroups,
-      }));
-      return;
-    }
-
-    const storedData = window.localStorage.getItem(STORAGE_KEY);
-    if (storedData) {
-      try {
-        const parsed = JSON.parse(storedData) as { assetGroups?: AssetGroup[] } | null;
-        const storedAssetGroups = parsed?.assetGroups;
-        if (Array.isArray(storedAssetGroups)) {
-          setState(prev => ({
-            ...prev,
-            assetGroups: storedAssetGroups,
-            filteredAssetGroups: storedAssetGroups,
-          }));
-          return;
-        }
-      } catch (error) {
-        console.error('Error parsing asset groups data:', error);
-      }
-    }
-
-    setState(prev => ({
-      ...prev,
-      assetGroups: sampleAssetGroups,
-      filteredAssetGroups: sampleAssetGroups,
-    }));
-    saveToLocalStorage(sampleAssetGroups);
+  const clearFormErrors = useCallback(() => {
+    setFormErrors({});
   }, []);
 
-  // Save to localStorage
-  const saveToLocalStorage = (assetGroups: AssetGroup[]) => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ assetGroups }));
-    } catch (error) {
-      console.error('Error saving asset groups:', error);
-    }
-  };
-
-  // Filter asset groups based on filters
   useEffect(() => {
-    const filtered = filterAssetGroups(state.assetGroups, state.filters);
-    setState(prev => ({
-      ...prev,
-      filteredAssetGroups: filtered
-    }));
-  }, [state.assetGroups, state.filters]);
+    const initialize = () => {
+      try {
+        let initialAssetGroups = sampleAssetGroups;
 
-  // Asset count calculation
+        if (typeof window !== 'undefined') {
+          const stored = window.localStorage.getItem(STORAGE_KEY);
+
+          if (stored) {
+            const parsed = JSON.parse(stored) as { assetGroups?: AssetGroup[] } | AssetGroup[] | null;
+
+            if (Array.isArray(parsed)) {
+              initialAssetGroups = parsed;
+            } else if (parsed && Array.isArray(parsed.assetGroups)) {
+              initialAssetGroups = parsed.assetGroups;
+            }
+          } else {
+            window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ assetGroups: sampleAssetGroups }));
+          }
+        }
+
+        setAssetGroups(initialAssetGroups);
+        setFilteredAssetGroups(filterAssetGroups(initialAssetGroups, { searchValue: '' }));
+        setIsLoading(false);
+      } catch (initializationError) {
+        console.error('Error initializing asset groups data:', initializationError);
+        setAssetGroups(sampleAssetGroups);
+        setFilteredAssetGroups(sampleAssetGroups);
+        setIsLoading(false);
+        setError('Failed to load asset groups data');
+      }
+    };
+
+    initialize();
+  }, []);
+
+  useEffect(() => {
+    const filtered = filterAssetGroups(assetGroups, filters);
+    setFilteredAssetGroups(filtered);
+  }, [assetGroups, filters]);
+
   const assetGroupAssetCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    
-    // Read assets from localStorage to get current count
+
     if (typeof window === 'undefined') {
-      return state.assetGroups.reduce<Record<string, number>>((acc, assetGroup) => {
+      return assetGroups.reduce<Record<string, number>>((acc, assetGroup) => {
         acc[assetGroup.id] = 0;
         return acc;
       }, {});
@@ -227,272 +209,262 @@ export function useAssetGroups() {
     } catch (error) {
       console.error('Error reading assets data:', error);
     }
-    
-    // Ensure all current asset groups have entries (possibly zero)
-    state.assetGroups.forEach(assetGroup => {
+
+    assetGroups.forEach(assetGroup => {
       if (!(assetGroup.id in counts)) {
         counts[assetGroup.id] = 0;
       }
     });
-    
+
     return counts;
-  }, [state.assetGroups]);
+  }, [assetGroups]);
 
-  // CRUD Operations
-  const createAssetGroup = (formData: AssetGroupFormData) => {
-    const normalizedId = normalizeAssetGroupCode(formData.id);
-    const normalizedFormData: AssetGroupFormData = {
-      ...formData,
-      id: normalizedId,
-    };
-
-    const errors = validateAssetGroupForm(normalizedFormData);
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return false;
+  const persistAssetGroups = useCallback((nextAssetGroups: AssetGroup[]) => {
+    if (typeof window === 'undefined') {
+      return;
     }
 
-    // Check for duplicate code
-    if (state.assetGroups.some(group => group.id === normalizedId)) {
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ assetGroups: nextAssetGroups }));
+    } catch (storageError) {
+      console.error('Error saving asset groups:', storageError);
+    }
+  }, []);
+
+  const updateFilters = useCallback((newFilters: Partial<AssetGroupsFilters>) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+  }, []);
+
+  const isDuplicateId = useCallback((id: string, ignoreId?: string) => {
+    const normalized = normalizeAssetGroupCode(id);
+    return assetGroups.some(assetGroup => assetGroup.id === normalized && assetGroup.id !== ignoreId);
+  }, [assetGroups]);
+
+  const addAssetGroup = useCallback((formData: AssetGroupFormData) => {
+    const validationErrors = validateAssetGroupForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      throw new Error('Validation failed');
+    }
+
+    if (isDuplicateId(formData.id)) {
       setFormErrors({ id: 'Asset group code already exists' });
-      return false;
+      throw new Error('Asset group code already exists');
     }
 
-    const newAssetGroup = createAssetGroupFromForm(normalizedFormData);
-    const updatedAssetGroups = [...state.assetGroups, newAssetGroup];
-    
-    setState(prev => ({
-      ...prev,
-      assetGroups: updatedAssetGroups
-    }));
-    
-    saveToLocalStorage(updatedAssetGroups);
-    setFormErrors({});
-    return true;
-  };
+    const newAssetGroup = createAssetGroupFromForm(formData);
 
-  const updateAssetGroup = (formData: AssetGroupFormData) => {
-    const normalizedId = normalizeAssetGroupCode(formData.id);
-    const normalizedFormData: AssetGroupFormData = {
-      ...formData,
-      id: normalizedId,
-    };
-
-    const errors = validateAssetGroupForm(normalizedFormData);
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return false;
-    }
-
-    const currentId = editingAssetGroup?.id ?? normalizedId;
-    const existingIndex = state.assetGroups.findIndex(group => group.id === currentId);
-    if (existingIndex === -1) {
-      setFormErrors({ id: 'Asset group not found' });
-      return false;
-    }
-
-    // Check for duplicate code (excluding current)
-    if (state.assetGroups.some(group => group.id === normalizedId && group.id !== editingAssetGroup?.id)) {
-      setFormErrors({ id: 'Asset group code already exists' });
-      return false;
-    }
-
-    const updatedAssetGroup: AssetGroup = {
-      ...createAssetGroupFromForm(normalizedFormData),
-      createdAt: state.assetGroups[existingIndex].createdAt
-    };
-
-    const updatedAssetGroups = state.assetGroups.map(group => 
-      group.id === currentId ? updatedAssetGroup : group
-    );
-
-    setState(prev => ({
-      ...prev,
-      assetGroups: updatedAssetGroups
-    }));
-    
-    saveToLocalStorage(updatedAssetGroups);
-    setFormErrors({});
-    return true;
-  };
-
-  const deleteAssetGroup = (id: string) => {
-    const assetCount = assetGroupAssetCounts[id] || 0;
-    
-    if (assetCount > 0) {
-      throw new Error(`Cannot delete asset group with ${String(assetCount)} asset(s). Please reassign or delete the assets first.`);
-    }
-
-    const updatedAssetGroups = state.assetGroups.filter(group => group.id !== id);
-    const updatedSelectedIds = state.selectedAssetGroupIds.filter(selectedId => selectedId !== id);
-    
-    setState(prev => ({
-      ...prev,
-      assetGroups: updatedAssetGroups,
-      selectedAssetGroupIds: updatedSelectedIds
-    }));
-    
-    saveToLocalStorage(updatedAssetGroups);
-  };
-
-  const deleteSelectedAssetGroups = () => {
-    const deletableIds = state.selectedAssetGroupIds.filter(id => 
-      (assetGroupAssetCounts[id] || 0) === 0
-    );
-
-    if (deletableIds.length === 0) {
-      throw new Error('No selected asset groups can be deleted. Some have associated assets.');
-    }
-
-    const nonDeletibleCount = state.selectedAssetGroupIds.length - deletableIds.length;
-    if (nonDeletibleCount > 0) {
-      throw new Error(`Only ${String(deletableIds.length)} of ${String(state.selectedAssetGroupIds.length)} selected groups can be deleted. ${String(nonDeletibleCount)} have associated assets.`);
-    }
-
-    const updatedAssetGroups = state.assetGroups.filter(group =>
-      !deletableIds.includes(group.id)
-    );
-
-    setState(prev => ({
-      ...prev,
-      assetGroups: updatedAssetGroups,
-      selectedAssetGroupIds: []
-    }));
-    
-    saveToLocalStorage(updatedAssetGroups);
-  };
-
-  // Selection Management
-  const toggleAssetGroupSelection = (id: string) => {
-    setState(prev => ({
-      ...prev,
-      selectedAssetGroupIds: prev.selectedAssetGroupIds.includes(id)
-        ? prev.selectedAssetGroupIds.filter(selectedId => selectedId !== id)
-        : [...prev.selectedAssetGroupIds, id]
-    }));
-  };
-
-  const toggleAllAssetGroupSelection = () => {
-    setState(prev => ({
-      ...prev,
-      selectedAssetGroupIds: 
-        prev.selectedAssetGroupIds.length === prev.filteredAssetGroups.length
-          ? []
-          : prev.filteredAssetGroups.map(group => group.id)
-    }));
-  };
-
-  // Search and Filter
-  const updateFilters = (filters: Partial<AssetGroupsFilters>) => {
-    setState(prev => ({
-      ...prev,
-      filters: { ...prev.filters, ...filters }
-    }));
-  };
-
-  const clearFilters = () => {
-    setState(prev => ({
-      ...prev,
-      filters: { searchValue: '' }
-    }));
-  };
-
-  // Modal Management
-  const openAddModal = () => {
-    setEditingAssetGroup(null);
-    setFormErrors({});
-    setIsFormModalOpen(true);
-  };
-
-  const openEditModal = (assetGroup: AssetGroup) => {
-    setEditingAssetGroup(assetGroup);
-    setFormErrors({});
-    setIsFormModalOpen(true);
-  };
-
-  const closeFormModal = () => {
-    setIsFormModalOpen(false);
-    setEditingAssetGroup(null);
-    setFormErrors({});
-  };
-
-  const clearFormFieldError = (field: keyof AssetGroupValidationErrors) => {
-    setFormErrors(prevErrors => {
-      if (!prevErrors[field]) {
-        return prevErrors;
-      }
-      const { [field]: removedValue, ...rest } = prevErrors;
-      if (removedValue === undefined) {
-        return prevErrors;
-      }
-      return rest;
+    setAssetGroups(prev => {
+      const next = [...prev, newAssetGroup];
+      persistAssetGroups(next);
+      return next;
     });
-  };
 
-  // Export Functionality
-  const exportData = () => {
+    setFormErrors({});
+    return newAssetGroup;
+  }, [isDuplicateId, persistAssetGroups]);
+
+  const updateAssetGroup = useCallback((formData: AssetGroupFormData, originalId?: string) => {
+    const validationErrors = validateAssetGroupForm(formData);
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      throw new Error('Validation failed');
+    }
+
+    const normalizedId = normalizeAssetGroupCode(formData.id);
+    const referenceId = originalId ?? normalizedId;
+
+    if (isDuplicateId(normalizedId, referenceId)) {
+      setFormErrors({ id: 'Asset group code already exists' });
+      throw new Error('Asset group code already exists');
+    }
+
+    setAssetGroups(prev => {
+      const next = prev.map(assetGroup => {
+        if (assetGroup.id !== referenceId) {
+          return assetGroup;
+        }
+
+        const updatedAssetGroup = createAssetGroupFromForm(formData);
+        return {
+          ...updatedAssetGroup,
+          createdAt: assetGroup.createdAt,
+        };
+      });
+
+      persistAssetGroups(next);
+      return next;
+    });
+
+    setFormErrors({});
+  }, [isDuplicateId, persistAssetGroups]);
+
+  const deleteMultipleAssetGroups = useCallback((ids: string[]) => {
+    const blocked = ids.filter(id => (assetGroupAssetCounts[id] ?? 0) > 0);
+    if (blocked.length > 0) {
+      const blockedCount = blocked.length;
+      throw new Error(`Unable to delete ${String(blockedCount)} selected group(s) because asset(s) are still assigned.`);
+    }
+
+    setAssetGroups(prev => {
+      const next = prev.filter(assetGroup => !ids.includes(assetGroup.id));
+      persistAssetGroups(next);
+      return next;
+    });
+
+    setSelectedAssetGroupIds(prev => prev.filter(id => !ids.includes(id)));
+  }, [assetGroupAssetCounts, persistAssetGroups]);
+
+  const toggleAssetGroupSelection = useCallback((id: string) => {
+    setSelectedAssetGroupIds(prev => (
+      prev.includes(id)
+        ? prev.filter(selectedId => selectedId !== id)
+        : [...prev, id]
+    ));
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedAssetGroupIds([]);
+  }, []);
+
+  const getAssetGroupById = useCallback((id: string) => {
+    return assetGroups.find(assetGroup => assetGroup.id === id) ?? null;
+  }, [assetGroups]);
+
+  const resetToSampleData = useCallback(() => {
+    setAssetGroups(sampleAssetGroups);
+    setFilteredAssetGroups(sampleAssetGroups);
+    setSelectedAssetGroupIds([]);
+    setFilters({ searchValue: '' });
+    persistAssetGroups(sampleAssetGroups);
+  }, [persistAssetGroups]);
+
+  const exportData = useCallback(() => {
     if (typeof window === 'undefined') {
       return;
     }
 
     const csvContent = [
       ['Asset Group Code', 'Asset Group Name', 'Description', 'Status', 'Created Date'],
-      ...state.assetGroups.map(group => [
+      ...assetGroups.map(group => [
         group.id,
         group.name,
         group.description,
         group.status,
-        group.createdAt
-      ])
-    ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+        group.createdAt,
+      ]),
+    ]
+      .map(row => row.map(cell => `"${cell}"`).join(','))
+      .join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = `asset-groups-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
-    window.URL.revokeObjectURL(url);
+    URL.revokeObjectURL(url);
+  }, [assetGroups]);
+
+  const getNewAssetGroupId = useCallback(() => generateAssetGroupId(assetGroups), [assetGroups]);
+
+  const openModal = useCallback((assetGroup: AssetGroup | null) => {
+    setEditingAssetGroup(assetGroup);
+    clearFormErrors();
+    setIsModalOpen(true);
+  }, [clearFormErrors]);
+
+  const handleAddAssetGroup = useCallback(() => {
+    openModal(null);
+  }, [openModal]);
+
+  const handleEditAssetGroup = useCallback((assetGroup: AssetGroup) => {
+    openModal(assetGroup);
+  }, [openModal]);
+
+  const handleSaveAssetGroup = (formData: AssetGroupFormData) => {
+    try {
+      if (editingAssetGroup) {
+        updateAssetGroup(formData, editingAssetGroup.id);
+        addToast({
+          variant: 'success',
+          title: 'Asset Group Updated',
+          description: `Asset group "${formData.name}" has been updated successfully.`,
+          duration: 5000,
+        });
+      } else {
+        addAssetGroup(formData);
+        addToast({
+          variant: 'success',
+          title: 'Asset Group Created',
+          description: `Asset group "${formData.name}" has been created successfully.`,
+          duration: 5000,
+        });
+      }
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Unable to save asset group',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred while saving the asset group.',
+      });
+      throw error;
+    }
   };
 
-  // Reset to Sample Data
-  const resetToSampleData = () => {
-    setState(prev => ({
-      ...prev,
-      assetGroups: sampleAssetGroups,
-      filteredAssetGroups: sampleAssetGroups,
-      selectedAssetGroupIds: []
-    }));
-    saveToLocalStorage(sampleAssetGroups);
+  const handleDeleteMultipleAssetGroups = (ids: string[]) => {
+    if (ids.length === 0) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to delete ${String(ids.length)} selected asset group(s)?`)) {
+      return;
+    }
+
+    try {
+      deleteMultipleAssetGroups(ids);
+      addToast({
+        variant: 'success',
+        title: 'Asset groups deleted',
+        description: `${String(ids.length)} asset group(s) deleted successfully.`,
+      });
+    } catch (error) {
+      addToast({
+        variant: 'error',
+        title: 'Failed to delete asset groups',
+        description: error instanceof Error ? error.message : 'An unexpected error occurred while deleting the selected asset groups.',
+      });
+    }
   };
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    clearFormErrors();
+    setEditingAssetGroup(null);
+  }, [clearFormErrors]);
 
   return {
-    // State
-    ...state,
-    isFormModalOpen,
+    assetGroups,
+    filteredAssetGroups,
+    selectedAssetGroupIds,
+    filters,
+    isLoading,
+    error,
+    isModalOpen,
     editingAssetGroup,
     formErrors,
-    assetGroupAssetCounts,
-    
-    // Actions
-    createAssetGroup,
-    updateAssetGroup,
-    deleteAssetGroup,
-    deleteSelectedAssetGroups,
-    toggleAssetGroupSelection,
-    toggleAllAssetGroupSelection,
     updateFilters,
-    clearFilters,
-    openAddModal,
-    openEditModal,
-    closeFormModal,
-    exportData,
+    toggleAssetGroupSelection,
+    handleAddAssetGroup,
+    handleEditAssetGroup,
+    handleDeleteMultipleAssetGroups,
+    handleSaveAssetGroup,
+    assetGroupAssetCounts,
+    clearSelection,
+    getAssetGroupById,
     resetToSampleData,
-    clearFormFieldError,
-    
-    // Computed
-    hasSelection: state.selectedAssetGroupIds.length > 0,
-    hasSingleSelection: state.selectedAssetGroupIds.length === 1,
-    canDeleteSelected: state.selectedAssetGroupIds.some(id => (assetGroupAssetCounts[id] || 0) === 0)
+    exportData,
+    getNewAssetGroupId,
+    clearFormErrors,
+    closeModal,
   };
 }

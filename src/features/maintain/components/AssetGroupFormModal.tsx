@@ -10,21 +10,17 @@ import {
 import { Button } from '@/components/ui/components';
 import { Input } from '@/components/ui/components/Input/Input';
 import { TextArea } from '@/components/ui/components/Input/TextArea';
-import type {
-  AssetGroup,
-  AssetGroupFormData,
-  AssetGroupValidationErrors,
-} from '../types/assetGroups';
-import { generateAssetGroupId } from '../utils/assetGroupUtils';
+import type { AssetGroup, AssetGroupFormData, AssetGroupValidationErrors } from '../types/assetGroups';
+import { generateAssetGroupId, validateAssetGroupForm } from '../utils/assetGroupUtils';
 
 interface AssetGroupFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editingAssetGroup: AssetGroup | null;
-  onSubmit: (formData: AssetGroupFormData) => boolean | Promise<boolean>;
-  errors: AssetGroupValidationErrors;
+  onSave: (formData: AssetGroupFormData) => Promise<void> | void;
   existingAssetGroups: AssetGroup[];
-  onClearFieldError: (field: keyof AssetGroupValidationErrors) => void;
+  validationErrors?: AssetGroupValidationErrors;
+  clearValidationErrors?: () => void;
 }
 
 const initialFormState: AssetGroupFormData = {
@@ -38,18 +34,23 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
   isOpen,
   onClose,
   editingAssetGroup,
-  onSubmit,
-  errors,
+  onSave,
   existingAssetGroups,
-  onClearFieldError,
+  validationErrors,
+  clearValidationErrors,
 }) => {
   const [formData, setFormData] = useState<AssetGroupFormData>(initialFormState);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<AssetGroupValidationErrors>({});
+  const [submitError, setSubmitError] = useState('');
 
   useEffect(() => {
     if (!isOpen) {
       setFormData(initialFormState);
       setIsSubmitting(false);
+      setErrors({});
+      setSubmitError('');
+      clearValidationErrors?.();
       return;
     }
 
@@ -60,6 +61,9 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
         description: editingAssetGroup.description,
         status: editingAssetGroup.status,
       });
+      setErrors({});
+      setSubmitError('');
+      clearValidationErrors?.();
       return;
     }
 
@@ -70,11 +74,16 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
       description: '',
       status: 'Active',
     });
-  }, [editingAssetGroup, existingAssetGroups, isOpen]);
+    setErrors({});
+    setSubmitError('');
+    clearValidationErrors?.();
+  }, [editingAssetGroup, existingAssetGroups, isOpen, clearValidationErrors]);
 
   const handleClose = () => {
     setFormData(initialFormState);
     setIsSubmitting(false);
+    setErrors({});
+    setSubmitError('');
     onClose();
   };
 
@@ -82,22 +91,40 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
     field: keyof AssetGroupFormData,
     value: string,
   ) => {
+    const validationKey = field as keyof AssetGroupValidationErrors;
+
     setFormData(prev => ({
       ...prev,
       [field]: field === 'id' ? value.toUpperCase() : value,
     }));
 
-    if ((field === 'id' || field === 'name') && errors[field]) {
-      onClearFieldError(field);
+    if (errors[validationKey]) {
+      setErrors(prevErrors => ({ ...prevErrors, [validationKey]: undefined }));
+      if (validationErrors?.[validationKey]) {
+        clearValidationErrors?.();
+      }
     }
   };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setSubmitError('');
+
+    const validationErrors = validateAssetGroupForm(formData);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
-      await Promise.resolve(onSubmit(formData));
+      await onSave(formData);
+      handleClose();
+    } catch (error) {
+      console.error('Error saving asset group:', error);
+      setSubmitError(error instanceof Error ? error.message : 'An error occurred while saving the asset group.');
     } finally {
       setIsSubmitting(false);
     }
@@ -198,6 +225,12 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
               />
             </div>
           </div>
+
+          {submitError && (
+            <div className="p-3 bg-errorContainer rounded-md border border-error">
+              <p className="text-sm text-onErrorContainer">{submitError}</p>
+            </div>
+          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>

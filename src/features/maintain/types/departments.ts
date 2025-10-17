@@ -5,7 +5,6 @@ export interface DepartmentTypeOption {
 
 export interface Department {
   id: string;
-  code: string;
   name: string;
   typeId: string;
   manager: string;
@@ -17,7 +16,6 @@ export interface Department {
 
 export interface DepartmentFormData {
   id: string;
-  code: string;
   name: string;
   typeId: string;
   manager: string;
@@ -41,7 +39,6 @@ export interface DepartmentsState {
 }
 
 export interface DepartmentValidationErrors {
-  code?: string;
   name?: string;
   typeId?: string;
 }

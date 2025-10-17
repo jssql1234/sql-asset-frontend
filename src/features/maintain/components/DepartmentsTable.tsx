@@ -91,7 +91,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.name}</div>
-          <div className="text-sm text-onSurfaceVariant">Code: {row.original.code}</div>
+          <div className="text-sm text-onSurfaceVariant">Code: {row.original.typeId}</div>
         </div>
       ),
       enableColumnFilter: false,

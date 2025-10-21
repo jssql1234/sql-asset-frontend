@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/components/Input/Input';
 import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';
 import type { SparePart, SparePartFormData, SparePartValidationErrors } from '../types/spareParts';
-import { validateSparePartForm, generateSparePartId } from '../utils/sparePartsUtils';
+import { validateSparePartForm, generateSparePartId, getUniqueCategories } from '../utils/sparePartsUtils';
 
 interface SparePartsFormModalProps {
   isOpen: boolean;
@@ -19,18 +19,9 @@ interface SparePartsFormModalProps {
   onSave: (data: SparePartFormData) => Promise<void> | void;
   editingPart?: SparePart | null;
   existingParts: SparePart[];
+  validationErrors?: SparePartValidationErrors;
+  clearValidationErrors?: () => void;
 }
-
-const CATEGORY_OPTIONS = [
-  'Mechanical',
-  'Electrical',
-  'Hydraulic',
-  'Pneumatic',
-  'Electronic',
-  'Safety',
-  'Consumables',
-  'Tools',
-];
 
 export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
   isOpen,
@@ -38,8 +29,10 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
   onSave,
   editingPart,
   existingParts,
+  validationErrors,
+  clearValidationErrors,
 }) => {
-  const [formData, setFormData] = useState<SparePartFormData>({
+  const emptyForm: SparePartFormData = useMemo(() => ({
     id: '',
     name: '',
     description: '',
@@ -50,14 +43,25 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
     supplier: '',
     location: '',
     operationalStatus: 'Active',
-  });
+  }), []);
+
+  const [formData, setFormData] = useState<SparePartFormData>(emptyForm);
 
   const [errors, setErrors] = useState<SparePartValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
+  const categoryOptions = useMemo(() => getUniqueCategories(existingParts), [existingParts]);
 
   // Populate form when editing
   useEffect(() => {
+    if (!isOpen) {
+      setFormData(emptyForm);
+      setErrors({});
+      setSubmitError('');
+      clearValidationErrors?.();
+      return;
+    }
+
     if (editingPart) {
       setFormData({
         id: editingPart.id,
@@ -73,6 +77,7 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
       });
       setErrors({});
       setSubmitError('');
+      clearValidationErrors?.();
     } else {
       // Generate new ID for new part
       const newId = generateSparePartId(existingParts);
@@ -82,8 +87,15 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
       }));
       setErrors({});
       setSubmitError('');
+      clearValidationErrors?.();
     }
-  }, [editingPart, existingParts]);
+  }, [editingPart, existingParts, isOpen, clearValidationErrors, emptyForm]);
+
+  useEffect(() => {
+    if (validationErrors) {
+      setErrors(validationErrors);
+    }
+  }, [validationErrors]);
 
   const handleInputChange = (field: keyof SparePartFormData, value: string | number) => {
     setFormData(prev => ({
@@ -97,6 +109,9 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
         ...prev,
         [field as keyof SparePartValidationErrors]: undefined,
       }));
+      if (validationErrors?.[field as keyof SparePartValidationErrors]) {
+        clearValidationErrors?.();
+      }
     }
   };
 
@@ -126,18 +141,7 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
   };
 
   const handleClose = () => {
-    setFormData({
-      id: '',
-      name: '',
-      description: '',
-      category: '',
-      stockQty: 0,
-      lowStockThreshold: 5,
-      unitPrice: 0,
-      supplier: '',
-      location: '',
-      operationalStatus: 'Active',
-    });
+    setFormData(emptyForm);
     setErrors({});
     setSubmitError('');
     onClose();
@@ -145,8 +149,14 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
 
   const isEditMode = !!editingPart;
 
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      handleClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -210,7 +220,7 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
                 }`}
               >
                 <option value="">Select Category</option>
-                {CATEGORY_OPTIONS.map((category) => (
+                {categoryOptions.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>

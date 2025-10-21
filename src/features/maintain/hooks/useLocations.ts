@@ -271,15 +271,17 @@ export function useLocations() {
         updateLocation(formData);
         addToast({
           title: 'Success',
-          description: 'Location updated successfully!',
+          description: `Location "${formData.name}" has been updated successfully.`,
           variant: 'success',
+          duration: 5000,
         });
       } else {
         addLocation(formData);
         addToast({
           title: 'Success',
-          description: 'Location added successfully!',
+          description: `Location "${formData.name}" has been created successfully.`,
           variant: 'success',
+          duration: 5000,
         });
       }
     } catch (error) {

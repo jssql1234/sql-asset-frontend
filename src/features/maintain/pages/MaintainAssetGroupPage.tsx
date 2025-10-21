@@ -1,12 +1,10 @@
 import React from 'react';
 import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
-import { useToast } from '@/components/ui/components/Toast/useToast';
 import AssetGroupsSearchAndFilter from '../components/AssetGroupsSearchAndFilter';
 import { AssetGroupsTable } from '../components/AssetGroupsTable';
 import AssetGroupFormModal from '../components/AssetGroupFormModal';
 import { useAssetGroups } from '../hooks/useAssetGroups';
-import type { AssetGroup, AssetGroupFormData } from '../types/assetGroups';
 import { ExportFile } from '@/assets/icons';
 
 const MaintainAssetGroupPage: React.FC = () => {
@@ -15,89 +13,23 @@ const MaintainAssetGroupPage: React.FC = () => {
     filteredAssetGroups,
     selectedAssetGroupIds,
     filters,
-    isFormModalOpen,
+    isModalOpen,
     editingAssetGroup,
     formErrors,
-    assetGroupAssetCounts,
-    createAssetGroup,
-    updateAssetGroup,
-    deleteSelectedAssetGroups,
-    toggleAssetGroupSelection,
     updateFilters,
-    clearFilters,
-    openAddModal,
-    openEditModal,
-    closeFormModal,
+    toggleAssetGroupSelection,
+    handleAddAssetGroup,
+    handleEditAssetGroup,
+    handleDeleteMultipleAssetGroups,
+    handleSaveAssetGroup,
+    assetGroupAssetCounts,
+    clearFormErrors,
+    closeModal,
     exportData,
-    hasSingleSelection,
-    clearFormFieldError,
   } = useAssetGroups();
-
-  const { addToast } = useToast();
-
-  const handleAddAssetGroup = () => {
-    openAddModal();
-  };
-
-  const handleEditAssetGroup = (assetGroup: AssetGroup) => {
-    openEditModal(assetGroup);
-  };
-
-  
-
-  const handleDeleteSelected = () => {
-    if (selectedAssetGroupIds.length === 0) {
-      return;
-    }
-
-    if (!confirm(`Are you sure you want to delete ${String(selectedAssetGroupIds.length)} selected asset groups?`)) {
-      return;
-    }
-
-    try {
-      deleteSelectedAssetGroups();
-      addToast({
-        variant: 'success',
-        title: 'Selected asset groups deleted successfully',
-      });
-    } catch (error) {
-      addToast({
-        variant: 'error',
-        title: 'Failed to delete selected asset groups',
-        description: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  };
-
-  const handleFormSubmit = (formData: AssetGroupFormData) => {
-    const success = editingAssetGroup
-      ? updateAssetGroup(formData)
-      : createAssetGroup(formData);
-
-    if (success) {
-      addToast({
-        variant: 'success',
-        title: editingAssetGroup
-          ? 'Asset group updated successfully'
-          : 'Asset group created successfully',
-      });
-      closeFormModal();
-    } else {
-      addToast({
-        variant: 'error',
-        title: 'Unable to save asset group',
-        description: 'Please resolve the highlighted errors and try again.',
-      });
-    }
-    return success;
-  };
 
   const handleExport = () => {
     exportData();
-    addToast({
-      variant: 'success',
-      title: 'Asset groups exported successfully'
-    });
   };
 
   return (
@@ -129,7 +61,7 @@ const MaintainAssetGroupPage: React.FC = () => {
         <AssetGroupsSearchAndFilter
           searchValue={filters.searchValue}
           onSearchChange={(value) => { updateFilters({ searchValue: value }); }}
-          onClearFilters={clearFilters}
+          onClearFilters={() => { updateFilters({ searchValue: '' }); }}
         />
 
         <div className="flex-1 overflow-hidden">
@@ -140,19 +72,19 @@ const MaintainAssetGroupPage: React.FC = () => {
             onSelectAssetGroup={toggleAssetGroupSelection}
             onAddAssetGroup={handleAddAssetGroup}
             onEditAssetGroup={handleEditAssetGroup}
-            onDeleteSelected={handleDeleteSelected}
-            hasSingleSelection={hasSingleSelection}
+            onDeleteSelected={() => { handleDeleteMultipleAssetGroups(selectedAssetGroupIds); }}
+            hasSingleSelection={selectedAssetGroupIds.length === 1}
           />
         </div>
 
         <AssetGroupFormModal
-          isOpen={isFormModalOpen}
-          onClose={closeFormModal}
+          isOpen={isModalOpen}
+          onClose={closeModal}
           editingAssetGroup={editingAssetGroup}
-          onSubmit={handleFormSubmit}
-          errors={formErrors}
+          onSave={handleSaveAssetGroup}
+          validationErrors={formErrors}
           existingAssetGroups={assetGroups}
-          onClearFieldError={clearFormFieldError}
+          clearValidationErrors={clearFormErrors}
         />
       </div>
     </SidebarHeader>

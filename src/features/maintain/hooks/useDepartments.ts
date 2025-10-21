@@ -288,15 +288,17 @@ export function useDepartments() {
         updateDepartment(formData);
         addToast({
           title: 'Success',
-          description: 'Department updated successfully!',
+          description: `Department "${formData.name}" has been updated successfully.`,
           variant: 'success',
+          duration: 5000,
         });
       } else {
         addDepartment(formData);
         addToast({
           title: 'Success',
-          description: 'Department added successfully!',
+          description: `Department "${formData.name}" has been created successfully.`,
           variant: 'success',
+          duration: 5000,
         });
       }
     } catch (error) {

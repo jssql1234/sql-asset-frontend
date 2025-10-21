@@ -14,6 +14,7 @@ import { DepreciationTab, type DepreciationScheduleViewState } from "./Depreciat
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
+import { usePermissions } from "@/hooks/usePermissions";
 
 interface SerialNumberData {
   serial: string;
@@ -293,11 +294,14 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
 
 const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, control }) => {
   const hpInstalmentValue = watch("hpInstalment", "");
+  const { hasPermission } = usePermissions();
+  const isTaxAgent = hasPermission("processCA", "execute");
+  const isReadonly = isTaxAgent;
 
   return (
     <Card className="p-6 shadow-sm">
       <div className="flex items-center gap-2 mb-6">
-        <Option type="checkbox" {...register("hpCheck")} />
+        <Option type="checkbox" {...register("hpCheck")} disabled={isReadonly} />
         <label className="body-small text-onSurfaceVariant">Hire Purchase</label>
       </div>
 
@@ -321,6 +325,7 @@ const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, contro
                   field.onChange(formatted);
                 }}
                 className="border-none"
+                disabled={isReadonly}
               />
             )}
           />
@@ -342,25 +347,26 @@ const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, contro
             onChange={(nextValue) => {
               setValue("hpInstalment", nextValue);
             }}
+            disabled={isReadonly}
           />
         </div>
         {hpInstalmentValue === "other" && (
           <div>
             <label className="block text-sm font-medium text-onSurface">Custom Instalment</label>
-            <Input type="number" {...register("hpInstalmentUser")} />
+            <Input type="number" {...register("hpInstalmentUser")} disabled={isReadonly} />
           </div>
         )}
         <div>
           <label className="block text-sm font-medium text-onSurface">Deposit Amount</label>
-          <Input {...register("hpDeposit")} placeholder="0.00" />
+          <Input {...register("hpDeposit")} placeholder="0.00" disabled={isReadonly} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Interest Rate (%)</label>
-          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" />
+          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" disabled={isReadonly} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Finance</label>
-          <Input {...register("hpFinance")} placeholder="0.00" />
+          <Input {...register("hpFinance")} placeholder="0.00" disabled={isReadonly} />
         </div>
       </div>
     </Card>
@@ -566,6 +572,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("allowance");
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
+  const { hasPermission } = usePermissions();
 
   const defaultValues: CreateAssetFormData = useMemo(() => ({
     inactive: false,
@@ -697,8 +704,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
   const assetGroupValue = watch("assetGroup", "");
 
-  // Define tabs based on batch mode
+  // Define tabs based on batch mode and user permissions
   const commonTabProps: TabProps = { register, setValue, watch, control, errors };
+
+  // Determine user role based on permissions
+  const isTaxAgent = hasPermission("processCA", "execute");
+  const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
   const tabs: TabItem[] = batchMode
     ? [
@@ -726,12 +737,68 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           content: <WarrantyTab {...commonTabProps} />,
         },
       ]
-    : [
+    : isTaxAgent
+    ? [
         {
           label: "Allowance",
           value: "allowance",
           content: <AllowanceTab {...commonTabProps} />,
         },
+        {
+          label: "Hire Purchase",
+          value: "hire-purchase",
+          content: <HirePurchaseTab {...commonTabProps} />,
+        },
+      ]
+    : isAdmin
+    ? [
+        {
+          label: "Allowance",
+          value: "allowance",
+          content: <AllowanceTab {...commonTabProps} />,
+        },
+        {
+          label: "Hire Purchase",
+          value: "hire-purchase",
+          content: <HirePurchaseTab {...commonTabProps} />,
+        },
+        {
+          label: "Depreciation",
+          value: "depreciation",
+          content: (
+            <DepreciationTab
+              control={control}
+              watch={watch}
+              setValue={setValue}
+              onScheduleStateChange={setDepreciationScheduleView}
+            />
+          ),
+        },
+        {
+          label: "Allocation",
+          value: "allocation",
+          content: <AllocationTab {...commonTabProps} />,
+        },
+        {
+          label: "Serial No",
+          value: "serial-no",
+          content: (
+            <SerialNumberTab
+              quantity={quantity}
+              quantityPerUnit={quantityPerUnit}
+              isBatchMode={batchMode}
+              serialNumbers={memoizedSerialNumbers}
+              onSerialNumbersChange={handleSerialNumbersChange}
+            />
+          ),
+        },
+        {
+          label: "Warranty",
+          value: "warranty",
+          content: <WarrantyTab {...commonTabProps} />,
+        },
+      ]
+    : [
         {
           label: "Hire Purchase",
           value: "hire-purchase",

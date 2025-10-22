@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useRef, useEffect, useCallback, useReducer } from "react";
 import { Button } from "@/components/ui/components";
 import { ChevronDown, PointFilled } from "@/assets/icons";
 import { cn } from "@/utils/utils";
@@ -57,6 +57,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [, dispatchScroll] = useReducer((state) => state + 1, 0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -75,7 +76,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   const displayLabel = selectedOption?.label ?? placeholder;
 
   // Calculate dropdown position
-  const { position, contentWidth, contentMaxHeight, alignment, openUpwards } =
+  const { position, contentWidth, contentMaxHeight, alignment } =
     useDropdownPosition(
       isOpen,
       dropdownRef,
@@ -87,8 +88,10 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
   // Adjust position relative to parent div for absolute positioning
   const parentRect = dropdownRef.current?.getBoundingClientRect();
-  const adjustedTop = parentRect ? position.top - parentRect.top : position.top;
+  const buttonHeight = dropdownRef.current?.firstElementChild?.getBoundingClientRect().height ?? 0;
   const adjustedLeft = parentRect ? position.left - parentRect.left : position.left;
+  // Force dropdown to always open downwards
+  const forcedAdjustedTop = buttonHeight + 8; // OFFSET_FROM_BUTTON
 
   // Auto-focus selected option when dropdown opens
   useEffect(() => {
@@ -100,6 +103,19 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         itemRefs.current[initialIndex]?.focus();
         itemRefs.current[initialIndex]?.scrollIntoView({ block: "nearest" });
       }, 0);
+
+      // Scroll page if dropdown would cover footer
+      setTimeout(() => {
+        const contentRect = contentRef.current?.getBoundingClientRect();
+        if (contentRect) {
+          const footerHeight = 80;
+          const footerTop = window.innerHeight - footerHeight;
+          if (contentRect.bottom > footerTop) {
+            const scrollAmount = contentRect.bottom - footerTop + 10; // padding
+            window.scrollBy(0, scrollAmount);
+          }
+        }
+      }, 10); // slight delay after render
     } else {
       setFocusedIndex(-1);
     }
@@ -111,6 +127,15 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
       itemRefs.current[focusedIndex]?.focus();
     }
   }, [focusedIndex, isOpen]);
+
+  // Handle scroll to reposition dropdown
+  useEffect(() => {
+    if (isOpen) {
+      const handleScroll = () => { dispatchScroll(); };
+      window.addEventListener("scroll", handleScroll, true);
+      return () => { window.removeEventListener("scroll", handleScroll, true); };
+    }
+  }, [isOpen, dispatchScroll]);
 
   // Handle outside clicks and escape key
   useEffect(() => {
@@ -219,14 +244,14 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         minWidth: `${String(contentWidth)}px`,
       }),
     position: "absolute" as const,
-    top: `${String(adjustedTop)}px`,
+    top: `${String(forcedAdjustedTop)}px`,
     left: `${String(adjustedLeft)}px`,
     maxHeight: `${String(contentMaxHeight)}px`,
-    transformOrigin: getTransformOrigin(alignment, openUpwards),
+    transformOrigin: getTransformOrigin(alignment, false), // Always downward
     zIndex: 9999,
   };
 
-  const originClass = getOriginClass(alignment, openUpwards);
+  const originClass = getOriginClass(alignment, false); // Always downward
 
   const content = (
     <>

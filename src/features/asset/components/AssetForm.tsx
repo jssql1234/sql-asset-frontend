@@ -921,7 +921,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       placeholder="-- Choose Asset Group --"
                       options={assetGroups}
                       onChange={(nextValue) => {
-                        setValue("assetGroup", nextValue);
+                        setValue("assetGroup", nextValue, { shouldValidate: true});
                       }}
                       matchTriggerWidth={false}
                       contentClassName="w-fit"

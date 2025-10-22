@@ -587,9 +587,22 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("allowance");
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const { hasPermission } = usePermissions();
+
+  // Determine user role based on permissions
+  const isTaxAgent = hasPermission("processCA", "execute");
+  const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
+
+  // Set default active tab based on user role
+  const getDefaultActiveTab = () => {
+    if (isTaxAgent) {
+      return "allowance";
+    }
+    return "hire-purchase";
+  };
+
+  const [activeTab, setActiveTab] = useState(() => getDefaultActiveTab());
 
   const defaultValues: CreateAssetFormData = useMemo(() => ({
     inactive: false,
@@ -723,10 +736,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
   // Define tabs based on batch mode and user permissions
   const commonTabProps: TabProps = { register, setValue, watch, control, errors, selectedTaxYear, taxYearOptions };
-
-  // Determine user role based on permissions
-  const isTaxAgent = hasPermission("processCA", "execute");
-  const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
   const tabs: TabItem[] = batchMode
     ? [

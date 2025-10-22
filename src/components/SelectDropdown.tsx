@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/components";
 import { ChevronDown, PointFilled } from "@/assets/icons";
 import { cn } from "@/utils/utils";
@@ -33,7 +32,7 @@ interface SelectDropdownProps {
 // Default styles matching DropdownButton
 const DROPDOWN_STYLES = {
   content: {
-    base: "z-20 absolute overflow-auto transition-all duration-200 ease-out bg-surfaceContainerHighest border border-outline rounded-lg shadow text-onSurface",
+    base: "z-20 absolute overflow-auto bg-surfaceContainerHighest border border-outline rounded-lg shadow text-onSurface",
   },
   item: {
     base: "cursor-pointer focus:outline-none rounded-md px-2 py-2 body-medium text-onSurface hover:bg-hover",
@@ -57,6 +56,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   showRadio = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
@@ -84,6 +84,11 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
       matchTriggerWidth,
       "left"
     );
+
+  // Adjust position relative to parent div for absolute positioning
+  const parentRect = dropdownRef.current?.getBoundingClientRect();
+  const adjustedTop = parentRect ? position.top - parentRect.top : position.top;
+  const adjustedLeft = parentRect ? position.left - parentRect.left : position.left;
 
   // Auto-focus selected option when dropdown opens
   useEffect(() => {
@@ -118,12 +123,14 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         !contentRef.current.contains(event.target as Node);
 
       if (isOutsideDropdown && isOutsideContent) {
+        setIsClosing(true);
         setIsOpen(false);
       }
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        setIsClosing(true);
         setIsOpen(false);
       }
     };
@@ -184,6 +191,9 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   const handleToggle = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!disabled) {
+      if (!isOpen) {
+        setIsClosing(false);
+      }
       setIsOpen(!isOpen);
     }
   };
@@ -208,9 +218,9 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         width: `${String(contentWidth)}px`,
         minWidth: `${String(contentWidth)}px`,
       }),
-    position: "fixed" as const,
-    top: `${String(position.top)}px`,
-    left: `${String(position.left)}px`,
+    position: "absolute" as const,
+    top: `${String(adjustedTop)}px`,
+    left: `${String(adjustedLeft)}px`,
     maxHeight: `${String(contentMaxHeight)}px`,
     transformOrigin: getTransformOrigin(alignment, openUpwards),
     zIndex: 9999,
@@ -242,7 +252,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
           isOpen
             ? "opacity-100 scale-100"
             : "opacity-0 pointer-events-none scale-95",
-          "transition-opacity",
+          isOpen && !isClosing ? "transition-all duration-200 ease-out" : "",
           originClass,
           contentClassName
         )}
@@ -295,7 +305,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         <span className="truncate text-left flex-1">{displayLabel}</span>
         {icon ?? <ChevronDown className="w-4 h-4 ml-2 flex-shrink-0" />}
       </Button>
-      {createPortal(content, document.body)}
+      {content}
     </div>
   );
 };

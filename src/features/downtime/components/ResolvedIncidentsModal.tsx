@@ -4,9 +4,9 @@ import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import Search from "@/components/Search";
 import type { DowntimeIncident } from "@/features/downtime/types";
-import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/constants";
+import { getPriorityVariant } from "@/features/downtime/constants";
 import { useGetResolvedIncidents } from "@/features/downtime/hooks/useDowntimeService";
-import { formatDate, formatTime } from "@/features/downtime/utils/downtimeUtils";
+import { formatDate, formatTime } from "@/features/downtime/services/downtimeService";
 
 interface ResolvedIncidentsModalProps {
   open: boolean;
@@ -50,7 +50,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         header: "Priority",
         cell: ({ getValue }) => {
           const priority = getValue() as DowntimeIncident["priority"];
-          return <Badge text={priority} variant={PRIORITY_BADGE_VARIANT[priority]} />;
+          return <Badge text={priority} variant={getPriorityVariant(priority)} />;
         },
       },
       {

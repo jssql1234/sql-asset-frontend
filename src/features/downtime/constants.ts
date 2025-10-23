@@ -1,14 +1,14 @@
 import type { DowntimeIncident } from "./types";
 
-type PriorityVariant = "primary" | "red" | "green" | "yellow" | "blue" | "grey";
-type PriorityVariantMap = Partial<Record<DowntimeIncident["priority"], PriorityVariant>>;
-
-export const PRIORITY_BADGE_VARIANT: PriorityVariantMap = {
-  Low: "blue",
-  Medium: "yellow",
-  High: "red",
-  Critical: "red",
-} as const;
+export const getPriorityVariant = (priority: DowntimeIncident["priority"]) => {
+  const variantMap = {
+    Low: "blue",
+    Medium: "yellow",
+    High: "red",
+    Critical: "red",
+  } as const;
+  return variantMap[priority];
+};
 
 export const PRIORITY_OPTIONS = [
   { value: "Low" as const, label: "Low" },

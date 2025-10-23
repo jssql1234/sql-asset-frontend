@@ -341,6 +341,7 @@ const resolveEditableFlagsState = (
       next.residualValue = true;
       next.totalDepreciation = true;
       next.depreciationRate = false;
+      if (!next.usefulLife) next.usefulLife = true;
     } else {
       next.residualValue = false;
       next.totalDepreciation = false;
@@ -350,13 +351,15 @@ const resolveEditableFlagsState = (
     if (shouldEnable) {
       next.residualValue = false;
       next.totalDepreciation = false;
+      if (!next.usefulLife) next.usefulLife = true;
     }
   } else {
     next.usefulLife = shouldEnable;
-  }
-
-  if ((next.depreciationRate || next.residualValue || next.totalDepreciation) && !next.usefulLife) {
-    next.usefulLife = true;
+    if (!shouldEnable) {
+      next.depreciationRate = false;
+      next.residualValue = false;
+      next.totalDepreciation = false;
+    }
   }
 
   if (next.usefulLife && next.depreciationRate && next.residualValue && next.totalDepreciation) {

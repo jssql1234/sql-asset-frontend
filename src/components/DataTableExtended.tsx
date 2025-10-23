@@ -278,6 +278,7 @@ export function DataTableExtended<TData, TValue>({
                           onClick={header.column.getToggleSortingHandler()}
                           className={cn('flex items-center gap-2 w-full justify-between', {
                             'cursor-pointer select-none': header.column.getCanSort(),
+                            'justify-end': (header.column.columnDef as any).headerAlign === 'right',
                           })}
                         >
                           {!header.isPlaceholder &&

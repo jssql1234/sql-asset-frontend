@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
+import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { downtimeAssets } from "@/features/downtime/mockData";
 
 interface LogDowntimeModalProps {
@@ -14,18 +15,6 @@ interface LogDowntimeModalProps {
 }
 
 const assetOptions = downtimeAssets.map(({ id, name }) => ({ value: id, label: name }));
-
-const priorityOptions = [
-  { value: "Low", label: "Low" },
-  { value: "Medium", label: "Medium" },
-  { value: "High", label: "High" },
-  { value: "Critical", label: "Critical" },
-] as const;
-
-const statusOptions = [
-  { value: "Down", label: "Down" },
-  { value: "Resolved", label: "Resolved" },
-] as const;
 
 export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   open,
@@ -189,7 +178,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
                 className="w-full justify-between" 
               />
               <DropdownMenuContent>
-                {priorityOptions.map((option) => (
+                {PRIORITY_OPTIONS.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
                     onClick={() => {
@@ -211,7 +200,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
                 className="w-full justify-between" 
               />
               <DropdownMenuContent>
-                {statusOptions.map((option) => (
+                {STATUS_OPTIONS.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
                     onClick={() => {

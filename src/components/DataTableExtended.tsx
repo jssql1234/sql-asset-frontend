@@ -1,22 +1,5 @@
 /**
  * DataTableExtended - Extended wrapper for DataTable with additional features
- * 
- * This component extends the original DataTable from the UI submodule with:
- * - onRowDoubleClick support
- * - Faceted filtering (getFacetedRowModel, getFacetedUniqueValues)
- * 
- * Note: We use a custom table instance to add faceted filtering without
- * modifying the submodule's DataTable.tsx
- * 
- * Usage:
- * import { DataTableExtended } from '@/components/DataTableExtended';
- * 
- * <DataTableExtended
- *   columns={columns}
- *   data={data}
- *   onRowDoubleClick={(row) => console.log('Double clicked:', row)}
- *   // ... all other DataTable props
- * />
  */
 
 import { useEffect, useRef, useState } from 'react';

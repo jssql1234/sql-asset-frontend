@@ -122,7 +122,7 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<undefined, Error, string>({
+  return useMutation<unknown, Error, string>({
     mutationFn: deleteDowntimeIncident,
 
     onSuccess: async () => {

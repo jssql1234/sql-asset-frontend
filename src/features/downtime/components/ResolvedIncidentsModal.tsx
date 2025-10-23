@@ -37,6 +37,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "assetName",
         header: "Asset",
+        enableColumnFilter: false,
         cell: ({ row }) => (
           <div>
             <div className="font-medium">{row.original.assetName}</div>
@@ -55,6 +56,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "startTime",
         header: "Start Time",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const value = getValue() as string;
           return (
@@ -68,6 +70,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "endTime",
         header: "End Time",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const endTime = getValue() as string | undefined;
           if (!endTime) {
@@ -84,6 +87,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "downtimeDuration",
         header: "Duration",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const duration = getValue() as string;
           return <span className="font-medium">{duration}</span>;
@@ -92,6 +96,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "resolutionNotes",
         header: "Resolution",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const notes = getValue() as string | undefined;
           return (

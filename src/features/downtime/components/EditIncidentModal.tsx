@@ -7,6 +7,7 @@ import type { DowntimeIncident } from "@/features/downtime/types";
 import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
+import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { Trash2 } from "lucide-react";
 
 interface EditIncidentModalProps {
@@ -14,18 +15,6 @@ interface EditIncidentModalProps {
   incident: DowntimeIncident | null;
   onClose: () => void;
 }
-
-const priorityOptions = [
-  { value: "Low", label: "Low" },
-  { value: "Medium", label: "Medium" },
-  { value: "High", label: "High" },
-  { value: "Critical", label: "Critical" },
-] as const;
-
-const statusOptions = [
-  { value: "Down", label: "Down" },
-  { value: "Resolved", label: "Resolved" },
-] as const;
 
 export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   open,
@@ -178,7 +167,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
             <DropdownMenu className="w-full">
               <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
               <DropdownMenuContent>
-                {priorityOptions.map((option) => (
+                {PRIORITY_OPTIONS.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
                     onClick={() => {
@@ -198,7 +187,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
             <DropdownMenu className="w-full">
               <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
               <DropdownMenuContent>
-                {statusOptions.map((option) => (
+                {STATUS_OPTIONS.map((option) => (
                   <DropdownMenuItem
                     key={option.value}
                     onClick={() => {

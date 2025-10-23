@@ -139,7 +139,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
         }
       }}
     >
-      <DialogContent className="max-w-md">
+      <DialogContent className="w-[400px] max-w-[90vw]">
         <DialogHeader>
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>

@@ -105,7 +105,7 @@ export const fetchDowntimeSummary = (): Promise<DowntimeSummary> => {
 // Create a new downtime incident
 export const createDowntimeIncident = (
   input: CreateDowntimeInput
-): Promise<DowntimeIncident> => {
+): DowntimeIncident => {
   // Find asset name (in real app, this would come from asset API)
   const newIncident: DowntimeIncident = {
     id: String(nextId++),
@@ -133,13 +133,13 @@ export const createDowntimeIncident = (
   } else {
     incidentsStore = [newIncident, ...incidentsStore];
   }
-  return Promise.resolve(newIncident);
+  return newIncident;
 };
 
 // Update an existing downtime incident
 export const updateDowntimeIncident = (
   input: EditDowntimeInput
-): Promise<DowntimeIncident> => {
+): DowntimeIncident => {
   const index = incidentsStore.findIndex(i => i.id === input.id);
   if (index === -1) {
     throw new Error("Incident not found");
@@ -175,12 +175,11 @@ export const updateDowntimeIncident = (
     incidentsStore[index] = updatedIncident;
   }
   
-  return Promise.resolve(updatedIncident);
+  return updatedIncident;
 };
 
 // Delete a downtime incident
-export const deleteDowntimeIncident = (id: string): Promise<void> => {
+export const deleteDowntimeIncident = (id: string): void => {
   incidentsStore = incidentsStore.filter(i => i.id !== id);
   resolvedStore = resolvedStore.filter(i => i.id !== id);
-  return Promise.resolve();
 };

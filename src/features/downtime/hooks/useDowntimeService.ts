@@ -1,5 +1,5 @@
 import { useDataQuery, type QueryOptions } from "@/hooks/useDataQuery";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 import type { DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
@@ -50,10 +50,10 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<DowntimeIncident, Error, CreateDowntimeInput>({
-    mutationFn: createDowntimeIncident,
-
-    onSuccess: async () => {
+  const createIncident = async (input: CreateDowntimeInput) => {
+    try {
+      const newIncident = createDowntimeIncident(input);
+      
       // Invalidate and refetch
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
@@ -68,17 +68,19 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
       });
 
       onSuccess?.();
-    },
-
-    onError: (error) => {
-      const description = error.message.trim().length > 0 ? error.message : "Please try again";
+      return newIncident;
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "Please try again";
       addToast({
         variant: "error",
         title: "Failed to create downtime incident",
         description,
       });
-    },
-  });
+      throw error;
+    }
+  };
+
+  return { mutate: createIncident, isPending: false };
 }
 
 // Hook to update an existing downtime incident
@@ -86,10 +88,10 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<DowntimeIncident, Error, EditDowntimeInput>({
-    mutationFn: updateDowntimeIncident,
+  const updateIncident = async (input: EditDowntimeInput) => {
+    try {
+      const updatedIncident = updateDowntimeIncident(input);
 
-    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
@@ -104,17 +106,19 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
       });
 
       onSuccess?.();
-    },
-
-    onError: (error) => {
-      const description = error.message.trim().length > 0 ? error.message : "Please try again";
+      return updatedIncident;
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "Please try again";
       addToast({
         variant: "error",
         title: "Failed to update incident",
         description,
       });
-    },
-  });
+      throw error;
+    }
+  };
+
+  return { mutate: updateIncident, isPending: false };
 }
 
 // Hook to delete a downtime incident
@@ -122,10 +126,10 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<unknown, Error, string>({
-    mutationFn: deleteDowntimeIncident,
+  const deleteIncident = async (id: string) => {
+    try {
+      deleteDowntimeIncident(id);
 
-    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
@@ -139,15 +143,16 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
       });
 
       onSuccess?.();
-    },
-
-    onError: (error) => {
-      const description = error.message.trim().length > 0 ? error.message : "Please try again";
+    } catch (error) {
+      const description = error instanceof Error ? error.message : "Please try again";
       addToast({
         variant: "error",
         title: "Failed to delete incident",
         description,
       });
-    },
-  });
+      throw error;
+    }
+  };
+
+  return { mutate: deleteIncident, isPending: false };
 }

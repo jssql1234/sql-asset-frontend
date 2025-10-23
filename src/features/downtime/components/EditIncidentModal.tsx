@@ -34,6 +34,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   
   const updateMutation = useUpdateDowntimeIncident(() => {
     handleClose();
@@ -59,12 +60,14 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         resolvedBy: incident.resolvedBy,
       });
       setErrors({});
+      setIsEditMode(false);
     }
   }, [incident, open]);
 
   const handleClose = () => {
     setErrors({});
     setIsDeleteDialogOpen(false);
+    setIsEditMode(false);
     onClose();
   };
 
@@ -73,9 +76,9 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (!incident) return;
-    deleteMutation.mutate(incident.id);
+    await deleteMutation.mutate(incident.id);
     setIsDeleteDialogOpen(false);
   };
 
@@ -83,7 +86,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     setIsDeleteDialogOpen(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form data
@@ -101,7 +104,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     
     // Clear errors and submit
     setErrors({});
-    updateMutation.mutate(validation.data);
+    await updateMutation.mutate(validation.data);
   };
 
   const handleInputChange = (field: keyof EditDowntimeInput) => (
@@ -147,12 +150,12 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         }
       }}
     >
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[400px] max-w-[90vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Incident</DialogTitle>
+          <DialogTitle>{isEditMode ? "Edit Incident" : "Incident Details"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
           {/* Asset Name (Read-only) */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Asset</label>
@@ -164,54 +167,74 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           {/* Priority Selection */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Priority*</label>
-            <DropdownMenu className="w-full">
-              <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
-              <DropdownMenuContent>
-                {PRIORITY_OPTIONS.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      handlePrioritySelect(option.value);
-                    }}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {isEditMode ? (
+              <DropdownMenu className="w-full">
+                <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
+                <DropdownMenuContent>
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => {
+                        handlePrioritySelect(option.value);
+                      }}
+                    >
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
+                {formData.priority}
+              </div>
+            )}
           </div>
 
           {/* Status Selection */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Status*</label>
-            <DropdownMenu className="w-full">
-              <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
-              <DropdownMenuContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      handleStatusSelect(option.value);
-                    }}
-                  >
+            {isEditMode ? (
+              <DropdownMenu className="w-full">
+                <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
+                <DropdownMenuContent>
+                  {STATUS_OPTIONS.map((option) => (
+                    <DropdownMenuItem
+                      key={option.value}
+                      onClick={() => {
+                        handleStatusSelect(option.value);
+                      }}
+                    >
                     {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
+                {formData.status}
+              </div>
+            )}
           </div>
 
           {/* Start Time */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Start Time*</label>
-            <SemiDatePicker
-              value={new Date(formData.startTime)}
-              onChange={handleDateTimeChange("startTime")}
-              inputType="dateTime"
-              className="w-full"
-            />
-            {errors.startTime && (
-              <span className="text-sm text-error">{errors.startTime}</span>
+            {isEditMode ? (
+              <>
+                <SemiDatePicker
+                  value={new Date(formData.startTime)}
+                  onChange={handleDateTimeChange("startTime")}
+                  inputType="dateTime"
+                  className="w-full"
+                />
+                {errors.startTime && (
+                  <span className="text-sm text-error">{errors.startTime}</span>
+                )}
+              </>
+            ) : (
+              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
+                {new Date(formData.startTime).toLocaleString()}
+              </div>
             )}
           </div>
 
@@ -221,14 +244,22 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
               <label className="label-medium text-onSurface">
                 End Time*
               </label>
-              <SemiDatePicker
-                value={formData.endTime ? new Date(formData.endTime) : null}
-                onChange={handleDateTimeChange("endTime")}
-                inputType="dateTime"
-                className="w-full"
-              />
-              {errors.endTime && (
-                <span className="text-sm text-error">{errors.endTime}</span>
+              {isEditMode ? (
+                <>
+                  <SemiDatePicker
+                    value={formData.endTime ? new Date(formData.endTime) : null}
+                    onChange={handleDateTimeChange("endTime")}
+                    inputType="dateTime"
+                    className="w-full"
+                  />
+                  {errors.endTime && (
+                    <span className="text-sm text-error">{errors.endTime}</span>
+                  )}
+                </>
+              ) : (
+                <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
+                  {formData.endTime ? new Date(formData.endTime).toLocaleString() : "—"}
+                </div>
               )}
             </div>
           )}
@@ -236,14 +267,22 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           {/* Description */}
           <div className="flex flex-col gap-2">
             <label className="label-medium text-onSurface">Description*</label>
-            <TextArea
-              value={formData.description}
-              onChange={handleInputChange("description")}
-              placeholder="Describe the issue... (minimum 10 characters)"
-              className="min-h-[100px]"
-            />
-            {errors.description && (
-              <span className="text-sm text-error">{errors.description}</span>
+            {isEditMode ? (
+              <>
+                <TextArea
+                  value={formData.description}
+                  onChange={handleInputChange("description")}
+                  placeholder="Describe the issue... (minimum 10 characters)"
+                  className="min-h-[100px]"
+                />
+                {errors.description && (
+                  <span className="text-sm text-error">{errors.description}</span>
+                )}
+              </>
+            ) : (
+              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium min-h-[100px] whitespace-pre-wrap">
+                {formData.description}
+              </div>
             )}
           </div>
 
@@ -251,42 +290,66 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           {formData.status === "Resolved" && (
             <div className="flex flex-col gap-2">
               <label className="label-medium text-onSurface">Resolution Notes*</label>
-              <TextArea
-                value={formData.resolutionNotes ?? ""}
-                onChange={handleInputChange("resolutionNotes")}
-                placeholder="Describe how the issue was resolved... (minimum 10 characters)"
-                className="min-h-[80px]"
-              />
-              {errors.resolutionNotes && (
-                <span className="text-sm text-error">{errors.resolutionNotes}</span>
+              {isEditMode ? (
+                <>
+                  <TextArea
+                    value={formData.resolutionNotes ?? ""}
+                    onChange={handleInputChange("resolutionNotes")}
+                    placeholder="Describe how the issue was resolved... (minimum 10 characters)"
+                    className="min-h-[80px]"
+                  />
+                  {errors.resolutionNotes && (
+                    <span className="text-sm text-error">{errors.resolutionNotes}</span>
+                  )}
+                </>
+              ) : (
+                <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium min-h-[80px] whitespace-pre-wrap">
+                  {formData.resolutionNotes ?? "—"}
+                </div>
               )}
             </div>
           )}
           
           <DialogFooter className="flex justify-between items-center">
-            <Button
-              variant="ghost"
-              type="button"
-              onClick={handleDeleteClick}
-              className="text-error hover:text-error hover:bg-errorContainer"
-              disabled={deleteMutation.isPending}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
-            </Button>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" type="button" onClick={handleClose}>
-                Cancel
-              </Button>
-              <Button
-                variant="default"
-                type="submit"
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending ? "Updating..." : "Update Incident"}
-              </Button>
-            </div>
+            {isEditMode ? (
+              <>
+                <div className="flex gap-2">
+                  <Button variant="outline" type="button" onClick={() => { setIsEditMode(false); }}>
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="default"
+                    type="submit"
+                  >
+                    Update Incident
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex gap-2 w-full justify-between">
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={handleDeleteClick}
+                  className="text-error hover:text-error hover:bg-errorContainer"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" type="button" onClick={handleClose}>
+                    Close
+                  </Button>
+                  <Button
+                    variant="default"
+                    type="button"
+                    onClick={() => { setIsEditMode(true); }}
+                  >
+                    Edit
+                  </Button>
+                </div>
+              </div>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
@@ -328,17 +391,15 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
               variant="outline"
               type="button"
               onClick={handleCancelDelete}
-              disabled={deleteMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
               type="button"
-              onClick={handleConfirmDelete}
-              disabled={deleteMutation.isPending}
+              onClick={() => void handleConfirmDelete()}
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete Incident"}
+              Delete Incident
             </Button>
           </DialogFooter>
         </DialogContent>

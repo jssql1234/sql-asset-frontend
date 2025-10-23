@@ -208,6 +208,8 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   const caAssetGroupValue = watch("caAssetGroup", "");
   const allowanceClassValue = watch("allowanceClass", "");
   const subClassValue = watch("subClass", "");
+  const cost = watch("cost");
+  const quantityPerUnit = watch("quantityPerUnit");
 
   // Generate Allowance Class options based on selected CA Asset Group
   const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => {
@@ -215,11 +217,13 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
       return [];
     }
     const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+    const costPerUnit = cost && quantityPerUnit ? parseFloat(cost) / quantityPerUnit : 0;
     return Object.entries(group.classes).map(([code, allowanceClass]) => ({
       value: code,
       label: `${code} - ${allowanceClass.name}`,
+      disabled: code === "6" && costPerUnit > 2000,
     }));
-  }, [caAssetGroupValue]);
+  }, [caAssetGroupValue, cost, quantityPerUnit]);
 
   // Generate Sub Class options based on selected Allowance Class
   const subClassOptions: SelectDropdownOption[] = useMemo(() => {
@@ -247,7 +251,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   // Auto-populate IA and AA rates when subclass is selected
   useEffect(() => {
     if (caAssetGroupValue && allowanceClassValue && subClassValue) {
-      
+
       const entry = ALLOWANCE_GROUPS[caAssetGroupValue].classes[allowanceClassValue].entries[subClassValue];
       if (entry) {
         setValue("iaRate", entry.ia_rate.toString());
@@ -283,6 +287,16 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
       }
     }
   }, [allowanceClassValue, caAssetGroupValue, setValue, watch]);
+
+  // Handle E6 class restriction based on cost per unit
+  useEffect(() => {
+    const costPerUnit = cost && quantityPerUnit ? parseFloat(cost) / quantityPerUnit : 0;
+
+    if (allowanceClassValue === "6" && costPerUnit > 2000) {
+      setValue("allowanceClass", "1");
+      setValue("subClass", "a");
+    }
+  }, [allowanceClassValue, cost, quantityPerUnit, setValue]);
 
   // Auto-select subclass if there's only one option (no subclasses)
   useEffect(() => {

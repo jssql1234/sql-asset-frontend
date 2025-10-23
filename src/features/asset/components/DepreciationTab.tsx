@@ -341,6 +341,7 @@ const resolveEditableFlagsState = (
       next.residualValue = true;
       next.totalDepreciation = true;
       next.depreciationRate = false;
+      if (!next.usefulLife) next.usefulLife = true;
     } else {
       next.residualValue = false;
       next.totalDepreciation = false;
@@ -350,13 +351,15 @@ const resolveEditableFlagsState = (
     if (shouldEnable) {
       next.residualValue = false;
       next.totalDepreciation = false;
+      if (!next.usefulLife) next.usefulLife = true;
     }
   } else {
     next.usefulLife = shouldEnable;
-  }
-
-  if ((next.depreciationRate || next.residualValue || next.totalDepreciation) && !next.usefulLife) {
-    next.usefulLife = true;
+    if (!shouldEnable) {
+      next.depreciationRate = false;
+      next.residualValue = false;
+      next.totalDepreciation = false;
+    }
   }
 
   if (next.usefulLife && next.depreciationRate && next.residualValue && next.totalDepreciation) {
@@ -1014,13 +1017,19 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
         <div>
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-onSurface">Residual Value</label>
-            <div className="flex items-center gap-2">
-              <Option
-                type="checkbox"
-                checked={editableFlags.residualValue}
-                onChange={() => { toggleEditable("residualValue"); }}
-              />
-            </div>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const shouldAnimateResidualValue = editableFlags.usefulLife && !(editableFlags.depreciationRate || (editableFlags.residualValue && editableFlags.totalDepreciation)) && !editableFlags.residualValue;
+                  return (
+                    <Option
+                      type="checkbox"
+                      checked={editableFlags.residualValue}
+                      onChange={() => { toggleEditable("residualValue"); }}
+                      className={shouldAnimateResidualValue ? "animate-border-glow" : ""}
+                    />
+                  );
+                })()}
+              </div>
           </div>
            <Controller
              name="residualValue"
@@ -1086,13 +1095,19 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
         <div>
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-onSurface">Depreciation Rate</label>
-            <div className="flex items-center gap-2">
-              <Option
-                type="checkbox"
-                checked={editableFlags.depreciationRate}
-                onChange={() => { toggleEditable("depreciationRate"); }}
-              />
-            </div>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const shouldAnimateDepreciationRate = editableFlags.usefulLife && !(editableFlags.depreciationRate || (editableFlags.residualValue && editableFlags.totalDepreciation)) && !editableFlags.depreciationRate;
+                  return (
+                    <Option
+                      type="checkbox"
+                      checked={editableFlags.depreciationRate}
+                      onChange={() => { toggleEditable("depreciationRate"); }}
+                      className={shouldAnimateDepreciationRate ? "animate-border-glow" : ""}
+                    />
+                  );
+                })()}
+              </div>
           </div>
           <div className="flex items-center gap-2">
               <Controller
@@ -1134,13 +1149,19 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
         <div>
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-onSurface">Total Depreciation</label>
-            <div className="flex items-center gap-2">
-              <Option
-                type="checkbox"
-                checked={editableFlags.totalDepreciation}
-                onChange={() => { toggleEditable("totalDepreciation"); }}
-              />
-            </div>
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const shouldAnimateTotalDepreciation = editableFlags.usefulLife && !(editableFlags.depreciationRate || (editableFlags.residualValue && editableFlags.totalDepreciation)) && !editableFlags.totalDepreciation;
+                  return (
+                    <Option
+                      type="checkbox"
+                      checked={editableFlags.totalDepreciation}
+                      onChange={() => { toggleEditable("totalDepreciation"); }}
+                      className={shouldAnimateTotalDepreciation ? "animate-border-glow" : ""}
+                    />
+                  );
+                })()}
+              </div>
           </div>
            <Controller
              name="totalDepreciation"

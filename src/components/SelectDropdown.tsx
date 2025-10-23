@@ -11,6 +11,7 @@ import {
 interface SelectDropdownOption {
   value: string;
   label: React.ReactNode;
+  disabled?: boolean;
 }
 
 interface SelectDropdownProps {
@@ -180,29 +181,46 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        const nextIndex = (focusedIndex + 1) % itemsCount;
+        let nextIndex = (focusedIndex + 1) % itemsCount;
+        // Skip disabled options
+        while (options[nextIndex]?.disabled && nextIndex !== focusedIndex) {
+          nextIndex = (nextIndex + 1) % itemsCount;
+        }
         setFocusedIndex(nextIndex);
         itemRefs.current[nextIndex]?.scrollIntoView({ block: "nearest" });
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        const prevIndex = (focusedIndex - 1 + itemsCount) % itemsCount;
+        let prevIndex = (focusedIndex - 1 + itemsCount) % itemsCount;
+        // Skip disabled options
+        while (options[prevIndex]?.disabled && prevIndex !== focusedIndex) {
+          prevIndex = (prevIndex - 1 + itemsCount) % itemsCount;
+        }
         setFocusedIndex(prevIndex);
         itemRefs.current[prevIndex]?.scrollIntoView({ block: "nearest" });
       } else if (e.key === "Home") {
         e.preventDefault();
-        setFocusedIndex(0);
-        itemRefs.current[0]?.scrollIntoView({ block: "nearest" });
+        let firstEnabledIndex = 0;
+        while (options[firstEnabledIndex]?.disabled && firstEnabledIndex < itemsCount - 1) {
+          firstEnabledIndex++;
+        }
+        setFocusedIndex(firstEnabledIndex);
+        itemRefs.current[firstEnabledIndex]?.scrollIntoView({ block: "nearest" });
       } else if (e.key === "End") {
         e.preventDefault();
-        const lastIndex = itemsCount - 1;
-        setFocusedIndex(lastIndex);
-        itemRefs.current[lastIndex]?.scrollIntoView({ block: "nearest" });
+        let lastEnabledIndex = itemsCount - 1;
+        while (options[lastEnabledIndex]?.disabled && lastEnabledIndex > 0) {
+          lastEnabledIndex--;
+        }
+        setFocusedIndex(lastEnabledIndex);
+        itemRefs.current[lastEnabledIndex]?.scrollIntoView({ block: "nearest" });
       } else if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         if (focusedIndex >= 0) {
           const option = options[focusedIndex];
-          onChange(option.value);
-          setIsOpen(false);
+          if (!option.disabled) {
+            onChange(option.value);
+            setIsOpen(false);
+          }
         }
       }
     },
@@ -225,6 +243,8 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
 
   const handleOptionClick = (optionValue: string) => {
     if (disabled) return;
+    const option = options.find(opt => opt.value === optionValue);
+    if (option?.disabled) return;
     onChange(optionValue);
     setIsOpen(false);
   };
@@ -260,7 +280,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
         <div
           className="fixed inset-0 z-[9998]"
           style={{ background: "transparent" }}
-          onClick={() => setIsOpen(false)}
+          onClick={() => {setIsOpen(false)}}
         />
       )}
       
@@ -292,9 +312,10 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
                 key={option.value}
                 ref={setItemRef(index)}
                 tabIndex={-1}
-                className={cn(DROPDOWN_STYLES.item.base, {
-                  [DROPDOWN_STYLES.item.focus]: isFocused,
-                })}
+                className={cn(DROPDOWN_STYLES.item.base, 
+                  { [DROPDOWN_STYLES.item.focus]: isFocused },
+                  option.disabled && "opacity-50 cursor-not-allowed text-onSurfaceVariant"
+                )}
                 onClick={() => {
                   handleOptionClick(option.value);
                 }}

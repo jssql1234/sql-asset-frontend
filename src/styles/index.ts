@@ -10,3 +10,4 @@ import './inputStyles';
 import './textAreaStyles';
 import './badgeStyles';
 import './toastStyles';
+import './optionAnimation.css';

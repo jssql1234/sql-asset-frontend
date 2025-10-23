@@ -15,6 +15,7 @@ import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErro
 import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
+import { ALLOWANCE_GROUPS } from "@/constants/allowanceGroups";
 
 interface SerialNumberData {
   serial: string;
@@ -189,25 +190,13 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   const { hasPermission } = usePermissions();
   const isTaxAgent = hasPermission("processCA", "execute");
 
-  const caAssetGroupOptions: SelectDropdownOption[] = useMemo(() => ([
-    { value: "building", label: "Building" },
-    { value: "machinery", label: "Machinery" },
-    { value: "vehicles", label: "Vehicles" },
-  ]), []);
-
-  const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => ([
-    { value: "class1", label: "Class 1" },
-    { value: "class2", label: "Class 2" },
-  ]), []);
-
-  const subClassOptions: SelectDropdownOption[] = useMemo(() => ([
-    { value: "type1", label: "Type 1" },
-    { value: "type2", label: "Type 2" },
-  ]), []);
-
-  const caAssetGroupValue = watch("caAssetGroup", "");
-  const allowanceClassValue = watch("allowanceClass", "");
-  const subClassValue = watch("subClass", "");
+  // Generate CA Asset Group options from ALLOWANCE_GROUPS
+  const caAssetGroupOptions: SelectDropdownOption[] = useMemo(() => (
+    Object.entries(ALLOWANCE_GROUPS).map(([code, group]) => ({
+      value: code,
+      label: `${code} - ${group.name}`,
+    }))
+  ), []);
 
   // For tax agents, allowance tab is readonly except for the most recent tax year
   // Most recent tax year is determined by the highest year in available tax years
@@ -215,6 +204,98 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   const selectedYearNum = selectedTaxYear ? parseInt(selectedTaxYear) : mostRecentTaxYear;
   const isMostRecentTaxYear = selectedYearNum === mostRecentTaxYear;
   const isReadonly = isTaxAgent && !isMostRecentTaxYear;
+
+  const caAssetGroupValue = watch("caAssetGroup", "");
+  const allowanceClassValue = watch("allowanceClass", "");
+  const subClassValue = watch("subClass", "");
+
+  // Generate Allowance Class options based on selected CA Asset Group
+  const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => {
+    if (!caAssetGroupValue) {
+      return [];
+    }
+    const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+    return Object.entries(group.classes).map(([code, allowanceClass]) => ({
+      value: code,
+      label: `${code} - ${allowanceClass.name}`,
+    }));
+  }, [caAssetGroupValue]);
+
+  // Generate Sub Class options based on selected Allowance Class
+  const subClassOptions: SelectDropdownOption[] = useMemo(() => {
+    if (!caAssetGroupValue || !allowanceClassValue) {
+      return [];
+    }
+    const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+    const allowanceClass = group.classes[allowanceClassValue];
+    const entries = allowanceClass.entries;
+    return Object.entries(entries).map(([code, entry]) => ({
+      value: code,
+      label: code === "-" ? entry?.type ?? "N/A" : `${code} - ${entry?.type ?? "Unknown"}`,
+    }));
+  }, [caAssetGroupValue, allowanceClassValue]);
+
+  // Check if the selected class has subclasses
+  const hasSubclasses = useMemo(() => {
+    if (!caAssetGroupValue || !allowanceClassValue) return false;
+    const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+    const allowanceClass = group.classes[allowanceClassValue];
+    const entries = allowanceClass.entries;
+    return Object.keys(entries).length > 1;
+  }, [caAssetGroupValue, allowanceClassValue]);
+
+  // Auto-populate IA and AA rates when subclass is selected
+  useEffect(() => {
+    if (caAssetGroupValue && allowanceClassValue && subClassValue) {
+      
+      const entry = ALLOWANCE_GROUPS[caAssetGroupValue].classes[allowanceClassValue].entries[subClassValue];
+      if (entry) {
+        setValue("iaRate", entry.ia_rate.toString());
+        setValue("aaRate", entry.aa_rate.toString());
+      }
+    }
+  }, [caAssetGroupValue, allowanceClassValue, subClassValue, setValue]);
+
+  // Clear dependent fields when parent changes
+  useEffect(() => {
+    setValue("allowanceClass", "");
+    setValue("subClass", "");
+    setValue("iaRate", "");
+    setValue("aaRate", "");
+  }, [caAssetGroupValue, setValue]);
+
+  useEffect(() => {
+    setValue("subClass", "");
+    setValue("iaRate", "");
+    setValue("aaRate", "");
+  }, [allowanceClassValue, setValue]);
+
+  // Clear subclass when switching between classes to prevent stale values
+  useEffect(() => {
+    if (allowanceClassValue && caAssetGroupValue) {
+      const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+      const allowanceClass = group.classes[allowanceClassValue];
+      const currentSubClass = watch("subClass");
+      if (currentSubClass && !(currentSubClass in allowanceClass.entries)) {
+        setValue("subClass", "");
+        setValue("iaRate", "");
+        setValue("aaRate", "");
+      }
+    }
+  }, [allowanceClassValue, caAssetGroupValue, setValue, watch]);
+
+  // Auto-select subclass if there's only one option (no subclasses)
+  useEffect(() => {
+    if (caAssetGroupValue && allowanceClassValue && !hasSubclasses) {
+      const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+      const allowanceClass = group.classes[allowanceClassValue];
+      const entries = allowanceClass.entries;
+      const singleEntryKey = Object.keys(entries)[0];
+      if (singleEntryKey) {
+        setValue("subClass", singleEntryKey);
+      }
+    }
+  }, [caAssetGroupValue, allowanceClassValue, hasSubclasses, setValue]);
 
   return (
     <Card className="p-6 shadow-sm">
@@ -242,7 +323,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
             onChange={(nextValue) => {
               setValue("allowanceClass", nextValue);
             }}
-            disabled={isReadonly}
+            disabled={isReadonly || !caAssetGroupValue}
           />
         </div>
         <div>
@@ -255,7 +336,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
             onChange={(nextValue) => {
               setValue("subClass", nextValue);
             }}
-            disabled={isReadonly}
+            disabled={isReadonly || !hasSubclasses}
           />
         </div>
       </div>
@@ -263,11 +344,11 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">IA Rate</label>
-          <Input {...register("iaRate")} readOnly disabled={isReadonly} />
+          <Input {...register("iaRate")} readOnly disabled />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">AA Rate</label>
-          <Input {...register("aaRate")} readOnly disabled={isReadonly} />
+          <Input {...register("aaRate")} readOnly disabled />
         </div>
         <div className="flex items-center gap-2 mt-7">
           <Option type="checkbox" {...register("aca")} checked={watch("aca")} disabled={isReadonly} />

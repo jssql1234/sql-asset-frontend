@@ -1169,7 +1169,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg">
+        <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-11 mt-0 w-auto">
           <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
             {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
           </Button>

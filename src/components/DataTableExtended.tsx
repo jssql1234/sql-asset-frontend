@@ -28,10 +28,14 @@ import {
   getFilteredRowModel,
   getFacetedRowModel,
   getFacetedUniqueValues,
+  getExpandedRowModel,
+  getGroupedRowModel,
   flexRender,
   type ColumnDef,
   type SortingState,
   type ColumnFiltersState,
+  type ExpandedState,
+  type GroupingState,
   type Table as TanStackTable,
   type Header,
   type Row,
@@ -80,6 +84,13 @@ interface DataTableExtendedProps<TData, TValue> {
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
   selectedCount?: number;
+
+  // Grouping props
+  enableGrouping?: boolean;
+  grouping?: GroupingState;
+  onGroupingChange?: (grouping: GroupingState) => void;
+  expanded?: ExpandedState;
+  onExpandedChange?: (expanded: ExpandedState) => void;
 }
 
 export function DataTableExtended<TData, TValue>({
@@ -99,13 +110,22 @@ export function DataTableExtended<TData, TValue>({
   onPageChange,
   onPageSizeChange,
   selectedCount,
+  enableGrouping = false,
+  grouping,
+  onGroupingChange,
+  expanded,
+  onExpandedChange,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
+  const [internalGrouping, setInternalGrouping] = useState<GroupingState>([]);
+  const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
 
   const currentRowSelection = rowSelection ?? internalRowSelection;
+  const currentGrouping = grouping ?? internalGrouping;
+  const currentExpanded = expanded ?? internalExpanded;
   const isExternalPagination = totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
 
   // Create table instance with faceted filtering support
@@ -125,6 +145,11 @@ export function DataTableExtended<TData, TValue>({
     // Add faceted filtering support
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    // Add grouping support
+    ...(enableGrouping && {
+      getGroupedRowModel: getGroupedRowModel(),
+      getExpandedRowModel: getExpandedRowModel(),
+    }),
     
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -145,6 +170,30 @@ export function DataTableExtended<TData, TValue>({
         onRowSelectionChange(selectedRows, selectedRowIds);
       }
     },
+    onGroupingChange: (updaterOrValue) => {
+      const newGrouping =
+        typeof updaterOrValue === 'function' ? updaterOrValue(currentGrouping) : updaterOrValue;
+
+      if (!grouping) {
+        setInternalGrouping(newGrouping);
+      }
+
+      if (onGroupingChange) {
+        onGroupingChange(newGrouping);
+      }
+    },
+    onExpandedChange: (updaterOrValue) => {
+      const newExpanded =
+        typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
+
+      if (!expanded) {
+        setInternalExpanded(newExpanded);
+      }
+
+      if (onExpandedChange) {
+        onExpandedChange(newExpanded);
+      }
+    },
     filterFns: {
       multiSelect: multiSelectFilterFn,
       fuzzyArrayIncludes: fuzzyArrayIncludesFilterFn,
@@ -159,6 +208,10 @@ export function DataTableExtended<TData, TValue>({
       sorting,
       columnFilters,
       rowSelection: currentRowSelection,
+      ...(enableGrouping && {
+        grouping: currentGrouping,
+        expanded: currentExpanded,
+      }),
     },
     initialState: {
       pagination: {
@@ -225,6 +278,7 @@ export function DataTableExtended<TData, TValue>({
                           onClick={header.column.getToggleSortingHandler()}
                           className={cn('flex items-center gap-2 w-full justify-between', {
                             'cursor-pointer select-none': header.column.getCanSort(),
+                            'justify-end': (header.column.columnDef as any).headerAlign === 'right',
                           })}
                         >
                           {!header.isPlaceholder &&
@@ -350,6 +404,13 @@ function DataTableRow<TData>({
       'button, a, input, select, textarea, [role="button"]'
     );
 
+    // Handle grouped row expansion/collapse
+    if (row.getIsGrouped() && !isInteractiveElement) {
+      event.preventDefault();
+      row.getToggleExpandedHandler()();
+      return;
+    }
+
     if (enableRowClickSelection && !isInteractiveElement && row.getCanSelect()) {
       event.preventDefault();
       row.toggleSelected();
@@ -369,7 +430,8 @@ function DataTableRow<TData>({
             data-state={row.getIsSelected() && 'selected'}
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
-              enableRowClickSelection && row.getCanSelect() && 'cursor-pointer'
+              enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
+              row.getIsGrouped() && 'bg-surfaceContainerLowest font-semibold cursor-pointer hover:bg-surfaceContainerLowest/80'
             )}
           >
             {cells.map((cell, i) => (

@@ -15,6 +15,13 @@ export type MaintenanceStatus =
 
 export type ServiceBy = "In-House" | "Outsourced";
 
+export interface AssetCostAllocation {
+  assetId: string;
+  assetCode: string;
+  assetName: string;
+  allocatedCost: number;
+}
+
 export interface WorkOrder {
   id: string;
   workOrderNumber: string;
@@ -38,6 +45,7 @@ export interface WorkOrder {
   completedDate?: string;
   estimatedCost: number;
   actualCost?: number;
+  costAllocations?: AssetCostAllocation[];
   progress: number;
   notes?: string;
   partsUsed?: PartUsed[];
@@ -137,6 +145,7 @@ export interface WorkOrderFormData {
   assignedTo?: string;
   estimatedCost: number;
   actualCost?: number;
+  costAllocations?: AssetCostAllocation[];
   notes?: string;
   warrantyId?: string;
 }

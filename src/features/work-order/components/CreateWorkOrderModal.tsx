@@ -8,6 +8,7 @@ import type {
   MaintenancePriority,
   MaintenanceStatus,
   ServiceBy,
+  AssetCostAllocation,
 } from "../types";
 import {
   MOCK_ASSETS,
@@ -17,6 +18,7 @@ import {
   PRIORITY_LEVELS,
   STATUS_OPTIONS,
 } from "../mockData";
+import { CostDistribution } from "./CostDistribution";
 
 interface CreateWorkOrderModalProps {
   isOpen: boolean;
@@ -52,6 +54,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     assignedTo: "",
     estimatedCost: 0,
     actualCost: 0,
+    costAllocations: [],
     notes: "",
     status: "Pending",
   });
@@ -60,6 +63,41 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [assigneeOptions, setAssigneeOptions] =
     useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
+  const [costAllocations, setCostAllocations] = useState<AssetCostAllocation[]>([]);
+
+  // Function to distribute cost equally among assets
+  const handleDistributeEqually = () => {
+    if (selectedAssets.length === 0 || !formData.actualCost || formData.actualCost <= 0) return;
+
+    const costPerAsset = formData.actualCost / selectedAssets.length;
+    const newAllocations: AssetCostAllocation[] = selectedAssets.map((assetId) => {
+      const asset = MOCK_ASSETS.find((a) => a.id === assetId);
+      return {
+        assetId: assetId,
+        assetCode: asset?.code || assetId,
+        assetName: asset?.name || "Unknown Asset",
+        allocatedCost: Number(costPerAsset.toFixed(2)),
+      };
+    });
+
+    // Adjust the last asset to account for rounding differences
+    const totalAllocated = newAllocations.reduce((sum, a) => sum + a.allocatedCost, 0);
+    const difference = Number((formData.actualCost - totalAllocated).toFixed(2));
+    if (difference !== 0 && newAllocations.length > 0) {
+      newAllocations[newAllocations.length - 1].allocatedCost += difference;
+      newAllocations[newAllocations.length - 1].allocatedCost = Number(
+        newAllocations[newAllocations.length - 1].allocatedCost.toFixed(2)
+      );
+    }
+
+    // Update both local state and form data
+    setCostAllocations(newAllocations);
+    setFormData((prev) => ({
+      ...prev,
+      actualCost: formData.actualCost, // Keep the actual cost as is
+      costAllocations: newAllocations,
+    }));
+  };
 
   // Asset categories for SearchWithDropdown
   const assetCategories = [
@@ -114,6 +152,20 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       setFormData((prev) => ({ ...prev, assignedTo: "" }));
     }
   }, [formData.serviceBy]);
+
+  // Clear cost allocations when assets change (for outsourced services)
+  useEffect(() => {
+    if (formData.serviceBy === "Outsourced" && selectedAssets.length > 0) {
+      // Only clear if the number of assets changed, not on initial load
+      if (costAllocations.length > 0 && costAllocations.length !== selectedAssets.length) {
+        setCostAllocations([]);
+        setFormData((prev) => ({
+          ...prev,
+          actualCost: 0,
+        }));
+      }
+    }
+  }, [selectedAssets.length, formData.serviceBy]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAssetSelectionChange = (assetIds: string[]) => {
     setSelectedAssets(assetIds);
@@ -182,7 +234,26 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       return;
     }
 
-    onSubmit(formData);
+    // Validate cost allocations for outsourced services with actual cost
+    if (formData.serviceBy === "Outsourced" && formData.actualCost && formData.actualCost > 0) {
+      const totalAllocated = costAllocations.reduce((sum, a) => sum + a.allocatedCost, 0);
+      const difference = Math.abs(formData.actualCost - totalAllocated);
+      
+      if (difference > 0.01) {
+        alert(`Cost allocation mismatch: Total allocated (${totalAllocated.toFixed(2)}) must match actual cost (${formData.actualCost.toFixed(2)})`);
+        return;
+      }
+    }
+
+    // Include cost allocations in form data
+    const submitData = {
+      ...formData,
+      costAllocations: formData.serviceBy === "Outsourced" && selectedAssets.length > 0
+        ? costAllocations 
+        : undefined,
+    };
+
+    onSubmit(submitData);
     handleClose();
   };
 
@@ -539,26 +610,62 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   <label className="label-large block mb-2 text-onSurface">
                     Actual Cost (RM)
                   </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.actualCost}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        actualCost: parseFloat(e.target.value) || 0,
-                      }))
-                    }
-                    placeholder="0.00"
-                    className="w-full"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={formData.actualCost}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualCost: parseFloat(e.target.value) || 0,
+                        }))
+                      }
+                      placeholder="0.00"
+                      className="flex-1"
+                    />
+                    {formData.serviceBy === "Outsourced" && selectedAssets.length > 0 && (formData.actualCost ?? 0) > 0 && (
+                      <button
+                        type="button"
+                        onClick={handleDistributeEqually}
+                        className="px-4 py-2 bg-primary text-onPrimary rounded-lg hover:bg-primaryHover transition-colors label-large whitespace-nowrap"
+                      >
+                        Distribute Equally
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-              <p className="body-small text-onSurfaceVariant mt-2">
-                Costs are automatically distributed equally among assets when
-                actual cost is entered
-              </p>
+              
+              {/* Cost Distribution for Outsourced Services */}
+              {formData.serviceBy === "Outsourced" && selectedAssets.length > 0 && (
+                <div className="mt-6">
+                  <CostDistribution
+                    assets={selectedAssets.map((assetId) => {
+                      const asset = MOCK_ASSETS.find((a) => a.id === assetId);
+                      return {
+                        id: assetId,
+                        code: asset?.code || assetId,
+                        name: asset?.name || "Unknown Asset",
+                      };
+                    })}
+                    totalCost={formData.actualCost || 0}
+                    estimatedCost={formData.estimatedCost}
+                    allocations={costAllocations}
+                    onAllocationsChange={(allocations) => {
+                      setCostAllocations(allocations);
+                      // Calculate total from allocations and update actual cost
+                      const totalAllocated = allocations.reduce((sum, a) => sum + a.allocatedCost, 0);
+                      setFormData((prev) => ({
+                        ...prev,
+                        actualCost: totalAllocated,
+                        costAllocations: allocations,
+                      }));
+                    }}
+                  />
+                </div>
+              )}
             </section>
 
             {/* Notes */}

@@ -11,8 +11,11 @@ import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
 import PermissionGuard from "@/components/PermissionGuard";
- import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import { Delete, Edit, Plus } from "@/assets/icons";
+import { usePermissions } from "@/hooks/usePermissions";
+import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
+import { useToast } from "@/components/ui/components/Toast/useToast";
 
 
 // Column definitions for TanStack Table
@@ -185,15 +188,46 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
   // },
 ];
 
-export default function AssetContentArea() {
+interface UserAssetContentAreaProps {
+  selectedTaxYear?: string;
+  onTaxYearChange?: (year: string) => void;
+}
+
+export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxYear, onTaxYearChange }: UserAssetContentAreaProps) {
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
+  const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
+  const [isTaxView, setIsTaxView] = useState<boolean>(true);
+  const [availableTaxYears, setAvailableTaxYears] = useState<SelectDropdownOption[]>([]);
+
+  // Use external tax year if provided, otherwise use internal state
+  const selectedTaxYear = externalSelectedTaxYear ?? internalSelectedTaxYear;
+  const setSelectedTaxYear = (year: string) => {
+    if (onTaxYearChange) {
+      onTaxYearChange(year);
+    } else {
+      setInternalSelectedTaxYear(year);
+      sessionStorage.setItem('selectedTaxYear', year);
+    }
+  };
+
+  // Initialize from sessionStorage if using internal state
+  useEffect(() => {
+    if (!externalSelectedTaxYear) {
+      const savedTaxYear = sessionStorage.getItem('selectedTaxYear');
+      if (savedTaxYear) {
+        setInternalSelectedTaxYear(savedTaxYear);
+      }
+    }
+  }, [externalSelectedTaxYear]);
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
+  const { hasPermission } = usePermissions();
+  const { addToast } = useToast();
   const { data: assets, isLoading: assetsLoading } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => {
     setView('list');
@@ -206,6 +240,41 @@ export default function AssetContentArea() {
     setEditingAsset(null);
     void navigate('/asset');
   });
+
+  const isTaxAgent = hasPermission("processCA", "execute");
+  const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
+
+  // Determine effective user role based on admin toggle
+  const effectiveUserRole = isAdmin && !isTaxView ? 'normal' : (isTaxAgent ? 'taxAgent' : 'normal');
+
+  // Initialize available tax years if empty
+  useEffect(() => {
+    if (availableTaxYears.length === 0) {
+      const currentYear = new Date().getFullYear();
+      const initialYears: SelectDropdownOption[] = [];
+      for (let i = 4; i >= 0; i--) {
+        const year = currentYear - i;
+        initialYears.push({ value: year.toString(), label: `YA ${String(year)}` });
+      }
+      setAvailableTaxYears(initialYears);
+    }
+  }, [availableTaxYears.length]);
+
+  // Generate tax year options based on available asset acquire dates or stored list
+  const taxYearOptions: SelectDropdownOption[] = useMemo(() => {
+    if (availableTaxYears.length > 0) {
+      return availableTaxYears;
+    }
+
+    // Fallback to past 5 years if no stored options
+    const currentYear = new Date().getFullYear();
+    const years: SelectDropdownOption[] = [];
+    for (let i = 4; i >= 0; i--) {
+      const year = currentYear - i;
+      years.push({ value: year.toString(), label: `YA ${String(year)}` });
+    }
+    return years;
+  }, [availableTaxYears]);
 
    // Sync view state with URL
    useEffect(() => {
@@ -245,19 +314,36 @@ export default function AssetContentArea() {
     }
   };
 
-  // Filter assets based on search value
+  // Filter assets based on search value and tax year (for tax agents)
   const filteredAssets = useMemo(() => {
-    if (!assets || !searchValue.trim()) return assets;
+    if (!assets) return assets;
 
-    const searchLower = searchValue.toLowerCase().trim();
-    return assets.filter(asset =>
-      (asset.id || '').toLowerCase().includes(searchLower) ||
-      (asset.batchId || '').toLowerCase().includes(searchLower) ||
-      (asset.name || '').toLowerCase().includes(searchLower) ||
-      (asset.group || '').toLowerCase().includes(searchLower) ||
-      (asset.description || '').toLowerCase().includes(searchLower)
-    );
-  }, [assets, searchValue]);
+    let filtered = assets;
+
+    // Apply tax year filter for tax agents
+    if (isTaxAgent && selectedTaxYear) {
+      const taxYearNum = parseInt(selectedTaxYear);
+      filtered = filtered.filter(asset => {
+        if (!asset.acquireDate) return false;
+        const acquireYear = new Date(asset.acquireDate).getFullYear();
+        return acquireYear <= taxYearNum;
+      });
+    }
+
+    // Apply search filter
+    if (searchValue.trim()) {
+      const searchLower = searchValue.toLowerCase().trim();
+      filtered = filtered.filter(asset =>
+        (asset.id || '').toLowerCase().includes(searchLower) ||
+        (asset.batchId || '').toLowerCase().includes(searchLower) ||
+        (asset.name || '').toLowerCase().includes(searchLower) ||
+        (asset.group || '').toLowerCase().includes(searchLower) ||
+        (asset.description || '').toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
+  }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
 
   // Summary cards data
   const summaryCardsData: SummaryCardItem[] = [
@@ -303,11 +389,101 @@ export default function AssetContentArea() {
             actions={[]}
           />
 
-          <div className="mb-6">
-            <SummaryCards data={summaryCardsData} columns={3} />
-          </div>
+          <SummaryCards data={summaryCardsData} columns={3} />
 
-          <div className="mb-6">
+          <div className="my-6 space-y-4">
+            {(isTaxAgent) && <div className="flex items-center gap-4 min-h-[40px]">
+              {((!isAdmin) || (isTaxView)) && (
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium text-onSurface">Tax Year:</label>
+                  <SelectDropdown
+                    className="w-40"
+                    value={selectedTaxYear}
+                    placeholder="Select Tax Year"
+                    options={taxYearOptions}
+                    onChange={setSelectedTaxYear}
+                  />
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      // Process Capital Allowance for the selected tax year
+                      addToast({
+                        variant: "info",
+                        title: "Processing Capital Allowance",
+                        description: `Starting Capital Allowance processing for YA ${selectedTaxYear}...`,
+                        duration: 2000,
+                      });
+
+                      // Simulate CA processing
+                      setTimeout(() => {
+                        // Calculate next tax year
+                        const currentYear = parseInt(selectedTaxYear);
+                        const nextTaxYear = (currentYear + 1).toString();
+
+                        // Add new tax year to available options
+                        const newTaxYearOption = {
+                          value: nextTaxYear,
+                          label: `YA ${nextTaxYear}`
+                        };
+
+                        setAvailableTaxYears(prev => {
+                          // Check if the year already exists
+                          const exists = prev.some(option => option.value === nextTaxYear);
+                          if (!exists) {
+                            return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value) - parseInt(a.value));
+                          }
+                          return prev;
+                        });
+
+                        addToast({
+                          variant: "success",
+                          title: "Capital Allowance Processed",
+                          description: `Successfully processed Capital Allowance for YA ${selectedTaxYear}. New tax year YA ${nextTaxYear} is now available.`,
+                          duration: 5000,
+                        });
+
+                        // Auto-select the new tax year
+                        setSelectedTaxYear(nextTaxYear);
+                      }, 3000);
+                    }}
+                  >
+                    Confirm Process Done
+                  </Button>
+                </div>
+              )}
+
+              {isAdmin && (
+                <div className="flex items-center gap-2 self-center ml-auto">
+                  <label className="text-sm font-medium text-onSurface">View:</label>
+                  <div
+                    className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden cursor-pointer"
+                    onClick={() => {
+                      setIsTaxView(!isTaxView);
+                    }}
+                  >
+                    <div
+                      className={cn(
+                        "px-3 py-1 body-small transition-colors",
+                        isTaxView && "bg-primary text-onPrimary"
+                      )}
+                    >
+                      Tax View
+                    </div>
+                    <div
+                      className={cn(
+                        "px-3 py-1 body-small transition-colors",
+                        !isTaxView && "bg-primary text-onPrimary"
+                      )}
+                    >
+                      User View
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>}            
+
             <Search
               searchValue={searchValue}
               searchPlaceholder="Search by asset ID, batch ID, asset name, asset group, description"
@@ -353,10 +529,9 @@ export default function AssetContentArea() {
             </div>
             <div className="flex items-center gap-2">
               <PermissionGuard feature="maintainItem" action="entryNew">
-          
+
               <Button size="sm" onClick={() => {
                 setView('create');
-                void navigate('/asset/create-asset');
               }}>
                 <Plus className="h-4 w-4" />
                 Add
@@ -372,13 +547,14 @@ export default function AssetContentArea() {
                          return;
                        }
 
-                        if (selectedAssetIds.length === 1 && assets && assets.length > 0) {
-                          const asset = assets.find(a => a.id === selectedAssetIds[0]);
+                       if (selectedAssetIds.length === 1 && assets && assets.length > 0) {
+                         const asset = assets.find(a => a.id === selectedAssetIds[0]);
 
-                          if (asset) {
-                            void navigate(`/asset/edit-asset/${asset.id}`);
-                          }
-                        }
+                         if (asset) {
+                           setEditingAsset(asset);
+                           setView('edit');
+                         }
+                       }
                      }}
                      disabled={selectedAssetIds.length !== 1 || assetsLoading}
                    >
@@ -408,11 +584,13 @@ export default function AssetContentArea() {
       ) : view === 'create' ? (
         <AssetForm
           editingAsset={null}
-           onBack={() => {
-             setView('list');
-             setEditingAsset(null);
-             void navigate('/asset');
-           }}
+          selectedTaxYear={selectedTaxYear}
+          taxYearOptions={taxYearOptions}
+          userRole={effectiveUserRole}
+          onBack={() => {
+            setView('list');
+            setEditingAsset(null);
+          }}
           onSuccess={(data) => {
             const asset: Asset = {
               id: data.code,
@@ -432,10 +610,12 @@ export default function AssetContentArea() {
       ) : (
         <AssetForm
           editingAsset={editingAsset}
+          selectedTaxYear={selectedTaxYear}
+          taxYearOptions={taxYearOptions}
+          userRole={effectiveUserRole}
           onBack={() => {
             setView('list');
             setEditingAsset(null);
-            void navigate('/asset');
           }}
           onSuccess={(data) => {
             const asset: Asset = {

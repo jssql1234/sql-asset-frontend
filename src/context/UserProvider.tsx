@@ -19,6 +19,12 @@ const MOCK_USERS: User[] = [
     name: 'Regular User',
     email: 'user@company.com',
     groupId: 'user',
+  },
+  {
+    id: '3',
+    name: 'Tax Agent',
+    email: 'taxagent@company.com',
+    groupId: 'tax-agent',
   }
 ];
 
@@ -43,6 +49,19 @@ const MOCK_GROUPS: UserGroup[] = [
         reportPrint: true,
         reportPreview: true,
         reportExport: false
+      },
+      viewItemCategory: {
+        execute: true
+      }
+    }
+  },
+  {
+    id: 'tax-agent',
+    name: 'Tax Agent',
+    description: 'Tax computation and allowance management',
+    defaultPermissions: {
+      processCA: {
+        execute: true
       },
       viewItemCategory: {
         execute: true

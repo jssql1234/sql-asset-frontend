@@ -36,7 +36,7 @@ export const PERMISSION_ITEMS: PermissionItem[] = [
   {
     key: "viewItemCategory",
     permissions: {
-      execute: true
+      execute: true,
     }
   },
   {
@@ -50,6 +50,12 @@ export const PERMISSION_ITEMS: PermissionItem[] = [
       reportPrint: false,
       reportPreview: false,
       reportExport: false
+    }
+  },
+  {
+    key: "processCA", 
+    permissions: {
+      execute: true,
     }
   }
 ];
@@ -67,13 +73,14 @@ export const PERMISSION_GROUPS: PermissionGroup[] = [
   },
   {
     id: 'groupC',
-    name: 'Reporting',
-    permissions: [] // Empty for now
+    name: 'Capital Allowance',
+    permissions: ['processCA']
   }
 ];
 
 export const PERMISSION_DISPLAY_NAMES: Record<string, string> = {
   maintainItem: "Maintain Item",
   maintainUser: "Maintain User",
-  viewItemCategory: "View Item Category"
+  viewItemCategory: "View Item Category",
+  processCA: "Process Capital Allowance",
 };

@@ -27,12 +27,16 @@ interface TabProps {
   watch: UseFormWatch<CreateAssetFormData>;
   control: Control<CreateAssetFormData>;
   errors?: FieldErrors<CreateAssetFormData>;
+  selectedTaxYear?: string;
+  taxYearOptions?: SelectDropdownOption[];
 }
 
 interface AssetFormProps {
   onSuccess?: (data: CreateAssetFormData) => void;
   onBack?: () => void;
   editingAsset?: Asset | null;
+  selectedTaxYear?: string;
+  taxYearOptions?: SelectDropdownOption[];
 }
 
 interface AssetFormRef {
@@ -180,7 +184,10 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
 };
 
 // Tab Components
-const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
+const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedTaxYear, taxYearOptions }) => {
+  const { hasPermission } = usePermissions();
+  const isTaxAgent = hasPermission("processCA", "execute");
+
   const caAssetGroupOptions: SelectDropdownOption[] = useMemo(() => ([
     { value: "building", label: "Building" },
     { value: "machinery", label: "Machinery" },
@@ -201,6 +208,13 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
   const allowanceClassValue = watch("allowanceClass", "");
   const subClassValue = watch("subClass", "");
 
+  // For tax agents, allowance tab is readonly except for the most recent tax year
+  // Most recent tax year is determined by the highest year in available tax years
+  const mostRecentTaxYear = Math.max(...(taxYearOptions ?? []).map(option => parseInt(option.value)));
+  const selectedYearNum = selectedTaxYear ? parseInt(selectedTaxYear) : mostRecentTaxYear;
+  const isMostRecentTaxYear = selectedYearNum === mostRecentTaxYear;
+  const isReadonly = isTaxAgent && !isMostRecentTaxYear;
+
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -214,6 +228,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
             onChange={(nextValue) => {
               setValue("caAssetGroup", nextValue);
             }}
+            disabled={isReadonly}
           />
         </div>
         <div>
@@ -226,6 +241,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
             onChange={(nextValue) => {
               setValue("allowanceClass", nextValue);
             }}
+            disabled={isReadonly}
           />
         </div>
         <div>
@@ -238,6 +254,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
             onChange={(nextValue) => {
               setValue("subClass", nextValue);
             }}
+            disabled={isReadonly}
           />
         </div>
       </div>
@@ -245,14 +262,14 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">IA Rate</label>
-          <Input {...register("iaRate")} readOnly />
+          <Input {...register("iaRate")} readOnly disabled={isReadonly} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">AA Rate</label>
-          <Input {...register("aaRate")} readOnly />
+          <Input {...register("aaRate")} readOnly disabled={isReadonly} />
         </div>
         <div className="flex items-center gap-2 mt-7">
-          <Option type="checkbox" {...register("aca")} checked={watch("aca")} />
+          <Option type="checkbox" {...register("aca")} checked={watch("aca")} disabled={isReadonly} />
           <label className="body-small text-onSurfaceVariant">ACA</label>
         </div>
       </div>
@@ -260,17 +277,17 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
       {watch("caAssetGroup") === "vehicles" && (
         <div className="space-y-3 mt-6">
           <div className="flex items-center gap-2">
-            <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} />
+            <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} disabled={isReadonly} />
             <label className="body-small text-onSurfaceVariant">Motor Vehicle</label>
           </div>
           {watch("extraCheckbox") && (
             <div className="ml-6 space-y-3">
               <div className="flex items-center gap-2">
-                <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} />
+                <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} disabled={isReadonly} />
                 <label className="body-small text-onSurfaceVariant">Commercial Use</label>
               </div>
               <div className="flex items-center gap-2">
-                <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} />
+                <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly} />
                 <label className="body-small text-onSurfaceVariant">New Vehicle</label>
               </div>
             </div>
@@ -281,11 +298,11 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Qualify Amount (QE)</label>
-          <Input {...register("qeValue")} readOnly />
+          <Input {...register("qeValue")} readOnly disabled={isReadonly} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Controlled Transfer In RE</label>
-          <Input {...register("residualExpenditure")} placeholder="0.00" />
+          <Input {...register("residualExpenditure")} placeholder="0.00" disabled={isReadonly} />
         </div>
       </div>
     </Card>
@@ -566,7 +583,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 };
 
 const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
-  const { onSuccess, onBack, editingAsset } = props;
+  const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions } = props;
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -593,6 +610,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     description: "",
     purchaseDate: "",
     acquireDate: "",
+    taxYear: new Date().getFullYear().toString(),
   }), []);
 
   const {
@@ -693,7 +711,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   };
 
 
-
   // Mock data for dropdowns
   const assetGroups: SelectDropdownOption[] = [
     { value: "", label: "-- Choose Asset Group --" },
@@ -705,7 +722,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const assetGroupValue = watch("assetGroup", "");
 
   // Define tabs based on batch mode and user permissions
-  const commonTabProps: TabProps = { register, setValue, watch, control, errors };
+  const commonTabProps: TabProps = { register, setValue, watch, control, errors, selectedTaxYear, taxYearOptions };
 
   // Determine user role based on permissions
   const isTaxAgent = hasPermission("processCA", "execute");

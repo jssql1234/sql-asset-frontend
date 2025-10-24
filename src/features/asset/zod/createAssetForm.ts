@@ -17,6 +17,7 @@ export const createAssetFormSchema = z.object({
   acquireDate: z.string().min(1, "This Date is required"),
 
   // Allowance tab
+  taxYear: z.string().optional(),
   caAssetGroup: z.string().optional(),
   allowanceClass: z.string().optional(),
   subClass: z.string().optional(),

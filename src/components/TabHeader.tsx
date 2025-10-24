@@ -19,7 +19,7 @@ interface TabHeaderProps {
   subtitle?: string;
   actions?: TabHeaderAction[];
   customActions?: ReactNode;
-  inlineElements?: ReactNode[];
+  inlineElements?: { key: string; element: ReactNode }[];
   className?: string;
 }
 
@@ -93,8 +93,8 @@ export const TabHeader = ({
           ) : null}
         </div>
         {renderInlineActions()}
-        {inlineElements?.map((element, index) => (
-          <div key={index} className="ml-3">
+        {inlineElements?.map(({ key, element }) => (
+          <div key={key} className="ml-3">
             {element}
           </div>
         ))}

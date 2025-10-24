@@ -37,6 +37,7 @@ interface AssetFormProps {
   editingAsset?: Asset | null;
   selectedTaxYear?: string;
   taxYearOptions?: SelectDropdownOption[];
+  userRole?: 'taxAgent' | 'admin' | 'normal';
 }
 
 interface AssetFormRef {
@@ -583,20 +584,23 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 };
 
 const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
-  const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions } = props;
+  const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
   const [batchMode, setBatchMode] = useState(false);
   const { addToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const { hasPermission } = usePermissions();
 
-  // Determine user role based on permissions
+  // Determine user role based on permissions or prop
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
-  // Set default active tab based on user role
+  // Use prop userRole if provided, otherwise determine from permissions
+  const effectiveUserRole = userRole ?? (isAdmin ? 'admin' : (isTaxAgent ? 'taxAgent' : 'normal'));
+
+  // Set default active tab based on effective user role
   const getDefaultActiveTab = () => {
-    if (isTaxAgent) {
+    if (effectiveUserRole === 'taxAgent' || effectiveUserRole === 'admin') {
       return "allowance";
     }
     return "hire-purchase";
@@ -763,7 +767,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           content: <WarrantyTab {...commonTabProps} />,
         },
       ]
-    : isTaxAgent
+    : effectiveUserRole === 'taxAgent'
     ? [
         {
           label: "Allowance",
@@ -776,7 +780,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           content: <HirePurchaseTab {...commonTabProps} />,
         },
       ]
-    : isAdmin
+    : effectiveUserRole === 'admin'
     ? [
         {
           label: "Allowance",

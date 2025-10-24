@@ -387,68 +387,73 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             title="Asset Management"
             subtitle="Manage and track all company assets"
             actions={[]}
-            inlineElements={[
-              ((isTaxAgent)) ? (
-                <div className="flex items-center gap-2 ml-5">
-                  <label className="text-sm font-medium text-onSurface">Tax Year:</label>
-                  <SelectDropdown
-                    className="w-40"
-                    value={selectedTaxYear}
-                    placeholder="Select Tax Year"
-                    options={taxYearOptions}
-                    onChange={setSelectedTaxYear}
-                  />
+            inlineElements={
+              isTaxAgent ? [
+                {
+                  key: "tax-year-selector",
+                  element: (
+                    <div className="flex items-center gap-2 ml-5">
+                      <label className="text-sm font-medium text-onSurface">Tax Year:</label>
+                      <SelectDropdown
+                        className="w-40"
+                        value={selectedTaxYear}
+                        placeholder="Select Tax Year"
+                        options={taxYearOptions}
+                        onChange={setSelectedTaxYear}
+                      />
 
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // Process Capital Allowance for the selected tax year
-                      addToast({
-                        variant: "info",
-                        title: "Processing Capital Allowance",
-                        description: `Starting Capital Allowance processing for YA ${selectedTaxYear}...`,
-                        duration: 2000,
-                      });
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Process Capital Allowance for the selected tax year
+                          addToast({
+                            variant: "info",
+                            title: "Processing Capital Allowance",
+                            description: `Starting Capital Allowance processing for YA ${selectedTaxYear}...`,
+                            duration: 2000,
+                          });
 
-                      // Simulate CA processing
-                      setTimeout(() => {
-                        // Calculate next tax year
-                        const currentYear = parseInt(selectedTaxYear);
-                        const nextTaxYear = (currentYear + 1).toString();
+                          // Simulate CA processing
+                          setTimeout(() => {
+                            // Calculate next tax year
+                            const currentYear = parseInt(selectedTaxYear);
+                            const nextTaxYear = (currentYear + 1).toString();
 
-                        // Add new tax year to available options
-                        const newTaxYearOption = {
-                          value: nextTaxYear,
-                          label: `YA ${nextTaxYear}`
-                        };
+                            // Add new tax year to available options
+                            const newTaxYearOption = {
+                              value: nextTaxYear,
+                              label: `YA ${nextTaxYear}`
+                            };
 
-                        setAvailableTaxYears(prev => {
-                          // Check if the year already exists
-                          const exists = prev.some(option => option.value === nextTaxYear);
-                          if (!exists) {
-                            return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value) - parseInt(a.value));
-                          }
-                          return prev;
-                        });
+                            setAvailableTaxYears(prev => {
+                              // Check if the year already exists
+                              const exists = prev.some(option => option.value === nextTaxYear);
+                              if (!exists) {
+                                return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value) - parseInt(a.value));
+                              }
+                              return prev;
+                            });
 
-                        addToast({
-                          variant: "success",
-                          title: "Capital Allowance Processed",
-                          description: `Successfully processed Capital Allowance for YA ${selectedTaxYear}. New tax year YA ${nextTaxYear} is now available.`,
-                          duration: 5000,
-                        });
+                            addToast({
+                              variant: "success",
+                              title: "Capital Allowance Processed",
+                              description: `Successfully processed Capital Allowance for YA ${selectedTaxYear}. New tax year YA ${nextTaxYear} is now available.`,
+                              duration: 5000,
+                            });
 
-                        // Auto-select the new tax year
-                        setSelectedTaxYear(nextTaxYear);
-                      }, 3000);
-                    }}
-                  >
-                    Confirm Process Done
-                  </Button>
-                </div>
-              ) : null
-            ].filter(Boolean)}
+                            // Auto-select the new tax year
+                            setSelectedTaxYear(nextTaxYear);
+                          }, 3000);
+                        }}
+                      >
+                        Confirm Process Done
+                      </Button>
+                    </div>
+                  )
+                }
+              ] : []
+            }
           />
 
           <SummaryCards data={summaryCardsData} columns={3} />

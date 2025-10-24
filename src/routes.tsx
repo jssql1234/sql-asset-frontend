@@ -1,6 +1,8 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { Button } from "./components/ui/components";
 import { lazy } from "react";
+
+import ProtectedRoute, { ProtectedRouteFallback } from "./components/ProtectedRoute";
+import { usePermissions } from "./hooks/usePermissions";
 
 import AssetMainPage from "./features/asset/pages/AssetMainPage";
 import ProcessCAPage from "./features/asset/pages/ProcessCAPage";
@@ -30,23 +32,35 @@ const AllocationPage = lazy(
 );
 
 const Allocation = () => <AllocationPage />;
-
-export function Home() {
-  return <Button>Hello</Button>;
-}
   
 function AppRoutes() {
+  const { hasPermission } = usePermissions();
+
   return (
     <Routes>
       {/* Root path */}
-      <Route path="/" element={<AssetMainPage />} />
+      <Route path="/" element={
+        <ProtectedRoute when={hasPermission("processCA", "execute")}>
+          <AssetMainPage />
+          <ProtectedRouteFallback>
+            <AssetMainPage />
+          </ProtectedRouteFallback>
+        </ProtectedRoute>
+      } />
       <Route path="/testing" element={<Testing />} />
       <Route path="/tabledemo" element={<TableDemo />} />
       
-       {/* Asset Management Routes */}
-       <Route path="/asset" element={<AssetMainPage />} />
-       <Route path="/asset/create-asset" element={<AssetMainPage />} />
-       <Route path="/asset/edit-asset/:id" element={<AssetMainPage />} />
+      {/* Asset Management Routes */}
+      <Route path="/asset" element={
+        <ProtectedRoute when={hasPermission("processCA", "execute")}>
+          <AssetMainPage />
+          <ProtectedRouteFallback>
+            <AssetMainPage />
+          </ProtectedRouteFallback>
+        </ProtectedRoute>
+      } />
+      <Route path="/asset/create-asset" element={<AssetMainPage />} />
+      <Route path="/asset/edit-asset/:id" element={<AssetMainPage />} />
       <Route path="/process-ca" element={<ProcessCAPage />} />
       <Route path="/disposal" element={<DisposalMainPage />} />
       <Route path="/dashboard" element={<DashboardPage />} />

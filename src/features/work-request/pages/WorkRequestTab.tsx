@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/components";
 import { useToast } from "@/components/ui/components/Toast";
 import TabHeader from "@/components/TabHeader";
-import WorkRequestFilter, { type FilterOptions } from "../components/WorkRequestFilter";
+import Search from "@/components/Search";
 import WorkRequestTable from "../components/WorkRequestTable";
 import DeleteConfirmationDialog from "../components/DeleteConfirmationDialog";
 import type { WorkRequest, WorkRequestFilters } from "@/types/work-request";
@@ -10,11 +10,9 @@ import type { WorkRequest, WorkRequestFilters } from "@/types/work-request";
 interface WorkRequestTabProps {
   workRequests: WorkRequest[];
   filters: WorkRequestFilters;
-  filterOptions: FilterOptions;
   selectedWorkRequestIds: string[];
   isLoading?: boolean;
   onFilterChange: (filters: WorkRequestFilters) => void;
-  onResetFilters: () => void;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
   onOpenCreateModal?: () => void;
   onOpenReviewModal?: () => void;
@@ -24,11 +22,9 @@ interface WorkRequestTabProps {
 const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
   workRequests,
   filters,
-  filterOptions,
   selectedWorkRequestIds,
   isLoading = false,
   onFilterChange,
-  onResetFilters,
   onSelectionChange,
   onOpenCreateModal,
   onOpenReviewModal,
@@ -53,11 +49,12 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
         ]}
       />
 
-      <WorkRequestFilter
-        filters={filters}
-        options={filterOptions}
-        onFilterChange={onFilterChange}
-        onResetFilters={onResetFilters}
+      <Search
+        searchValue={filters.search || ""}
+        searchPlaceholder="Search work requests..."
+        onSearch={(value) => onFilterChange({ ...filters, search: value })}
+        live={true}
+        showLiveSearchIcon={true}
       />
 
       <Card className="flex flex-col gap-4 border border-outline bg-surfaceContainer p-0 min-h-[500px]">

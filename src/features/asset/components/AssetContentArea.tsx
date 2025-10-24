@@ -388,14 +388,9 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             title="Asset Management"
             subtitle="Manage and track all company assets"
             actions={[]}
-          />
-
-          <SummaryCards data={summaryCardsData} columns={3} />
-
-          <div className="my-6 space-y-4">
-            {(isTaxAgent) && <div className="flex items-center gap-4 min-h-[40px]">
-              {((!isAdmin) || (isTaxView)) && (
-                <div className="flex items-center gap-2">
+            inlineElements={[
+              ((isTaxAgent) && ((!isAdmin) || (isTaxView))) ? (
+                <div className="flex items-center gap-2 ml-5">
                   <label className="text-sm font-medium text-onSurface">Tax Year:</label>
                   <SelectDropdown
                     className="w-40"
@@ -453,8 +448,14 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                     Confirm Process Done
                   </Button>
                 </div>
-              )}
+              ) : null
+            ].filter(Boolean)}
+          />
 
+          <SummaryCards data={summaryCardsData} columns={3} />
+
+          <div className="my-6 space-y-4">
+            {(isTaxAgent) && <div className="flex items-center gap-4 min-h-[40px]">
               {isAdmin && (
                 <div className="flex items-center gap-2 self-center ml-auto">
                   <label className="text-sm font-medium text-onSurface">View:</label>
@@ -483,7 +484,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                   </div>
                 </div>
               )}
-            </div>}            
+            </div>}
 
             <Search
               searchValue={searchValue}

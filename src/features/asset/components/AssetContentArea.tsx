@@ -200,7 +200,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
-  const [isTaxView, setIsTaxView] = useState<boolean>(true);
   const [availableTaxYears, setAvailableTaxYears] = useState<SelectDropdownOption[]>([]);
 
   // Use external tax year if provided, otherwise use internal state
@@ -244,8 +243,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
-  // Determine effective user role based on admin toggle
-  const effectiveUserRole = isAdmin && !isTaxView ? 'normal' : (isTaxAgent ? 'taxAgent' : 'normal');
+  // Determine effective user role - admin always has admin role
+  const effectiveUserRole = isAdmin ? 'admin' : (isTaxAgent ? 'taxAgent' : 'normal');
 
   // Initialize available tax years if empty
   useEffect(() => {
@@ -389,7 +388,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             subtitle="Manage and track all company assets"
             actions={[]}
             inlineElements={[
-              ((isTaxAgent) && ((!isAdmin) || (isTaxView))) ? (
+              ((isTaxAgent)) ? (
                 <div className="flex items-center gap-2 ml-5">
                   <label className="text-sm font-medium text-onSurface">Tax Year:</label>
                   <SelectDropdown
@@ -455,36 +454,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           <SummaryCards data={summaryCardsData} columns={3} />
 
           <div className="my-6 space-y-4">
-            {(isTaxAgent) && <div className="flex items-center gap-4 min-h-[40px]">
-              {isAdmin && (
-                <div className="flex items-center gap-2 self-center ml-auto">
-                  <label className="text-sm font-medium text-onSurface">View:</label>
-                  <div
-                    className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden cursor-pointer"
-                    onClick={() => {
-                      setIsTaxView(!isTaxView);
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        "px-3 py-1 body-small transition-colors",
-                        isTaxView && "bg-primary text-onPrimary"
-                      )}
-                    >
-                      Tax View
-                    </div>
-                    <div
-                      className={cn(
-                        "px-3 py-1 body-small transition-colors",
-                        !isTaxView && "bg-primary text-onPrimary"
-                      )}
-                    >
-                      User View
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>}
 
             <Search
               searchValue={searchValue}

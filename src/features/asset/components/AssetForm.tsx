@@ -189,6 +189,7 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
 const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedTaxYear, taxYearOptions }) => {
   const { hasPermission } = usePermissions();
   const isTaxAgent = hasPermission("processCA", "execute");
+  const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
   // Generate CA Asset Group options from ALLOWANCE_GROUPS
   const caAssetGroupOptions: SelectDropdownOption[] = useMemo(() => (
@@ -200,10 +201,11 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
 
   // For tax agents, allowance tab is readonly except for the most recent tax year
   // Most recent tax year is determined by the highest year in available tax years
+  // Admin users have full edit access regardless of tax year
   const mostRecentTaxYear = Math.max(...(taxYearOptions ?? []).map(option => parseInt(option.value)));
   const selectedYearNum = selectedTaxYear ? parseInt(selectedTaxYear) : mostRecentTaxYear;
   const isMostRecentTaxYear = selectedYearNum === mostRecentTaxYear;
-  const isReadonly = isTaxAgent && !isMostRecentTaxYear;
+  const isReadonly = isAdmin ? false : (isTaxAgent && !isMostRecentTaxYear);
 
   const caAssetGroupValue = watch("caAssetGroup", "");
   const allowanceClassValue = watch("allowanceClass", "");
@@ -409,7 +411,8 @@ const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, contro
   const hpInstalmentValue = watch("hpInstalment", "");
   const { hasPermission } = usePermissions();
   const isTaxAgent = hasPermission("processCA", "execute");
-  const isReadonly = isTaxAgent;
+  const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
+  const isReadonly = isAdmin ? false : isTaxAgent;
 
   return (
     <Card className="p-6 shadow-sm">

@@ -288,6 +288,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
          if (asset) {
            setEditingAsset(asset);
            setView('edit');
+           void navigate(`/asset/edit-asset/${asset.id}`);
          } else {
            // Asset not found, redirect to list
            void navigate('/asset');
@@ -532,6 +533,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
               <Button size="sm" onClick={() => {
                 setView('create');
+                void navigate('/asset/create-asset');
               }}>
                 <Plus className="h-4 w-4" />
                 Add
@@ -553,6 +555,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                          if (asset) {
                            setEditingAsset(asset);
                            setView('edit');
+                           void navigate(`/asset/edit-asset/${asset.id}`);
                          }
                        }
                      }}
@@ -590,6 +593,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           onBack={() => {
             setView('list');
             setEditingAsset(null);
+            void navigate(`/asset`);
           }}
           onSuccess={(data) => {
             const asset: Asset = {
@@ -616,6 +620,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           onBack={() => {
             setView('list');
             setEditingAsset(null);
+            void navigate(`/asset`);
           }}
           onSuccess={(data) => {
             const asset: Asset = {

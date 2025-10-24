@@ -9,7 +9,6 @@ import {
   createDepartmentFromForm,
   filterDepartments,
   generateDepartmentId,
-  normalizeDepartmentCode,
   validateDepartmentForm,
 } from '../utils/departmentUtils';
 import { useToast } from '@/components/ui/components/Toast';
@@ -28,7 +27,6 @@ const sampleDepartmentTypes: DepartmentTypeOption[] = [
 const sampleDepartments: Department[] = [
   {
     id: 'DEPT001',
-    code: 'OPS',
     name: 'Maintenance',
     typeId: 'OPS',
     manager: 'Robert Johnson',
@@ -39,7 +37,6 @@ const sampleDepartments: Department[] = [
   },
   {
     id: 'DEPT002',
-    code: 'ENG',
     name: 'Engineering',
     typeId: 'ENG',
     manager: 'Sarah Wilson',
@@ -50,7 +47,6 @@ const sampleDepartments: Department[] = [
   },
   {
     id: 'DEPT003',
-    code: 'QAC',
     name: 'Quality Control',
     typeId: 'QAC',
     manager: 'Michael Lee',
@@ -61,7 +57,6 @@ const sampleDepartments: Department[] = [
   },
   {
     id: 'DEPT004',
-    code: 'SAF',
     name: 'Safety',
     typeId: 'SAF',
     manager: 'Jennifer Adams',
@@ -72,7 +67,6 @@ const sampleDepartments: Department[] = [
   },
   {
     id: 'DEPT005',
-    code: 'ADM',
     name: 'Administration',
     typeId: 'ADM',
     manager: 'Thomas Miller',
@@ -176,11 +170,6 @@ export function useDepartments() {
     return departments.some(department => department.id === id && department.id !== ignoreId);
   }, [departments]);
 
-  const isDuplicateCode = useCallback((code: string, ignoreId?: string) => {
-    const normalized = normalizeDepartmentCode(code);
-    return departments.some(department => department.code === normalized && department.id !== ignoreId);
-  }, [departments]);
-
   const addDepartment = useCallback((formData: DepartmentFormData) => {
     const validationErrors = validateDepartmentForm(formData);
     if (Object.keys(validationErrors).length > 0) {
@@ -191,26 +180,18 @@ export function useDepartments() {
       throw new Error('Department ID already exists');
     }
 
-    if (isDuplicateCode(formData.code)) {
-      throw new Error('Department code already exists');
-    }
-
     const newDepartment = createDepartmentFromForm(formData);
     const nextDepartments = [...departments, newDepartment];
     setDepartments(nextDepartments);
     persistDepartments(nextDepartments);
 
     return newDepartment;
-  }, [departments, isDuplicateCode, isDuplicateId, persistDepartments]);
+  }, [departments, isDuplicateId, persistDepartments]);
 
   const updateDepartment = useCallback((formData: DepartmentFormData) => {
     const validationErrors = validateDepartmentForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       throw new Error('Validation failed');
-    }
-
-    if (isDuplicateCode(formData.code, formData.id)) {
-      throw new Error('Department code already exists');
     }
 
     setDepartments(prevDepartments => {
@@ -222,7 +203,7 @@ export function useDepartments() {
       persistDepartments(nextDepartments);
       return nextDepartments;
     });
-  }, [isDuplicateCode, persistDepartments]);
+  }, [persistDepartments]);
 
   const deleteMultipleDepartments = useCallback((ids: string[]) => {
     setDepartments(prevDepartments => {

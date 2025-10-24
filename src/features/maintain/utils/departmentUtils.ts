@@ -53,7 +53,6 @@ export function filterDepartments(
     const matchesSearch =
       normalizedSearch.length === 0 ||
       department.id.toLowerCase().includes(normalizedSearch) ||
-      department.code.toLowerCase().includes(normalizedSearch) ||
       department.name.toLowerCase().includes(normalizedSearch) ||
       department.manager.toLowerCase().includes(normalizedSearch) ||
       department.contact.toLowerCase().includes(normalizedSearch) ||
@@ -66,21 +65,15 @@ export function filterDepartments(
   });
 }
 
-export function normalizeDepartmentCode(code: string): string {
-  return code.trim().toUpperCase();
-}
-
 export function createDepartmentFromForm(
   formData: DepartmentFormData,
   existingDepartment?: Department,
 ): Department {
   const timestamp = new Date().toISOString();
-  const normalizedCode = normalizeDepartmentCode(formData.code);
 
   if (existingDepartment) {
     return {
       ...existingDepartment,
-      code: normalizedCode,
       name: formData.name,
       typeId: formData.typeId,
       manager: formData.manager,
@@ -92,7 +85,6 @@ export function createDepartmentFromForm(
 
   return {
     id: formData.id,
-    code: normalizedCode,
     name: formData.name,
     typeId: formData.typeId,
     manager: formData.manager,
@@ -105,10 +97,6 @@ export function createDepartmentFromForm(
 
 export function validateDepartmentForm(formData: DepartmentFormData): DepartmentValidationErrors {
   const errors: DepartmentValidationErrors = {};
-
-  if (!formData.code.trim()) {
-    errors.code = 'Department code is required';
-  }
 
   if (!formData.name.trim()) {
     errors.name = 'Department name is required';

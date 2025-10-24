@@ -1,8 +1,57 @@
 import type { DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
 import { getDowntimeAssetName } from "../mockData";
-import { calculateDuration } from "../utils/downtimeUtils";
 
+// Utility functions for date/time formatting and duration calculations
+/**
+ * Calculate the duration between two timestamps
+ * @param startTime - Start timestamp in ISO format
+ * @param endTime - End timestamp in ISO format
+ * @returns Formatted duration string (e.g., "2h 30m")
+ */
+export const calculateDuration = (startTime: string, endTime: string): string => {
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+  const diffMs = end.getTime() - start.getTime();
+  
+  if (diffMs < 0) return "0m";
+  
+  const hours = Math.floor(diffMs / (1000 * 60 * 60));
+  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+  
+  if (hours === 0) {
+    return `${minutes.toString()}m`;
+  }
+  
+  return `${hours.toString()}h ${minutes.toString()}m`;
+};
+
+/**
+ * Format a date to a human-readable string
+ * @param isoDate - ISO format date string
+ * @returns Formatted date string
+ */
+export const formatDate = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+/**
+ * Format a time to a human-readable string
+ * @param isoDate - ISO format date string
+ * @returns Formatted time string
+ */
+export const formatTime = (isoDate: string): string => {
+  const date = new Date(isoDate);
+  return date.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 // Mock database - in a real application, this would be replaced with actual API calls
 let incidentsStore: DowntimeIncident[] = [];
@@ -39,32 +88,24 @@ const calculateSummary = (): DowntimeSummary => {
 };
 
 // Fetch all active downtime incidents
-export const fetchDowntimeIncidents = async (): Promise<DowntimeIncident[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+export const fetchDowntimeIncidents = (): Promise<DowntimeIncident[]> => {
   return Promise.resolve([...incidentsStore]);
 };
 
 // Fetch resolved downtime incidents
-export const fetchResolvedIncidents = async (): Promise<DowntimeIncident[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+export const fetchResolvedIncidents = (): Promise<DowntimeIncident[]> => {
   return Promise.resolve([...resolvedStore]);
 };
 
 // Fetch downtime summary statistics
-export const fetchDowntimeSummary = async (): Promise<DowntimeSummary> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 200));
+export const fetchDowntimeSummary = (): Promise<DowntimeSummary> => {
   return Promise.resolve(calculateSummary());
 };
 
 // Create a new downtime incident
-export const createDowntimeIncident = async (
+export const createDowntimeIncident = (
   input: CreateDowntimeInput
-): Promise<DowntimeIncident> => {
-  await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-  
+): DowntimeIncident => {
   // Find asset name (in real app, this would come from asset API)
   const newIncident: DowntimeIncident = {
     id: String(nextId++),
@@ -92,16 +133,13 @@ export const createDowntimeIncident = async (
   } else {
     incidentsStore = [newIncident, ...incidentsStore];
   }
-  return Promise.resolve(newIncident);
+  return newIncident;
 };
 
 // Update an existing downtime incident
-export const updateDowntimeIncident = async (
+export const updateDowntimeIncident = (
   input: EditDowntimeInput
-): Promise<DowntimeIncident> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+): DowntimeIncident => {
   const index = incidentsStore.findIndex(i => i.id === input.id);
   if (index === -1) {
     throw new Error("Incident not found");
@@ -137,16 +175,11 @@ export const updateDowntimeIncident = async (
     incidentsStore[index] = updatedIncident;
   }
   
-  return Promise.resolve(updatedIncident);
+  return updatedIncident;
 };
 
 // Delete a downtime incident
-export const deleteDowntimeIncident = async (id: string): Promise<undefined> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 400));
-  
+export const deleteDowntimeIncident = (id: string): void => {
   incidentsStore = incidentsStore.filter(i => i.id !== id);
   resolvedStore = resolvedStore.filter(i => i.id !== id);
-  
-  return Promise.resolve(undefined);
 };

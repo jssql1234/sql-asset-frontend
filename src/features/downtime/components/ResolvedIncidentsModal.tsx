@@ -4,9 +4,9 @@ import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import Search from "@/components/Search";
 import type { DowntimeIncident } from "@/features/downtime/types";
-import { PRIORITY_BADGE_VARIANT } from "@/features/downtime/constants";
+import { getPriorityVariant } from "@/features/downtime/constants";
 import { useGetResolvedIncidents } from "@/features/downtime/hooks/useDowntimeService";
-import { formatDate, formatTime } from "@/features/downtime/utils/downtimeUtils";
+import { formatDate, formatTime } from "@/features/downtime/services/downtimeService";
 
 interface ResolvedIncidentsModalProps {
   open: boolean;
@@ -37,6 +37,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "assetName",
         header: "Asset",
+        enableColumnFilter: false,
         cell: ({ row }) => (
           <div>
             <div className="font-medium">{row.original.assetName}</div>
@@ -49,12 +50,13 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         header: "Priority",
         cell: ({ getValue }) => {
           const priority = getValue() as DowntimeIncident["priority"];
-          return <Badge text={priority} variant={PRIORITY_BADGE_VARIANT[priority]} />;
+          return <Badge text={priority} variant={getPriorityVariant(priority)} />;
         },
       },
       {
         accessorKey: "startTime",
         header: "Start Time",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const value = getValue() as string;
           return (
@@ -68,6 +70,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "endTime",
         header: "End Time",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const endTime = getValue() as string | undefined;
           if (!endTime) {
@@ -84,6 +87,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "downtimeDuration",
         header: "Duration",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const duration = getValue() as string;
           return <span className="font-medium">{duration}</span>;
@@ -92,6 +96,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       {
         accessorKey: "resolutionNotes",
         header: "Resolution",
+        enableColumnFilter: false,
         cell: ({ getValue }) => {
           const notes = getValue() as string | undefined;
           return (

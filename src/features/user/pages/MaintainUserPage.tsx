@@ -1,5 +1,5 @@
 import React from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { UserTable } from '../components/UserTable';
 import { UserModal } from '../components/UserModal';
 import { UserGroupModal } from '../components/UserGroupModal';
@@ -64,7 +64,7 @@ const MaintainUserPage: React.FC = () => {
   } = useDepartments();
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain User" },
@@ -166,7 +166,7 @@ const MaintainUserPage: React.FC = () => {
         departmentTypes={departmentTypes}
       />
 
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

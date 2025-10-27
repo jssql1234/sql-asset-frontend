@@ -44,6 +44,14 @@ import {
 } from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
 
+// Local interface to extend Meta with headerAlign
+interface ExtendedMeta {
+  label?: string;
+  filterOptions?: Record<string, string>;
+  className?: string;
+  headerAlign?: 'left' | 'center' | 'right';
+}
+
 // Extend the original DataTableProps with onRowDoubleClick
 interface DataTableExtendedProps<TData, TValue> {
   columns: (ColumnDef<TData, TValue> | CustomColumnDef<TData, TValue>)[];
@@ -261,7 +269,7 @@ export function DataTableExtended<TData, TValue>({
                           onClick={header.column.getToggleSortingHandler()}
                           className={cn('flex items-center gap-2 w-full justify-between', {
                             'cursor-pointer select-none': header.column.getCanSort(),
-                            'justify-end': (header.column.columnDef as any).headerAlign === 'right',
+                            'justify-end': ((header.column.columnDef as CustomColumnDef<TData, TValue>).meta as ExtendedMeta | undefined)?.headerAlign === 'right',
                           })}
                         >
                           {!header.isPlaceholder &&

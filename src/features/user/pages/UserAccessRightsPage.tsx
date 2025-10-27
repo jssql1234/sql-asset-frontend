@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { useUserContext } from "@/context/UserContext";
 import { PERMISSION_ITEMS } from "@/types/permission";
 import { Card } from "@/components/ui/components";
@@ -136,7 +136,7 @@ const UserAccessRightsPage: React.FC = () => {
   };
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "User Access Rights Assignment" },
@@ -187,7 +187,7 @@ const UserAccessRightsPage: React.FC = () => {
           </Card>
         )}
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

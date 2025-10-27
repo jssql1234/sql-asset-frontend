@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import Search from '@/components/Search';
 import { DataTable } from '@/components/ui/components/Table';
@@ -156,7 +156,7 @@ const MaintainServiceProviderPage: React.FC = () => {
   ];
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain Service Provider" },
@@ -191,7 +191,7 @@ const MaintainServiceProviderPage: React.FC = () => {
           />
         </div>
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

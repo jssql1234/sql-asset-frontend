@@ -1,5 +1,5 @@
 import React from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import AssetGroupsSearchAndFilter from '../components/AssetGroupsSearchAndFilter';
 import { AssetGroupsTable } from '../components/AssetGroupsTable';
@@ -33,7 +33,7 @@ const MaintainAssetGroupPage: React.FC = () => {
   };
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain Asset Group" },
@@ -87,7 +87,7 @@ const MaintainAssetGroupPage: React.FC = () => {
           clearValidationErrors={clearFormErrors}
         />
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

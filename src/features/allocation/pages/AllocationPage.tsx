@@ -1,4 +1,4 @@
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import Tabs from "@/components/ui/components/Tabs";
 import AllocationModal from "../components/AllocationModal";
 import { useAllocationState } from "../hooks/useAllocationState";
@@ -26,7 +26,7 @@ const AllocationPage: React.FC = () => {
   });
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[ { label: "Asset Maintenance" }, { label: "Allocation" } ]}
     >
       <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -41,7 +41,7 @@ const AllocationPage: React.FC = () => {
         locations={locations}
         users={users}
       />
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

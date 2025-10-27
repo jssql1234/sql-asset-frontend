@@ -1,6 +1,7 @@
 import type { AllocationSummary } from "../types";
+import type { SummaryCardItem } from "@/components/SummaryCards";
 
-export const getAllocationSummaryCards = (summary: AllocationSummary) => [
+export const getAllocationSummaryCards = (summary: AllocationSummary): SummaryCardItem[] => [
   {
     label: "Total Asset Quantity",
     value: summary.totalAssets.toLocaleString(),

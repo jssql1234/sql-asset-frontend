@@ -1,5 +1,5 @@
 import React from "react";
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
 import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
@@ -18,7 +18,7 @@ const CoveragePage: React.FC = () => {
   const tabs = useCoverageTabs({ setModals, handleViewInsurance, handleViewWarranty, handleViewClaim });
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Asset Maintenance" },
         { label: "Insurance & Warranty" },
@@ -94,7 +94,7 @@ const CoveragePage: React.FC = () => {
         }}
         claim={modals.claimForWorkOrder}
       />
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

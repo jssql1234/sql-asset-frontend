@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
 import CalendarTab from "./CalendarTab";
@@ -187,7 +187,7 @@ const WorkOrdersPage: React.FC = () => {
   ];
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[{ label: "Asset Maintenance" }, { label: "Work Orders" }]}
     >
       <div className="flex min-h-full flex-col gap-4 overflow-hidden">
@@ -211,7 +211,7 @@ const WorkOrdersPage: React.FC = () => {
         onSubmit={handleSubmitEditWorkOrder}
         workOrder={selectedWorkOrder}
       />
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

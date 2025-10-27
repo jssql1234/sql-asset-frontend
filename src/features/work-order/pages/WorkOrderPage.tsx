@@ -3,8 +3,7 @@ import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
 import CalendarTab from "./CalendarTab";
-import CreateWorkOrderModal from "../components/CreateWorkOrderModal";
-import EditWorkOrderModal from "../components/EditWorkOrderModal";
+import WorkOrderForm from "../components/WorkOrderForm";
 import { MOCK_WORK_ORDERS, MOCK_WORK_ORDER_SUMMARY } from "../mockData";
 import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
 import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
@@ -17,8 +16,7 @@ const WorkOrdersPage: React.FC = () => {
   );
 
   // Modal state
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(
     null
   );
@@ -40,14 +38,15 @@ const WorkOrdersPage: React.FC = () => {
   // Modal handlers
   const handleCreateWorkOrder = () => {
     console.log("handleCreateWorkOrder called");
+    setSelectedWorkOrder(null); // null = create mode
     setPrefilledDates({});
-    setIsCreateModalOpen(true);
+    setIsModalOpen(true);
   };
 
   const handleEditWorkOrder = (workOrder: WorkOrder) => {
     console.log("handleEditWorkOrder called with:", workOrder);
-    setSelectedWorkOrder(workOrder);
-    setIsEditModalOpen(true);
+    setSelectedWorkOrder(workOrder); // workOrder provided = edit mode
+    setIsModalOpen(true);
   };
 
   const handleViewWorkOrderDetails = (workOrder: WorkOrder) => {
@@ -82,12 +81,13 @@ const WorkOrdersPage: React.FC = () => {
     };
 
     // Open create work order modal with pre-filled dates
+    setSelectedWorkOrder(null); // null = create mode
     setPrefilledDates({
       scheduledDate: selectInfo.startStr,
       scheduledStartDateTime: formatDateTime(startDate),
       scheduledEndDateTime: formatDateTime(endDate),
     });
-    setIsCreateModalOpen(true);
+    setIsModalOpen(true);
 
     // Clear the selection after handling
     selectInfo.view.calendar.unselect();
@@ -125,12 +125,8 @@ const WorkOrdersPage: React.FC = () => {
     // Add to work orders list
     setWorkOrders((prev) => [...prev, newWorkOrder]);
 
-    console.log("Work order created:", newWorkOrder);
-    alert(
-      `Work order ${newWorkOrder.workOrderNumber} has been created successfully!`
-    );
-
-    setIsCreateModalOpen(false);
+    setIsModalOpen(false);
+    setPrefilledDates({});
   };
 
   const handleSubmitEditWorkOrder = (formData: WorkOrderFormData) => {
@@ -146,14 +142,7 @@ const WorkOrdersPage: React.FC = () => {
     setWorkOrders((prev) =>
       prev.map((wo) => (wo.id === updatedWorkOrder.id ? updatedWorkOrder : wo))
     );
-
-    console.log("Work order updated:", updatedWorkOrder);
-    alert(
-      `Work order ${updatedWorkOrder.workOrderNumber} has been updated successfully!`
-    );
-
-    setIsEditModalOpen(false);
-    setSelectedWorkOrder(null);
+    setIsModalOpen(false);
   };
 
   // Tabs configuration
@@ -194,22 +183,23 @@ const WorkOrdersPage: React.FC = () => {
         <Tabs tabs={tabs} defaultValue="workorders" />
       </div>
 
-      {/* Modals */}
-      <CreateWorkOrderModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleSubmitCreateWorkOrder}
-        prefilledDates={prefilledDates}
-      />
-
-      <EditWorkOrderModal
-        isOpen={isEditModalOpen}
+      {/* Unified Work Order Modal */}
+      <WorkOrderForm
+        isOpen={isModalOpen}
         onClose={() => {
-          setIsEditModalOpen(false);
+          setIsModalOpen(false);
           setSelectedWorkOrder(null);
+          setPrefilledDates({});
         }}
-        onSubmit={handleSubmitEditWorkOrder}
+        onSubmit={(formData) => {
+          if (selectedWorkOrder) {
+            handleSubmitEditWorkOrder(formData);
+          } else {
+            handleSubmitCreateWorkOrder(formData);
+          }
+        }}
         workOrder={selectedWorkOrder}
+        prefilledDates={prefilledDates}
       />
     </AppLayout>
   );

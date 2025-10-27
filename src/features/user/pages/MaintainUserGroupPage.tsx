@@ -1,4 +1,4 @@
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
 import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
@@ -28,7 +28,7 @@ const MaintainUserGroupPage: React.FC = () => {
   } = useMaintainUserGroup();
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain User Group" },
@@ -95,7 +95,7 @@ const MaintainUserGroupPage: React.FC = () => {
         />
       </div>
       
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

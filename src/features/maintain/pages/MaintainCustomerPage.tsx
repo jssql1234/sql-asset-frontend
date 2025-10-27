@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import Search from '@/components/Search';
 import { DataTable } from '@/components/ui/components/Table';
@@ -131,7 +131,7 @@ const MaintainCustomerPage: React.FC = () => {
   ];
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain Customer" },
@@ -166,7 +166,7 @@ const MaintainCustomerPage: React.FC = () => {
           />
         </div>
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

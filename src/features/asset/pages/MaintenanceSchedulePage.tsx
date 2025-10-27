@@ -1,16 +1,16 @@
 import React from "react";
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 
 const MaintenanceSchedulePage: React.FC = () => {
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Asset Maintenance" },
         { label: "Maintenance Schedule" },
       ]}
     >
       <></>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

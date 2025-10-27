@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import AssetInformationForm from '../components/AssetInformationForm';
 import DisposalTypeSelector from '../components/DisposalTypeSelector';
 import NormalDisposalForm from '../components/NormalDisposalForm';
@@ -366,7 +366,7 @@ const DisposalMainPage: React.FC = () => {
   };
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tax Computation" },
         { label: "Asset Disposal" },
@@ -409,7 +409,7 @@ const DisposalMainPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

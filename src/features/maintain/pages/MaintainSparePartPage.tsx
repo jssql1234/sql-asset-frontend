@@ -1,5 +1,5 @@
 import React from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import { ExportFile} from '@/assets/icons';
 import { SparePartsFormModal } from '../components/SparePartsFormModal';
@@ -28,7 +28,7 @@ const MaintainSparePartPage: React.FC = () => {
   } = useSpareParts();
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain Spare Part" },
@@ -79,7 +79,7 @@ const MaintainSparePartPage: React.FC = () => {
           clearValidationErrors={clearFormErrors}
         />
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

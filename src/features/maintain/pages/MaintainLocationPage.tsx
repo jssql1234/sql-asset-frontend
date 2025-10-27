@@ -1,5 +1,5 @@
 import React from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import { LocationsSearchAndFilter } from '../components/LocationsSearchAndFilter';
 import { LocationsTable } from '../components/LocationsTable';
@@ -26,7 +26,7 @@ const MaintainLocationPage: React.FC = () => {
   } = useLocations();
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: 'Tools' },
         { label: 'Maintain Location' },
@@ -66,7 +66,7 @@ const MaintainLocationPage: React.FC = () => {
           existingLocations={locations}
         />
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

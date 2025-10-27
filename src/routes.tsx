@@ -1,9 +1,8 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { lazy, Suspense } from "react";
 
 import ProtectedRoute, { ProtectedRouteFallback } from "./components/ProtectedRoute";
 import { usePermissions } from "./hooks/usePermissions";
-import AppLayout from "./layout/AppLayout";
 
 const AssetMainPage = lazy(() => import("./features/asset/pages/AssetMainPage"));
 const ProcessCAPage = lazy(() => import("./features/asset/pages/ProcessCAPage"));
@@ -36,7 +35,7 @@ function AppRoutes() {
   return (
     <Suspense fallback={null}>
       <Routes>
-        <Route element={<AppLayout />}>
+        <Route element={<Outlet />}>
           {/* Root path */}
           <Route path="/" element={
             <ProtectedRoute when={hasPermission("processCA", "execute")}>

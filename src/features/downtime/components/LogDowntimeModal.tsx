@@ -83,7 +83,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
     
     // Clear errors and submit
     setErrors({});
-    createMutation.mutate(validation.data);
+    void createMutation.mutate(validation.data);
   };
 
   const handleAssetSelect = (assetId: string) => {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import { DepartmentsSearchAndFilter } from '../components/DepartmentsSearchAndFilter';
 import { DepartmentsTable } from '../components/DepartmentsTable';
@@ -28,7 +28,7 @@ const MaintainDepartmentPage: React.FC = () => {
   
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: 'Tools' },
         { label: 'Maintain Department' },
@@ -69,7 +69,7 @@ const MaintainDepartmentPage: React.FC = () => {
           departmentTypes={departmentTypes}
         />
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

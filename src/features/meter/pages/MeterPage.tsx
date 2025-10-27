@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Button, Tabs } from "@/components/ui/components";
 import MeterGroupsView from "./MeterGroupsTab";
 import MeterReadingsView from "./MeterReadingsTab";
@@ -76,7 +76,7 @@ const MeterPage = () => {
   );
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[{ label: "Asset Maintenance" }, { label: "Meter Reading" }]}
     >
       <div className="flex h-full flex-col gap-6">
@@ -86,7 +86,7 @@ const MeterPage = () => {
           </Button>
         </Tabs>
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

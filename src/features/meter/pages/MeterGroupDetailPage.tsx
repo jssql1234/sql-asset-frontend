@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { SidebarHeader } from "@/layout/sidebar/SidebarHeader";
+import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Button } from "@/components/ui/components";
 import MeterTable from "../components/MeterTable";
 import EditMeterModal from "../components/EditMeterModal";
@@ -99,7 +99,7 @@ const MeterGroupDetailPage = () => {
 
   if (!group) {
     return (
-      <SidebarHeader
+      <AppLayout
         breadcrumbs={[
           { label: "Asset Maintenance" },
           { label: "Meter Reading" },
@@ -114,12 +114,12 @@ const MeterGroupDetailPage = () => {
             Back to Meter Groups
           </Button>
         </div>
-      </SidebarHeader>
+      </AppLayout>
     );
   }
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Asset Maintenance" },
         { label: "Meter Reading" },
@@ -203,7 +203,7 @@ const MeterGroupDetailPage = () => {
         currentAssets={group.assignedAssets}
         onAssign={handleAssignAssets}
       />
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

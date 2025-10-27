@@ -1331,17 +1331,16 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
               <DepreciationSchedulePanel view={depreciationScheduleView} />
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-11 mt-0 w-auto">
-          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
-            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
-          </Button>
-          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
-            {isEditMode ? "Update Asset" : "Create Asset"}
-          </Button>
-        </div>
+        </div>  
+      </div>
+      {/* Footer */}
+      <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">
+        <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
+          {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
+        </Button>
+        <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+          {isEditMode ? "Update Asset" : "Create Asset"}
+        </Button>
       </div>
     </div>
   );

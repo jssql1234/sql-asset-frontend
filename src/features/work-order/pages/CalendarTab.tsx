@@ -1,12 +1,14 @@
 import WorkOrderCalendar from "../components/WorkOrderCalendar";
 import ErrorBoundary from "@/components/errors/ErrorBoundary";
 import ErrorFallback from "@/components/errors/ErrorFallback";
+import { logError } from "@/utils/logger";
+import type { DateSelectArg } from "@fullcalendar/core";
 import type { WorkOrder } from "../types";
 
 interface CalendarTabProps {
   workOrders: WorkOrder[];
   onEventClick?: (workOrder: WorkOrder) => void;
-  onDateSelect?: (selectInfo: any) => void;
+  onDateSelect?: (selectInfo: DateSelectArg) => void;
   onEventChange?: (workOrder: WorkOrder, newStart: Date, newEnd: Date | null) => void;
 }
 
@@ -24,7 +26,16 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
           Visual overview of work orders and maintenance schedule. Click on events to view details, or select dates to create new work orders.
         </p>
       </div>
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <ErrorBoundary
+          FallbackComponent={ErrorFallback}
+          onError={(error, info) => {
+            logError(error, info, {
+              scope: "widget",
+              route: "/work-order/calendar",
+              component: "WorkOrderCalendar",
+            });
+          }}
+        >
           <WorkOrderCalendar
             workOrders={workOrders}
             onEventClick={onEventClick}

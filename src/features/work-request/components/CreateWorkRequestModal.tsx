@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from '@/components/ui/components/Dialog';
 import { SearchWithDropdown } from '@/components/SearchWithDropdown';
+import SelectDropdown from '@/components/SelectDropdown';
 
 import { useUserManagement } from '../hooks/useUserManagement';
 import { workRequestService } from '../services/workRequestService';
@@ -216,17 +217,19 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
             <label className="text-sm font-medium text-onSurface">
               Request Type <span className="text-error">*</span>
             </label>
-            <select
+            <SelectDropdown
               value={createForm.requestType || ''}
-              onChange={(e) => setCreateForm(prev => ({ ...prev, requestType: e.target.value as WorkRequest['requestType'] }))}
-              className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              <option value="">Select Type</option>
-              <option value="Maintenance">Maintenance</option>
-              <option value="Repair">Repair</option>
-              <option value="Inspection">Inspection</option>
-              <option value="Emergency">Emergency</option>
-            </select>
+              onChange={(value) => setCreateForm(prev => ({ ...prev, requestType: value as WorkRequest['requestType'] }))}
+              options={[
+                { value: '', label: 'Select Type', disabled: true },
+                { value: 'Maintenance', label: 'Maintenance' },
+                { value: 'Repair', label: 'Repair' },
+                { value: 'Inspection', label: 'Inspection' },
+                { value: 'Emergency', label: 'Emergency' },
+              ]}
+              placeholder="Select Type"
+              className="w-full"
+            />
           </div>
 
           {/* Problem Description */}

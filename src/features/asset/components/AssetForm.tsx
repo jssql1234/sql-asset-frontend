@@ -213,6 +213,11 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   const cost = watch("cost");
   const quantityPerUnit = watch("quantityPerUnit");
 
+  // Watched values for QE calculation
+  const isMotorVehicle = watch("extraCheckbox");
+  const isCommercial = watch("extraCommercial");
+  const isNewVehicle = watch("extraNewVehicle");
+
   // Generate Allowance Class options based on selected CA Asset Group
   const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => {
     if (!caAssetGroupValue) {
@@ -313,6 +318,34 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
     }
   }, [caAssetGroupValue, allowanceClassValue, hasSubclasses, setValue]);
 
+  // Calculate qualify amount (QE) based on motor vehicle rules
+  useEffect(() => {
+    const totalCost = cost && cost.trim() !== "" ? parseFloat(cost) : 0;
+    const qtyPerUnit = quantityPerUnit || 1;
+    const costPerUnit = totalCost / qtyPerUnit;
+
+    if (isMotorVehicle) {
+      if (isCommercial) {
+        // No cap for commercial use
+        setValue("qeValue", totalCost.toString());
+      } else {
+        // Non-commercial use
+        if (costPerUnit <= 150000 && isNewVehicle) {
+          // Cap at 100k per unit
+          const cappedAmount = Math.min(costPerUnit, 100000) * qtyPerUnit;
+          setValue("qeValue", cappedAmount.toString());
+        } else {
+          // Cap at 50k per unit
+          const cappedAmount = Math.min(costPerUnit, 50000) * qtyPerUnit;
+          setValue("qeValue", cappedAmount.toString());
+        }
+      }
+    } else {
+      // Not a motor vehicle, use total cost
+      setValue("qeValue", totalCost.toString());
+    }
+  }, [isMotorVehicle, isCommercial, isNewVehicle, cost, quantityPerUnit, setValue]);
+
   return (
     <Card className="p-6 shadow-sm">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -372,22 +405,22 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
         </div>
       </div>
 
-      {watch("caAssetGroup") === "vehicles" && (
+      {watch("caAssetGroup") === "E" && watch("allowanceClass") === "1" && watch("subClass") === "a" && (
         <div className="space-y-3 mt-6">
           <div className="flex items-center gap-2">
             <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} disabled={isReadonly} />
             <label className="body-small text-onSurfaceVariant">Motor Vehicle</label>
           </div>
-          {watch("extraCheckbox") && (
-            <div className="ml-6 space-y-3">
+          {isMotorVehicle && (
+            <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} disabled={isReadonly} />
                 <label className="body-small text-onSurfaceVariant">Commercial Use</label>
               </div>
-              <div className="flex items-center gap-2">
+              {!isCommercial && (<div className="flex items-center gap-2">
                 <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly} />
                 <label className="body-small text-onSurfaceVariant">New Vehicle</label>
-              </div>
+              </div>)}
             </div>
           )}
         </div>
@@ -396,7 +429,7 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">Qualify Amount (QE)</label>
-          <Input {...register("qeValue")} readOnly disabled={isReadonly} />
+          <Input {...register("qeValue")} readOnly disabled />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Controlled Transfer In RE</label>

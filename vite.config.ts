@@ -14,4 +14,14 @@ export default defineConfig({
       "@tabler/icons-react": "@tabler/icons-react/dist/esm/icons/index.mjs",
     },
   },
+  optimizeDeps: {
+    include: [
+      "@fullcalendar/react",
+      "@fullcalendar/core",
+      "@fullcalendar/daygrid",
+      "@fullcalendar/timegrid",
+      "@fullcalendar/interaction",
+      "@fullcalendar/list",
+    ],
+  },
 });

@@ -8,6 +8,7 @@ import { TranslationProvider } from "./components/ui/components/Table";
 import UserProvider from "./context/UserProvider";
 import ErrorBoundary from "@/components/errors/ErrorBoundary";
 import ErrorFallback from "@/components/errors/ErrorFallback";
+import { logError } from "@/utils/logger";
 
 const queryClient = new QueryClient();
 
@@ -26,7 +27,16 @@ function App() {
   // };
 
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback} onError={(error, info) => { console.error("[App Error]", error, info); }}>
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onError={(error, info) => {
+        logError(error, info, {
+          scope: "app",
+          route: typeof window !== "undefined" ? window.location.pathname : undefined,
+          component: "App",
+        });
+      }}
+    >
       <ThemeProvider>
         <UserProvider>
           <ToastProvider>

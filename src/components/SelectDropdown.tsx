@@ -297,7 +297,9 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
           isOpen
             ? "opacity-100 scale-100"
             : "opacity-0 pointer-events-none scale-95",
-          isOpen && !isClosing ? "transition-all duration-200 ease-out" : "",
+          isOpen && !isClosing
+            ? "transition duration-200 ease-out"
+            : "",
           originClass,
           contentClassName
         )}

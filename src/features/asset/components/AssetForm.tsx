@@ -5,6 +5,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { createAssetFormSchema, type CreateAssetFormData } from "../zod/createAssetForm";
 import { Option, Tabs, type TabItem, Button, Card } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
+import { SearchableInputDropdown, type DropdownOption } from "@/components/SearchableInputDropdown";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { Tooltip } from "@/components/ui/components/Tooltip";
 import { useToast } from "@/components/ui/components/Toast/useToast";
@@ -217,6 +218,15 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   const isMotorVehicle = watch("extraCheckbox");
   const isCommercial = watch("extraCommercial");
   const isNewVehicle = watch("extraNewVehicle");
+
+  // Percentage options for dropdowns
+  const percentageOptions: DropdownOption[] = [
+    { id: "0", label: "0" },
+    { id: "25", label: "25" },
+    { id: "33", label: "33" },
+    { id: "50", label: "50" },
+    { id: "100", label: "100" },
+  ];
 
   // Calculate cost per unit for conditional rendering
   const totalCost = cost && cost.trim() !== "" ? parseFloat(cost) : 0;
@@ -469,6 +479,36 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
           <label className="block text-sm font-medium text-onSurface">Controlled Transfer B/F RE</label>
           <Input {...register("residualExpenditure")} placeholder="0.00" disabled={isReadonly} />
         </div>
+        {caAssetGroupValue === "E" && (
+          <div>
+            <label className="block text-sm font-medium text-onSurface">Self Use %</label>
+            <SearchableInputDropdown
+              value={watch("selfUsePercentage")}
+              onChange={(value) => {
+                setValue("selfUsePercentage", value);
+              }}
+              options={percentageOptions}
+              disabled={isReadonly}
+              position='top'
+              hideEmptyMessage
+            />
+          </div>
+        )}
+        {caAssetGroupValue === "D" && (
+          <div>
+            <label className="block text-sm font-medium text-onSurface">Rented Apportion %</label>
+            <SearchableInputDropdown
+              value={watch("rentedApportionPercentage")}
+              onChange={(value) => {
+                setValue("rentedApportionPercentage", value);
+              }}
+              options={percentageOptions}
+              disabled={isReadonly}
+              position='top'
+              hideEmptyMessage
+            />
+          </div>
+        )}
       </div>
     </Card>
   );
@@ -793,6 +833,8 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     purchaseDate: "",
     acquireDate: "",
     taxYear: new Date().getFullYear().toString(),
+    selfUsePercentage: "100",
+    rentedApportionPercentage: "100",
   }), []);
 
   const {

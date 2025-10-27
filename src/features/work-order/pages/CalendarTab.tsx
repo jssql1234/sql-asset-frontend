@@ -1,4 +1,6 @@
 import WorkOrderCalendar from "../components/WorkOrderCalendar";
+import ErrorBoundary from "@/components/errors/ErrorBoundary";
+import ErrorFallback from "@/components/errors/ErrorFallback";
 import type { WorkOrder } from "../types";
 
 interface CalendarTabProps {
@@ -43,14 +45,16 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
         ))}
       </div>
 
-      <WorkOrderCalendar
-          workOrders={workOrders}
-          onEventClick={onEventClick}
-          onDateSelect={onDateSelect}
-          onEventChange={onEventChange}
-          selectable={true}
-          editable={false}
-        />
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <WorkOrderCalendar
+            workOrders={workOrders}
+            onEventClick={onEventClick}
+            onDateSelect={onDateSelect}
+            onEventChange={onEventChange}
+            selectable={true}
+            editable={false}
+          />
+        </ErrorBoundary>
     </div>
   );
 };

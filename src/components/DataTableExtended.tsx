@@ -84,6 +84,16 @@ interface DataTableExtendedProps<TData, TValue> {
   onExpandedChange?: (expanded: ExpandedState) => void;
 }
 
+type ColumnDefWithHeaderAlign<TData, TValue> = ColumnDef<TData, TValue> & {
+  headerAlign?: 'right';
+};
+
+function hasHeaderAlign<TData, TValue>(
+  columnDef: ColumnDef<TData, TValue>
+): columnDef is ColumnDefWithHeaderAlign<TData, TValue> {
+  return 'headerAlign' in columnDef;
+}
+
 export function DataTableExtended<TData, TValue>({
   onRowDoubleClick,
   data,
@@ -269,7 +279,7 @@ export function DataTableExtended<TData, TValue>({
                           onClick={header.column.getToggleSortingHandler()}
                           className={cn('flex items-center gap-2 w-full justify-between', {
                             'cursor-pointer select-none': header.column.getCanSort(),
-                            'justify-end': ((header.column.columnDef as CustomColumnDef<TData, TValue>).meta as ExtendedMeta | undefined)?.headerAlign === 'right',
+                            'justify-end': hasHeaderAlign(header.column.columnDef) && header.column.columnDef.headerAlign === 'right',
                           })}
                         >
                           {!header.isPlaceholder &&

@@ -73,7 +73,7 @@ const Search: React.FC<SearchProps> = ({
             value={internalValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder={searchPlaceholder || t("search")}
+            placeholder={searchPlaceholder ?? t("search")}
             className={cn(
               "pr-10 h-[36px]",
               !live && "rounded-l rounded-r-none",

@@ -150,10 +150,9 @@ export const MOCK_MAINTENANCE_SUMMARY: MaintenanceSummary = {
 // Mock Work Order Summary
 export const MOCK_WORK_ORDER_SUMMARY: WorkOrderSummary = {
   totalWorkOrders: 48,
-  pending: 8,
   inProgress: 12,
   completed: 28,
-  avgCompletionTime: 3.5,
+  overdue: 4,
   totalCost: 156400.0,
 };
 

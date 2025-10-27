@@ -167,7 +167,6 @@ const WorkOrdersPage: React.FC = () => {
           filters={workOrderFilters}
           summary={MOCK_WORK_ORDER_SUMMARY}
           onFilterChange={handleWorkOrderFilterChange}
-          onResetFilters={handleResetWorkOrderFilters}
           onCreateWorkOrder={handleCreateWorkOrder}
           onEditWorkOrder={handleEditWorkOrder}
           onViewDetails={handleViewWorkOrderDetails}

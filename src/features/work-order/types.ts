@@ -79,10 +79,9 @@ export interface MaintenanceSummary {
 
 export interface WorkOrderSummary {
   totalWorkOrders: number;
-  pending: number;
   inProgress: number;
   completed: number;
-  avgCompletionTime: number;
+  overdue: number;
   totalCost: number;
 }
 

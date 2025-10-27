@@ -28,6 +28,7 @@ interface SelectDropdownProps {
   buttonVariant?: React.ComponentProps<typeof Button>["variant"];
   buttonSize?: React.ComponentProps<typeof Button>["size"];
   showRadio?: boolean; // Optional: Show radio button indicators
+  maxVisibleOptions?: number; // Optional: Maximum number of options to show before scrolling (default: unlimited)
 }
 
 // Default styles matching DropdownButton
@@ -55,6 +56,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
   buttonVariant = "dropdown",
   buttonSize = "dropdown",
   showRadio = false,
+  maxVisibleOptions,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
@@ -257,6 +259,18 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
     itemRefs.current[index] = el;
   };
 
+  // Calculate max height based on maxVisibleOptions
+  const calculatedMaxHeight = useMemo(() => {
+    if (!maxVisibleOptions || maxVisibleOptions <= 0) {
+      return contentMaxHeight; // Use default from useDropdownPosition
+    }
+    
+    const calculatedHeight = (maxVisibleOptions * 40) + 8; // 40 = each item height, 8 = padding
+    
+    // Return the smaller of calculated height or default max height
+    return Math.min(calculatedHeight, contentMaxHeight);
+  }, [maxVisibleOptions, contentMaxHeight]);
+
   const combinedStyle = {
     ...(matchTriggerWidth &&
       contentWidth > 0 && {
@@ -266,7 +280,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
     position: "absolute" as const,
     top: `${String(forcedAdjustedTop)}px`,
     left: `${String(adjustedLeft)}px`,
-    maxHeight: `${String(contentMaxHeight)}px`,
+    maxHeight: `${String(calculatedMaxHeight)}px`,
     transformOrigin: getTransformOrigin(alignment, false), // Always downward
     zIndex: 9999,
   };

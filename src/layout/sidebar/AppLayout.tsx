@@ -14,6 +14,10 @@ export interface BreadcrumbItem { label: string }
 // Props for AppLayout component
 export interface AppLayoutProps { children: React.ReactNode; breadcrumbs?: BreadcrumbItem[] }
 
+/*
+Application layout component 
+Provides sidebar navigation and consistent page structure
+*/ 
 export function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
   return (
     <SidebarProvider>

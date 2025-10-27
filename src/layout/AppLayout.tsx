@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { SidebarInset, SidebarProvider, SidebarSeparator, SidebarTrigger } from "./sidebar/SidebarCN";
-import { AppSidebar } from "./sidebar/SidebarNav";
+import { SidebarInset, SidebarSeparator, SidebarTrigger } from "./sidebar/SidebarPrimitives";
+import { SidebarProvider } from "./sidebar/SidebarContext";
+import { AppSidebar } from "./sidebar/AppSidebar";
 import sqlAssetLogo from "@/assets/images/sqlasset_logo1.png";
 
 function toTitleCase(segment: string) {

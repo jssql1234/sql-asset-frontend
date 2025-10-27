@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 // import { useTranslation } from "react-i18next";
 import { TranslationProvider } from "./components/ui/components/Table";
 import UserProvider from "./context/UserProvider";
+import ErrorBoundary from "@/components/errors/ErrorBoundary";
+import ErrorFallback from "@/components/errors/ErrorFallback";
 
 const queryClient = new QueryClient();
 
@@ -24,20 +26,22 @@ function App() {
   // };
 
   return (
-    <ThemeProvider>
-      <UserProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <QueryClientProvider client={queryClient}>
-              {/* <TranslationProvider translations={tableTranslations}> */}
-              <TranslationProvider>
-                <AppRoutes />
-              </TranslationProvider>
-            </QueryClientProvider>
-          </BrowserRouter>
-        </ToastProvider>
-      </UserProvider>
-    </ThemeProvider>
+    <ErrorBoundary FallbackComponent={ErrorFallback} onError={(error, info) => { console.error("[App Error]", error, info); }}>
+      <ThemeProvider>
+        <UserProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <QueryClientProvider client={queryClient}>
+                {/* <TranslationProvider translations={tableTranslations}> */}
+                <TranslationProvider>
+                  <AppRoutes />
+                </TranslationProvider>
+              </QueryClientProvider>
+            </BrowserRouter>
+          </ToastProvider>
+        </UserProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

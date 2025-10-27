@@ -34,6 +34,7 @@
     "lucide-react": "^0.545.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-error-boundary": "^6.0.0",
     "react-hook-form": "^7.63.0",
     "react-i18next": "^15.7.4",
     "react-router-dom": "^7.9.1",

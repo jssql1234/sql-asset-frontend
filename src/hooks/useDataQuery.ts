@@ -1,12 +1,9 @@
 import { useToast } from "@/components/ui/components/Toast";
-import {
-  type QueryKey,
-  useQuery,
-  type UseQueryResult,
-} from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { type QueryKey, useQuery, type UseQueryResult } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { logError } from "@/utils/logger";
 
-export type QueryOptions = {
+export interface QueryOptions {
   staleTime?: number;
   gcTime?: number;
   refetchOnWindowFocus?: boolean;
@@ -15,25 +12,25 @@ export type QueryOptions = {
   retry?: number | boolean;
   retryDelay?: number | ((attemptIndex: number) => number);
   enabled?: boolean;
-};
+}
 
-type UseDataQueryParams<TData> = {
+interface UseDataQueryParams<TData> {
   key: QueryKey;
   queryFn: () => Promise<TData>;
   title?: string;
   options?: QueryOptions;
   description?: string;
-};
+}
 
-export function useDataQuery<TData, TError extends Error = Error>({
+export function useDataQuery<TData>({
   key,
   queryFn,
   title,
   options,
   description,
 }: UseDataQueryParams<TData>) {
-  const query = useQuery<TData, TError>({
-    queryKey: key.flat(),
+  const query = useQuery<TData>({
+    queryKey: key,
     queryFn: queryFn,
     staleTime: 1000 * 60 * 5,
     gcTime: 1000 * 60 * 5,
@@ -44,30 +41,38 @@ export function useDataQuery<TData, TError extends Error = Error>({
     ...options,
   });
 
-  useToastOnError(query, title, description);
+  useToastOnError(query, title, description, key);
 
   return query;
 }
 
+const LAST_TOAST_SHOWN = new Map<string, number>();
+const TOAST_RATE_LIMIT_MS = 10_000;
+
 function useToastOnError<T>(
-  query: UseQueryResult<T, Error>,
+  query: UseQueryResult<T>,
   title: string | undefined,
-  description: string | undefined
+  description: string | undefined,
+  key: QueryKey
 ) {
   const { addToast } = useToast();
-  const hasShownError = useRef(false);
 
   useEffect(() => {
-    if (query.isError && !hasShownError.current && title) {
-      console.error("Fetch data error: ", query.error);
+    if (!query.isError || !title) return;
 
-      addToast({
-        variant: "error",
-        title,
-        description,
-      });
+    logError(query.error, undefined, {
+      scope: "react-query",
+      route: window.location.pathname,
+      component: "useDataQuery",
+      queryKey: key,
+    });
 
-      hasShownError.current = true;
+    const k = `${title}|${JSON.stringify(key)}`;
+    const now = Date.now();
+    const last = LAST_TOAST_SHOWN.get(k) ?? 0;
+    if (now - last >= TOAST_RATE_LIMIT_MS) {
+      addToast({ variant: "error", title, description });
+      LAST_TOAST_SHOWN.set(k, now);
     }
-  }, [query.isError, query.error, addToast, title, description]);
+  }, [query.isError, query.error, addToast, title, description, key]);
 }

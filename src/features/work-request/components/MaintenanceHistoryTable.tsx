@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { cn } from '@/utils/utils';
 import { DataTable } from '@/components/ui/components/Table/DataTable';
 import { TablePagination } from '@/components/ui/components/Table/TablePagination';
+import SelectDropdown from '@/components/SelectDropdown';
 import type { MaintenanceHistory } from '@/types/work-request';
 import { Badge } from '@/components/ui/components/Badge';
 
@@ -162,21 +163,23 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
           <label className="block text-sm font-medium text-onSurface mb-2">
             Filter by Asset
           </label>
-          <select
+          <SelectDropdown
             value={selectedAssetFilter}
-            onChange={(e) => {
-              setSelectedAssetFilter(e.target.value);
+            onChange={(value) => {
+              setSelectedAssetFilter(value);
               setCurrentPage(0);
             }}
-            className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-          >
-            <option value="">All Assets</option>
-            {selectedAssets.map((asset) => (
-              <option key={asset.main.code} value={asset.main.code}>
-                {asset.main.code} - {asset.main.name}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: '', label: 'All Assets' },
+              ...selectedAssets.map((asset) => ({
+                value: asset.main.code,
+                label: `${asset.main.code} - ${asset.main.name}`,
+              })),
+            ]}
+            placeholder="All Assets"
+            className="w-full"
+            maxVisibleOptions={5}
+          />
         </div>
       </div>
 

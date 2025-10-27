@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
+import SelectDropdown from "@/components/SelectDropdown";
+import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import type {
   WorkOrderFormData,
   MaintenanceType,
@@ -379,67 +381,61 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     <label className="label-large block mb-2 text-onSurface">
                       Maintenance Type <span className="text-error">*</span>
                     </label>
-                    <select
+                    <SelectDropdown
                       value={formData.type}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         setFormData((prev) => ({
                           ...prev,
-                          type: e.target.value as MaintenanceType,
+                          type: value as MaintenanceType,
                         }))
                       }
-                      required
-                      className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
-                    >
-                      {MAINTENANCE_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
+                      options={MAINTENANCE_TYPES.map((type) => ({
+                        value: type,
+                        label: type,
+                      }))}
+                      placeholder="Select maintenance type"
+                      className="w-full"
+                    />
                   </div>
                   <div>
                     <label className="label-large block mb-2 text-onSurface">
                       Priority <span className="text-error">*</span>
                     </label>
-                    <select
+                    <SelectDropdown
                       value={formData.priority}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         setFormData((prev) => ({
                           ...prev,
-                          priority: e.target.value as MaintenancePriority,
+                          priority: value as MaintenancePriority,
                         }))
                       }
-                      required
-                      className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
-                    >
-                      {PRIORITY_LEVELS.map((priority) => (
-                        <option key={priority} value={priority}>
-                          {priority}
-                        </option>
-                      ))}
-                    </select>
+                      options={PRIORITY_LEVELS.map((priority) => ({
+                        value: priority,
+                        label: priority,
+                      }))}
+                      placeholder="Select priority"
+                      className="w-full"
+                    />
                   </div>
                   <div>
                     <label className="label-large block mb-2 text-onSurface">
                       Status <span className="text-error">*</span>
                     </label>
-                    <select
+                    <SelectDropdown
                       value={formData.status}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         setFormData((prev) => ({
                           ...prev,
-                          status: e.target.value as MaintenanceStatus,
+                          status: value as MaintenanceStatus,
                         }))
                       }
-                      required
-                      className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
-                    >
-                      {STATUS_OPTIONS.map((status) => (
-                        <option key={status} value={status}>
-                          {status}
-                        </option>
-                      ))}
-                    </select>
+                      options={STATUS_OPTIONS.map((status) => ({
+                        value: status,
+                        label: status,
+                      }))}
+                      placeholder="Select status"
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </div>
@@ -455,48 +451,48 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   <label className="label-large block mb-2 text-onSurface">
                     Service By <span className="text-error">*</span>
                   </label>
-                  <select
+                  <SelectDropdown
                     value={formData.serviceBy}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setFormData((prev) => ({
                         ...prev,
-                        serviceBy: e.target.value as ServiceBy,
+                        serviceBy: value as ServiceBy,
                       }))
                     }
-                    required
-                    className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
-                  >
-                    <option value="In-House">In-House</option>
-                    <option value="Outsourced">Outsourced</option>
-                  </select>
+                    options={[
+                      { value: "In-House", label: "In-House" },
+                      { value: "Outsourced", label: "Outsourced" },
+                    ]}
+                    placeholder="Select service type"
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Assigned To <span className="text-error">*</span>
                   </label>
-                  <select
+                  <SelectDropdown
                     value={formData.assignedTo}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setFormData((prev) => ({
                         ...prev,
-                        assignedTo: e.target.value,
+                        assignedTo: value,
                       }))
                     }
-                    className="w-full px-3 py-2 border border-outline rounded bg-surface text-onSurface"
-                  >
-                    <option value="">
-                      -- Select{" "}
-                      {formData.serviceBy === "In-House"
-                        ? "Technician"
-                        : "Vendor"}{" "}
-                      --
-                    </option>
-                    {assigneeOptions.map((option) => (
-                      <option key={option.id} value={option.name}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </select>
+                    options={[
+                      {
+                        value: "",
+                        label: `-- Select ${formData.serviceBy === "In-House" ? "Technician" : "Vendor"} --`,
+                        disabled: true,
+                      },
+                      ...assigneeOptions.map((option) => ({
+                        value: option.name,
+                        label: option.name,
+                      })),
+                    ]}
+                    placeholder={`Select ${formData.serviceBy === "In-House" ? "Technician" : "Vendor"}`}
+                    className="w-full"
+                  />
                 </div>
               </div>
             </section>
@@ -512,17 +508,27 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     Scheduled Start Date & Time{" "}
                     <span className="text-error">*</span>
                   </label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.scheduledStartDateTime}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        scheduledStartDateTime: e.target.value,
-                      }))
-                    }
-                    required
-                    className="w-full"
+                  <SemiDatePicker
+                    inputType="dateTime"
+                    value={formData.scheduledStartDateTime ? new Date(formData.scheduledStartDateTime) : undefined}
+                    onChange={(date) => {
+                      if (date instanceof Date) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          scheduledStartDateTime: date.toISOString().slice(0, 16),
+                        }));
+                      } else if (typeof date === "string") {
+                        setFormData((prev) => ({
+                          ...prev,
+                          scheduledStartDateTime: new Date(date).toISOString().slice(0, 16),
+                        }));
+                      } else {
+                        setFormData((prev) => ({
+                          ...prev,
+                          scheduledStartDateTime: "",
+                        }));
+                      }
+                    }}
                   />
                 </div>
                 <div>
@@ -530,49 +536,81 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     Scheduled End Date & Time{" "}
                     <span className="text-error">*</span>
                   </label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.scheduledEndDateTime}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        scheduledEndDateTime: e.target.value,
-                      }))
-                    }
-                    required
-                    className="w-full"
+                  <SemiDatePicker
+                    inputType="dateTime"
+                    value={formData.scheduledEndDateTime ? new Date(formData.scheduledEndDateTime) : undefined}
+                    onChange={(date) => {
+                      if (date instanceof Date) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          scheduledEndDateTime: date.toISOString().slice(0, 16),
+                        }));
+                      } else if (typeof date === "string") {
+                        setFormData((prev) => ({
+                          ...prev,
+                          scheduledEndDateTime: new Date(date).toISOString().slice(0, 16),
+                        }));
+                      } else {
+                        setFormData((prev) => ({
+                          ...prev,
+                          scheduledEndDateTime: "",
+                        }));
+                      }
+                    }}
                   />
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Actual Start Date & Time
                   </label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.actualStartDateTime}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        actualStartDateTime: e.target.value,
-                      }))
-                    }
-                    className="w-full"
+                  <SemiDatePicker
+                    inputType="dateTime"
+                    value={formData.actualStartDateTime ? new Date(formData.actualStartDateTime) : undefined}
+                    onChange={(date) => {
+                      if (date instanceof Date) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualStartDateTime: date.toISOString().slice(0, 16),
+                        }));
+                      } else if (typeof date === "string") {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualStartDateTime: new Date(date).toISOString().slice(0, 16),
+                        }));
+                      } else {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualStartDateTime: "",
+                        }));
+                      }
+                    }}
                   />
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Actual End Date & Time
                   </label>
-                  <Input
-                    type="datetime-local"
-                    value={formData.actualEndDateTime}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        actualEndDateTime: e.target.value,
-                      }))
-                    }
-                    className="w-full"
+                  <SemiDatePicker
+                    inputType="dateTime"
+                    value={formData.actualEndDateTime ? new Date(formData.actualEndDateTime) : undefined}
+                    onChange={(date) => {
+                      if (date instanceof Date) {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualEndDateTime: date.toISOString().slice(0, 16),
+                        }));
+                      } else if (typeof date === "string") {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualEndDateTime: new Date(date).toISOString().slice(0, 16),
+                        }));
+                      } else {
+                        setFormData((prev) => ({
+                          ...prev,
+                          actualEndDateTime: "",
+                        }));
+                      }
+                    }}
                   />
                   <p className="body-small text-onSurfaceVariant mt-1">
                     Required for completed status

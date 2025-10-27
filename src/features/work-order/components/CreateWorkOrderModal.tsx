@@ -4,6 +4,7 @@ import { Input, TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import SelectDropdown from "@/components/SelectDropdown";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
+import { useToast } from "@/components/ui/components/Toast/useToast";
 import type {
   WorkOrderFormData,
   MaintenanceType,
@@ -39,6 +40,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   onSubmit,
   prefilledDates,
 }) => {
+  const { addToast } = useToast();
   const [formData, setFormData] = useState<WorkOrderFormData>({
     workOrderNumber: "",
     assetId: "",
@@ -66,6 +68,19 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   const [assigneeOptions, setAssigneeOptions] =
     useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
   const [costAllocations, setCostAllocations] = useState<AssetCostAllocation[]>([]);
+  
+  // Validation error states
+  const [errors, setErrors] = useState<{
+    assets?: boolean;
+    jobTitle?: boolean;
+    scheduledStartDateTime?: boolean;
+    scheduledEndDateTime?: boolean;
+    scheduledEndBeforeStart?: boolean;
+    actualEndDateTime?: boolean;
+    actualEndBeforeStart?: boolean;
+    costAllocation?: boolean;
+    assignedTo?: boolean;
+  }>({});
 
   // Function to distribute cost equally among assets
   const handleDistributeEqually = () => {
@@ -172,6 +187,11 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   const handleAssetSelectionChange = (assetIds: string[]) => {
     setSelectedAssets(assetIds);
 
+    // Clear asset error if assets are selected
+    if (assetIds.length > 0 && errors.assets) {
+      setErrors((prev) => ({ ...prev, assets: false }));
+    }
+
     // Update form data
     if (assetIds.length === 0) {
       setFormData((prev) => ({
@@ -195,17 +215,28 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Reset errors
+    const newErrors: typeof errors = {};
+
     // Validation
-    if (
-      selectedAssets.length === 0 ||
-      !formData.jobTitle ||
-      !formData.scheduledStartDateTime ||
-      !formData.scheduledEndDateTime
-    ) {
-      alert(
-        "Please fill in all required fields (at least one asset must be selected)"
-      );
-      return;
+    if (selectedAssets.length === 0) {
+      newErrors.assets = true;
+    }
+    
+    if (!formData.jobTitle) {
+      newErrors.jobTitle = true;
+    }
+    
+    if (!formData.scheduledStartDateTime) {
+      newErrors.scheduledStartDateTime = true;
+    }
+    
+    if (!formData.scheduledEndDateTime) {
+      newErrors.scheduledEndDateTime = true;
+    }
+
+    if (formData.assignedTo === "") { 
+      newErrors.assignedTo = true;
     }
 
     // Validate that scheduled end is after scheduled start
@@ -215,8 +246,8 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       new Date(formData.scheduledEndDateTime) <=
         new Date(formData.scheduledStartDateTime)
     ) {
-      alert("Scheduled end date & time must be after start date & time");
-      return;
+      newErrors.scheduledEndBeforeStart = true;
+      newErrors.scheduledEndDateTime = true;
     }
 
     // Validate actual dates if provided
@@ -226,14 +257,13 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       new Date(formData.actualEndDateTime) <=
         new Date(formData.actualStartDateTime)
     ) {
-      alert("Actual end date & time must be after start date & time");
-      return;
+      newErrors.actualEndBeforeStart = true;
+      newErrors.actualEndDateTime = true;
     }
 
     // If status is completed, require actual end datetime
     if (formData.status === "Completed" && !formData.actualEndDateTime) {
-      alert("Actual end date & time is required for completed work orders");
-      return;
+      newErrors.actualEndDateTime = true;
     }
 
     // Validate cost allocations for outsourced services with actual cost
@@ -242,9 +272,14 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       const difference = Math.abs(formData.actualCost - totalAllocated);
       
       if (difference > 0.01) {
-        alert(`Cost allocation mismatch: Total allocated (${totalAllocated.toFixed(2)}) must match actual cost (${formData.actualCost.toFixed(2)})`);
-        return;
+        newErrors.costAllocation = true;
       }
+    }
+
+    // If there are errors, update state and return
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
     }
 
     // Include cost allocations in form data
@@ -256,6 +291,15 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     };
 
     onSubmit(submitData);
+    
+    // Show success toast
+    addToast({
+      title: "Work Order Created",
+      description: `Work order ${formData.workOrderNumber} has been created successfully.`,
+      variant: "success",
+      duration: 3000,
+    });
+    
     handleClose();
   };
 
@@ -282,6 +326,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       status: "Pending",
     });
     setSelectedAssets([]);
+    setErrors({});
     onClose();
   };
 
@@ -332,6 +377,11 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     placeholder="Search asset by name or ID..."
                     emptyMessage="No assets found"
                   />
+                  {errors.assets && (
+                    <p className="text-error body-small mt-1">
+                      Please select at least one asset
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -348,16 +398,23 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   </label>
                   <Input
                     value={formData.jobTitle}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setFormData((prev) => ({
                         ...prev,
                         jobTitle: e.target.value,
-                      }))
-                    }
+                      }));
+                      if (errors.jobTitle) {
+                        setErrors((prev) => ({ ...prev, jobTitle: false }));
+                      }
+                    }}
                     placeholder="Brief description of the work"
-                    required
-                    className="w-full"
+                    className={`w-full ${errors.jobTitle ? "border-error focus:border-error" : ""}`}
                   />
+                  {errors.jobTitle && (
+                    <p className="text-error body-small mt-1">
+                      Job title is required
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
@@ -473,12 +530,15 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   </label>
                   <SelectDropdown
                     value={formData.assignedTo}
-                    onChange={(value) =>
+                    onChange={(value) => {
                       setFormData((prev) => ({
                         ...prev,
                         assignedTo: value,
-                      }))
-                    }
+                      }));
+                      if (errors.assignedTo && value !== "") {
+                        setErrors((prev) => ({ ...prev, assignedTo: false }));
+                      }
+                    }}
                     options={[
                       {
                         value: "",
@@ -492,7 +552,13 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     ]}
                     placeholder={`Select ${formData.serviceBy === "In-House" ? "Technician" : "Vendor"}`}
                     className="w-full"
+                    buttonClassName={errors.assignedTo ? "border-error" : ""}
                   />
+                  {errors.assignedTo && (
+                    <p className="text-error body-small mt-1">
+                      Please select {formData.serviceBy === "In-House" ? "a technician" : "a vendor"}
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -508,56 +574,85 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     Scheduled Start Date & Time{" "}
                     <span className="text-error">*</span>
                   </label>
-                  <SemiDatePicker
-                    inputType="dateTime"
-                    value={formData.scheduledStartDateTime ? new Date(formData.scheduledStartDateTime) : undefined}
-                    onChange={(date) => {
-                      if (date instanceof Date) {
-                        setFormData((prev) => ({
-                          ...prev,
-                          scheduledStartDateTime: date.toISOString().slice(0, 16),
-                        }));
-                      } else if (typeof date === "string") {
-                        setFormData((prev) => ({
-                          ...prev,
-                          scheduledStartDateTime: new Date(date).toISOString().slice(0, 16),
-                        }));
-                      } else {
-                        setFormData((prev) => ({
-                          ...prev,
-                          scheduledStartDateTime: "",
-                        }));
-                      }
-                    }}
-                  />
+                  <div className={errors.scheduledStartDateTime ? "[&_.semi-input-wrapper]:border-error [&_.semi-input-wrapper]:focus-within:border-error" : ""}>
+                    <SemiDatePicker
+                      inputType="dateTime"
+                      value={formData.scheduledStartDateTime ? new Date(formData.scheduledStartDateTime) : undefined}
+                      onChange={(date) => {
+                        if (date instanceof Date) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            scheduledStartDateTime: date.toISOString().slice(0, 16),
+                          }));
+                        } else if (typeof date === "string") {
+                          setFormData((prev) => ({
+                            ...prev,
+                            scheduledStartDateTime: new Date(date).toISOString().slice(0, 16),
+                          }));
+                        } else {
+                          setFormData((prev) => ({
+                            ...prev,
+                            scheduledStartDateTime: "",
+                          }));
+                        }
+                        if (errors.scheduledStartDateTime) {
+                          setErrors((prev) => ({ ...prev, scheduledStartDateTime: false }));
+                        }
+                      }}
+                    />
+                  </div>
+                  {errors.scheduledStartDateTime && (
+                    <p className="text-error body-small mt-1">
+                      Scheduled start date & time is required
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Scheduled End Date & Time{" "}
                     <span className="text-error">*</span>
                   </label>
-                  <SemiDatePicker
-                    inputType="dateTime"
-                    value={formData.scheduledEndDateTime ? new Date(formData.scheduledEndDateTime) : undefined}
-                    onChange={(date) => {
-                      if (date instanceof Date) {
-                        setFormData((prev) => ({
-                          ...prev,
-                          scheduledEndDateTime: date.toISOString().slice(0, 16),
-                        }));
-                      } else if (typeof date === "string") {
-                        setFormData((prev) => ({
-                          ...prev,
-                          scheduledEndDateTime: new Date(date).toISOString().slice(0, 16),
-                        }));
-                      } else {
-                        setFormData((prev) => ({
-                          ...prev,
-                          scheduledEndDateTime: "",
-                        }));
-                      }
-                    }}
-                  />
+                  <div className={errors.scheduledEndDateTime ? "[&_.semi-input-wrapper]:border-error [&_.semi-input-wrapper]:focus-within:border-error" : ""}>
+                    <SemiDatePicker
+                      inputType="dateTime"
+                      value={formData.scheduledEndDateTime ? new Date(formData.scheduledEndDateTime) : undefined}
+                      onChange={(date) => {
+                        if (date instanceof Date) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            scheduledEndDateTime: date.toISOString().slice(0, 16),
+                          }));
+                        } else if (typeof date === "string") {
+                          setFormData((prev) => ({
+                            ...prev,
+                            scheduledEndDateTime: new Date(date).toISOString().slice(0, 16),
+                          }));
+                        } else {
+                          setFormData((prev) => ({
+                            ...prev,
+                            scheduledEndDateTime: "",
+                          }));
+                        }
+                        if (errors.scheduledEndDateTime || errors.scheduledEndBeforeStart) {
+                          setErrors((prev) => ({ 
+                            ...prev, 
+                            scheduledEndDateTime: false,
+                            scheduledEndBeforeStart: false
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
+                  {errors.scheduledEndDateTime && !errors.scheduledEndBeforeStart && (
+                    <p className="text-error body-small mt-1">
+                      Scheduled end date & time is required
+                    </p>
+                  )}
+                  {errors.scheduledEndBeforeStart && (
+                    <p className="text-error body-small mt-1">
+                      End date & time must be after start date & time
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
@@ -590,31 +685,50 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   <label className="label-large block mb-2 text-onSurface">
                     Actual End Date & Time
                   </label>
-                  <SemiDatePicker
-                    inputType="dateTime"
-                    value={formData.actualEndDateTime ? new Date(formData.actualEndDateTime) : undefined}
-                    onChange={(date) => {
-                      if (date instanceof Date) {
-                        setFormData((prev) => ({
-                          ...prev,
-                          actualEndDateTime: date.toISOString().slice(0, 16),
-                        }));
-                      } else if (typeof date === "string") {
-                        setFormData((prev) => ({
-                          ...prev,
-                          actualEndDateTime: new Date(date).toISOString().slice(0, 16),
-                        }));
-                      } else {
-                        setFormData((prev) => ({
-                          ...prev,
-                          actualEndDateTime: "",
-                        }));
-                      }
-                    }}
-                  />
+                  <div className={errors.actualEndDateTime ? "[&_.semi-input-wrapper]:border-error [&_.semi-input-wrapper]:focus-within:border-error" : ""}>
+                    <SemiDatePicker
+                      inputType="dateTime"
+                      value={formData.actualEndDateTime ? new Date(formData.actualEndDateTime) : undefined}
+                      onChange={(date) => {
+                        if (date instanceof Date) {
+                          setFormData((prev) => ({
+                            ...prev,
+                            actualEndDateTime: date.toISOString().slice(0, 16),
+                          }));
+                        } else if (typeof date === "string") {
+                          setFormData((prev) => ({
+                            ...prev,
+                            actualEndDateTime: new Date(date).toISOString().slice(0, 16),
+                          }));
+                        } else {
+                          setFormData((prev) => ({
+                            ...prev,
+                            actualEndDateTime: "",
+                          }));
+                        }
+                        if (errors.actualEndDateTime || errors.actualEndBeforeStart) {
+                          setErrors((prev) => ({ 
+                            ...prev, 
+                            actualEndDateTime: false,
+                            actualEndBeforeStart: false
+                          }));
+                        }
+                      }}
+                    />
+                  </div>
                   <p className="body-small text-onSurfaceVariant mt-1">
                     Required for completed status
                   </p>
+                  {errors.actualEndDateTime && !errors.actualEndBeforeStart && formData.status === "Completed" && (
+                    <p className="text-error body-small mt-1">
+                      Actual end date & time is required for completed work orders
+                    </p>
+                  )}
+                  {errors.actualEndBeforeStart && (
+                    <p className="text-error body-small mt-1">
+                      Actual end date & time must be after actual start date & time
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
@@ -700,8 +814,16 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                         actualCost: totalAllocated,
                         costAllocations: allocations,
                       }));
+                      if (errors.costAllocation) {
+                        setErrors((prev) => ({ ...prev, costAllocation: false }));
+                      }
                     }}
                   />
+                  {errors.costAllocation && (
+                    <p className="text-error body-small mt-2">
+                      Cost allocation mismatch: Total allocated cost must match actual cost
+                    </p>
+                  )}
                 </div>
               )}
             </section>

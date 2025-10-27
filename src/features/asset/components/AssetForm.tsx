@@ -218,6 +218,11 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
   const isCommercial = watch("extraCommercial");
   const isNewVehicle = watch("extraNewVehicle");
 
+  // Calculate cost per unit for conditional rendering
+  const totalCost = cost && cost.trim() !== "" ? parseFloat(cost) : 0;
+  const qtyPerUnit = quantityPerUnit || 1;
+  const costPerUnit = totalCost / qtyPerUnit;
+
   // Generate Allowance Class options based on selected CA Asset Group
   const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => {
     if (!caAssetGroupValue) {
@@ -409,18 +414,47 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
         <div className="space-y-3 mt-6">
           <div className="flex items-center gap-2">
             <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} disabled={isReadonly} />
-            <label className="body-small text-onSurfaceVariant">Motor Vehicle</label>
+            <label
+              className="body-small text-onSurfaceVariant cursor-pointer"
+              onClick={() => {
+                if (!isReadonly) {
+                  setValue("extraCheckbox", !watch("extraCheckbox"));
+                }
+              }}
+            >
+              Motor Vehicle
+            </label>
           </div>
           {isMotorVehicle && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} disabled={isReadonly} />
-                <label className="body-small text-onSurfaceVariant">Commercial Use</label>
+                <label
+                  className="body-small text-onSurfaceVariant cursor-pointer"
+                  onClick={() => {
+                    if (!isReadonly) {
+                      setValue("extraCommercial", !watch("extraCommercial"));
+                    }
+                  }}
+                >
+                  Commercial Use
+                </label>
               </div>
-              {!isCommercial && (<div className="flex items-center gap-2">
-                <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly} />
-                <label className="body-small text-onSurfaceVariant">New Vehicle</label>
-              </div>)}
+              {!isCommercial && costPerUnit <= 150000 && (
+                <div className="flex items-center gap-2">
+                  <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly} />
+                  <label
+                    className="body-small text-onSurfaceVariant cursor-pointer"
+                    onClick={() => {
+                      if (!isReadonly) {
+                        setValue("extraNewVehicle", !watch("extraNewVehicle"));
+                      }
+                    }}
+                  >
+                    New Vehicle
+                  </label>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -428,11 +462,11 @@ const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedT
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
-          <label className="block text-sm font-medium text-onSurface">Qualify Amount (QE)</label>
+          <label className="block text-sm font-medium text-onSurface">Qualifying Expenditure (QE)</label>
           <Input {...register("qeValue")} readOnly disabled />
         </div>
         <div>
-          <label className="block text-sm font-medium text-onSurface">Controlled Transfer In RE</label>
+          <label className="block text-sm font-medium text-onSurface">Controlled Transfer B/F RE</label>
           <Input {...register("residualExpenditure")} placeholder="0.00" disabled={isReadonly} />
         </div>
       </div>

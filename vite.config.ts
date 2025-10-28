@@ -22,6 +22,37 @@ export default defineConfig({
       "@fullcalendar/timegrid",
       "@fullcalendar/interaction",
       "@fullcalendar/list",
+      "@tanstack/react-query",
+      "@tanstack/react-table",
+      "@tanstack/react-virtual",
+      "react-router-dom",
+      "i18next",
+      "react-i18next",
+      "lodash",
     ],
+  },
+  build: {
+    target: "esnext",
+    minify: "esbuild",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "query-vendor": ["@tanstack/react-query"],
+          "table-vendor": ["@tanstack/react-table", "@tanstack/react-virtual"],
+          "calendar-vendor": [
+            "@fullcalendar/react",
+            "@fullcalendar/core",
+            "@fullcalendar/daygrid",
+            "@fullcalendar/timegrid",
+            "@fullcalendar/interaction",
+            "@fullcalendar/list",
+          ],
+        },
+      },
+    },
+  },
+  server: {
+    preTransformRequests: true,
   },
 });

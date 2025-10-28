@@ -12,8 +12,12 @@ import type { ReactNode } from "react";
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [darkMode, setDarkMode] = useState(() => {
-    const savedTheme = localStorage.getItem("theme");
-    return savedTheme ? savedTheme === "dark" : false;
+    try {
+      const savedTheme = localStorage.getItem("theme");
+      return savedTheme ? savedTheme === "dark" : false;
+    } catch {
+      return false;
+    }
   });
   const [isThemeChanging, setIsThemeChanging] = useState(false);
 
@@ -21,10 +25,18 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     setIsThemeChanging(true);
     if (darkMode) {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("theme", "dark");
+      try {
+        localStorage.setItem("theme", "dark");
+      } catch (error) {
+        console.warn('Failed to save theme to localStorage:', error);
+      }
     } else {
       document.documentElement.classList.remove("dark");
-      localStorage.setItem("theme", "light");
+      try {
+        localStorage.setItem("theme", "light");
+      } catch (error) {
+        console.warn('Failed to save theme to localStorage:', error);
+      }
     }
   }, [darkMode]);
 

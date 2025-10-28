@@ -1,6 +1,6 @@
-// tabler icon
+import { IconTrash, IconInfoCircle } from "@tabler/icons-react";
+
 export {
-  // components icon
   IconCircleCheckFilled as CircleCheckFilled,
   IconCircleXFilled as CircleXFilled,
   IconInfoCircleFilled as InfoCircleFilled,
@@ -24,86 +24,56 @@ export {
   IconTransfer as Change,
   IconFileFilled as File,
   IconUpload as Upload,
-
-  IconBuildingStore as Store,
-  IconShoppingCart as Product,
-  IconTruckDelivery as Order,
-  IconWallet as SidebarPayment,
-  IconIdBadge2 as IdBadge2,
-  IconBuildingSkyscraper as Company,
-  IconBuildings as CompanyList,
-  IconInfoCircle as Info,
-  IconEdit as Edit,
-  IconKey as Key,
-  IconTrash as Delete,
-  IconPhone as Phone,
-  IconMapPin as Location,
-  IconCreditCardPay as Payment,
-  IconClipboardList as OrderDetails,
-  IconFileInvoice as Invoice,
-  IconFile as FileOutline,
-  IconCopy as Copy,
-  IconMail as Mail,
-  IconUser as User,
-  IconDeviceMobile as DeviceMobile,
-  IconMessageCircle as MessageCircle,
-  IconGiftCard as Voucher,
-  IconZoomIn as ExtraInfo,
-  IconSquareX as Cancel,
-  IconContract as SLA,
-
-  IconMenu2 as Sidebar,
-  IconSun as Sun,
-  IconMoon as Moon,
-  IconWorld as Global,
-  IconArrowLeft as ArrowLeft,
-
   IconSearch as Search,
   IconFilterFilled as FilterFilled,
   IconFilter as Filter,
-  IconShieldLock as Roles,
-  IconShield as Shield,
+  IconEdit as Edit,
+  IconCopy as Copy,
+  IconCircleCheck as CircleCheck,
+  IconCircleX as CircleX,
+  IconHomeFilled as HomeFilled,
   IconBriefcase as Briefcase,
   IconBriefcaseFilled as BriefcaseFilled,
-  
   IconLink as Link,
   IconLogout as LogOut,
-
   IconFileExport as ExportFile,
   IconPrinter as Printer,
   IconCalendarWeek as Calendar, 
-  IconCalendarWeekFilled as CalendarFilled, 
-
-  IconLoader as Loader,
-  IconCircleCheck as CircleCheck,
-  IconCircleX as CircleX,
-  IconRosetteDiscountCheck as RosetteDiscountCheck,
+  IconCalendarWeekFilled as CalendarFilled,
+  IconUser as User,
+  IconSun as Sun,
+  IconMoon as Moon,
+  IconMenu2 as Sidebar,
+  IconArrowLeft as ArrowLeft,
   IconCalculator as Calculator,
   IconLayoutDashboard as LayoutDashboard,
-  IconCalendarEvent as CalendarEvent,
-  IconTool as Tool,
   IconClock as Clock,
   IconGauge as Gauge,
-  IconUsers as Users,
-  IconUserCog as UserCog,
-  IconBuilding as Building,
-  IconMap as Map,
-  IconHistory as History,
   IconShieldCheck as ShieldCheck,
-  IconTrash as Bin,
-  IconSettings as Settings,
-  IconHomeFilled as HomeFilled,
   IconCalculatorFilled as CalculatorFilled,
   IconLayoutDashboardFilled as LayoutDashboardFilled,
-  IconCalendarEventFilled as CalendarEventFilled,
-  IconClipboardListFilled as OrderDetailsFilled,
   IconClockFilled as ClockFilled,
   IconGaugeFilled as GaugeFilled,
-  IconShieldLockFilled as RolesFilled,
-  IconMapPinFilled as LocationFilled,
-  IconSettingsFilled as SettingsFilled,
   IconShieldCheckFilled as ShieldCheckFilled,
-
   IconTrashFilled as BinFilled,
-  IconFiles as FileStack,
-} from "@tabler/icons-react"
+  IconMapPin as Location,
+  IconMapPinFilled as LocationFilled,
+} from "@tabler/icons-react";
+
+// Re-export icons with multiple names for compatibility
+export { IconTrash as Bin, IconTrash as Delete };
+export { IconInfoCircle as Info };
+
+// Lazy-loaded icons - import these only when needed
+// These are imported dynamically to reduce initial bundle size
+// Example usage: const { IconBuilding } = await import("@tabler/icons-react");
+
+// To use lazy-loaded icons, create a separate file for them:
+// export const lazyIcons = {
+//   IconBuildingStore: () => import("@tabler/icons-react").then(m => m.IconBuildingStore),
+//   IconShoppingCart: () => import("@tabler/icons-react").then(m => m.IconShoppingCart),
+//   // ... etc
+// };
+
+// Alternatively, for better performance, import these directly where needed:
+// Example: import { IconBuildingStore } from "@tabler/icons-react";

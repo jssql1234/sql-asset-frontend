@@ -4,6 +4,7 @@ import "@/index.css";
 import App from "@/App";
 import "@/styles/index";
 import { logError } from "@/utils/logger";
+import "@/i18n";
 
 declare global {
   interface Window {

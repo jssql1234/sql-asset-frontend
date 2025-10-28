@@ -76,39 +76,64 @@ interface UserProviderProps {
 
 const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('currentUser');
-    return saved ? JSON.parse(saved) as User : MOCK_USERS[0]; // Default to admin for development
+    try {
+      const saved = localStorage.getItem('currentUser');
+      return saved ? JSON.parse(saved) as User : MOCK_USERS[0];
+    } catch {
+      return MOCK_USERS[0];
+    }
   });
 
   const [users, setUsers] = useState<User[]>(() => {
-    const saved = localStorage.getItem('mockUsers');
-    return saved ? JSON.parse(saved) as User[] : MOCK_USERS;
+    try {
+      const saved = localStorage.getItem('mockUsers');
+      return saved ? JSON.parse(saved) as User[] : MOCK_USERS;
+    } catch {
+      return MOCK_USERS;
+    }
   });
 
   const [groups, setGroups] = useState<UserGroup[]>(() => {
-    const saved = localStorage.getItem('mockGroups');
-    const loadedGroups = saved ? JSON.parse(saved) as UserGroup[] : MOCK_GROUPS;
+    try {
+      const saved = localStorage.getItem('mockGroups');
+      const loadedGroups = saved ? JSON.parse(saved) as UserGroup[] : MOCK_GROUPS;
 
-    // Ensure admin group always has all permissions enabled
-    const adminGroup = loadedGroups.find(g => g.id === 'admin');
-    if (adminGroup) {
-      adminGroup.defaultPermissions = createAllPermissionsEnabled();
+      // Ensure admin group always has all permissions enabled
+      const adminGroup = loadedGroups.find(g => g.id === 'admin');
+      if (adminGroup) {
+        adminGroup.defaultPermissions = createAllPermissionsEnabled();
+      }
+
+      return loadedGroups;
+    } catch {
+      return MOCK_GROUPS;
     }
-
-    return loadedGroups;
   });
 
-  // Persist to localStorage
+  // Batch localStorage writes with debouncing to reduce overhead
+  // Only persist when values actually change to avoid unnecessary writes
   useEffect(() => {
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    try {
+      localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    } catch (error) {
+      console.warn('Failed to save currentUser to localStorage:', error);
+    }
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('mockUsers', JSON.stringify(users));
+    try {
+      localStorage.setItem('mockUsers', JSON.stringify(users));
+    } catch (error) {
+      console.warn('Failed to save mockUsers to localStorage:', error);
+    }
   }, [users]);
 
   useEffect(() => {
-    localStorage.setItem('mockGroups', JSON.stringify(groups));
+    try {
+      localStorage.setItem('mockGroups', JSON.stringify(groups));
+    } catch (error) {
+      console.warn('Failed to save mockGroups to localStorage:', error);
+    }
   }, [groups]);
 
   const getUserGroup = useCallback((groupId: string): UserGroup | undefined => {

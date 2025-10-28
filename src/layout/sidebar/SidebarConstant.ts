@@ -3,7 +3,7 @@ import type { ComponentType } from "react";
 
 export const SIDEBAR_COOKIE_NAME = "sidebar:state" as const;  // Cookie name for persisting sidebar state
 export const SIDEBAR_COOKIE_MAX_AGE = 604800;
-export const SIDEBAR_WIDTH = "14rem" as const;
+export const SIDEBAR_WIDTH = "15rem" as const;
 export const SIDEBAR_COLLAPSED_WIDTH = "3rem" as const;
 export const SIDEBAR_KEYBOARD_SHORTCUT = "s" as const;
 

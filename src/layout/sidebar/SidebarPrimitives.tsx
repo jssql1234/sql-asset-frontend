@@ -137,7 +137,7 @@ function Sidebar({ collapsible = "icon", className, children, ...props }: Sideba
 //Sidebar header section component.
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="sidebar-header" data-sidebar="header" className={cn("flex flex-col gap-2 p-2", className)} {...props}/>
+    <div data-slot="sidebar-header" data-sidebar="header" className={cn("flex flex-col gap-2 px-3 py-2 group-data-[collapsible=icon]:px-0", className)} {...props}/>
   );
 }
 
@@ -148,7 +148,7 @@ function SidebarContent({
 }: React.ComponentProps<"div">) {
   return (
     <div data-slot="sidebar-content" data-sidebar="content" className={cn(
-        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden",
+        "flex min-h-0 flex-1 flex-col gap-2 overflow-auto px-2 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:px-0",
         className
       )}
       {...props}
@@ -159,14 +159,14 @@ function SidebarContent({
 //Sidebar footer section component.
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="sidebar-footer" data-sidebar="footer" className={cn("flex flex-col gap-2 p-2", className)} {...props}/>
+    <div data-slot="sidebar-footer" data-sidebar="footer" className={cn("flex flex-col gap-2 px-3 py-2 group-data-[collapsible=icon]:px-0", className)} {...props}/>
   );
 }
 
 //Groups related menu items together.
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="sidebar-group" data-sidebar="group" className={cn("relative flex w-full min-w-0 flex-col p-2", className)} {...props}/>
+    <div data-slot="sidebar-group" data-sidebar="group" className={cn("relative flex w-full min-w-0 flex-col px-3 py-2 group-data-[collapsible=icon]:px-0", className)} {...props}/>
   );
 }
 
@@ -174,7 +174,7 @@ function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
 function SidebarGroupTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="sidebar-group-title" data-sidebar="group-title" className={cn(
-        "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
+  "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-3 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:px-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
         className
       )}
@@ -191,31 +191,34 @@ function isPathActive(url: string, pathname: string): boolean {
 }
 
 export interface SidebarGroupItemProps {
-  items: { name: string; url: string; icon: React.ComponentType<{ className?: string }>; filledIcon: React.ComponentType<{ className?: string }> }[];
-  pathname: string;
+  items: { name: string; url?: string; icon: React.ComponentType<{ className?: string }>; filledIcon?: React.ComponentType<{ className?: string }>; onClick?: () => void }[];
+  pathname?: string;
 }
 
-//Renders navigation items within a sidebar group.
+//Renders navigation items within a sidebar group (supports both navigation and custom click handlers).
 function SidebarGroupItem({ items, pathname }: SidebarGroupItemProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-1 px-2">
+  <div className="flex w-full min-w-0 flex-col gap-1 px-3 group-data-[collapsible=icon]:px-0">
       {items.map((item) => {
-        const isActive = isPathActive(item.url, pathname);
-        const Icon = isActive ? item.filledIcon : item.icon;
+        const isActive = pathname && item.url ? isPathActive(item.url, pathname) : false;
+        const Icon = isActive && item.filledIcon ? item.filledIcon : item.icon;
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const handleClick = item.onClick ?? (item.url ? () => { void navigate(item.url!); } : undefined);
 
         return (
           <SidebarMenuButtonWithTooltip key={item.name} tooltip={item.name}>
             <SidebarMenuButton
               isActive={isActive}
               type="button"
-              onClick={() => { void navigate(item.url); }}
+              onClick={handleClick}
               aria-current={isActive ? "page" : undefined}
               className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
             >
-              <Icon className="size-4" />
-              <span>{item.name}</span>
+              <Icon className="size-4 group-data-[collapsible=icon]:size-5" />
+              <span className="group-data-[collapsible=icon]:hidden">{item.name}</span>
             </SidebarMenuButton>
           </SidebarMenuButtonWithTooltip>
         );
@@ -226,7 +229,18 @@ function SidebarGroupItem({ items, pathname }: SidebarGroupItemProps) {
 
 //Sidebar menu button style variants.
 const sidebarMenuButtonVariants = cva(
-  "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-gray-100 hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-gray-100 active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-gray-200 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:[&>svg]:size-5!",
+  [
+    "flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden",
+    "ring-sidebar-ring transition-[width,height,padding]",
+    "hover:bg-gray-200 hover:text-sidebar-accent-foreground",
+    "focus-visible:ring-2 active:bg-gray-100 active:text-sidebar-accent-foreground",
+    "disabled:pointer-events-none disabled:opacity-50",
+    "aria-disabled:pointer-events-none aria-disabled:opacity-50",
+    "data-[active=true]:bg-gray-300 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground",
+    "data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground",
+  "group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! group-data-[collapsible=icon]:mx-auto",
+    "[&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:[&>svg]:size-5!",
+  ].join(" "),
   {
     variants: {
       size: { default: "h-8 text-sm", sm: "h-7 text-xs", lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!" },
@@ -241,6 +255,7 @@ export interface SidebarMenuButtonProps
     VariantProps<typeof sidebarMenuButtonVariants> {
   asChild?: boolean;  
   isActive?: boolean;
+  children?: React.ReactNode;
 }
 
 //Interactive button for sidebar menu items.
@@ -253,33 +268,45 @@ function SidebarMenuButton({ asChild = false, isActive = false, size = "default"
 }
 
 //Props for SidebarMenuButtonWithTooltip.
-export interface SidebarMenuButtonWithTooltipProps { tooltip?: string; children: React.ReactNode }
+export interface SidebarMenuButtonWithTooltipProps extends React.HTMLAttributes<HTMLDivElement> {
+  tooltip?: string;
+  children: React.ReactElement;
+}
 
 //Wrapper that shows tooltip when sidebar is collapsed.
-function SidebarMenuButtonWithTooltip({ tooltip, children }: SidebarMenuButtonWithTooltipProps) {
+function SidebarMenuButtonWithTooltip({ tooltip, children, className, onMouseEnter, onMouseLeave, ...props }: SidebarMenuButtonWithTooltipProps) {
   const { state } = useSidebar();
   const [showTooltip, setShowTooltip] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const isCollapsed = Boolean(tooltip) && state === "collapsed";
 
-  // Don't show tooltip if not provided or sidebar is expanded
-  if (!tooltip || state !== "collapsed") {
-    return <>{children}</>;
-  }
+  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isCollapsed) setShowTooltip(true);
+    onMouseEnter?.(event);
+  };
+
+  const handleMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isCollapsed) setShowTooltip(false);
+    onMouseLeave?.(event);
+  };
+
+  const wrapperClassName = cn(isCollapsed ? "relative flex" : "contents", className);
 
   return (
     <div
       ref={containerRef}
-      className="relative inline-flex"
-      onMouseEnter={() => { setShowTooltip(true) }}
-      onMouseLeave={() => { setShowTooltip(false) }}
+      className={wrapperClassName}
+      {...props}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {children}
-      {showTooltip && (
+      {isCollapsed && showTooltip && (
         <div
           className="fixed z-[9999] bg-inverseSurface px-3 py-1.5 text-sm text-inverseOnSurface rounded-md shadow-md pointer-events-none whitespace-nowrap"
           style={{
             left: containerRef.current
-              ? `${String(containerRef.current.getBoundingClientRect().right + 12)}px`
+              ? `${String(containerRef.current.getBoundingClientRect().right + 5)}px`
               : "0px",
             top: containerRef.current
               ? `${String(containerRef.current.getBoundingClientRect().top)}px`

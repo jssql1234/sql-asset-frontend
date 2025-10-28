@@ -2,12 +2,36 @@ import { BrowserRouter } from "react-router-dom";
 import AppRoutes from "@/routes";
 import { ToastProvider } from "./components/ui/components/Toast";
 import { ThemeProvider } from "./context/ThemeContext";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
 // import { useTranslation } from "react-i18next";
 import { TranslationProvider } from "./components/ui/components/Table";
 import UserProvider from "./context/UserProvider";
+import ErrorBoundary from "@/components/errors/ErrorBoundary";
+import ErrorFallback from "@/components/errors/ErrorFallback";
+import { logError } from "@/utils/logger";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      logError(error, undefined, {
+        scope: "react-query",
+        route: window.location.pathname,
+        component: "query",
+        queryKey: query.queryKey,
+      });
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      logError(error, undefined, {
+        scope: "react-query",
+        route: window.location.pathname,
+        component: "mutation",
+        mutationKey: mutation.options.mutationKey,
+      });
+    },
+  }),
+});
 
 function App() {
   // const { t } = useTranslation("pagination");
@@ -24,20 +48,31 @@ function App() {
   // };
 
   return (
-    <ThemeProvider>
-      <UserProvider>
-        <ToastProvider>
-          <BrowserRouter>
-            <QueryClientProvider client={queryClient}>
-              {/* <TranslationProvider translations={tableTranslations}> */}
-              <TranslationProvider>
-                <AppRoutes />
-              </TranslationProvider>
-            </QueryClientProvider>
-          </BrowserRouter>
-        </ToastProvider>
-      </UserProvider>
-    </ThemeProvider>
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onError={(error, info) => {
+        logError(error, info, {
+          scope: "app",
+          route: window.location.pathname,
+          component: "App",
+        });
+      }}
+    >
+      <ThemeProvider>
+        <UserProvider>
+          <ToastProvider>
+            <BrowserRouter>
+              <QueryClientProvider client={queryClient}>
+                {/* <TranslationProvider translations={tableTranslations}> */}
+                <TranslationProvider>
+                  <AppRoutes />
+                </TranslationProvider>
+              </QueryClientProvider>
+            </BrowserRouter>
+          </ToastProvider>
+        </UserProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -3,7 +3,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { Separator as SeparatorPrimitive } from "@radix-ui/react-separator";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/components";
 import { useSidebar } from "./SidebarContext";
@@ -197,6 +197,8 @@ export interface SidebarGroupItemProps {
 
 //Renders navigation items within a sidebar group.
 function SidebarGroupItem({ items, pathname }: SidebarGroupItemProps) {
+  const navigate = useNavigate();
+
   return (
     <div className="flex w-full min-w-0 flex-col gap-1 px-2">
       {items.map((item) => {
@@ -205,11 +207,15 @@ function SidebarGroupItem({ items, pathname }: SidebarGroupItemProps) {
 
         return (
           <SidebarMenuButtonWithTooltip key={item.name} tooltip={item.name}>
-            <SidebarMenuButton asChild isActive={isActive}>
-              <Link to={item.url} className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0" aria-current={isActive ? "page" : undefined}>
-                <Icon className="size-4" />
-                <span>{item.name}</span>
-              </Link>
+            <SidebarMenuButton
+              isActive={isActive}
+              type="button"
+              onClick={() => { void navigate(item.url); }}
+              aria-current={isActive ? "page" : undefined}
+              className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+            >
+              <Icon className="size-4" />
+              <span>{item.name}</span>
             </SidebarMenuButton>
           </SidebarMenuButtonWithTooltip>
         );

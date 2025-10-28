@@ -166,7 +166,8 @@ const SearchableInputDropdown = ({
       {isOpen && options.length > 0 && showDropdown && (
         <div className={cn(
           "absolute z-50 w-full rounded-md border border-outlineVariant bg-surface shadow-lg",
-          position === 'top' ? "bottom-full mb-1" : "top-full mt-1"
+          position === 'top' ? "bottom-full mb-1" : "top-full mt-1", 
+          displayedOptions.length <= 0 && hideEmptyMessage ? "hidden" : ""
         )}>
           <div className="overflow-y-auto" style={{ maxHeight: `${String(maxHeight)}px` }}>
             {displayedOptions.length > 0 ? (

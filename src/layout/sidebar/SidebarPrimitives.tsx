@@ -3,99 +3,41 @@ import { Slot } from "@radix-ui/react-slot";
 import { Separator as SeparatorPrimitive } from "@radix-ui/react-separator";
 import { cva, type VariantProps } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/components";
 import { useSidebar } from "./SidebarContext";
-import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from "./SidebarConstant";
+import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "./SidebarConstant";
 
-export type SidebarVariant = "sidebar" | "floating" | "inset";  // Sidebar variant types
-export type SidebarCollapsible = "offcanvas" | "icon" | "none";  // Sidebar collapsible behavior
-export type SidebarSide = "left" | "right";  // Sidebar positioning
-
-// Props for Sidebar root component
-export interface SidebarProps extends React.ComponentProps<"div"> {
-  side?: SidebarSide;  // Sidebar positioning side
-  variant?: SidebarVariant;  // Visual variant of the sidebar
-  collapsible?: SidebarCollapsible;  // Collapsible behavior
-}
-
-// Provides the main sidebar container with responsive behavior
-function Sidebar({
-  side = "left",
-  variant = "sidebar",
-  collapsible = "offcanvas",
-  className,
-  children,
-  ...props
-}: SidebarProps) {
-  const { state } = useSidebar();
-
-  // Non-collapsible variant
-  if (collapsible === "none") {
-    return (
-      <div
-        data-slot="sidebar"
-        className={cn(
-          "bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    );
-  }
-
+//Provides CSS variables for sidebar dimensions.
+function SidebarWrapper({ className, style, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
-      className="group peer text-sidebar-foreground hidden md:block"
-      data-state={state}
-      data-collapsible={state === "collapsed" ? collapsible : ""}
-      data-variant={variant}
-      data-side={side}
-      data-slot="sidebar" 
+      data-slot="sidebar-wrapper"
+      style={ { "--sidebar-width": SIDEBAR_WIDTH, "--sidebar-collapsed-width": SIDEBAR_COLLAPSED_WIDTH, ...style } as React.CSSProperties }
+      className={cn(
+        "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+        className
+      )}
+      {...props}
     >
-      {/* Sidebar gap spacer */}
-      <div
-        data-slot="sidebar-gap"
-        className={cn(
-          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-100 ease-linear",
-          "group-data-[collapsible=offcanvas]:w-0",
-          "group-data-[side=right]:rotate-180",
-          variant === "floating" || variant === "inset"
-            ? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
-        )}
-      />
-      
-      {/* Sidebar container */}
-      <div
-        data-slot="sidebar-container"
-        className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
-          side === "left"
-            ? "left-0 group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)]"
-            : "right-0 group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)]",
-          variant === "floating" || variant === "inset"
-            ? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-            : "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=left]:border-gray-200 group-data-[side=right]:border-l group-data-[side=right]:border-gray-200",
-          className
-        )}
-        {...props}
-      >
-        <div
-          data-sidebar="sidebar"
-          data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:border-sidebar-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow-sm"
-        >
-          {children}
-        </div>
-      </div>
+      {children}
     </div>
   );
 }
 
-// Sidebar trigger button component (Toggles the sidebar open/closed state)
+//Main content area that sits next to the sidebar.
+function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
+  return (
+    <main
+      data-slot="sidebar-inset"
+      className={cn("bg-background relative flex w-full flex-1 flex-col", className)}
+      {...props}
+    />
+  );
+}
+
+//Toggles the sidebar open/closed state.
 function SidebarTrigger({
   className,
   onClick,
@@ -121,25 +63,122 @@ function SidebarTrigger({
   );
 }
 
-// Sidebar inset component (Main content area that sits next to the sidebar)
-function SidebarInset({
+//Props for SidebarSeparator component.
+export interface SidebarSeparatorProps
+  extends React.ComponentPropsWithoutRef<typeof SeparatorPrimitive> {
+  orientation?: "horizontal" | "vertical";
+}
+
+//Visual divider for separating sidebar sections.
+function SidebarSeparator({
   className,
+  orientation = "horizontal",
   ...props
-}: React.ComponentProps<"main">) {
+}: SidebarSeparatorProps) {
+  // Filter out props that are added by DropdownMenuContent's cloneElement
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { isFocused, index, onHover, ...validProps } = props as Record<string, unknown>;
+  
   return (
-    <main
-      data-slot="sidebar-inset"
+    <SeparatorPrimitive
+      data-slot="sidebar-separator"
+      data-sidebar="separator"
+      orientation={orientation}
       className={cn(
-        "bg-background relative flex w-full flex-1 flex-col",
-        "md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2",
+        "bg-onSurfaceVariant shrink-0",
+        orientation === "horizontal" ? "h-px w-auto mx-2" : "h-6 w-px mx-0",
         className
       )}
-      {...props}
+      {...validProps}
     />
   );
 }
 
-// Sidebar header section component
+//Breadcrumb item for navigation.
+export interface SidebarBreadcrumbItem { label: string }
+
+//Props for SidebarBreadcrumb component.
+export interface SidebarBreadcrumbProps { items: SidebarBreadcrumbItem[]; className?: string } 
+
+//Breadcrumb navigation component for sidebar header.
+function SidebarBreadcrumb({ items, className }: SidebarBreadcrumbProps) {
+  if (items.length === 0) return null;
+
+  return (
+    <nav
+      className={cn(
+        "text-sm text-onSurfaceVariant hidden md:flex items-center gap-2",
+        className
+      )}
+      aria-label="Breadcrumb"
+    >
+      {items.map((crumb, index) => (
+        <React.Fragment key={crumb.label}>
+          {index > 0 && <span aria-hidden="true">/</span>}
+          <span>{crumb.label}</span>
+        </React.Fragment>
+      ))}
+    </nav>
+  );
+}
+
+/**
+ * Props for Sidebar root component.
+ * Supports icon collapsible mode with left positioning.
+ */
+export interface SidebarProps extends React.ComponentProps<"div"> { collapsible?: "icon" }
+
+/**
+ * Main sidebar container with responsive behavior.
+ * Fixed to left side with icon collapsible mode.
+ */
+function Sidebar({
+  collapsible = "icon",
+  className,
+  children,
+  ...props
+}: SidebarProps) {
+  const { state } = useSidebar();
+
+  return (
+    <div
+      className="group peer text-sidebar-foreground hidden md:block"
+      data-state={state}
+      data-collapsible={state === "collapsed" ? collapsible : ""}
+      data-slot="sidebar" 
+    >
+      {/* Sidebar gap spacer */} 
+      <div
+        data-slot="sidebar-gap"
+        className={cn(
+          "relative w-(--sidebar-width) bg-transparent transition-[width] duration-100 ease-linear",
+          "group-data-[collapsible=icon]:w-(--sidebar-collapsed-width)"
+        )}
+      />
+      
+      {/* Sidebar container */}
+      <div
+        data-slot="sidebar-container"
+        className={cn(
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex left-0",
+          "group-data-[collapsible=icon]:w-(--sidebar-collapsed-width) border-r border-gray-200",
+          className
+        )}
+        {...props}
+      >
+        <div
+          data-sidebar="sidebar"
+          data-slot="sidebar-inner"
+          className="bg-sidebar flex h-full w-full flex-col"
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+//Sidebar header section component.
 function SidebarHeader({
   className,
   ...props
@@ -154,22 +193,7 @@ function SidebarHeader({
   );
 }
 
-// Sidebar footer section component
-function SidebarFooter({
-  className,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="sidebar-footer"
-      data-sidebar="footer"
-      className={cn("flex flex-col gap-2 p-2", className)}
-      {...props}
-    />
-  );
-}
-
-// Sidebar content/main section component
+//Sidebar content/main section component.
 function SidebarContent({
   className,
   ...props
@@ -187,7 +211,22 @@ function SidebarContent({
   );
 }
 
-// Sidebar group component (Groups related menu items together)
+//Sidebar footer section component.
+function SidebarFooter({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="sidebar-footer"
+      data-sidebar="footer"
+      className={cn("flex flex-col gap-2 p-2", className)}
+      {...props}
+    />
+  );
+}
+
+//Groups related menu items together.
 function SidebarGroup({
   className,
   ...props
@@ -202,23 +241,15 @@ function SidebarGroup({
   );
 }
 
-// Props for SidebarGroupLabel component
-export interface SidebarGroupLabelProps extends React.ComponentProps<"div"> {
-  asChild?: boolean;
-}
-
-// Sidebar group label component (Displays a label for a group of menu items)
-function SidebarGroupLabel({
+//Displays a title for a group of menu items.
+function SidebarGroupTitle({
   className,
-  asChild = false,
   ...props
-}: SidebarGroupLabelProps) {
-  const Comp = asChild ? Slot : "div";
-
+}: React.ComponentProps<"div">) {
   return (
-    <Comp
-      data-slot="sidebar-group-label"
-      data-sidebar="group-label"
+    <div
+      data-slot="sidebar-group-title"
+      data-sidebar="group-title"
       className={cn(
         "text-sidebar-foreground/70 ring-sidebar-ring flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0",
         "group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0",
@@ -229,46 +260,40 @@ function SidebarGroupLabel({
   );
 }
 
-// Sidebar menu list component
-function SidebarMenu({
-  className,
-  ...props
-}: React.ComponentProps<"ul">) {
+//Checks if a navigation path is active based on current pathname.
+function isPathActive(url: string, pathname: string): boolean {
+  if (pathname === url) return true;
+  if (url !== "/" && pathname.startsWith(`${url}/`)) return true;
+  return false;
+}
+
+export interface SidebarGroupItemProps {
+  item: { name: string; url: string; icon: React.ComponentType<{ className?: string }>; filledIcon: React.ComponentType<{ className?: string }> };
+  pathname: string;
+}
+
+//Individual item within a sidebar group.
+function SidebarGroupItem({ item, pathname }: SidebarGroupItemProps) {
+  const isActive = isPathActive(item.url, pathname);
+  const Icon = isActive ? item.filledIcon : item.icon;
+
   return (
-    <ul
-      data-slot="sidebar-menu"
-      data-sidebar="menu"
-      className={cn("flex w-full min-w-0 flex-col gap-1", className)}
-      {...props}
-    />
+    <SidebarMenuButtonWithTooltip tooltip={item.name}>
+      <SidebarMenuButton asChild isActive={isActive}>
+        <Link to={item.url} className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0" aria-current={isActive ? "page" : undefined}>
+          <Icon className="size-4" />
+          <span>{item.name}</span>
+        </Link>
+      </SidebarMenuButton>
+    </SidebarMenuButtonWithTooltip>
   );
 }
 
-// Sidebar menu item component
-function SidebarMenuItem({
-  className,
-  ...props
-}: React.ComponentProps<"li">) {
-  return (
-    <li
-      data-slot="sidebar-menu-item"
-      data-sidebar="menu-item"
-      className={cn("group/menu-item relative", className)}
-      {...props}
-    />
-  );
-}
-
-// Sidebar menu button style variants
+//Sidebar menu button style variants.
 const sidebarMenuButtonVariants = cva(
   "peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm outline-hidden ring-sidebar-ring transition-[width,height,padding] hover:bg-gray-100 hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-gray-100 active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 group-has-data-[sidebar=menu-action]/menu-item:pr-8 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-[active=true]:bg-gray-200 data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[state=open]:hover:bg-sidebar-accent data-[state=open]:hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0 group-data-[collapsible=icon]:[&>svg]:size-5!",
   {
     variants: {
-      variant: {
-        default: "hover:bg-gray-100 hover:text-sidebar-accent-foreground",
-        outline:
-          "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-gray-100 hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
-      },
       size: {
         default: "h-8 text-sm",
         sm: "h-7 text-xs",
@@ -276,25 +301,23 @@ const sidebarMenuButtonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: "default",
       size: "default",
     },
   }
 );
 
+//Props for SidebarMenuButton component.
 export interface SidebarMenuButtonProps
   extends React.ComponentProps<"button">,
     VariantProps<typeof sidebarMenuButtonVariants> {
   asChild?: boolean;  
-  isActive?: boolean;  // Whether this menu item is currently active
+  isActive?: boolean;
 }
 
-// Sidebar menu button component
-// Interactive button for sidebar menu items
+//Interactive button for sidebar menu items.
 function SidebarMenuButton({
   asChild = false,
   isActive = false,
-  variant = "default",
   size = "default",
   className,
   ...props
@@ -307,75 +330,16 @@ function SidebarMenuButton({
       data-sidebar="menu-button"
       data-size={size}
       data-active={isActive}
-      className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
+      className={cn(sidebarMenuButtonVariants({ size }), className)}
       {...props}
     />
   );
 }
 
-// Sidebar wrapper component
-// Provides CSS variables for sidebar dimensions
-function SidebarWrapper({
-  className,
-  style,
-  children,
-  ...props
-}: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="sidebar-wrapper"
-      style={
-        {
-          "--sidebar-width": SIDEBAR_WIDTH,
-          "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
-          ...style,
-        } as React.CSSProperties
-      }
-      className={cn(
-        "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
+//Props for SidebarMenuButtonWithTooltip.
+export interface SidebarMenuButtonWithTooltipProps { tooltip?: string; children: React.ReactNode }
 
-// Props for SidebarSeparator component
-export interface SidebarSeparatorProps
-  extends React.ComponentPropsWithoutRef<typeof SeparatorPrimitive> {
-  orientation?: "horizontal" | "vertical";  // Orientation of the separator
-}
-
-// Visual divider for separating sidebar sections
-function SidebarSeparator({
-  className,
-  orientation = "horizontal",
-  ...props
-}: SidebarSeparatorProps) {
-  return (
-    <SeparatorPrimitive
-      data-slot="sidebar-separator"
-      data-sidebar="separator"
-      orientation={orientation}
-      className={cn(
-        "bg-onSurfaceVariant shrink-0",
-        orientation === "horizontal" ? "h-px w-auto mx-2" : "h-6 w-px mx-0",
-        className
-      )}
-      {...props}
-    />
-  );
-}
-
-// Props for SidebarMenuButtonWithTooltip
-export interface SidebarMenuButtonWithTooltipProps {
-  tooltip?: string;
-  children: React.ReactNode;
-}
-
-// Only shows tooltip when sidebar is collapsed
+//Wrapper that shows tooltip when sidebar is collapsed.
 function SidebarMenuButtonWithTooltip({
   tooltip,
   children,
@@ -393,15 +357,8 @@ function SidebarMenuButtonWithTooltip({
     <div
       ref={containerRef}
       className="relative inline-flex"
-      onMouseEnter={() => {
-        setShowTooltip(true);
-      }}
-      onMouseLeave={() => {
-        setShowTooltip(false);
-      }}
-      onBlur={() => {
-        setShowTooltip(false);
-      }}
+      onMouseEnter={() => { setShowTooltip(true) }}
+      onMouseLeave={() => { setShowTooltip(false) }}
     >
       {children}
       {showTooltip && (
@@ -423,5 +380,18 @@ function SidebarMenuButtonWithTooltip({
   );
 }
 
-export { Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarFooter, SidebarContent, SidebarGroup, SidebarGroupLabel, 
-         SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarWrapper, SidebarSeparator, SidebarMenuButtonWithTooltip };
+//Props for SidebarUserInfo component.
+export interface SidebarUserInfoProps { name: string; email: string; className?: string }
+
+//Shows user name and email in a formatted layout.
+function SidebarUserInfo({ name, email, className }: SidebarUserInfoProps) {
+  return (
+    <div className={cn("flex flex-col gap-1 text-left text-sm leading-tight", className)}>
+      <span className="truncate font-medium">{name}</span>
+      <span className="truncate text-xs text-onSurfaceVariant">{email}</span>
+    </div>
+  );
+}
+
+export { SidebarWrapper, SidebarInset, SidebarTrigger, SidebarSeparator, SidebarBreadcrumb, Sidebar, SidebarHeader, SidebarContent, 
+         SidebarFooter, SidebarGroup, SidebarGroupTitle, SidebarGroupItem, SidebarMenuButton, SidebarMenuButtonWithTooltip, SidebarUserInfo };

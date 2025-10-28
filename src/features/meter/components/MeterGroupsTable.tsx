@@ -2,10 +2,16 @@ import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AssetChip } from "@/components/AssetChip";
 import { DataTableExtended } from "@/components/DataTableExtended";
-import { Button, Badge } from "@/components/ui/components";
+import { Badge } from "@/components/ui/components";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/components/DropdownButton";
 import DeleteConfirmationDialog from "../../work-request/components/DeleteConfirmationDialog";
 import type { MeterGroup } from "@/types/meter";
-import { Delete } from "@/assets/icons";
+import { Delete, Dots } from "@/assets/icons";
 import { Copy } from "lucide-react";
 
 type MeterGroupsTableProps = {
@@ -129,27 +135,34 @@ export const MeterGroupsTable = ({
         cell: ({ row }) => {
           const group = row.original;
           return (
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCloneGroup(group.id);
-                }}
-              >
-                <Copy className="size-5" />Clone
-              </Button>
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteClick(group);
-                }}
-              >
-                <Delete className="size-5" />Delete
-              </Button>
+            <div className="flex items-center justify-center">
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <button
+                    className="p-1 rounded-md hover:bg-hover focus:outline-none focus:ring-2 focus:ring-primary"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Dots className="size-5 text-onSurface" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      onCloneGroup(group.id);
+                    }}
+                  >
+                    Clone
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      handleDeleteClick(group);
+                    }}
+                    className="text-error hover:bg-errorContainer"
+                  >
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           );
         },

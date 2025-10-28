@@ -1,6 +1,7 @@
-import React from 'react';
-import { AppLayout } from '@/layout/sidebar/AppLayout';
+import React, { useState } from 'react';
+import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
 import { TabHeader } from '@/components/TabHeader';
+import SelectDropdown, { type SelectDropdownOption } from '@/components/SelectDropdown';
 import AssetGroupsSearchAndFilter from '../components/AssetGroupsSearchAndFilter';
 import { AssetGroupsTable } from '../components/AssetGroupsTable';
 import AssetGroupFormModal from '../components/AssetGroupFormModal';
@@ -8,6 +9,18 @@ import { useAssetGroups } from '../hooks/useAssetGroups';
 import { ExportFile } from '@/assets/icons';
 
 const MaintainAssetGroupPage: React.FC = () => {
+  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'json' | 'txt' | 'html' | 'xml' | 'xlsx' | 'pdf'>('csv');
+
+  const exportOptions: SelectDropdownOption[] = [
+    { value: 'csv', label: 'CSV' },
+    { value: 'json', label: 'JSON' },
+    { value: 'txt', label: 'TXT' },
+    { value: 'html', label: 'HTML' },
+    { value: 'xml', label: 'XML' },
+    { value: 'xlsx', label: 'XLSX' },
+    { value: 'pdf', label: 'PDF' },
+  ];
+
   const {
     assetGroups,
     filteredAssetGroups,
@@ -29,11 +42,11 @@ const MaintainAssetGroupPage: React.FC = () => {
   } = useAssetGroups();
 
   const handleExport = () => {
-    exportData();
+    exportData(selectedFormat);
   };
 
   return (
-    <AppLayout
+    <SidebarHeader
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain Asset Group" },
@@ -44,18 +57,27 @@ const MaintainAssetGroupPage: React.FC = () => {
           title="Asset Group Management"
           subtitle="Manage asset group information and settings"
           customActions={
-            <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleExport}
-                  className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
-                  title="Export CSV"
-                >
+            <div className="flex items-center gap-2">
+              <SelectDropdown
+                value={selectedFormat}
+                onChange={(value) => { setSelectedFormat(value as 'csv' | 'json' | 'txt' | 'html' | 'xml' | 'xlsx' | 'pdf'); }}
+                options={exportOptions}
+                placeholder="Select format"
+                buttonVariant="outline"
+                buttonSize="sm"
+                className="min-w-[100px]"
+              />
+              <button
+                type="button"
+                onClick={handleExport}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+                title={`Export as ${selectedFormat.toUpperCase()}`}
+              >
                 <ExportFile className="w-4 h-4" />
-                  Export Data
-                </button>
-              </div>
-            }
+                Export Data
+              </button>
+            </div>
+          }
         />
 
         <AssetGroupsSearchAndFilter
@@ -87,7 +109,7 @@ const MaintainAssetGroupPage: React.FC = () => {
           clearValidationErrors={clearFormErrors}
         />
       </div>
-    </AppLayout>
+    </SidebarHeader>
   );
 };
 

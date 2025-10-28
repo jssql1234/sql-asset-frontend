@@ -30,6 +30,10 @@ export default defineConfig({
       "react-i18next",
       "lodash",
     ],
+    force: false,
+  },
+  css: {
+    devSourcemap: false,
   },
   build: {
     target: "esnext",

@@ -58,6 +58,8 @@ export {
   IconTrashFilled as BinFilled,
   IconMapPin as Location,
   IconMapPinFilled as LocationFilled,
+  IconBell as Bell,
+  IconBellFilled as BellFilled,
 } from "@tabler/icons-react";
 
 // Re-export icons with multiple names for compatibility

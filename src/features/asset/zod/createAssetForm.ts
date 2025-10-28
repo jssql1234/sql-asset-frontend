@@ -32,6 +32,8 @@ export const createAssetFormSchema = z.object({
   ownUseValue: z.string().optional(),
   ibApportionValue: z.string().optional(),
   agriAa: z.string().optional(),
+  selfUsePercentage: z.string().optional(),
+  rentedApportionPercentage: z.string().optional(),
 
   // Depreciation tab
   depreciationMethod: z.string(),
@@ -55,7 +57,6 @@ export const createAssetFormSchema = z.object({
   })),
 
   // Hire Purchase tab
-  hpCheck: z.boolean().optional(),
   hpStartDate: z.string().optional(),
   hpInstalment: z.string().optional(),
   hpInstalmentUser: z.string().optional(),

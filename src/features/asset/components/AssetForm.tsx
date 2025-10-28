@@ -11,11 +11,12 @@ import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
 import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
+import { AllowanceTab } from "./AllowanceTab";
+import { HirePurchaseTab } from "./HirePurchaseTab";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
-import { ALLOWANCE_GROUPS } from "@/constants/allowanceGroups";
 
 interface SerialNumberData {
   serial: string;
@@ -184,308 +185,6 @@ const DepreciationSchedulePanel: React.FC<{ view: DepreciationScheduleViewState 
     </Card>
   );
 };
-
-// Tab Components
-const AllowanceTab: React.FC<TabProps> = ({ register, setValue, watch, selectedTaxYear, taxYearOptions }) => {
-  const { hasPermission } = usePermissions();
-  const isTaxAgent = hasPermission("processCA", "execute");
-
-  // Generate CA Asset Group options from ALLOWANCE_GROUPS
-  const caAssetGroupOptions: SelectDropdownOption[] = useMemo(() => (
-    Object.entries(ALLOWANCE_GROUPS).map(([code, group]) => ({
-      value: code,
-      label: `${code} - ${group.name}`,
-    }))
-  ), []);
-
-  // For tax agents, allowance tab is readonly except for the most recent tax year
-  // Most recent tax year is determined by the highest year in available tax years
-  const mostRecentTaxYear = Math.max(...(taxYearOptions ?? []).map(option => parseInt(option.value)));
-  const selectedYearNum = selectedTaxYear ? parseInt(selectedTaxYear) : mostRecentTaxYear;
-  const isMostRecentTaxYear = selectedYearNum === mostRecentTaxYear;
-  const isReadonly = isTaxAgent && !isMostRecentTaxYear;
-
-  const caAssetGroupValue = watch("caAssetGroup", "");
-  const allowanceClassValue = watch("allowanceClass", "");
-  const subClassValue = watch("subClass", "");
-  const cost = watch("cost");
-  const quantityPerUnit = watch("quantityPerUnit");
-
-  // Generate Allowance Class options based on selected CA Asset Group
-  const allowanceClassOptions: SelectDropdownOption[] = useMemo(() => {
-    if (!caAssetGroupValue) {
-      return [];
-    }
-    const group = ALLOWANCE_GROUPS[caAssetGroupValue];
-    const costPerUnit = cost && quantityPerUnit ? parseFloat(cost) / quantityPerUnit : 0;
-    return Object.entries(group.classes).map(([code, allowanceClass]) => ({
-      value: code,
-      label: `${code} - ${allowanceClass.name}`,
-      disabled: code === "6" && costPerUnit > 2000,
-    }));
-  }, [caAssetGroupValue, cost, quantityPerUnit]);
-
-  // Generate Sub Class options based on selected Allowance Class
-  const subClassOptions: SelectDropdownOption[] = useMemo(() => {
-    if (!caAssetGroupValue || !allowanceClassValue) {
-      return [];
-    }
-    const group = ALLOWANCE_GROUPS[caAssetGroupValue];
-    const allowanceClass = group.classes[allowanceClassValue];
-    const entries = allowanceClass.entries;
-    return Object.entries(entries).map(([code, entry]) => ({
-      value: code,
-      label: code === "-" ? entry?.type ?? "N/A" : `${code} - ${entry?.type ?? "Unknown"}`,
-    }));
-  }, [caAssetGroupValue, allowanceClassValue]);
-
-  // Check if the selected class has subclasses
-  const hasSubclasses = useMemo(() => {
-    if (!caAssetGroupValue || !allowanceClassValue) return false;
-    const group = ALLOWANCE_GROUPS[caAssetGroupValue];
-    const allowanceClass = group.classes[allowanceClassValue];
-    const entries = allowanceClass.entries;
-    return Object.keys(entries).length > 1;
-  }, [caAssetGroupValue, allowanceClassValue]);
-
-  // Auto-populate IA and AA rates when subclass is selected
-  useEffect(() => {
-    if (caAssetGroupValue && allowanceClassValue && subClassValue) {
-
-      const entry = ALLOWANCE_GROUPS[caAssetGroupValue].classes[allowanceClassValue].entries[subClassValue];
-      if (entry) {
-        setValue("iaRate", entry.ia_rate.toString());
-        setValue("aaRate", entry.aa_rate.toString());
-      }
-    }
-  }, [caAssetGroupValue, allowanceClassValue, subClassValue, setValue]);
-
-  // Clear dependent fields when parent changes
-  useEffect(() => {
-    setValue("allowanceClass", "");
-    setValue("subClass", "");
-    setValue("iaRate", "");
-    setValue("aaRate", "");
-  }, [caAssetGroupValue, setValue]);
-
-  useEffect(() => {
-    setValue("subClass", "");
-    setValue("iaRate", "");
-    setValue("aaRate", "");
-  }, [allowanceClassValue, setValue]);
-
-  // Clear subclass when switching between classes to prevent stale values
-  useEffect(() => {
-    if (allowanceClassValue && caAssetGroupValue) {
-      const group = ALLOWANCE_GROUPS[caAssetGroupValue];
-      const allowanceClass = group.classes[allowanceClassValue];
-      const currentSubClass = watch("subClass");
-      if (currentSubClass && !(currentSubClass in allowanceClass.entries)) {
-        setValue("subClass", "");
-        setValue("iaRate", "");
-        setValue("aaRate", "");
-      }
-    }
-  }, [allowanceClassValue, caAssetGroupValue, setValue, watch]);
-
-  // Handle E6 class restriction based on cost per unit
-  useEffect(() => {
-    const costPerUnit = cost && quantityPerUnit ? parseFloat(cost) / quantityPerUnit : 0;
-
-    if (allowanceClassValue === "6" && costPerUnit > 2000) {
-      setValue("allowanceClass", "1");
-      setValue("subClass", "a");
-    }
-  }, [allowanceClassValue, cost, quantityPerUnit, setValue]);
-
-  // Auto-select subclass if there's only one option (no subclasses)
-  useEffect(() => {
-    if (caAssetGroupValue && allowanceClassValue && !hasSubclasses) {
-      const group = ALLOWANCE_GROUPS[caAssetGroupValue];
-      const allowanceClass = group.classes[allowanceClassValue];
-      const entries = allowanceClass.entries;
-      const singleEntryKey = Object.keys(entries)[0];
-      if (singleEntryKey) {
-        setValue("subClass", singleEntryKey);
-      }
-    }
-  }, [caAssetGroupValue, allowanceClassValue, hasSubclasses, setValue]);
-
-  return (
-    <Card className="p-6 shadow-sm">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">CA Asset Group</label>
-          <SelectDropdown
-            className="w-full"
-            value={caAssetGroupValue}
-            placeholder="-- Choose Group --"
-            options={caAssetGroupOptions}
-            onChange={(nextValue) => {
-              setValue("caAssetGroup", nextValue);
-            }}
-            disabled={isReadonly}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Allowance Class</label>
-          <SelectDropdown
-            className="w-full"
-            value={allowanceClassValue}
-            placeholder="-- Choose Code --"
-            options={allowanceClassOptions}
-            onChange={(nextValue) => {
-              setValue("allowanceClass", nextValue);
-            }}
-            disabled={isReadonly || !caAssetGroupValue}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Sub Class</label>
-          <SelectDropdown
-            className="w-full"
-            value={subClassValue}
-            placeholder="-- Choose Type --"
-            options={subClassOptions}
-            onChange={(nextValue) => {
-              setValue("subClass", nextValue);
-            }}
-            disabled={isReadonly || !hasSubclasses}
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">IA Rate</label>
-          <Input {...register("iaRate")} readOnly disabled />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">AA Rate</label>
-          <Input {...register("aaRate")} readOnly disabled />
-        </div>
-        <div className="flex items-center gap-2 mt-7">
-          <Option type="checkbox" {...register("aca")} checked={watch("aca")} disabled={isReadonly} />
-          <label className="body-small text-onSurfaceVariant">ACA</label>
-        </div>
-      </div>
-
-      {watch("caAssetGroup") === "vehicles" && (
-        <div className="space-y-3 mt-6">
-          <div className="flex items-center gap-2">
-            <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} disabled={isReadonly} />
-            <label className="body-small text-onSurfaceVariant">Motor Vehicle</label>
-          </div>
-          {watch("extraCheckbox") && (
-            <div className="ml-6 space-y-3">
-              <div className="flex items-center gap-2">
-                <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} disabled={isReadonly} />
-                <label className="body-small text-onSurfaceVariant">Commercial Use</label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly} />
-                <label className="body-small text-onSurfaceVariant">New Vehicle</label>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Qualify Amount (QE)</label>
-          <Input {...register("qeValue")} readOnly disabled={isReadonly} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Controlled Transfer In RE</label>
-          <Input {...register("residualExpenditure")} placeholder="0.00" disabled={isReadonly} />
-        </div>
-      </div>
-    </Card>
-  );
-};
-
-const HirePurchaseTab: React.FC<TabProps> = ({ register, setValue, watch, control }) => {
-  const hpInstalmentValue = watch("hpInstalment", "");
-  const { hasPermission } = usePermissions();
-  const isTaxAgent = hasPermission("processCA", "execute");
-  const isReadonly = isTaxAgent;
-
-  return (
-    <Card className="p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-6">
-        <Option type="checkbox" {...register("hpCheck")} disabled={isReadonly} />
-        <label className="body-small text-onSurfaceVariant">Hire Purchase</label>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">HP Start Date</label>
-          <Controller
-            name="hpStartDate"
-            control={control}
-            render={({ field }) => (
-              <SemiDatePicker
-                inputType="date"
-                value={field.value}
-                onChange={(date) => {
-                  let formatted = '';
-                  if (typeof date === 'string') {
-                    formatted = date;
-                  } else if (date instanceof Date) {
-                    formatted = date.toISOString().split('T')[0];
-                  }
-                  field.onChange(formatted);
-                }}
-                className="border-none"
-                disabled={isReadonly}
-              />
-            )}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">No. Instalment (months)</label>
-          <SelectDropdown
-            className="w-full"
-            value={hpInstalmentValue}
-            placeholder="Select Instalment"
-            options={[
-              { value: "12", label: "12" },
-              { value: "24", label: "24" },
-              { value: "36", label: "36" },
-              { value: "48", label: "48" },
-              { value: "60", label: "60" },
-              { value: "other", label: "Other" },
-            ]}
-            onChange={(nextValue) => {
-              setValue("hpInstalment", nextValue);
-            }}
-            disabled={isReadonly}
-          />
-        </div>
-        {hpInstalmentValue === "other" && (
-          <div>
-            <label className="block text-sm font-medium text-onSurface">Custom Instalment</label>
-            <Input type="number" {...register("hpInstalmentUser")} disabled={isReadonly} />
-          </div>
-        )}
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Deposit Amount</label>
-          <Input {...register("hpDeposit")} placeholder="0.00" disabled={isReadonly} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Interest Rate (%)</label>
-          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" disabled={isReadonly} />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Finance</label>
-          <Input {...register("hpFinance")} placeholder="0.00" disabled={isReadonly} />
-        </div>
-      </div>
-    </Card>
-  );
-};
-
 
 const AllocationTab: React.FC<TabProps> = ({ register, setValue, watch }) => {
   const branchOptions: SelectDropdownOption[] = useMemo(() => ([
@@ -723,6 +422,8 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     purchaseDate: "",
     acquireDate: "",
     taxYear: new Date().getFullYear().toString(),
+    selfUsePercentage: "100",
+    rentedApportionPercentage: "0",
   }), []);
 
   const {
@@ -1261,17 +962,16 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
               <DepreciationSchedulePanel view={depreciationScheduleView} />
             </div>
           )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-11 mt-0 w-auto">
-          <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
-            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
-          </Button>
-          <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
-            {isEditMode ? "Update Asset" : "Create Asset"}
-          </Button>
-        </div>
+        </div>  
+      </div>
+      {/* Footer */}
+      <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">
+        <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
+          {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
+        </Button>
+        <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+          {isEditMode ? "Update Asset" : "Create Asset"}
+        </Button>
       </div>
     </div>
   );

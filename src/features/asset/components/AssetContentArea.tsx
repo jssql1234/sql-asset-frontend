@@ -200,7 +200,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
-  const [isTaxView, setIsTaxView] = useState<boolean>(true);
   const [availableTaxYears, setAvailableTaxYears] = useState<SelectDropdownOption[]>([]);
 
   // Use external tax year if provided, otherwise use internal state
@@ -244,8 +243,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
-  // Determine effective user role based on admin toggle
-  const effectiveUserRole = isAdmin && !isTaxView ? 'normal' : (isTaxAgent ? 'taxAgent' : 'normal');
+  // Determine effective user role - admin always has admin role
+  const effectiveUserRole = isAdmin ? 'admin' : (isTaxAgent ? 'taxAgent' : 'normal');
 
   // Initialize available tax years if empty
   useEffect(() => {
@@ -288,6 +287,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
          if (asset) {
            setEditingAsset(asset);
            setView('edit');
+           void navigate(`/asset/edit-asset/${asset.id}`);
          } else {
            // Asset not found, redirect to list
            void navigate('/asset');
@@ -387,102 +387,78 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             title="Asset Management"
             subtitle="Manage and track all company assets"
             actions={[]}
+            inlineElements={
+              isTaxAgent ? [
+                {
+                  key: "tax-year-selector",
+                  element: (
+                    <div className="flex items-center gap-2 ml-5">
+                      <label className="text-sm font-medium text-onSurface">Tax Year:</label>
+                      <SelectDropdown
+                        className="w-40"
+                        value={selectedTaxYear}
+                        placeholder="Select Tax Year"
+                        options={taxYearOptions}
+                        onChange={setSelectedTaxYear}
+                      />
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          // Process Capital Allowance for the selected tax year
+                          addToast({
+                            variant: "info",
+                            title: "Processing Capital Allowance",
+                            description: `Starting Capital Allowance processing for YA ${selectedTaxYear}...`,
+                            duration: 2000,
+                          });
+
+                          // Simulate CA processing
+                          setTimeout(() => {
+                            // Calculate next tax year
+                            const currentYear = parseInt(selectedTaxYear);
+                            const nextTaxYear = (currentYear + 1).toString();
+
+                            // Add new tax year to available options
+                            const newTaxYearOption = {
+                              value: nextTaxYear,
+                              label: `YA ${nextTaxYear}`
+                            };
+
+                            setAvailableTaxYears(prev => {
+                              // Check if the year already exists
+                              const exists = prev.some(option => option.value === nextTaxYear);
+                              if (!exists) {
+                                return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value) - parseInt(a.value));
+                              }
+                              return prev;
+                            });
+
+                            addToast({
+                              variant: "success",
+                              title: "Capital Allowance Processed",
+                              description: `Successfully processed Capital Allowance for YA ${selectedTaxYear}. New tax year YA ${nextTaxYear} is now available.`,
+                              duration: 5000,
+                            });
+
+                            // Auto-select the new tax year
+                            setSelectedTaxYear(nextTaxYear);
+                          }, 3000);
+                        }}
+                      >
+                        Confirm Process Done
+                      </Button>
+                    </div>
+                  )
+                }
+              ] : []
+            }
           />
 
           <SummaryCards data={summaryCardsData} columns={3} />
 
           <div className="my-6 space-y-4">
-            {(isTaxAgent) && <div className="flex items-center gap-4 min-h-[40px]">
-              {((!isAdmin) || (isTaxView)) && (
-                <div className="flex items-center gap-2">
-                  <label className="text-sm font-medium text-onSurface">Tax Year:</label>
-                  <SelectDropdown
-                    className="w-40"
-                    value={selectedTaxYear}
-                    placeholder="Select Tax Year"
-                    options={taxYearOptions}
-                    onChange={setSelectedTaxYear}
-                  />
-
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      // Process Capital Allowance for the selected tax year
-                      addToast({
-                        variant: "info",
-                        title: "Processing Capital Allowance",
-                        description: `Starting Capital Allowance processing for YA ${selectedTaxYear}...`,
-                        duration: 2000,
-                      });
-
-                      // Simulate CA processing
-                      setTimeout(() => {
-                        // Calculate next tax year
-                        const currentYear = parseInt(selectedTaxYear);
-                        const nextTaxYear = (currentYear + 1).toString();
-
-                        // Add new tax year to available options
-                        const newTaxYearOption = {
-                          value: nextTaxYear,
-                          label: `YA ${nextTaxYear}`
-                        };
-
-                        setAvailableTaxYears(prev => {
-                          // Check if the year already exists
-                          const exists = prev.some(option => option.value === nextTaxYear);
-                          if (!exists) {
-                            return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value) - parseInt(a.value));
-                          }
-                          return prev;
-                        });
-
-                        addToast({
-                          variant: "success",
-                          title: "Capital Allowance Processed",
-                          description: `Successfully processed Capital Allowance for YA ${selectedTaxYear}. New tax year YA ${nextTaxYear} is now available.`,
-                          duration: 5000,
-                        });
-
-                        // Auto-select the new tax year
-                        setSelectedTaxYear(nextTaxYear);
-                      }, 3000);
-                    }}
-                  >
-                    Confirm Process Done
-                  </Button>
-                </div>
-              )}
-
-              {isAdmin && (
-                <div className="flex items-center gap-2 self-center ml-auto">
-                  <label className="text-sm font-medium text-onSurface">View:</label>
-                  <div
-                    className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden cursor-pointer"
-                    onClick={() => {
-                      setIsTaxView(!isTaxView);
-                    }}
-                  >
-                    <div
-                      className={cn(
-                        "px-3 py-1 body-small transition-colors",
-                        isTaxView && "bg-primary text-onPrimary"
-                      )}
-                    >
-                      Tax View
-                    </div>
-                    <div
-                      className={cn(
-                        "px-3 py-1 body-small transition-colors",
-                        !isTaxView && "bg-primary text-onPrimary"
-                      )}
-                    >
-                      User View
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>}            
 
             <Search
               searchValue={searchValue}
@@ -532,6 +508,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
               <Button size="sm" onClick={() => {
                 setView('create');
+                void navigate('/asset/create-asset');
               }}>
                 <Plus className="h-4 w-4" />
                 Add
@@ -553,6 +530,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                          if (asset) {
                            setEditingAsset(asset);
                            setView('edit');
+                           void navigate(`/asset/edit-asset/${asset.id}`);
                          }
                        }
                      }}
@@ -590,6 +568,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           onBack={() => {
             setView('list');
             setEditingAsset(null);
+            void navigate(`/asset`);
           }}
           onSuccess={(data) => {
             const asset: Asset = {
@@ -616,6 +595,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           onBack={() => {
             setView('list');
             setEditingAsset(null);
+            void navigate(`/asset`);
           }}
           onSuccess={(data) => {
             const asset: Asset = {

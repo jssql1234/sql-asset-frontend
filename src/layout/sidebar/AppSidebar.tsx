@@ -68,6 +68,18 @@ export function AppSidebar(props: SidebarProps) {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Notifications */}
+        <SidebarMenuButtonWithTooltip tooltip="Notifications">
+          <SidebarMenuButton
+            size="default"
+            onClick={() => void navigate("/notifications")}
+            className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
+          >
+            <Bell className="size-4 group-data-[collapsible=icon]:size-5" />
+            <span className="group-data-[collapsible=icon]:hidden">Notifications</span>
+          </SidebarMenuButton>
+        </SidebarMenuButtonWithTooltip>
         
         {/* Tools */}
         <DropdownMenu className="w-full">
@@ -105,8 +117,6 @@ export function AppSidebar(props: SidebarProps) {
             <SidebarUserInfo name={mockUser.name} email={mockUser.email} className="px-3 py-2" />
             <SidebarSeparator />
             <DropdownMenuItem className="flex items-center gap-2"><Settings className="size-4" /><span>Settings</span></DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2"><Bell className="size-4" /><span>Notifications</span></DropdownMenuItem>
-            <SidebarSeparator />
             <DropdownMenuItem className="flex items-center gap-2"><LogOut className="size-4" /><span>Log out</span></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

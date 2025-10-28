@@ -24,6 +24,7 @@ const MaintainCustomerPage = lazy(() => import("./features/maintain/pages/Mainta
 const MaintainSparePartPage = lazy(() => import("./features/maintain/pages/MaintainSparePartPage"));
 const MaintainServiceProviderPage = lazy(() => import("./features/maintain/pages/MaintainServiceProviderPage"));
 const AssetHistoryPage = lazy(() => import("./features/maintain/pages/AssetHistoryPage"));
+const NotificationPage = lazy(() => import("./features/notification/pages/NotificationPage"));
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
@@ -69,6 +70,7 @@ function AppRoutes() {
           <Route path="/insurance" element={<CoveragePage />} />
           <Route path="/meter-reading" element={<MeterPage />} />
           <Route path="/meter-reading/group/:groupId" element={<MeterGroupDetailPage />} />
+          <Route path="/notifications" element={<NotificationPage />} />
 
           {/* Maintenance Routes */}
           <Route path="/user-access-rights" element={<UserAccessRightsPage />} />

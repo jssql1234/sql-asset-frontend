@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { HomeFilled, Dots, User } from "@/assets/icons";
 import { Bell, ChevronsUpDown, LogOut, Settings } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenuButton, SidebarGroup, SidebarGroupTitle, SidebarSeparator, SidebarGroupItem, SidebarUserInfo } from "./SidebarPrimitives";
@@ -17,13 +17,16 @@ export function AppSidebar(props: SidebarProps) {
     <Sidebar collapsible="icon" {...props}>
       {/* Header - Home page */}
       <SidebarHeader>
-        <SidebarMenuButton size="lg">
-          <Link to="/asset" className="flex w-full items-center gap-2 group-data-[collapsible=icon]:gap-0">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <HomeFilled className="size-4" />
-            </div>
-            <span className="truncate font-medium group-data-[collapsible=icon]:hidden">SQL Asset</span>
-          </Link>
+        <SidebarMenuButton
+          size="lg"
+          type="button"
+          onClick={() => { void navigate("/asset"); }}
+          className="flex w-full items-center gap-2 group-data-[collapsible=icon]:gap-0"
+        >
+          <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+            <HomeFilled className="size-4" />
+          </div>
+          <span className="truncate font-medium group-data-[collapsible=icon]:hidden">SQL Asset</span>
         </SidebarMenuButton>
       </SidebarHeader>
 

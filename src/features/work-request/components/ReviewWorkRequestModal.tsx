@@ -243,6 +243,7 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
                 onSelectionChange={() => {}} // Disabled, no-op
                 placeholder="Assets selected for this request"
                 emptyMessage="No assets selected"
+                hideSearchField={true}
                 disable={true}
               />
             </div>

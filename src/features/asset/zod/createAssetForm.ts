@@ -57,7 +57,6 @@ export const createAssetFormSchema = z.object({
   })),
 
   // Hire Purchase tab
-  hpCheck: z.boolean().optional(),
   hpStartDate: z.string().optional(),
   hpInstalment: z.string().optional(),
   hpInstalmentUser: z.string().optional(),

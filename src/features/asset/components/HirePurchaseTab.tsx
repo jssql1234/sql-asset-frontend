@@ -23,10 +23,6 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
 
   return (
     <Card className="p-6 shadow-sm">
-      <div className="flex items-center gap-2 mb-6">
-        <Option type="checkbox" {...register("hpCheck")} disabled={isReadonly} />
-        <label className="body-small text-onSurfaceVariant">Hire Purchase</label>
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>

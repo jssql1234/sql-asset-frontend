@@ -23,6 +23,24 @@ import {
   type Header,
   type Row,
 } from '@tanstack/react-table';
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+} from '@dnd-kit/core';
+import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { DragOverlay } from '@dnd-kit/core';
 import { Skeleton } from '@/components/ui/components';
 import {
   Table,
@@ -43,14 +61,6 @@ import {
   fuzzyArrayIncludesFilterFn,
 } from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
-
-// Local interface to extend Meta with headerAlign
-interface ExtendedMeta {
-  label?: string;
-  filterOptions?: Record<string, string>;
-  className?: string;
-  headerAlign?: 'left' | 'center' | 'right';
-}
 
 // Extend the original DataTableProps with onRowDoubleClick
 interface DataTableExtendedProps<TData, TValue> {
@@ -94,6 +104,131 @@ function hasHeaderAlign<TData, TValue>(
   return 'headerAlign' in columnDef;
 }
 
+// Draggable header component (moved to top-level)
+function DraggableHeader<TData, TValue>({
+  header,
+  index,
+  totalHeaders,
+  activeId,
+  overId,
+}: {
+  header: Header<TData, TValue>;
+  index: number;
+  totalHeaders: number;
+  activeId: string | null;
+  overId: string | null;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: header.column.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  if (header.isPlaceholder) {
+    return (
+      <TableHead ref={setNodeRef} style={style} className="w-0">
+        <div className="w-0 h-0" />
+      </TableHead>
+    );
+  }
+
+  const headerContent = (
+    <div className="flex items-center gap-2">
+      <div
+        onClick={(e) => {
+          e.stopPropagation();  // Prevent DnD interference
+          header.column.getToggleSortingHandler()?.(e);
+        }}
+        className={cn('flex items-center gap-2 w-full justify-between select-none', {  // Ensure select-none
+          'cursor-pointer': header.column.getCanSort(),
+          'justify-end': hasHeaderAlign(header.column.columnDef) && header.column.columnDef.headerAlign === 'right',
+        })}
+      >
+        {flexRender(header.column.columnDef.header, header.getContext())}
+        <SortIndicator header={header} />
+      </div>
+
+      {header.column.getCanFilter() && (
+        <MemoizedTableFilter
+          column={header.column}
+          uniqueValues={Array.from(
+            new Set(
+              Array.from(header.column.getFacetedUniqueValues().keys()).flatMap(
+                (v) => {
+                  if (Array.isArray(v)) return v.map(String);
+                  if (typeof v === 'string')
+                    return v.split(',').map((s) => s.trim());
+                  return [String(v)];
+                }
+              )
+            )
+          )}
+          filterAlignment="center"
+        />
+      )}
+    </div>
+  );
+
+  const isActive = header.column.id === activeId;
+  const isOver = header.column.id === overId && !isActive;
+
+  return (
+    <TableHead
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}  // Apply listeners directly to TableHead for drag without visible handle
+      className={cn('relative group', {
+        'rounded-tl-md': index === 0,
+        'rounded-tr-md': index === totalHeaders - 1,
+        'opacity-50': isDragging,
+        'cursor-grab': !isDragging,  // Subtle cursor change on hover to indicate draggability
+        'cursor-grabbing': isDragging,
+        // Drop zone highlight
+        'border-2 border-primary bg-primary/10 rounded': isOver,
+      })}
+    >
+      {headerContent}
+    </TableHead>
+  );
+}
+
+// Drag Overlay for active header (moved to top-level)
+function ActiveHeaderOverlay<TData>({
+  headerId,
+  table,
+}: {
+  headerId: string | null;
+  table: TanStackTable<TData>;
+}) {
+  if (!headerId) return null;
+
+  const activeHeader = table.getHeaderGroups()[0]?.headers.find(h => h.column.id === headerId);
+  if (!activeHeader) return null;
+
+  return (
+    <DragOverlay>
+      <div className="flex items-center gap-2 bg-surfaceContainer px-3 py-2 rounded-md shadow-lg border">
+        <div className="flex items-center gap-2">
+          {flexRender(activeHeader.column.columnDef.header, activeHeader.getContext())}
+          <CaretUpDown className="w-4 h-4 text-onSurfaceVariant" />
+        </div>
+      </div>
+    </DragOverlay>
+  );
+}
+
 export function DataTableExtended<TData, TValue>({
   onRowDoubleClick,
   data,
@@ -123,17 +258,77 @@ export function DataTableExtended<TData, TValue>({
   const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
   const [internalGrouping, setInternalGrouping] = useState<GroupingState>([]);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
+  
+  // Column ordering state - safer initialization
+  const [columnOrder, setColumnOrder] = useState<string[]>(() => {
+    return columns.map((col, index) => {
+      if (col.id) return col.id;
+      // Check if accessorKey exists as a property
+      if ('accessorKey' in col && col.accessorKey) {
+        return String(col.accessorKey);
+      }
+      return `col-${index.toString()}`;
+    });
+  });
+  
+  // DnD state
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);  // Add back for drop indicator
 
   const currentRowSelection = rowSelection ?? internalRowSelection;
   const currentGrouping = grouping ?? internalGrouping;
   const currentExpanded = expanded ?? internalExpanded;
   const isExternalPagination = totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
 
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150,  // Short delay for clicks vs drags
+        tolerance: 5,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Reordering logic
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    setActiveId(active.id as string);
+    setOverId(null);  // Reset on start
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    if (over?.id !== activeId) {
+      setOverId(over?.id as string || null);
+    }
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (active.id !== over?.id && over?.id) {
+      const oldIndex = columnOrder.indexOf(active.id as string);
+      const newIndex = columnOrder.indexOf(over.id as string);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        setColumnOrder(arrayMove(columnOrder, oldIndex, newIndex));
+      }
+    }
+    
+    setActiveId(null);
+    setOverId(null);
+  };
+
   // Create table instance with faceted filtering support
   const table = useReactTable({
     data,
     columns: showCheckbox ? [createSelectionColumn<TData, TValue>(), ...columns] : columns,
     enableRowSelection: showCheckbox || enableRowClickSelection,
+    onColumnOrderChange: setColumnOrder,
     filterFromLeafRows: true,
     getCoreRowModel: getCoreRowModel(),
     
@@ -213,6 +408,7 @@ export function DataTableExtended<TData, TValue>({
         grouping: currentGrouping,
         expanded: currentExpanded,
       }),
+      columnOrder,
     },
     initialState: {
       pagination: {
@@ -263,54 +459,34 @@ export function DataTableExtended<TData, TValue>({
       <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
         <Table style={{ width: '100%', height: '100%' }}>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-tertiaryContainer/80">
-                {headerGroup.headers.map((header, index) => {
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragOver={handleDragOver}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
+                {table.getHeaderGroups().map((headerGroup) => {
+                  const totalHeaders = headerGroup.headers.length;
                   return (
-                    <TableHead
-                      key={header.id}
-                      className={cn('relative group', {
-                        'rounded-tl-md': index === 0,
-                        'rounded-tr-md': index === headerGroup.headers.length - 1,
-                      })}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div
-                          onClick={header.column.getToggleSortingHandler()}
-                          className={cn('flex items-center gap-2 w-full justify-between', {
-                            'cursor-pointer select-none': header.column.getCanSort(),
-                            'justify-end': hasHeaderAlign(header.column.columnDef) && header.column.columnDef.headerAlign === 'right',
-                          })}
-                        >
-                          {!header.isPlaceholder &&
-                            flexRender(header.column.columnDef.header, header.getContext())}
-                          <SortIndicator header={header} />
-                        </div>
-
-                        {header.column.getCanFilter() && (
-                          <MemoizedTableFilter
-                            column={header.column}
-                            uniqueValues={Array.from(
-                              new Set(
-                                Array.from(header.column.getFacetedUniqueValues().keys()).flatMap(
-                                  (v) => {
-                                    if (Array.isArray(v)) return v.map(String);
-                                    if (typeof v === 'string')
-                                      return v.split(',').map((s) => s.trim());
-                                    return [String(v)];
-                                  }
-                                )
-                              )
-                            )}
-                            filterAlignment="center"
-                          />
-                        )}
-                      </div>
-                    </TableHead>
+                    <TableRow key={headerGroup.id} className="hover:bg-tertiaryContainer/80">
+                      {headerGroup.headers.map((header, index) => (
+                        <DraggableHeader 
+                          key={header.id} 
+                          header={header} 
+                          index={index}
+                          totalHeaders={totalHeaders}
+                          activeId={activeId}
+                          overId={overId}
+                        />
+                      ))}
+                    </TableRow>
                   );
                 })}
-              </TableRow>
-            ))}
+              </SortableContext>
+              <ActiveHeaderOverlay headerId={activeId} table={table} />
+            </DndContext>
           </TableHeader>
           
           <TableBody>

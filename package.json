@@ -11,6 +11,7 @@
     "debug": "vite --force --debug plugin-transform"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
     "@douyinfe/semi-ui": "^2.86.0",
     "@fullcalendar/core": "^6.1.19",
     "@fullcalendar/daygrid": "^6.1.19",

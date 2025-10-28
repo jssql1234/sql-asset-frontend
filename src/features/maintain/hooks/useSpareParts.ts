@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   SparePart,
   SparePartsFilters,
@@ -11,8 +11,13 @@ import {
   generateSparePartId,
   isDuplicateSparePartId,
   validateSparePartForm,
+  calculateStockStatus,
+  formatCurrency,
+  formatDate,
 } from '../utils/sparePartsUtils';
 import { useToast } from '@/components/ui/components/Toast';
+import type { ExportColumn } from '@/utils/exportUtils';
+import { exportTableData } from '@/utils/exportUtils';
 
 // Sample data for initial development
 const sampleSpareParts: SparePart[] = [
@@ -98,6 +103,7 @@ export function useSpareParts() {
   const [editingPart, setEditingPart] = useState<SparePart | null>(null);
   const [formErrors, setFormErrors] = useState<SparePartValidationErrors>({});
   const { addToast } = useToast();
+
   const clearFormErrors = useCallback(() => {
     setFormErrors({});
   }, []);
@@ -235,20 +241,97 @@ export function useSpareParts() {
     persistSpareParts(sampleSpareParts);
   }, [clearFormErrors, persistSpareParts]);
 
-  const exportData = useCallback(() => {
-    if (typeof window === 'undefined') {
+  const exportColumns: ExportColumn<SparePart>[] = useMemo(() => ([
+    {
+      id: 'partId',
+      header: 'Part ID',
+      key: 'id',
+      getValue: (part: SparePart) => part.id,
+    },
+    {
+      id: 'name',
+      header: 'Name',
+      key: 'name',
+      getValue: (part: SparePart) => part.name,
+    },
+    {
+      id: 'description',
+      header: 'Description',
+      key: 'description',
+      getValue: (part: SparePart) => part.description,
+    },
+    {
+      id: 'category',
+      header: 'Category',
+      key: 'category',
+      getValue: (part: SparePart) => part.category,
+    },
+    {
+      id: 'stockQty',
+      header: 'Stock Qty',
+      key: 'stockQty',
+      getValue: (part: SparePart) => part.stockQty.toString(),
+    },
+    {
+      id: 'unitPrice',
+      header: 'Unit Price',
+      key: 'unitPrice',
+      getValue: (part: SparePart) => formatCurrency(part.unitPrice),
+    },
+    {
+      id: 'supplier',
+      header: 'Supplier',
+      key: 'supplier',
+      getValue: (part: SparePart) => part.supplier,
+    },
+    {
+      id: 'location',
+      header: 'Location',
+      key: 'location',
+      getValue: (part: SparePart) => part.location,
+    },
+    {
+      id: 'lastUpdated',
+      header: 'Last Updated',
+      key: 'lastUpdated',
+      getValue: (part: SparePart) => formatDate(part.lastUpdated),
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      key: 'status',
+      getValue: (part: SparePart) => calculateStockStatus(part.stockQty, part.lowStockThreshold, part.operationalStatus),
+    },
+  ]), []);
+
+  const exportData = useCallback((format: string, visibleIds: string[]) => {
+    const exportParts = selectedSpareParts.length > 0 
+      ? filteredSpareParts.filter(part => selectedSpareParts.includes(part.id))
+      : filteredSpareParts;
+
+    if (exportParts.length === 0) {
       return;
     }
 
-    const dataStr = JSON.stringify(spareParts, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `spare_parts_data_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }, [spareParts]);
+    let includedKeys = [...visibleIds];
+    if (includedKeys.includes('name') && !includedKeys.includes('description')) {
+      includedKeys = [...includedKeys, 'description'];
+    }
+
+    exportTableData(
+      exportParts,
+      exportColumns,
+      includedKeys,
+      format,
+      'spare-parts',
+      undefined,
+      { 
+        rootTag: 'spareParts', 
+        itemTag: 'part', 
+        htmlTitle: 'Spare Parts Export' 
+      }
+    );
+  }, [filteredSpareParts, selectedSpareParts, exportColumns]);
 
   const getNewSparePartId = useCallback(() => generateSparePartId(spareParts), [spareParts]);
 

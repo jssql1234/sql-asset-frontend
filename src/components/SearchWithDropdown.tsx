@@ -27,6 +27,7 @@ interface SearchWithDropdownProps {
   maxHeight?: string;
   emptyMessage?: string;
   hideSelectedField?: boolean;
+  hideSearchField?: boolean;
   disable?: boolean;
 }
 
@@ -42,6 +43,7 @@ export const SearchWithDropdown = ({
   maxHeight = "max-h-60",
   emptyMessage = "No results found",
   hideSelectedField = false,
+  hideSearchField = false,
   disable = false,
 }: SearchWithDropdownProps) => {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -128,135 +130,137 @@ export const SearchWithDropdown = ({
   return (
     <div className={cn("flex flex-col gap-3", className)}>
       {/* Search Bar Container */}
-      <div ref={containerRef} className="relative flex items-center">
-        {/* Category Dropdown (Single Select) */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={disable ? undefined : handleCategoryDropdownToggle}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2.5 bg-surfaceContainerHigh text-onSurface rounded-l-lg border border-r-0 border-outlineVariant hover:bg-surfaceContainerHighest transition-colors whitespace-nowrap h-[42px]",
-              isCategoryDropdownOpen && "bg-surfaceContainerHighest",
-              { "opacity-50 cursor-not-allowed": disable }
-            )}
-          >
-            <span className="label-large font-medium">{categoryLabel}</span>
-            <ChevronDown
+      {!hideSearchField && (
+        <div ref={containerRef} className="relative flex items-center">
+          {/* Category Dropdown (Single Select) */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={disable ? undefined : handleCategoryDropdownToggle}
               className={cn(
-                "h-4 w-4 text-onSurfaceVariant transition-transform",
-                isCategoryDropdownOpen && "rotate-180",
-                { "opacity-50": disable }
+                "flex items-center gap-2 px-4 py-2.5 bg-surfaceContainerHigh text-onSurface rounded-l-lg border border-r-0 border-outlineVariant hover:bg-surfaceContainerHighest transition-colors whitespace-nowrap h-[42px]",
+                isCategoryDropdownOpen && "bg-surfaceContainerHighest",
+                { "opacity-50 cursor-not-allowed": disable }
+              )}
+            >
+              <span className="label-large font-medium">{categoryLabel}</span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-onSurfaceVariant transition-transform",
+                  isCategoryDropdownOpen && "rotate-180",
+                  { "opacity-50": disable }
+                )}
+              />
+            </button>
+
+            {/* Category Dropdown List */}
+            {isCategoryDropdownOpen && (
+              <div className="absolute top-full left-0 z-50 mt-1 min-w-[200px] rounded-md border border-outlineVariant bg-surface shadow-lg">
+                <div className={cn("overflow-y-auto", maxHeight)}>
+                  {categories.map((category) => {
+                    const selected = category.id === selectedCategoryId;
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => handleCategoryClick(category.id)}
+                        className={cn(
+                          "flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors",
+                          selected && "bg-primaryContainer/30"
+                        )}
+                      >
+                        <div className="flex flex-col">
+                          <span
+                            className={cn(
+                              "font-medium",
+                              selected && "text-primary"
+                            )}
+                          >
+                            {category.label}
+                          </span>
+                          {category.sublabel && (
+                            <span className="text-xs text-onSurfaceVariant opacity-75">
+                              {category.sublabel}
+                            </span>
+                          )}
+                        </div>
+                        {selected && (
+                          <div className="flex items-center justify-center w-4 h-4 rounded-full bg-primary">
+                            <svg
+                              className="w-2.5 h-2.5 text-onPrimary"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={3}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Search Input (Multi-Select) */}
+          <div className="flex-1 relative">
+            <Input
+              ref={searchInputRef}
+              type="text"
+              placeholder={placeholder}
+              value={searchTerm}
+              onChange={
+                disable ? undefined : (e) => setSearchTerm(e.target.value)
+              }
+              onFocus={disable ? undefined : handleSearchFocus}
+              onKeyDown={disable ? undefined : handleKeyDown}
+              className={cn(
+                "w-full rounded-l-none border-outlineVariant focus:z-10 h-[42px]",
+                { "opacity-50 cursor-not-allowed": disable }
               )}
             />
-          </button>
 
-          {/* Category Dropdown List */}
-          {isCategoryDropdownOpen && (
-            <div className="absolute top-full left-0 z-50 mt-1 min-w-[200px] rounded-md border border-outlineVariant bg-surface shadow-lg">
-              <div className={cn("overflow-y-auto", maxHeight)}>
-                {categories.map((category) => {
-                  const selected = category.id === selectedCategoryId;
-                  return (
-                    <button
-                      key={category.id}
-                      type="button"
-                      onClick={() => handleCategoryClick(category.id)}
-                      className={cn(
-                        "flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors",
-                        selected && "bg-primaryContainer/30"
-                      )}
-                    >
-                      <div className="flex flex-col">
-                        <span
-                          className={cn(
-                            "font-medium",
-                            selected && "text-primary"
+            {/* Search Dropdown List */}
+            {isSearchDropdownOpen && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-md border border-outlineVariant bg-surface shadow-lg">
+                <div className={cn("overflow-y-auto", maxHeight)}>
+                  {filteredItems.length > 0 ? (
+                    filteredItems.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleItemClick(item.id)}
+                        className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{item.label}</span>
+                          {item.sublabel && (
+                            <span className="text-xs text-onSurfaceVariant opacity-75">
+                              {item.sublabel}
+                            </span>
                           )}
-                        >
-                          {category.label}
-                        </span>
-                        {category.sublabel && (
-                          <span className="text-xs text-onSurfaceVariant opacity-75">
-                            {category.sublabel}
-                          </span>
-                        )}
-                      </div>
-                      {selected && (
-                        <div className="flex items-center justify-center w-4 h-4 rounded-full bg-primary">
-                          <svg
-                            className="w-2.5 h-2.5 text-onPrimary"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={3}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
                         </div>
-                      )}
-                    </button>
-                  );
-                })}
+                      </button>
+                    ))
+                  ) : (
+                    <div className="px-4 py-6 text-center text-sm text-onSurfaceVariant">
+                      {emptyMessage}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {/* Search Input (Multi-Select) */}
-        <div className="flex-1 relative">
-          <Input
-            ref={searchInputRef}
-            type="text"
-            placeholder={placeholder}
-            value={searchTerm}
-            onChange={
-              disable ? undefined : (e) => setSearchTerm(e.target.value)
-            }
-            onFocus={disable ? undefined : handleSearchFocus}
-            onKeyDown={disable ? undefined : handleKeyDown}
-            className={cn(
-              "w-full rounded-l-none border-outlineVariant focus:z-10 h-[42px]",
-              { "opacity-50 cursor-not-allowed": disable }
             )}
-          />
-
-          {/* Search Dropdown List */}
-          {isSearchDropdownOpen && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-md border border-outlineVariant bg-surface shadow-lg">
-              <div className={cn("overflow-y-auto", maxHeight)}>
-                {filteredItems.length > 0 ? (
-                  filteredItems.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleItemClick(item.id)}
-                      className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">{item.label}</span>
-                        {item.sublabel && (
-                          <span className="text-xs text-onSurfaceVariant opacity-75">
-                            {item.sublabel}
-                          </span>
-                        )}
-                      </div>
-                    </button>
-                  ))
-                ) : (
-                  <div className="px-4 py-6 text-center text-sm text-onSurfaceVariant">
-                    {emptyMessage}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
-
+      )}
+      
       {/* Selected Items Display */}
       {!hideSelectedField || selectedIds.length > 0 ? (
         <Card className="bg-surfaceContainerLowest p-3 max-h-40 overflow-y-auto">

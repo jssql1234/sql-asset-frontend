@@ -20,6 +20,7 @@ interface SearchableInputDropdownProps {
   position?: 'top' | 'bottom';
   showDropdown?: boolean;
   hideEmptyMessage?: boolean;
+  defaultValue?: string;
 }
 
 const defOptions: DropdownOption[] = [];
@@ -36,6 +37,7 @@ const SearchableInputDropdown = ({
   position = 'bottom',
   showDropdown = true,
   hideEmptyMessage = true,
+  defaultValue,
 }: SearchableInputDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(value);
@@ -50,6 +52,19 @@ const SearchableInputDropdown = ({
 
   // Display all filtered options
   const displayedOptions = filteredOptions;
+
+  // Set default value on initial load only
+  useEffect(() => {
+    if (defaultValue && !value && options.length > 0) {
+      const defaultOption = options.find(option => option.id === defaultValue || option.label === defaultValue);
+      if (defaultOption) {
+        onChange(defaultOption.id);
+      } else {
+        // Fallback to first option if default value not found
+        onChange(options[0].id);
+      }
+    }
+  });
 
   useEffect(() => {
     if (value !== inputValue) {

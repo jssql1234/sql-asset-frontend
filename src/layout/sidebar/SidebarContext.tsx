@@ -2,7 +2,10 @@
 import * as React from "react";
 import { SIDEBAR_COOKIE_NAME, SIDEBAR_COOKIE_MAX_AGE, SIDEBAR_KEYBOARD_SHORTCUT } from "./SidebarConstant";
 
-// Sidebar state management context
+/**
+ * Type definition for the sidebar context value.
+ * Provides state and methods for controlling sidebar behavior.
+ */
 interface SidebarContextValue {
   state: "expanded" | "collapsed";
   open: boolean;
@@ -10,157 +13,94 @@ interface SidebarContextValue {
   toggleSidebar: () => void;
 }
 
-// Get a cookie value by name 
+//Retrieves a cookie value by name from document.cookie.
 function getCookieValue(name: string): string | null {   
-  if (typeof document === "undefined") {
-    return null;
-  }
-
+  if (typeof document === "undefined") return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  
-  if (parts.length === 2) {
-    return parts.pop()?.split(";").shift() ?? null;
-  }
-  
-  return null;
+  return parts.length === 2 ? parts.pop()?.split(";").shift() ?? null : null;
 }
 
-// Set a cookie with name, value, and max age
+//Sets a cookie with the specified name, value, and max age.
 function setCookie(name: string, value: string, maxAge: number): void {
-  if (typeof document === "undefined") {
-    return;
-  }
-
+  if (typeof document === "undefined") return;
   document.cookie = `${name}=${value}; path=/; max-age=${String(maxAge)}`;
 }
 
-// Parse boolean from cookie string value
-function parseBooleanCookie(value: string | null): boolean | null {
-  if (value === null) {
-    return null;
-  }
-  
-  return value === "true";
-}
-
-// Sidebar context for sharing state across components
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
-// Hook to access sidebar context
+/**
+ * Custom hook to access the sidebar context.
+ * Must be used within a SidebarProvider component.
+ * @returns The sidebar context value containing state and control methods
+ * @throws Error if used outside of SidebarProvider
+ */
 export function useSidebar(): SidebarContextValue {
-  // eslint-disable-next-line react-x/no-use-context
-  const context = React.useContext(SidebarContext);
-  
-  if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
-  }
+  const context = React.use(SidebarContext);
+  if (!context) throw new Error("useSidebar must be used within a SidebarProvider");
   return context;
 }
 
-// Props for SidebarProvider component
 export interface SidebarProviderProps {
   children: React.ReactNode;
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  className?: string;
-  style?: React.CSSProperties;
 }
 
-/* 
-Provider component for sidebar context
-Manages sidebar state and persistence
-*/
-export function SidebarProvider({
-  children,
-  defaultOpen = true,
-  open: controlledOpen,
-  onOpenChange,
-}: SidebarProviderProps) {
-  // Initialize sidebar state from cookie or default
+/**
+ * Provider component that manages sidebar state and persistence.
+ * Supports both controlled and uncontrolled modes, cookie persistence, and keyboard shortcuts.
+ */
+export function SidebarProvider({ children, defaultOpen = true, open: controlledOpen, onOpenChange }: SidebarProviderProps) {
+  // Get initial sidebar state from cookie or fall back to defaultOpen
   const getInitialOpenState = React.useCallback((): boolean => {
     const cookieValue = getCookieValue(SIDEBAR_COOKIE_NAME);
-    const parsedValue = parseBooleanCookie(cookieValue);
-    return parsedValue ?? defaultOpen;
+    return cookieValue === "true" || cookieValue === "false" ? cookieValue === "true" : defaultOpen;
   }, [defaultOpen]);
 
+  // Internal state for uncontrolled mode
   const [internalOpen, setInternalOpen] = React.useState(getInitialOpenState);
-  
-  // Use controlled value if provided, otherwise use internal state
+  // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen ?? internalOpen;
 
-  // Sync internal state when defaultOpen changes for uncontrolled usage
-  React.useEffect(() => {
-    if (controlledOpen === undefined) {
-      setInternalOpen(defaultOpen);
-      setCookie(SIDEBAR_COOKIE_NAME, String(defaultOpen), SIDEBAR_COOKIE_MAX_AGE);
-    }
-  }, [controlledOpen, defaultOpen]);
-
-  // Update sidebar open state and persist to cookie
+  // Update sidebar state and persist to cookie
   const setOpen = React.useCallback(
     (value: boolean | ((prev: boolean) => boolean)) => {
       const newOpenState = typeof value === "function" ? value(open) : value;
-      
-      // Update controlled or internal state
       if (onOpenChange) {
         onOpenChange(newOpenState);
       } else {
         setInternalOpen(newOpenState);
       }
-
-      // Persist to cookie
-      setCookie(
-        SIDEBAR_COOKIE_NAME,
-        String(newOpenState),
-        SIDEBAR_COOKIE_MAX_AGE
-      );
+      setCookie(SIDEBAR_COOKIE_NAME, String(newOpenState), SIDEBAR_COOKIE_MAX_AGE);
     },
     [open, onOpenChange]
   );
 
-  // Toggle sidebar between open and closed
+  // Toggle sidebar between open and closed states
   const toggleSidebar = React.useCallback(() => {
     setOpen((prev) => !prev);
   }, [setOpen]);
 
-  // Set up keyboard shortcut (Cmd/Ctrl + B)
+  // Set up keyboard shortcut (Cmd/Ctrl + S) to toggle sidebar
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (
-        event.key === SIDEBAR_KEYBOARD_SHORTCUT &&
-        (event.metaKey || event.ctrlKey)
-      ) {
+      if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
         toggleSidebar();
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => { window.removeEventListener("keydown", handleKeyDown); };
   }, [toggleSidebar]);
 
-  // Compute state string for data attributes
-  const state = open ? "expanded" : "collapsed";
-
-  // Memoize context value
+  // Memoize context value to prevent unnecessary re-renders
   const contextValue = React.useMemo<SidebarContextValue>(
-    () => ({
-      state,
-      open,
-      setOpen,
-      toggleSidebar,
-    }),
-    [state, open, setOpen, toggleSidebar]
+    () => ({ state: open ? "expanded" : "collapsed", open, setOpen, toggleSidebar }),
+    [open, setOpen, toggleSidebar]
   );
 
-  return (
-    // eslint-disable-next-line react-x/no-context-provider
-    <SidebarContext.Provider value={contextValue}>
-      {children}
-    </SidebarContext.Provider>
-  );
+  // eslint-disable-next-line react-x/no-context-provider
+  return <SidebarContext.Provider value={contextValue}>{children}</SidebarContext.Provider>;
 }

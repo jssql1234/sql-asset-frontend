@@ -6,6 +6,7 @@ import SelectDropdown from "@/components/SelectDropdown";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import type {
+  WorkOrder,
   WorkOrderFormData,
   MaintenanceType,
   MaintenancePriority,
@@ -23,10 +24,11 @@ import {
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 
-interface CreateWorkOrderModalProps {
+interface WorkOrderFormProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: WorkOrderFormData) => void;
+  workOrder?: WorkOrder | null; // Optional - null/undefined = create mode
   prefilledDates?: {
     scheduledDate?: string;
     scheduledStartDateTime?: string;
@@ -34,13 +36,16 @@ interface CreateWorkOrderModalProps {
   };
 }
 
-export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
+export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   isOpen,
   onClose,
   onSubmit,
+  workOrder = null,
   prefilledDates,
 }) => {
   const { addToast } = useToast();
+  const isEditMode = workOrder !== null;
+
   const [formData, setFormData] = useState<WorkOrderFormData>({
     workOrderNumber: "",
     assetId: "",
@@ -68,7 +73,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   const [assigneeOptions, setAssigneeOptions] =
     useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
   const [costAllocations, setCostAllocations] = useState<AssetCostAllocation[]>([]);
-  
+
   // Validation error states
   const [errors, setErrors] = useState<{
     assets?: boolean;
@@ -111,7 +116,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     setCostAllocations(newAllocations);
     setFormData((prev) => ({
       ...prev,
-      actualCost: formData.actualCost, // Keep the actual cost as is
+      actualCost: formData.actualCost,
       costAllocations: newAllocations,
     }));
   };
@@ -125,9 +130,45 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     { id: "tools", label: "Tools & Machinery", sublabel: "Welding Machines" },
   ];
 
-  // Generate work order number on mount
+  // Populate form when workOrder changes (Edit mode)
   useEffect(() => {
-    if (isOpen && !formData.workOrderNumber) {
+    if (workOrder) {
+      setFormData({
+        workOrderNumber: workOrder.workOrderNumber,
+        assetId: workOrder.assetId,
+        assetName: workOrder.assetName,
+        jobTitle: workOrder.jobTitle,
+        description: workOrder.description,
+        type: workOrder.type,
+        priority: workOrder.priority,
+        scheduledDate: workOrder.scheduledDate || "",
+        scheduledStartDateTime: workOrder.scheduledStartDateTime || "",
+        scheduledEndDateTime: workOrder.scheduledEndDateTime || "",
+        actualStartDateTime: workOrder.actualStartDateTime || "",
+        actualEndDateTime: workOrder.actualEndDateTime || "",
+        serviceBy: workOrder.serviceBy,
+        assignedTo: workOrder.assignedTo,
+        estimatedCost: workOrder.estimatedCost || 0,
+        actualCost: workOrder.actualCost || 0,
+        costAllocations: workOrder.costAllocations || [],
+        notes: workOrder.notes || "",
+        status: workOrder.status,
+      });
+
+      // Parse selected assets from workOrder
+      const assetIds = workOrder.assetId.split(",").map((id) => id.trim());
+      setSelectedAssets(assetIds);
+
+      // Set cost allocations if available
+      if (workOrder.costAllocations && workOrder.costAllocations.length > 0) {
+        setCostAllocations(workOrder.costAllocations);
+      }
+    }
+  }, [workOrder]);
+
+  // Generate work order number on mount (Create mode only)
+  useEffect(() => {
+    if (!isEditMode && isOpen && !formData.workOrderNumber) {
       const now = new Date();
       const year = now.getFullYear();
       const month = String(now.getMonth() + 1).padStart(2, "0");
@@ -139,14 +180,15 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
         workOrderNumber: `WO-${year}${month}-${random}`,
       }));
     }
-  }, [isOpen, formData.workOrderNumber]);
+  }, [isOpen, isEditMode, formData.workOrderNumber]);
 
-  // Update scheduled dates if prefilledDates changes
+  // Update scheduled dates if prefilledDates changes (Create mode)
   useEffect(() => {
     if (
-      prefilledDates?.scheduledDate ||
-      prefilledDates?.scheduledStartDateTime ||
-      prefilledDates?.scheduledEndDateTime
+      !isEditMode &&
+      (prefilledDates?.scheduledDate ||
+        prefilledDates?.scheduledStartDateTime ||
+        prefilledDates?.scheduledEndDateTime)
     ) {
       setFormData((prev) => ({
         ...prev,
@@ -157,18 +199,22 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
           prefilledDates.scheduledEndDateTime || prev.scheduledEndDateTime,
       }));
     }
-  }, [prefilledDates]);
+  }, [prefilledDates, isEditMode]);
 
   // Update assignee options based on service type
   useEffect(() => {
     if (formData.serviceBy === "In-House") {
       setAssigneeOptions(MOCK_TECHNICIANS);
-      setFormData((prev) => ({ ...prev, assignedTo: "" }));
+      if (!isEditMode) {
+        setFormData((prev) => ({ ...prev, assignedTo: "" }));
+      }
     } else if (formData.serviceBy === "Outsourced") {
       setAssigneeOptions(MOCK_VENDORS);
-      setFormData((prev) => ({ ...prev, assignedTo: "" }));
+      if (!isEditMode) {
+        setFormData((prev) => ({ ...prev, assignedTo: "" }));
+      }
     }
-  }, [formData.serviceBy]);
+  }, [formData.serviceBy, isEditMode]);
 
   // Clear cost allocations when assets change (for outsourced services)
   useEffect(() => {
@@ -203,7 +249,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       const selectedAssetObjects = assetIds
         .map((id) => MOCK_ASSETS.find((a) => a.id === id))
         .filter((a) => a !== undefined);
-      
+
       setFormData((prev) => ({
         ...prev,
         assetId: assetIds.join(","),
@@ -222,20 +268,20 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     if (selectedAssets.length === 0) {
       newErrors.assets = true;
     }
-    
+
     if (!formData.jobTitle) {
       newErrors.jobTitle = true;
     }
-    
+
     if (!formData.scheduledStartDateTime) {
       newErrors.scheduledStartDateTime = true;
     }
-    
+
     if (!formData.scheduledEndDateTime) {
       newErrors.scheduledEndDateTime = true;
     }
 
-    if (formData.assignedTo === "") { 
+    if (formData.assignedTo === "") {
       newErrors.assignedTo = true;
     }
 
@@ -270,7 +316,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     if (formData.serviceBy === "Outsourced" && formData.actualCost && formData.actualCost > 0) {
       const totalAllocated = costAllocations.reduce((sum, a) => sum + a.allocatedCost, 0);
       const difference = Math.abs(formData.actualCost - totalAllocated);
-      
+
       if (difference > 0.01) {
         newErrors.costAllocation = true;
       }
@@ -285,21 +331,22 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     // Include cost allocations in form data
     const submitData = {
       ...formData,
-      costAllocations: formData.serviceBy === "Outsourced" && selectedAssets.length > 0
-        ? costAllocations 
-        : undefined,
+      costAllocations:
+        formData.serviceBy === "Outsourced" && selectedAssets.length > 0
+          ? costAllocations
+          : undefined,
     };
 
     onSubmit(submitData);
-    
+
     // Show success toast
     addToast({
-      title: "Work Order Created",
-      description: `Work order ${formData.workOrderNumber} has been created successfully.`,
+      title: isEditMode ? "Work Order Updated" : "Work Order Created",
+      description: `Work order ${formData.workOrderNumber} has been ${isEditMode ? "updated" : "created"} successfully.`,
       variant: "success",
       duration: 3000,
     });
-    
+
     handleClose();
   };
 
@@ -336,7 +383,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-outlineVariant">
           <h2 className="headline-small font-semibold text-onSurface">
-            Create Work Order
+            {isEditMode ? "Edit Work Order" : "Create Work Order"}
           </h2>
         </div>
 
@@ -351,7 +398,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
               <div className="space-y-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Work Order Number <span className="text-error">*</span>
+                    Work Order No {!isEditMode && <span className="text-error">*</span>}
                   </label>
                   <Input
                     value={formData.workOrderNumber}
@@ -376,6 +423,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                     onSelectionChange={handleAssetSelectionChange}
                     placeholder="Search asset by name or ID..."
                     emptyMessage="No assets found"
+                    disable={isEditMode}
                   />
                   {errors.assets && (
                     <p className="text-error body-small mt-1">
@@ -514,6 +562,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                       setFormData((prev) => ({
                         ...prev,
                         serviceBy: value as ServiceBy,
+                        assignedTo: "", // Reset assignedTo when changing service type
                       }))
                     }
                     options={[
@@ -571,7 +620,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Scheduled Start Date & Time{" "}
+                    Scheduled Start  {" "}
                     <span className="text-error">*</span>
                   </label>
                   <div className={errors.scheduledStartDateTime ? "[&_.semi-input-wrapper]:border-error [&_.semi-input-wrapper]:focus-within:border-error" : ""}>
@@ -603,13 +652,13 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   </div>
                   {errors.scheduledStartDateTime && (
                     <p className="text-error body-small mt-1">
-                      Scheduled start date & time is required
+                      Scheduled start is required
                     </p>
                   )}
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Scheduled End Date & Time{" "}
+                    Scheduled End {" "}
                     <span className="text-error">*</span>
                   </label>
                   <div className={errors.scheduledEndDateTime ? "[&_.semi-input-wrapper]:border-error [&_.semi-input-wrapper]:focus-within:border-error" : ""}>
@@ -634,8 +683,8 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                           }));
                         }
                         if (errors.scheduledEndDateTime || errors.scheduledEndBeforeStart) {
-                          setErrors((prev) => ({ 
-                            ...prev, 
+                          setErrors((prev) => ({
+                            ...prev,
                             scheduledEndDateTime: false,
                             scheduledEndBeforeStart: false
                           }));
@@ -645,7 +694,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   </div>
                   {errors.scheduledEndDateTime && !errors.scheduledEndBeforeStart && (
                     <p className="text-error body-small mt-1">
-                      Scheduled end date & time is required
+                      Scheduled end is required
                     </p>
                   )}
                   {errors.scheduledEndBeforeStart && (
@@ -656,7 +705,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Actual Start Date & Time
+                    Actual Start
                   </label>
                   <SemiDatePicker
                     inputType="dateTime"
@@ -683,7 +732,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Actual End Date & Time
+                    Actual End 
                   </label>
                   <div className={errors.actualEndDateTime ? "[&_.semi-input-wrapper]:border-error [&_.semi-input-wrapper]:focus-within:border-error" : ""}>
                     <SemiDatePicker
@@ -707,8 +756,8 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                           }));
                         }
                         if (errors.actualEndDateTime || errors.actualEndBeforeStart) {
-                          setErrors((prev) => ({ 
-                            ...prev, 
+                          setErrors((prev) => ({
+                            ...prev,
                             actualEndDateTime: false,
                             actualEndBeforeStart: false
                           }));
@@ -716,9 +765,9 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                       }}
                     />
                   </div>
-                  <p className="body-small text-onSurfaceVariant mt-1">
+                  {/* <p className="body-small text-onSurfaceVariant mt-1">
                     Required for completed status
-                  </p>
+                  </p> */}
                   {errors.actualEndDateTime && !errors.actualEndBeforeStart && formData.status === "Completed" && (
                     <p className="text-error body-small mt-1">
                       Actual end date & time is required for completed work orders
@@ -789,7 +838,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               {/* Cost Distribution for Outsourced Services */}
               {formData.serviceBy === "Outsourced" && selectedAssets.length > 0 && (
                 <div className="mt-6">
@@ -843,6 +892,76 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                 className="w-full"
               />
             </section>
+
+            {/* Parts Used - Read Only (Edit mode only) */}
+            {isEditMode && workOrder?.partsUsed && workOrder.partsUsed.length > 0 && (
+              <section>
+                <h3 className="title-medium font-semibold text-onSurface mb-4">
+                  Parts Used
+                </h3>
+                <div className="border border-outlineVariant rounded-md overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-surfaceContainerLowest">
+                      <tr>
+                        <th className="px-4 py-2 text-left label-small text-onSurfaceVariant">
+                          Part Name
+                        </th>
+                        <th></th>
+                        <th className="px-4 py-2 text-right label-small text-onSurfaceVariant">
+                          Quantity
+                        </th>
+                        <th className="px-4 py-2 text-right label-small text-onSurfaceVariant">
+                          Unit Cost (RM)
+                        </th>
+                        <th className="px-4 py-2 text-right label-small text-onSurfaceVariant">
+                          Total (RM)
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {workOrder.partsUsed.map((part, index) => (
+                        <tr
+                          key={index}
+                          className="border-t border-outlineVariant"
+                        >
+                          <td className="px-4 py-2 body-small text-onSurface">
+                            {part.partName}
+                          </td>
+                          <td></td>
+                          <td className="px-4 py-2 body-small text-onSurface text-right">
+                            {part.quantity}
+                          </td>
+                          <td className="px-4 py-2 body-small text-onSurface text-right">
+                            {part.unitCost.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-2 body-small text-onSurface text-right font-semibold">
+                            {(part.quantity * part.unitCost).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="border-t border-outlineVariant bg-surfaceContainerLowest">
+                        <td
+                          colSpan={4}
+                          className="px-4 py-2 label-medium text-onSurface text-right"
+                        >
+                          Total Parts Cost:
+                        </td>
+                        <td className="px-4 py-2 label-medium text-onSurface text-right font-semibold">
+                          RM{" "}
+                          {workOrder.partsUsed
+                            .reduce(
+                              (sum, part) =>
+                                sum + part.quantity * part.unitCost,
+                              0
+                            )
+                            .toFixed(2)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            )}
           </div>
 
           {/* Footer Actions */}
@@ -858,7 +977,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
               type="submit"
               className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large"
             >
-              Create Work Order
+              {isEditMode ? "Save Changes" : "Create Work Order"}
             </button>
           </div>
         </form>
@@ -867,4 +986,4 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   );
 };
 
-export default CreateWorkOrderModal;
+export default WorkOrderForm;

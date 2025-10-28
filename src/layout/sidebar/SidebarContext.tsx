@@ -2,16 +2,8 @@
 import * as React from "react";
 import { SIDEBAR_COOKIE_NAME, SIDEBAR_COOKIE_MAX_AGE, SIDEBAR_KEYBOARD_SHORTCUT } from "./SidebarConstant";
 
-/**
- * Type definition for the sidebar context value.
- * Provides state and methods for controlling sidebar behavior.
- */
-interface SidebarContextValue {
-  state: "expanded" | "collapsed";
-  open: boolean;
-  setOpen: (open: boolean) => void;
-  toggleSidebar: () => void;
-}
+//Type definition for the sidebar context value to provides state and methods for controlling sidebar behavior.
+interface SidebarContextValue { state: "expanded" | "collapsed"; open: boolean; setOpen: (open: boolean) => void; toggleSidebar: () => void }
 
 //Retrieves a cookie value by name from document.cookie.
 function getCookieValue(name: string): string | null {   
@@ -26,7 +18,6 @@ function setCookie(name: string, value: string, maxAge: number): void {
   if (typeof document === "undefined") return;
   document.cookie = `${name}=${value}; path=/; max-age=${String(maxAge)}`;
 }
-
 const SidebarContext = React.createContext<SidebarContextValue | null>(null);
 
 /**
@@ -48,10 +39,7 @@ export interface SidebarProviderProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-/**
- * Provider component that manages sidebar state and persistence.
- * Supports both controlled and uncontrolled modes, cookie persistence, and keyboard shortcuts.
- */
+//Provider component that manages sidebar state and persistence (Supports both controlled and uncontrolled modes, cookie persistence, and keyboard shortcuts).
 export function SidebarProvider({ children, defaultOpen = true, open: controlledOpen, onOpenChange }: SidebarProviderProps) {
   // Get initial sidebar state from cookie or fall back to defaultOpen
   const getInitialOpenState = React.useCallback((): boolean => {

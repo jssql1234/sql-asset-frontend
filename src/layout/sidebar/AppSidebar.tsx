@@ -15,6 +15,7 @@ export function AppSidebar(props: SidebarProps) {
   
   return (
     <Sidebar collapsible="icon" {...props}>
+      {/* Header - Home page */}
       <SidebarHeader>
         <SidebarMenuButton size="lg">
           <Link to="/asset" className="flex w-full items-center gap-2 group-data-[collapsible=icon]:gap-0">
@@ -26,6 +27,7 @@ export function AppSidebar(props: SidebarProps) {
         </SidebarMenuButton>
       </SidebarHeader>
 
+      {/* Body - All module pages*/}
       <SidebarContent>
         {navigationSections.map((section, sectionIndex) => (
           <React.Fragment key={section.title}>
@@ -33,16 +35,13 @@ export function AppSidebar(props: SidebarProps) {
             
             <SidebarGroup className="p-0">
               <SidebarGroupTitle>{section.title}</SidebarGroupTitle>
-              <div className="flex w-full min-w-0 flex-col gap-1 px-2">
-                {section.items.map((item) => (
-                  <SidebarGroupItem key={item.name} item={item} pathname={location.pathname} />
-                ))}
-              </div>
+              <SidebarGroupItem items={section.items} pathname={location.pathname} />
             </SidebarGroup>
           </React.Fragment>
         ))}
       </SidebarContent>
-
+      
+      {/* Footer - Tools dropdown, profile dropdown, and switch user toggle(temporary) */}
       <SidebarFooter>
         <DropdownMenu className="w-full">
           <DropdownMenuTrigger>
@@ -53,9 +52,7 @@ export function AppSidebar(props: SidebarProps) {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="min-w-58 rounded-3xl border border-border" defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
             {users.map((user) => (
-              <DropdownMenuItem key={user.id} onClick={() => { setCurrentUser(user); }} className={currentUser?.id === user.id ? "bg-sidebar-accent" : ""}>
-                {user.name} ({user.email})
-              </DropdownMenuItem>
+              <DropdownMenuItem key={user.id} onClick={() => { setCurrentUser(user); }} className={currentUser?.id === user.id ? "bg-sidebar-accent" : ""}>{user.name} ({user.email})</DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>

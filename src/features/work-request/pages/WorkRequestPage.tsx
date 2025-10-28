@@ -211,6 +211,7 @@ const WorkRequestPage: React.FC = () => {
         onClose={handleCloseReviewModal}
         onSuccess={handleWorkRequestSuccess}
         onReject={() => {}}
+        onDelete={handleDeleteWorkRequest}
       />
     </AppLayout>
   );

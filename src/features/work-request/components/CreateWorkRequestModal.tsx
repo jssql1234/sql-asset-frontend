@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/components/Button';
 import { Input } from '@/components/ui/components/Input/Input';
+import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { FileInput } from '@/components/ui/components/Input/FileInput';
 import {
   Dialog,
@@ -11,6 +12,7 @@ import {
 } from '@/components/ui/components/Dialog';
 import { SearchWithDropdown } from '@/components/SearchWithDropdown';
 import SelectDropdown from '@/components/SelectDropdown';
+import { useToast } from '@/components/ui/components/Toast/useToast';
 
 import { useUserManagement } from '../hooks/useUserManagement';
 import { workRequestService } from '../services/workRequestService';
@@ -33,6 +35,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
   onSuccess,
 }) => {
   const { currentUser, isGuestUser } = useUserManagement();
+  const { addToast } = useToast();
 
   // Form state for create work request
   const [createForm, setCreateForm] = useState<Partial<CreateWorkRequestForm>>({
@@ -41,6 +44,15 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
     requestType: undefined,
     problemDescription: '',
     additionalNotes: '',
+  });
+
+  // Validation error states
+  const [errors, setErrors] = useState({
+    technicianName: false,
+    department: false,
+    selectedAssets: false,
+    requestType: false,
+    problemDescription: false,
   });
 
   // SearchWithDropdown state
@@ -80,19 +92,25 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
 
   const handleCreateWorkRequest = useCallback(async () => {
     try {
-      if (!createForm.technicianName || !createForm.department || !createForm.requestType || !createForm.problemDescription) {
-        alert('Please fill in all required fields.');
-        return;
-      }
+      // Validate all required fields
+      const newErrors = {
+        technicianName: !createForm.technicianName?.trim(),
+        department: !createForm.department?.trim(),
+        selectedAssets: selectedAssets.length === 0,
+        requestType: !createForm.requestType,
+        problemDescription: !createForm.problemDescription?.trim(),
+      };
 
-      if (selectedAssets.length === 0) {
-        alert('Please select at least one asset.');
+      setErrors(newErrors);
+
+      // Check if there are any errors
+      if (Object.values(newErrors).some(error => error)) {
         return;
       }
 
       const newWorkRequest = workRequestService.createWorkRequest({
-        requesterName: createForm.technicianName,
-        department: createForm.department,
+        requesterName: createForm.technicianName!,
+        department: createForm.department!,
         selectedAssets: selectedAssets.map(id => {
           const asset = MOCK_ASSETS.find(a => a.id === id);
           return asset ? {
@@ -104,8 +122,8 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
             }
           } : null;
         }).filter(asset => asset !== null) as WorkRequest['selectedAssets'],
-        requestType: createForm.requestType,
-        problemDescription: createForm.problemDescription,
+        requestType: createForm.requestType!,
+        problemDescription: createForm.problemDescription!,
         additionalNotes: createForm.additionalNotes,
         status: 'Pending',
         photos: uploadedPhotos ? Array.from(uploadedPhotos).map((file, index) => ({
@@ -127,16 +145,33 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
       setSelectedAssets([]);
       setSelectedCategory("all");
       setUploadedPhotos(null);
+      setErrors({
+        technicianName: false,
+        department: false,
+        selectedAssets: false,
+        requestType: false,
+        problemDescription: false,
+      });
       
       onSuccess(newWorkRequest);
       onClose();
 
-      alert(`Work request created successfully! Request ID: ${newWorkRequest.requestId}`);
+      addToast({
+        title: "Work Request Created Successfully",
+        description: `Request ID: ${newWorkRequest.requestId}`,
+        variant: "success",
+        duration: 7000,
+      });
     } catch (error) {
       console.error('Error creating work request:', error);
-      alert('Error creating work request. Please try again.');
+      addToast({
+        title: "Error Creating Work Request",
+        description: "An error occurred while creating the work request. Please try again.",
+        variant: "error",
+        duration: 10000,
+      });
     }
-  }, [createForm, selectedAssets, isGuestUser, currentUser, onSuccess, onClose]);
+  }, [createForm, selectedAssets, uploadedPhotos, isGuestUser, currentUser, onSuccess, onClose, addToast]);
 
   const handleClose = useCallback(() => {
     // Reset form when closing
@@ -150,6 +185,13 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
     setSelectedAssets([]);
     setSelectedCategory("all");
     setUploadedPhotos(null);
+    setErrors({
+      technicianName: false,
+      department: false,
+      selectedAssets: false,
+      requestType: false,
+      problemDescription: false,
+    });
     onClose();
   }, [isGuestUser, currentUser, onClose]);
 
@@ -170,11 +212,19 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
               <Input
                 type="text"
                 value={createForm.technicianName || ''}
-                onChange={(e) => setCreateForm(prev => ({ ...prev, technicianName: e.target.value }))}
+                onChange={(e) => {
+                  setCreateForm(prev => ({ ...prev, technicianName: e.target.value }));
+                  if (errors.technicianName && e.target.value.trim()) {
+                    setErrors(prev => ({ ...prev, technicianName: false }));
+                  }
+                }}
                 placeholder={isGuestUser ? 'Enter your name' : ''}
                 disabled={!isGuestUser}
-                className={!isGuestUser ? 'bg-surfaceContainerHigh' : ''}
+                className={`${!isGuestUser ? 'bg-surfaceContainerHigh' : ''} ${errors.technicianName ? 'border-error focus-visible:ring-error' : ''}`}
               />
+              {errors.technicianName && (
+                <p className="text-error body-small">Please enter requester name</p>
+              )}
             </div>
             
             <div className="space-y-2">
@@ -184,10 +234,18 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
               <Input
                 type="text"
                 value={createForm.department || ''}
-                onChange={(e) => setCreateForm(prev => ({ ...prev, department: e.target.value }))}
+                onChange={(e) => {
+                  setCreateForm(prev => ({ ...prev, department: e.target.value }));
+                  if (errors.department && e.target.value.trim()) {
+                    setErrors(prev => ({ ...prev, department: false }));
+                  }
+                }}
                 disabled={!isGuestUser}
-                className="bg-surfaceContainerHigh"
+                className={`bg-surfaceContainerHigh ${errors.department ? 'border-error focus-visible:ring-error' : ''}`}
               />
+              {errors.department && (
+                <p className="text-error body-small">Please enter department</p>
+              )}
             </div>
           </div>
 
@@ -206,10 +264,18 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
                 sublabel: asset.code,
               }))}
               selectedIds={selectedAssets}
-              onSelectionChange={handleAssetSelectionChange}
+              onSelectionChange={(assetIds) => {
+                handleAssetSelectionChange(assetIds);
+                if (errors.selectedAssets && assetIds.length > 0) {
+                  setErrors(prev => ({ ...prev, selectedAssets: false }));
+                }
+              }}
               placeholder="Search asset by name or ID..."
               emptyMessage="No assets found"
             />
+            {errors.selectedAssets && (
+              <p className="text-error body-small">Please select at least one asset</p>
+            )}
           </div>
 
           {/* Request Type */}
@@ -219,7 +285,12 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
             </label>
             <SelectDropdown
               value={createForm.requestType || ''}
-              onChange={(value) => setCreateForm(prev => ({ ...prev, requestType: value as WorkRequest['requestType'] }))}
+              onChange={(value) => {
+                setCreateForm(prev => ({ ...prev, requestType: value as WorkRequest['requestType'] }));
+                if (errors.requestType && value) {
+                  setErrors(prev => ({ ...prev, requestType: false }));
+                }
+              }}
               options={[
                 { value: '', label: 'Select Type', disabled: true },
                 { value: 'Maintenance', label: 'Maintenance' },
@@ -228,8 +299,11 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
                 { value: 'Emergency', label: 'Emergency' },
               ]}
               placeholder="Select Type"
-              className="w-full"
+              className={`w-full ${errors.requestType ? 'border-error' : ''}`}
             />
+            {errors.requestType && (
+              <p className="text-error body-small">Please select a request type</p>
+            )}
           </div>
 
           {/* Problem Description */}
@@ -237,12 +311,18 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
             <label className="text-sm font-medium text-onSurface">
               Problem Description <span className="text-error">*</span>
             </label>
-            <textarea
+            <TextArea
               value={createForm.problemDescription || ''}
-              onChange={(e) => setCreateForm(prev => ({ ...prev, problemDescription: e.target.value }))}
+              onChange={(e) => {
+                setCreateForm(prev => ({ ...prev, problemDescription: e.target.value }));
+                if (errors.problemDescription && e.target.value.trim()) {
+                  setErrors(prev => ({ ...prev, problemDescription: false }));
+                }
+              }}
               placeholder="Describe the problem or maintenance needed..."
               rows={4}
-              className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-vertical"
+              className={errors.problemDescription ? 'border-error focus-visible:ring-error' : ''}
+              errorMsg={errors.problemDescription ? 'Please provide a problem description' : undefined}
             />
           </div>
 
@@ -267,12 +347,11 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
             <label className="text-sm font-medium text-onSurface">
               Additional Notes
             </label>
-            <textarea
+            <TextArea
               value={createForm.additionalNotes || ''}
               onChange={(e) => setCreateForm(prev => ({ ...prev, additionalNotes: e.target.value }))}
               placeholder="Any additional information or special requirements..."
               rows={3}
-              className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-vertical"
             />
           </div>
         </div>

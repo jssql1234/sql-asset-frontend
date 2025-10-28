@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/components/Button';
 import { Input } from '@/components/ui/components/Input/Input';
+import { TextArea } from '@/components/ui/components/Input/TextArea';
 import {
   Dialog,
   DialogContent,
@@ -12,12 +13,15 @@ import {
 import { SearchWithDropdown } from '@/components/SearchWithDropdown';
 import { WorkRequestStatusBadge } from './WorkRequestBadges';
 import { MaintenanceHistoryTable } from './MaintenanceHistoryTable';
+import { CreateWorkOrderModal } from '@/features/work-order/components/CreateWorkOrderModal';
+import { useToast } from '@/components/ui/components/Toast/useToast';
 import { workRequestService, maintenanceHistoryService } from '../services/workRequestService';
 
 import type { 
   WorkRequest,
   MaintenanceHistory
 } from '@/types/work-request';
+import type { WorkOrderFormData } from '@/features/work-order/types';
 
 interface ReviewWorkRequestModalProps {
   isOpen: boolean;
@@ -34,9 +38,17 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   onSuccess,
   onReject: _onReject,
 }) => {
+  const { addToast } = useToast();
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory[]>([]);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [rejectReasonError, setRejectReasonError] = useState(false);
+  const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] = useState(false);
+  const [prefilledWorkOrderData, setPrefilledWorkOrderData] = useState<{
+    assetIds: string[];
+    description: string;
+    jobTitle: string;
+  } | null>(null);
 
   // Asset categories for SearchWithDropdown (disabled in review mode)
   const assetCategories = [
@@ -65,20 +77,64 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   const handleApproveWorkRequest = async () => {
     if (!workRequest) return;
 
+    // Prepare description from work request details
+    const description = `Request Type: ${workRequest.requestType}
+Requester: ${workRequest.requesterName}
+Department: ${workRequest.department}
+
+Problem Description:
+${workRequest.problemDescription}
+
+${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNotes}` : ''}`.trim();
+
+    // Prepare asset IDs from selected assets
+    const assetIds = workRequest.selectedAssets.map((asset) => asset.main.code);
+
+    // Generate job title from request type and assets
+    const assetNames = workRequest.selectedAssets.map((asset) => asset.main.name).join(', ');
+    const jobTitle = `${workRequest.requestType} - ${assetNames.length > 50 ? assetNames.substring(0, 50) + '...' : assetNames}`;
+
+    // Set prefilled data and open work order modal
+    setPrefilledWorkOrderData({
+      assetIds,
+      description,
+      jobTitle,
+    });
+    setIsCreateWorkOrderModalOpen(true);
+  };
+
+  const handleWorkOrderCreated = async (data: WorkOrderFormData) => {
+    if (!workRequest) return;
+
     try {
+      // Update work request status to approved
       workRequestService.updateWorkRequestStatus(workRequest.id, 'Approved');
+      
+      // Close both modals
+      setIsCreateWorkOrderModalOpen(false);
       onSuccess();
       onClose();
-      alert('Work request has been approved successfully.');
+      
+      addToast({
+        title: "Success to Approved & Create Work Order",
+        // description: "Work order created and work request approved successfully.",
+        variant: "success",
+        duration: 7000,
+      });
     } catch (error) {
-      console.error('Error approving work request:', error);
-      alert('Error approving work request. Please try again.');
+      console.error('Error updating work request status:', error);
+      addToast({
+        title: "Partial Success",
+        description: "Work order created but failed to update work request status.",
+        variant: "warning",
+        duration: 10000,
+      });
     }
   };
 
   const handleRejectWorkRequest = async () => {
     if (!rejectReason.trim()) {
-      alert('Please provide a rejection reason.');
+      setRejectReasonError(true);
       return;
     }
 
@@ -88,18 +144,33 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
       workRequestService.updateWorkRequestStatus(workRequest.id, 'Rejected', rejectReason);
       setIsRejectModalOpen(false);
       setRejectReason('');
+      setRejectReasonError(false);
       onSuccess();
       onClose();
-      alert('Work request has been rejected successfully.');
+      
+      addToast({
+        title: "Success to Reject Work Request",
+        // description: "Work request has been rejected successfully.",
+        variant: "success",
+        duration: 7000,
+      });
     } catch (error) {
       console.error('Error rejecting work request:', error);
-      alert('Error rejecting work request. Please try again.');
+      addToast({
+        title: "Error",
+        description: "Error rejecting work request. Please try again.",
+        variant: "error",
+        duration: 10000,
+      });
     }
   };
 
   const handleClose = () => {
     setIsRejectModalOpen(false);
     setRejectReason('');
+    setRejectReasonError(false);
+    setIsCreateWorkOrderModalOpen(false);
+    setPrefilledWorkOrderData(null);
     onClose();
   };
 
@@ -249,15 +320,32 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
               className="bg-green-600 hover:bg-green-700 text-white"
               onClick={handleApproveWorkRequest}
             >
-              Approve
+              Approve & Create Work Order
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Create Work Order Modal */}
+      {prefilledWorkOrderData && workRequest && (
+        <CreateWorkOrderModal
+          isOpen={isCreateWorkOrderModalOpen}
+          onClose={() => {
+            setIsCreateWorkOrderModalOpen(false);
+            setPrefilledWorkOrderData(null);
+          }}
+          onSubmit={handleWorkOrderCreated}
+          prefilledData={{
+            assetIds: prefilledWorkOrderData.assetIds,
+            description: prefilledWorkOrderData.description,
+            jobTitle: prefilledWorkOrderData.jobTitle,
+          }}
+        />
+      )}
+
       {/* Reject Reason Modal */}
       <Dialog open={isRejectModalOpen} onOpenChange={setIsRejectModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="w-max-full w-150">
           <DialogHeader>
             <DialogTitle>Reject Work Request</DialogTitle>
           </DialogHeader>
@@ -267,12 +355,18 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
               <label className="text-sm font-medium text-onSurface">
                 Rejection Reason <span className="text-error">*</span>
               </label>
-              <textarea
+              <TextArea
                 value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
+                onChange={(e) => {
+                  setRejectReason(e.target.value);
+                  if (rejectReasonError && e.target.value.trim()) {
+                    setRejectReasonError(false);
+                  }
+                }}
                 placeholder="Please provide a detailed reason for rejecting this work request..."
                 rows={4}
-                className="w-full px-3 py-2 border border-outlineVariant rounded-md bg-surface text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary resize-vertical"
+                className={rejectReasonError ? 'border-error focus-visible:ring-error' : ''}
+                errorMsg={rejectReasonError ? 'Please provide a rejection reason' : undefined}
               />
             </div>
           </div>
@@ -283,6 +377,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
               onClick={() => {
                 setIsRejectModalOpen(false);
                 setRejectReason('');
+                setRejectReasonError(false);
               }}
             >
               Back

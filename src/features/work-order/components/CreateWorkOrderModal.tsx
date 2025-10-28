@@ -32,6 +32,11 @@ interface CreateWorkOrderModalProps {
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
   };
+  prefilledData?: {
+    assetIds?: string[];
+    jobTitle?: string;
+    description?: string;
+  };
 }
 
 export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
@@ -39,6 +44,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   onClose,
   onSubmit,
   prefilledDates,
+  prefilledData,
 }) => {
   const { addToast } = useToast();
   const [formData, setFormData] = useState<WorkOrderFormData>({
@@ -158,6 +164,33 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
       }));
     }
   }, [prefilledDates]);
+
+  // Update form data if prefilledData changes
+  useEffect(() => {
+    if (isOpen && prefilledData) {
+      if (prefilledData.assetIds && prefilledData.assetIds.length > 0) {
+        setSelectedAssets(prefilledData.assetIds);
+        
+        const selectedAssetObjects = prefilledData.assetIds
+          .map((id) => MOCK_ASSETS.find((a) => a.id === id || a.code === id))
+          .filter((a) => a !== undefined);
+        
+        setFormData((prev) => ({
+          ...prev,
+          assetId: prefilledData.assetIds!.join(","),
+          assetName: selectedAssetObjects.map((a) => a!.name).join(", "),
+          jobTitle: prefilledData.jobTitle || prev.jobTitle,
+          notes: prefilledData.description || prev.description,
+        }));
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          jobTitle: prefilledData.jobTitle || prev.jobTitle,
+          notes: prefilledData.description || prev.description,
+        }));
+      }
+    }
+  }, [isOpen, prefilledData]);
 
   // Update assignee options based on service type
   useEffect(() => {

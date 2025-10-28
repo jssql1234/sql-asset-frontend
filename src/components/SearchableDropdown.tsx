@@ -20,7 +20,7 @@ interface SearchableDropdownProps {
   /** Show search input inside dropdown instead of button */
   searchInDropdown?: boolean;
   /** Force dropdown to open upward */
-  position?: 'top' | 'bottom' | 'auto';
+  position?: 'top' | 'bottom';
 }
 
 export const SearchableDropdown = ({

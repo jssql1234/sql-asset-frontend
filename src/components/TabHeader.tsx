@@ -19,6 +19,7 @@ interface TabHeaderProps {
   subtitle?: string;
   actions?: TabHeaderAction[];
   customActions?: ReactNode;
+  inlineElements?: { key: string; element: ReactNode }[];
   className?: string;
 }
 
@@ -27,6 +28,7 @@ export const TabHeader = ({
   subtitle,
   actions,
   customActions,
+  inlineElements,
   className,
 }: TabHeaderProps) => {
   const renderInlineActions = () => {
@@ -41,7 +43,7 @@ export const TabHeader = ({
           size={size ?? "sm"}
           onClick={onAction}
           disabled={disabled}
-          className={cn("ml-3", tooltip ? `has-tooltip ${className || ""}` : className)}
+          className={cn("ml-3", tooltip ? `has-tooltip ${className ?? ""}` : className)}
           data-tooltip={tooltip}
         >
           {icon}
@@ -55,7 +57,7 @@ export const TabHeader = ({
       return customActions;
     }
 
-    const regularActions = actions?.filter(action => action.position !== "inline") || [];
+    const regularActions = actions?.filter(action => action.position !== "inline") ?? [];
 
     if (!regularActions.length) {
       return null;
@@ -70,7 +72,7 @@ export const TabHeader = ({
             size={size ?? (regularActions.length > 1 ? "sm" : "default")}
             onClick={onAction}
             disabled={disabled}
-            className={tooltip ? `has-tooltip ${className || ""}` : className}
+            className={tooltip ? `has-tooltip ${className ?? ""}` : className}
             data-tooltip={tooltip}
           >
             {icon}
@@ -91,6 +93,11 @@ export const TabHeader = ({
           ) : null}
         </div>
         {renderInlineActions()}
+        {inlineElements?.map(({ key, element }) => (
+          <div key={key} className="ml-3">
+            {element}
+          </div>
+        ))}
       </div>
       {renderActions()}
     </div>

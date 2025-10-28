@@ -8,7 +8,9 @@ import {
 } from "@/components/ui/components/Dialog";
 import { Button } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
+import SelectDropdown from "@/components/SelectDropdown";
 import type { Meter, MeterCondition } from "../../../types/meter";
+import { Delete } from "@/assets/icons";
 
 type MeterWithConditions = Meter;
 
@@ -148,7 +150,7 @@ const EditMeterModal = ({
 
             {/* Conditions List */}
             <div className="flex flex-col gap-3">
-              {conditions.map((condition) => (
+              {conditions.map((condition, index) => (
                 <div
                   key={condition.id}
                   className="flex items-center gap-3 rounded border border-outlineVariant bg-surfaceContainerLowest p-3"
@@ -158,42 +160,37 @@ const EditMeterModal = ({
                   </span>
 
                   {/* Condition Target */}
-                  <select
+                  <SelectDropdown
                     value={condition.conditionTarget}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       handleConditionChange(
                         condition.id,
                         "conditionTarget",
-                        e.target.value
+                        value
                       )
                     }
-                    className="rounded border border-outlineVariant bg-surface px-3 py-2 text-sm text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {CONDITION_TARGET_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={CONDITION_TARGET_OPTIONS}
+                    buttonSize="sm"
+                    matchTriggerWidth={true}
+                    className="w-53"
+                  />
 
                   {/* Operator */}
-                  <select
+                  <SelectDropdown
                     value={condition.operator}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       handleConditionChange(
                         condition.id,
                         "operator",
-                        e.target.value
+                        value
                       )
                     }
-                    className="rounded border border-outlineVariant bg-surface px-3 py-2 text-sm text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {OPERATOR_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={OPERATOR_OPTIONS}
+                    buttonSize="sm"
+                    matchTriggerWidth={true}
+                    className="w-67"
+                    maxVisibleOptions={index === conditions.length - 1 ? 3 : undefined}
+                  />
 
                   {/* Value */}
                   <Input
@@ -215,46 +212,40 @@ const EditMeterModal = ({
                   </span>
 
                   {/* Trigger Action */}
-                  <select
+                  <SelectDropdown
                     value={condition.triggerAction}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       handleConditionChange(
                         condition.id,
                         "triggerAction",
-                        e.target.value
+                        value
                       )
                     }
-                    className="flex-1 rounded border border-outlineVariant bg-surface px-3 py-2 text-sm text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {TRIGGER_ACTION_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={TRIGGER_ACTION_OPTIONS}
+                    className="w-96"
+                    buttonSize="sm"
+                    matchTriggerWidth={true}
+                  />
 
                   <span className="text-sm font-medium text-onSurfaceVariant">
                     in
                   </span>
 
                   {/* Trigger Mode */}
-                  <select
+                  <SelectDropdown
                     value={condition.triggerMode}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       handleConditionChange(
                         condition.id,
                         "triggerMode",
-                        e.target.value
+                        value
                       )
                     }
-                    className="rounded border border-outlineVariant bg-surface px-3 py-2 text-sm text-onSurface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                  >
-                    {TRIGGER_MODE_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
+                    options={TRIGGER_MODE_OPTIONS}
+                    buttonSize="sm"
+                    matchTriggerWidth={true}
+                    className="w-30"
+                  />
 
                   {/* Remove Button */}
                   <Button
@@ -263,7 +254,7 @@ const EditMeterModal = ({
                     onClick={() => handleRemoveCondition(condition.id)}
                     className="px-3"
                   >
-                    ×
+                    <Delete />
                   </Button>
                 </div>
               ))}

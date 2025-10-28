@@ -10,6 +10,7 @@ import ErrorBoundary from "@/components/errors/ErrorBoundary";
 import ErrorFallback from "@/components/errors/ErrorFallback";
 import { logError } from "@/utils/logger";
 
+
 const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {

@@ -10,9 +10,11 @@ export function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <SidebarWrapper>
-        <AppSidebar />  {/* Actual sidebar */}
-        <SidebarInset>  {/* Main content area (Right side of sidebar) */}
-
+        {/* Actual sidebar */}
+        <AppSidebar />  
+        {/* Main content area (Right side of sidebar) */}
+        <SidebarInset>  
+          
           {/* Sticky header with breadcrumbs and logo */}
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex flex-1 items-center gap-2 px-4">
@@ -27,7 +29,8 @@ export function AppLayout({ children, breadcrumbs }: AppLayoutProps) {
             </div>
           </header>
 
-          <main className="flex flex-1 flex-col gap-4 p-4 pt-4"> {children}</main>  {/* Page content */}
+          {/* Page content */}
+          <main className="flex flex-1 flex-col gap-4 p-4 pt-4"> {children}</main>  
         </SidebarInset>
       </SidebarWrapper>
     </SidebarProvider>

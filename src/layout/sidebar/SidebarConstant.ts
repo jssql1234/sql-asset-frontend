@@ -10,6 +10,7 @@ export const SIDEBAR_KEYBOARD_SHORTCUT = "s" as const;
 interface NavigationSection { title: string; items: NavigationItem[] }
 interface NavigationItem { name: string; url: string; icon: ComponentType<{ className?: string }>; filledIcon: ComponentType<{ className?: string }> }
 interface UserProfile { name: string; email: string; }
+interface ToolsMenuItem { label: string; route: string; separator?: boolean }
 
 export const navigationSections: NavigationSection[] = [
   {
@@ -33,9 +34,19 @@ export const navigationSections: NavigationSection[] = [
   },
 ];
 
+export const toolsMenuItems: ToolsMenuItem[] = [
+  { label: "Maintain Asset Group", route: "/maintain-asset-group" },
+  { label: "Maintain User Group", route: "/maintain-user-group", separator: true },
+  { label: "Maintain User", route: "/maintain-user" },
+  { label: "User Access Right Assignment", route: "/user-access-rights" },
+  { label: "Maintain Location", route: "/maintain-location", separator: true },
+  { label: "Maintain Department", route: "/maintain-department" },
+  { label: "Maintain Customer", route: "/maintain-customer" },
+  { label: "Maintain Spare Part", route: "/maintain-spare-part", separator: true },
+  { label: "Maintain Service Provider", route: "/maintain-service-provider" },
+  { label: "Asset History", route: "/asset-history", separator: true },
+];
+
 export const mockUser: UserProfile = { name: "Adam", email: "Adam@sql.com.my" };
 
-export const toolsMenuRoutes = {
-  assetGroup: "/maintain-asset-group", userGroup: "/maintain-user-group", user: "/maintain-user", userAccessRights: "/user-access-rights", location: "/maintain-location",
-  department: "/maintain-department", customer: "/maintain-customer", sparePart: "/maintain-spare-part", serviceProvider: "/maintain-service-provider", assetHistory: "/asset-history",
-} as const;
+

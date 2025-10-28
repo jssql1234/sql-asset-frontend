@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { HomeFilled, Dots, User } from "@/assets/icons";
 import { Bell, ChevronsUpDown, LogOut, Settings, Shuffle } from "lucide-react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenuButton, SidebarGroup, SidebarGroupTitle, SidebarSeparator, SidebarGroupItem, SidebarUserInfo, SidebarMenuButtonWithTooltip } from "./SidebarPrimitives";
-import { navigationSections, mockUser, toolsMenuRoutes } from "./SidebarConstant";
+import { navigationSections, mockUser, toolsMenuItems } from "./SidebarConstant";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components/DropdownButton";
 import type { SidebarProps } from "./SidebarPrimitives";
 import { useUserContext } from "@/context/UserContext";
@@ -68,7 +68,7 @@ export function AppSidebar(props: SidebarProps) {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-
+        
         {/* Tools */}
         <DropdownMenu className="w-full">
           <DropdownMenuTrigger>
@@ -80,20 +80,12 @@ export function AppSidebar(props: SidebarProps) {
             </SidebarMenuButtonWithTooltip>
           </DropdownMenuTrigger>
           <DropdownMenuContent className={cn("min-w-58 rounded-lg border border-border", collapsedMenuShiftClass)} defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.assetGroup)}>Maintain Asset Group</DropdownMenuItem>
-            <SidebarSeparator />
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.userGroup)}>Maintain User Group</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.user)}>Maintain User</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.userAccessRights)}>User Access Right Assignment</DropdownMenuItem>
-            <SidebarSeparator />
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.location)}>Maintain Location</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.department)}>Maintain Department</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.customer)}>Maintain Customer</DropdownMenuItem>
-            <SidebarSeparator />
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.sparePart)}>Maintain Spare Part</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.serviceProvider)}>Maintain Service Provider</DropdownMenuItem>
-            <SidebarSeparator />
-            <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.assetHistory)}>Asset History</DropdownMenuItem>
+            {toolsMenuItems.map((item, index) => (
+              <React.Fragment key={item.route}>
+                {item.separator && index > 0 && <SidebarSeparator />}
+                <DropdownMenuItem onClick={() => void navigate(item.route)}>{item.label}</DropdownMenuItem>
+              </React.Fragment>
+            ))}
           </DropdownMenuContent>
         </DropdownMenu>
 

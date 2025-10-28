@@ -153,12 +153,18 @@ const SearchableInputDropdown = ({
           className="pr-10"
         />
         {options.length > 0 && showDropdown && (
-          <ChevronDown
-            className={cn(
-              "absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-onSurfaceVariant transition-transform",
-              isOpen && "rotate-180"
-            )}
-          />
+          <button
+            type="button"
+            onClick={() => { setIsOpen(!isOpen); }}
+            className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-onSurfaceVariant transition-transform hover:text-onSurface"
+          >
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 transition-transform",
+                isOpen && "rotate-180"
+              )}
+            />
+          </button>
         )}
       </div>
 

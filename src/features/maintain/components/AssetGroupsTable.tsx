@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback} from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
 import { TableColumnVisibility } from '@/components/ui/components/Table';
 import { Button, Card } from '@/components/ui/components';
@@ -17,6 +17,7 @@ interface AssetGroupsTableProps {
   onEditAssetGroup: (assetGroup: AssetGroup) => void;
   onDeleteSelected: () => void;
   hasSingleSelection: boolean;
+  onVisibleColumnsChange?: (visible: ColumnDef<AssetGroup>[]) => void;
 }
 
 export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
@@ -28,6 +29,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
   onEditAssetGroup,
   onDeleteSelected,
   hasSingleSelection,
+  onVisibleColumnsChange,
 }) => {
   const columnDefs: ColumnDef<AssetGroup>[] = useMemo(() => ([
     {
@@ -113,9 +115,19 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
 
   const [visibleColumns, setVisibleColumns] = useState(visibilityColumns);
 
+  const handleSetVisibleColumns = useCallback((newVisible: React.SetStateAction<ColumnDef<AssetGroup>[]>) => {
+    setVisibleColumns(prev => {
+      const updated = typeof newVisible === 'function' ? newVisible(prev) : newVisible;
+      onVisibleColumnsChange?.(updated);
+      return updated;
+    });
+  }, [onVisibleColumnsChange]);
+
   useEffect(() => {
-    setVisibleColumns(visibilityColumns);
-  }, [visibilityColumns]);
+    const initialVisible = visibilityColumns;
+    setVisibleColumns(initialVisible);
+    onVisibleColumnsChange?.(initialVisible);
+  }, [visibilityColumns, onVisibleColumnsChange]);
 
   const displayedColumns = useMemo(() => {
     const cols: ColumnDef<AssetGroup>[] = [];
@@ -169,7 +181,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           <TableColumnVisibility
             columns={visibilityColumns}
             visibleColumns={visibleColumns}
-            setVisibleColumns={setVisibleColumns}
+            setVisibleColumns={handleSetVisibleColumns}
           />
         </div>
         <div className="flex items-center gap-2">

@@ -333,7 +333,7 @@ export function useAssetGroups() {
     persistAssetGroups(sampleAssetGroups);
   }, [persistAssetGroups]);
 
-  const exportData = useCallback((format: string) => {
+  const exportData = useCallback((format: string, visibleIds: string[]) => {
     if (typeof window === 'undefined') {
       return;
     }
@@ -346,21 +346,49 @@ export function useAssetGroups() {
       return;
     }
 
-    const headers = ['Asset Group Code', 'Asset Group Name', 'Description', 'Asset Count', 'Created Date'];
+    const fieldConfig = {
+      assetGroupCode: {
+        header: 'Asset Group Code',
+        key: 'code',
+        getValue: (group: AssetGroup) => group.id,
+      },
+      name: {
+        header: 'Asset Group Name',
+        key: 'name',
+        getValue: (group: AssetGroup) => group.name,
+      },
+      description: {
+        header: 'Description',
+        key: 'description',
+        getValue: (group: AssetGroup) => group.description || 'No description provided',
+      },
+      assetCount: {
+        header: 'Asset Count',
+        key: 'assetCount',
+        getValue: (group: AssetGroup) => String(assetGroupAssetCounts[group.id] ?? 0),
+      },
+      createdAt: {
+        header: 'Created Date',
+        key: 'createdDate',
+        getValue: (group: AssetGroup) => formatAssetGroupDate(group.createdAt) || '-',
+      },
+    };
 
-    const exportBody = exportGroups.map(group => [
-      group.id,
-      group.name,
-      group.description || 'No description provided',
-      String(assetGroupAssetCounts[group.id] ?? 0),
-      formatAssetGroupDate(group.createdAt) || '-'
-    ]);
+    const includedKeys = new Set(visibleIds);
+    if (includedKeys.has('name')) {
+      includedKeys.add('description');
+    }
+
+    const headers = Array.from(includedKeys).map(key => fieldConfig[key as keyof typeof fieldConfig].header);
+
+    const exportBody = exportGroups.map(group => 
+      Array.from(includedKeys).map(key => fieldConfig[key as keyof typeof fieldConfig].getValue(group))
+    );
 
     const dateStr = new Date().toISOString().split('T')[0];
     let filename = `asset-groups-${format.toUpperCase()}-${dateStr}`;
     let blob: Blob;
 
-    // XML escape function
     const escapeXml = (unsafe: string): string => {
       return unsafe
         .replace(/&/g, '&amp;')
@@ -382,20 +410,21 @@ export function useAssetGroups() {
       }
 
       case 'json': {
-        const jsonData = exportGroups.map(group => ({
-          code: group.id,
-          name: group.name,
-          description: group.description || 'No description provided',
-          assetCount: assetGroupAssetCounts[group.id] ?? 0,
-          createdDate: formatAssetGroupDate(group.createdAt) || '-'
-        }));
+        const jsonData = exportGroups.map(group => {
+          const data: Record<string, string | number> = {};
+          includedKeys.forEach(key => {
+            const configKey = key as keyof typeof fieldConfig;
+            data[fieldConfig[configKey].key] = fieldConfig[configKey].getValue(group);
+          });
+          return data;
+        });
         blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
         filename += '.json';
         break;
       }
 
       case 'txt': {
-        const txtContent = [headers.join('\t'), ...exportBody.map(row => row.join('\t'))].join('\n');
+        const txtContent = [headers.join('\t'), ...exportBody.map(row => row.map(String).join('\t'))].join('\n');
         blob = new Blob([txtContent], { type: 'text/plain' });
         filename += '.txt';
         break;
@@ -426,12 +455,14 @@ export function useAssetGroups() {
       case 'xml': {
         let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<assetGroups>\n';
         exportGroups.forEach(group => {
-          const description = escapeXml(group.description || 'No description provided');
-          const name = escapeXml(group.name);
-          const code = escapeXml(group.id);
-          const assetCount = String(assetGroupAssetCounts[group.id] ?? 0);
-          const createdDate = escapeXml(formatAssetGroupDate(group.createdAt) || '-');
-          xmlContent += `  <group>\n    <code>${code}</code>\n    <name>${name}</name>\n    <description>${description}</description>\n    <assetCount>${assetCount}</assetCount>\n    <createdDate>${createdDate}</createdDate>\n  </group>\n`;
+          xmlContent += '  <group>\n';
+          includedKeys.forEach(key => {
+            const configKey = key as keyof typeof fieldConfig;
+            const value = fieldConfig[configKey].getValue(group);
+            const escapedValue = escapeXml(value);
+            xmlContent += `    <${fieldConfig[configKey].key}>${escapedValue}</${fieldConfig[configKey].key}>\n`;
+          });
+          xmlContent += '  </group>\n';
         });
         xmlContent += '</assetGroups>';
         blob = new Blob([xmlContent], { type: 'application/xml' });
@@ -440,13 +471,14 @@ export function useAssetGroups() {
       }
 
       case 'xlsx': {
-        const wsData = exportGroups.map(group => ({
-          'Asset Group Code': group.id,
-          'Asset Group Name': group.name,
-          'Description': group.description || 'No description provided',
-          'Asset Count': assetGroupAssetCounts[group.id] ?? 0,
-          'Created Date': formatAssetGroupDate(group.createdAt) || '-'
-        }));
+        const wsData = exportGroups.map(group => {
+          const row: Record<string, string | number> = {};
+          includedKeys.forEach(key => {
+            const configKey = key as keyof typeof fieldConfig;
+            row[fieldConfig[configKey].header] = fieldConfig[configKey].getValue(group);
+          });
+          return row;
+        });
         const ws = XLSX.utils.json_to_sheet(wsData);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, 'Asset Groups');
@@ -460,7 +492,7 @@ export function useAssetGroups() {
         const doc = new jsPDF('l', 'mm', 'a4');
         (autoTable as unknown as (doc: jsPDF, options: unknown) => void)(doc, {
           head: [headers],
-          body: exportBody,
+          body: exportBody.map(row => row.map(cell => cell)),
           startY: 20,
           theme: 'grid',
           styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' },

@@ -1,25 +1,37 @@
-import React, { useState } from 'react';
-import { SidebarHeader } from '@/layout/sidebar/SidebarHeader';
+import React, { useState, useEffect, useCallback } from 'react';
+import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
-import SelectDropdown, { type SelectDropdownOption } from '@/components/SelectDropdown';
+import SelectDropdown from '@/components/SelectDropdown';
+import type { SelectDropdownOption } from '@/components/SelectDropdown';
+import type { ColumnDef } from '@tanstack/react-table';
 import AssetGroupsSearchAndFilter from '../components/AssetGroupsSearchAndFilter';
 import { AssetGroupsTable } from '../components/AssetGroupsTable';
 import AssetGroupFormModal from '../components/AssetGroupFormModal';
 import { useAssetGroups } from '../hooks/useAssetGroups';
 import { ExportFile } from '@/assets/icons';
+import type { AssetGroup } from '../types/assetGroups';
 
 const MaintainAssetGroupPage: React.FC = () => {
-  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'json' | 'txt' | 'html' | 'xml' | 'xlsx' | 'pdf'>('csv');
+  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('pdf');
+  const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>([]);
 
   const exportOptions: SelectDropdownOption[] = [
+    { value: 'pdf', label: 'PDF' },
+    { value: 'xlsx', label: 'XLSX' },
     { value: 'csv', label: 'CSV' },
     { value: 'json', label: 'JSON' },
-    { value: 'txt', label: 'TXT' },
-    { value: 'html', label: 'HTML' },
     { value: 'xml', label: 'XML' },
-    { value: 'xlsx', label: 'XLSX' },
-    { value: 'pdf', label: 'PDF' },
+    { value: 'html', label: 'HTML' },
+    { value: 'txt', label: 'TXT' }, 
   ];
+
+  const handleVisibleColumnsChange = useCallback((visible: ColumnDef<AssetGroup>[]) => {
+    setVisibleColumnIds(visible.map(c => c.id ?? ''));
+  }, []);
+
+  useEffect(() => {
+    setVisibleColumnIds(['assetGroupCode', 'name', 'assetCount', 'createdAt']);
+  }, []);
 
   const {
     assetGroups,
@@ -42,11 +54,11 @@ const MaintainAssetGroupPage: React.FC = () => {
   } = useAssetGroups();
 
   const handleExport = () => {
-    exportData(selectedFormat);
+    exportData(selectedFormat, visibleColumnIds);
   };
 
   return (
-    <SidebarHeader
+    <AppLayout
       breadcrumbs={[
         { label: "Tools" },
         { label: "Maintain Asset Group" },
@@ -60,7 +72,7 @@ const MaintainAssetGroupPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <SelectDropdown
                 value={selectedFormat}
-                onChange={(value) => { setSelectedFormat(value as 'csv' | 'json' | 'txt' | 'html' | 'xml' | 'xlsx' | 'pdf'); }}
+                onChange={(value) => { setSelectedFormat(value as 'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'); }}
                 options={exportOptions}
                 placeholder="Select format"
                 buttonVariant="outline"
@@ -96,6 +108,7 @@ const MaintainAssetGroupPage: React.FC = () => {
             onEditAssetGroup={handleEditAssetGroup}
             onDeleteSelected={() => { handleDeleteMultipleAssetGroups(selectedAssetGroupIds); }}
             hasSingleSelection={selectedAssetGroupIds.length === 1}
+            onVisibleColumnsChange={handleVisibleColumnsChange}
           />
         </div>
 
@@ -109,7 +122,7 @@ const MaintainAssetGroupPage: React.FC = () => {
           clearValidationErrors={clearFormErrors}
         />
       </div>
-    </SidebarHeader>
+    </AppLayout>
   );
 };
 

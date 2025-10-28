@@ -89,19 +89,6 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
       enableColumnFilter: false,
     },
     {
-      id: 'status',
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }) => (
-        <Badge
-          text={row.original.status}
-          variant={row.original.status === 'Active' ? 'green' : 'grey'}
-        />
-      ),
-      enableColumnFilter: true,
-      enableSorting: false,
-    },
-    {
       id: 'createdAt',
       accessorKey: 'createdAt',
       header: 'Created Date',

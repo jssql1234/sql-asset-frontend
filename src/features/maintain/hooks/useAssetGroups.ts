@@ -53,70 +53,60 @@ const sampleAssetGroups: AssetGroup[] = [
     id: 'COMPUTER',
     name: 'Computer & IT Equipment',
     description: 'Computers, laptops, servers, printers, and IT accessories',
-    status: 'Active',
     createdAt: '2023-01-15',
   },
   {
     id: 'FURNITURE',
     name: 'Office Furniture',
     description: 'Desks, chairs, cabinets, and office fixtures',
-    status: 'Active',
     createdAt: '2023-01-20',
   },
   {
     id: 'VEHICLE',
     name: 'Motor Vehicle',
     description: 'Cars, trucks, motorcycles, and other vehicles',
-    status: 'Active',
     createdAt: '2023-02-10',
   },
   {
     id: 'MACHINERY',
     name: 'Heavy Machinery',
     description: 'Industrial equipment and heavy machinery',
-    status: 'Active',
     createdAt: '2023-02-15',
   },
   {
     id: 'BUILDING',
     name: 'Building & Structure',
     description: 'Buildings, structures, and construction assets',
-    status: 'Active',
     createdAt: '2023-03-05',
   },
   {
     id: 'ELECTRICAL',
     name: 'Electrical Equipment',
     description: 'Electrical systems and equipment',
-    status: 'Active',
     createdAt: '2023-03-10',
   },
   {
     id: 'SOFTWARE',
     name: 'Software & License',
     description: 'Software licenses and digital assets',
-    status: 'Active',
     createdAt: '2023-03-15',
   },
   {
     id: 'TOOLS',
     name: 'Tools & Equipment',
     description: 'Hand tools and small equipment',
-    status: 'Active',
     createdAt: '2023-04-01',
   },
   {
     id: 'SECURITY',
     name: 'Security Equipment',
     description: 'Security systems and surveillance equipment',
-    status: 'Active',
     createdAt: '2023-04-05',
   },
   {
     id: 'COMMUNICATION',
     name: 'Communication Equipment',
     description: 'Phones, radios, and communication devices',
-    status: 'Active',
     createdAt: '2023-04-10',
   },
 ];
@@ -345,12 +335,11 @@ export function useAssetGroups() {
     }
 
     const csvContent = [
-      ['Asset Group Code', 'Asset Group Name', 'Description', 'Status', 'Created Date'],
+      ['Asset Group Code', 'Asset Group Name', 'Description', 'Created Date'],
       ...assetGroups.map(group => [
         group.id,
         group.name,
         group.description,
-        group.status,
         group.createdAt,
       ]),
     ]

@@ -29,6 +29,7 @@ interface ReviewWorkRequestModalProps {
   onClose: () => void;
   onSuccess: () => void;
   onReject: () => void;
+  onDelete?: (requestId: string) => void;
 }
 
 export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
@@ -37,6 +38,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   onClose,
   onSuccess,
   onReject: _onReject,
+  onDelete,
 }) => {
   const { addToast } = useToast();
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory[]>([]);
@@ -174,7 +176,17 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
     onClose();
   };
 
+  const handleDeleteWorkRequest = () => {
+    if (!workRequest || !onDelete) return;
+    
+    onDelete(workRequest.id);
+    onClose();
+  };
+
   if (!workRequest) return null;
+
+  // Check if work request is approved or rejected
+  const isApprovedOrRejected = workRequest.status === 'Approved' || workRequest.status === 'Rejected';
 
   return (
     <>
@@ -310,18 +322,31 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
             >
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => setIsRejectModalOpen(true)}
-            >
-              Reject
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white"
-              onClick={handleApproveWorkRequest}
-            >
-              Approve & Create Work Order
-            </Button>
+            {isApprovedOrRejected ? (
+              // Show Delete button for APPROVED or REJECTED status
+              <Button
+                variant="destructive"
+                onClick={handleDeleteWorkRequest}
+              >
+                Delete
+              </Button>
+            ) : (
+              // Show Reject and Approve buttons for PENDING status
+              <>
+                <Button
+                  variant="destructive"
+                  onClick={() => setIsRejectModalOpen(true)}
+                >
+                  Reject
+                </Button>
+                <Button
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  onClick={handleApproveWorkRequest}
+                >
+                  Approve & Create Work Order
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

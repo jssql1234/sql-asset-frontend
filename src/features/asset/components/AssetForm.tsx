@@ -834,7 +834,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     acquireDate: "",
     taxYear: new Date().getFullYear().toString(),
     selfUsePercentage: "100",
-    rentedApportionPercentage: "100",
+    rentedApportionPercentage: "0",
   }), []);
 
   const {

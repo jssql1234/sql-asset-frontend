@@ -1,10 +1,10 @@
 import React from "react";
-import { Option, Card } from "@/components/ui/components";
+import { Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control } from "react-hook-form";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
-import SelectDropdown from "@/components/SelectDropdown";
+import { SearchableInputDropdown, type DropdownOption } from "@/components/SearchableInputDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
 
 interface HirePurchaseTabProps {
@@ -20,6 +20,15 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
   const isReadonly = isAdmin ? false : isTaxAgent;
+
+  // Options for instalment dropdown (excluding "Other")
+  const instalmentOptions: DropdownOption[] = [
+    { id: "12", label: "12" },
+    { id: "24", label: "24" },
+    { id: "36", label: "36" },
+    { id: "48", label: "48" },
+    { id: "60", label: "60" },
+  ];
 
   return (
     <Card className="p-6 shadow-sm">
@@ -45,22 +54,15 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">No. Instalment (months)</label>
-          <SelectDropdown
-            className="w-full"
+          <SearchableInputDropdown
             value={hpInstalmentValue}
-            placeholder="Select Instalment"
-            options={[
-              { value: "12", label: "12" },
-              { value: "24", label: "24" },
-              { value: "36", label: "36" },
-              { value: "48", label: "48" },
-              { value: "60", label: "60" },
-              { value: "other", label: "Other" },
-            ]}
-            onChange={(nextValue) => {
-              setValue("hpInstalment", nextValue);
+            onChange={(value) => {
+              setValue("hpInstalment", value);
             }}
+            options={instalmentOptions}
             disabled={isReadonly}
+            placeholder="Select Instalment"
+            position= "top"
           />
         </div>
         {hpInstalmentValue === "other" && (

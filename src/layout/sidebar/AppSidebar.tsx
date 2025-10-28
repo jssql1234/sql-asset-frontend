@@ -3,10 +3,9 @@ import * as React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { HomeFilled, Dots, User } from "@/assets/icons";
 import { ProfileDropdown } from "./ProfileDropdown";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarSeparator } from "./SidebarPrimitives";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarGroup, SidebarGroupLabel, SidebarSeparator, SidebarMenuButtonWithTooltip } from "./SidebarPrimitives";
 import { navigationSections, mockUser, toolsMenuRoutes } from "./SidebarConstant";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components/DropdownButton";
-import { SidebarMenuButtonWithTooltip } from "./SidebarTooltip";
 import type { SidebarProps } from "./SidebarPrimitives";
 import { cn } from "@/utils/utils";
 import { useUserContext } from "@/context/UserContext";
@@ -166,65 +165,21 @@ export function AppSidebar(props: SidebarProps) {
                 disablePortal={true}
               >
                 <DropdownMenuGroup>
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.assetGroup)}
-                  >
-                    Maintain Asset Group
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.assetGroup)}>Maintain Asset Group</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.userGroup)}
-                  >
-                    Maintain User Group
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.user)}
-                  >
-                    Maintain User
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      void navigate(toolsMenuRoutes.userAccessRights)
-                    }
-                  >
-                    User Access Right Assignment
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.userGroup)}>Maintain User Group</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.user)}>Maintain User</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.userAccessRights)}>User Access Right Assignment</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.location)}
-                  >
-                    Maintain Location
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.department)}
-                  >
-                    Maintain Department
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.customer)}
-                  >
-                    Maintain Customer
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.location)}>Maintain Location</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.department)}>Maintain Department</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.customer)}>Maintain Customer</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => void navigate(toolsMenuRoutes.sparePart)}
-                  >
-                    Maintain Spare Part
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      void navigate(toolsMenuRoutes.serviceProvider)
-                    }
-                  >
-                    Maintain Service Provider
-                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.sparePart)}>Maintain Spare Part</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.serviceProvider)}>Maintain Service Provider</DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => void navigate(toolsMenuRoutes.assetHistory)}
-                >
-                  Asset History
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => void navigate(toolsMenuRoutes.assetHistory)}>Asset History</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarMenuItem>

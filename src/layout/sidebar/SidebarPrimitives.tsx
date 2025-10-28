@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/components";
 import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTH, SIDEBAR_WIDTH_ICON } from "./SidebarConstant";
 
-type SidebarVariant = "sidebar" | "floating" | "inset";  // Sidebar variant types
-type SidebarCollapsible = "offcanvas" | "icon" | "none";  // Sidebar collapsible behavior
-type SidebarSide = "left" | "right";  // Sidebar positioning
+export type SidebarVariant = "sidebar" | "floating" | "inset";  // Sidebar variant types
+export type SidebarCollapsible = "offcanvas" | "icon" | "none";  // Sidebar collapsible behavior
+export type SidebarSide = "left" | "right";  // Sidebar positioning
 
 // Props for Sidebar root component
 export interface SidebarProps extends React.ComponentProps<"div"> {
@@ -20,7 +20,7 @@ export interface SidebarProps extends React.ComponentProps<"div"> {
 }
 
 // Provides the main sidebar container with responsive behavior
-export function Sidebar({
+function Sidebar({
   side = "left",
   variant = "sidebar",
   collapsible = "offcanvas",
@@ -96,7 +96,7 @@ export function Sidebar({
 }
 
 // Sidebar trigger button component (Toggles the sidebar open/closed state)
-export function SidebarTrigger({
+function SidebarTrigger({
   className,
   onClick,
   ...props
@@ -122,7 +122,7 @@ export function SidebarTrigger({
 }
 
 // Sidebar inset component (Main content area that sits next to the sidebar)
-export function SidebarInset({
+function SidebarInset({
   className,
   ...props
 }: React.ComponentProps<"main">) {
@@ -140,7 +140,7 @@ export function SidebarInset({
 }
 
 // Sidebar header section component
-export function SidebarHeader({
+function SidebarHeader({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -155,7 +155,7 @@ export function SidebarHeader({
 }
 
 // Sidebar footer section component
-export function SidebarFooter({
+function SidebarFooter({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -170,7 +170,7 @@ export function SidebarFooter({
 }
 
 // Sidebar content/main section component
-export function SidebarContent({
+function SidebarContent({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -188,7 +188,7 @@ export function SidebarContent({
 }
 
 // Sidebar group component (Groups related menu items together)
-export function SidebarGroup({
+function SidebarGroup({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -208,7 +208,7 @@ export interface SidebarGroupLabelProps extends React.ComponentProps<"div"> {
 }
 
 // Sidebar group label component (Displays a label for a group of menu items)
-export function SidebarGroupLabel({
+function SidebarGroupLabel({
   className,
   asChild = false,
   ...props
@@ -230,7 +230,7 @@ export function SidebarGroupLabel({
 }
 
 // Sidebar menu list component
-export function SidebarMenu({
+function SidebarMenu({
   className,
   ...props
 }: React.ComponentProps<"ul">) {
@@ -245,7 +245,7 @@ export function SidebarMenu({
 }
 
 // Sidebar menu item component
-export function SidebarMenuItem({
+function SidebarMenuItem({
   className,
   ...props
 }: React.ComponentProps<"li">) {
@@ -291,7 +291,7 @@ export interface SidebarMenuButtonProps
 
 // Sidebar menu button component
 // Interactive button for sidebar menu items
-export function SidebarMenuButton({
+function SidebarMenuButton({
   asChild = false,
   isActive = false,
   variant = "default",
@@ -315,7 +315,7 @@ export function SidebarMenuButton({
 
 // Sidebar wrapper component
 // Provides CSS variables for sidebar dimensions
-export function SidebarWrapper({
+function SidebarWrapper({
   className,
   style,
   children,
@@ -349,7 +349,7 @@ export interface SidebarSeparatorProps
 }
 
 // Visual divider for separating sidebar sections
-export function SidebarSeparator({
+function SidebarSeparator({
   className,
   orientation = "horizontal",
   ...props
@@ -368,3 +368,60 @@ export function SidebarSeparator({
     />
   );
 }
+
+// Props for SidebarMenuButtonWithTooltip
+export interface SidebarMenuButtonWithTooltipProps {
+  tooltip?: string;
+  children: React.ReactNode;
+}
+
+// Only shows tooltip when sidebar is collapsed
+function SidebarMenuButtonWithTooltip({
+  tooltip,
+  children,
+}: SidebarMenuButtonWithTooltipProps) {
+  const { state } = useSidebar();
+  const [showTooltip, setShowTooltip] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  // Don't show tooltip if not provided or sidebar is expanded
+  if (!tooltip || state !== "collapsed") {
+    return <>{children}</>;
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative inline-flex"
+      onMouseEnter={() => {
+        setShowTooltip(true);
+      }}
+      onMouseLeave={() => {
+        setShowTooltip(false);
+      }}
+      onBlur={() => {
+        setShowTooltip(false);
+      }}
+    >
+      {children}
+      {showTooltip && (
+        <div
+          className="fixed z-[9999] bg-inverseSurface px-3 py-1.5 text-sm text-inverseOnSurface rounded-md shadow-md pointer-events-none whitespace-nowrap"
+          style={{
+            left: containerRef.current
+              ? `${String(containerRef.current.getBoundingClientRect().right + 12)}px`
+              : "0px",
+            top: containerRef.current
+              ? `${String(containerRef.current.getBoundingClientRect().top)}px`
+              : "0px",
+          }}
+        >
+          {tooltip}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export { Sidebar, SidebarTrigger, SidebarInset, SidebarHeader, SidebarFooter, SidebarContent, SidebarGroup, SidebarGroupLabel, 
+         SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarWrapper, SidebarSeparator, SidebarMenuButtonWithTooltip };

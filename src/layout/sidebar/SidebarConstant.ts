@@ -7,7 +7,6 @@ export const SIDEBAR_COOKIE_MAX_AGE = 604800;
 export const SIDEBAR_WIDTH = "14rem" as const;
 export const SIDEBAR_WIDTH_ICON = "3rem" as const;
 export const SIDEBAR_KEYBOARD_SHORTCUT = "s" as const;
-export const SIDEBAR_TOOLTIP_DELAY = 200 as const;  // Tooltip delay when hovering over collapsed sidebar items (ms)
 
 // Navigation item for sidebar menu
 interface NavigationItem {

@@ -1,36 +1,18 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { cn } from '@/utils/utils';
-import { DataTable } from '@/components/ui/components/Table/DataTable';
-import { TablePagination } from '@/components/ui/components/Table/TablePagination';
-import SelectDropdown from '@/components/SelectDropdown';
+import { DataTableExtended } from '@/components/DataTableExtended';
 import type { MaintenanceHistory } from '@/types/work-request';
 import { Badge } from '@/components/ui/components/Badge';
 
 interface MaintenanceHistoryTableProps {
   history: MaintenanceHistory[];
-  selectedAssets: { main: { code: string; name: string } }[];
   className?: string;
 }
 
 export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = ({
   history,
-  selectedAssets,
   className
 }) => {
-  const [selectedAssetFilter, setSelectedAssetFilter] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState(0); // 0-based indexing for TablePagination
-  const [pageSize, setPageSize] = useState(10);
-
-  const filteredHistory = React.useMemo(() => {
-    if (!selectedAssetFilter) return history;
-    return history.filter(record => record.assetCode === selectedAssetFilter);
-  }, [history, selectedAssetFilter]);
-
-  const paginatedHistory = React.useMemo(() => {
-    const startIndex = currentPage * pageSize;
-    return filteredHistory.slice(startIndex, startIndex + pageSize);
-  }, [filteredHistory, currentPage, pageSize]);
-
   const getStatusVariant = (status: string) => {
     const normalizedStatus = status.toLowerCase().replace(/[\s-]/g, '-');
     switch (normalizedStatus) {
@@ -49,28 +31,29 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     }
   };
 
-  const getWorkTypeVariant = (workType: string) => {
-    const normalizedType = workType?.toLowerCase();
-    switch (normalizedType) {
-      case 'preventive':
-      case 'maintenance':
-        return 'green';
-      case 'corrective':
-      case 'repair':
-        return 'yellow';
-      case 'emergency':
-        return 'red';
-      case 'inspection':
-        return 'blue';
-      default:
-        return 'primary';
-    }
-  };
+  // const getWorkTypeVariant = (workType: string) => {
+  //   const normalizedType = workType?.toLowerCase();
+  //   switch (normalizedType) {
+  //     case 'preventive':
+  //     case 'maintenance':
+  //       return 'green';
+  //     case 'corrective':
+  //     case 'repair':
+  //       return 'yellow';
+  //     case 'emergency':
+  //       return 'red';
+  //     case 'inspection':
+  //       return 'blue';
+  //     default:
+  //       return 'primary';
+  //   }
+  // };
 
   const columns = [
     {
       accessorKey: 'assetCode',
       header: 'Asset',
+      size: 150,
       cell: ({ getValue }: any) => (
         <span className="font-medium">{getValue() as string}</span>
       ),
@@ -78,13 +61,15 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     {
       accessorKey: 'workType',
       header: 'Type',
+      size: 120,
       cell: ({ getValue }: any) => {
         const workType = getValue() as string;
         return workType ? (
-          <Badge 
-            text={workType} 
-            variant={getWorkTypeVariant(workType)}
-          />
+          // <Badge 
+          //   text={workType} 
+          //   variant={getWorkTypeVariant(workType)}
+          // />
+          <span>{workType}</span>
         ) : (
           <span className="text-onSurfaceVariant">N/A</span>
         );
@@ -92,7 +77,8 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     },
     {
       accessorKey: 'id',
-      header: 'Work Order #',
+      header: 'Work Order No',
+      size: 150,
       cell: ({ getValue }: any) => (
         <span className="font-mono text-sm">{getValue() as string}</span>
       ),
@@ -100,11 +86,12 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     {
       accessorKey: 'date',
       header: 'Date',
+      size: 130,
       cell: ({ getValue }: any) => {
         const date = new Date(getValue() as string);
         return (
           <span className="text-sm">
-            {date.toLocaleDateString('en-US', {
+            {date.toLocaleDateString('en-UK', {
               year: 'numeric',
               month: 'short',
               day: 'numeric'
@@ -116,6 +103,7 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     {
       accessorKey: 'technician',
       header: 'Technician',
+      size: 150,
       cell: ({ getValue }: any) => (
         <span>{(getValue() as string) || 'N/A'}</span>
       ),
@@ -123,6 +111,7 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     {
       accessorKey: 'status',
       header: 'Status',
+      size: 130,
       cell: ({ getValue }: any) => (
         <Badge 
           text={getValue() as string} 
@@ -133,24 +122,42 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     {
       accessorKey: 'title',
       header: 'Title',
+      size: 250,
       cell: ({ getValue }: any) => {
         const value = getValue() as string;
         return (
-          <span className="truncate" title={value}>
+          <div 
+            className="line-clamp-3 text-sm" 
+            title={value}
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
             {value || 'N/A'}
-          </span>
+          </div>
         );
       },
     },
     {
       accessorKey: 'description',
       header: 'Description',
+      size: 300,
       cell: ({ getValue }: any) => {
         const value = getValue() as string;
         return (
-          <span className="truncate text-sm text-onSurfaceVariant" title={value}>
+          <div 
+            className="line-clamp-3 text-sm text-onSurfaceVariant" 
+            title={value}
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+            }}
+          >
             {value || 'N/A'}
-          </span>
+          </div>
         );
       },
     },
@@ -158,54 +165,18 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
 
   return (
     <div className={cn('space-y-4', className)}>
-      <div className="flex items-center gap-4">
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-onSurface mb-2">
-            Filter by Asset
-          </label>
-          <SelectDropdown
-            value={selectedAssetFilter}
-            onChange={(value) => {
-              setSelectedAssetFilter(value);
-              setCurrentPage(0);
-            }}
-            options={[
-              { value: '', label: 'All Assets' },
-              ...selectedAssets.map((asset) => ({
-                value: asset.main.code,
-                label: `${asset.main.code} - ${asset.main.name}`,
-              })),
-            ]}
-            placeholder="All Assets"
-            className="w-full"
-            maxVisibleOptions={5}
-          />
-        </div>
-      </div>
-
       <div className="border border-outlineVariant rounded-md bg-surface">
-        {filteredHistory.length === 0 ? (
+        {history.length === 0 ? (
           <div className="text-center py-8 text-onSurfaceVariant">
             <span className="italic">No maintenance history found</span>
           </div>
         ) : (
-          <>
-            <DataTable
-              columns={columns}
-              data={paginatedHistory}
-              showPagination={false}
-              className="border-none"
-            />
-            
-            <TablePagination
-              totalCount={filteredHistory.length}
-              currentPage={currentPage}
-              pageSize={pageSize}
-              onPageChange={setCurrentPage}
-              onPageSizeChange={setPageSize}
-              className="border-t border-outlineVariant bg-surfaceContainerLowest"
-            />
-          </>
+          <DataTableExtended
+            columns={columns}
+            data={history}
+            showPagination={true}
+            className="border-none"
+          />
         )}
       </div>
     </div>

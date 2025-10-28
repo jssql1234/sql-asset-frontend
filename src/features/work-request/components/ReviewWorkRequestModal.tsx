@@ -228,10 +228,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
             {/* Maintenance History */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-onSurface">Maintenance History</label>
-              <MaintenanceHistoryTable
-                history={maintenanceHistory}
-                selectedAssets={workRequest.selectedAssets}
-              />
+              <MaintenanceHistoryTable history={maintenanceHistory} />
             </div>
           </div>
 

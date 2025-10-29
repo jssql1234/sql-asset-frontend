@@ -485,7 +485,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                 </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Search Assets <span className="text-error">*</span>
+                    Assets <span className="text-error">*</span>
                   </label>
                   <SearchWithDropdown
                     categories={assetCategories}
@@ -501,6 +501,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     placeholder="Search asset by name or ID..."
                     emptyMessage="No assets found"
                     disable={isEditMode}
+                    hideSelectedField={true}
                   />
                   {errors.assets && (
                     <p className="text-error body-small mt-1">

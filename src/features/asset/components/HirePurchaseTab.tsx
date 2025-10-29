@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { Button } from "@/components/ui/components";
@@ -7,6 +7,7 @@ import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control } from "re
 import type { CreateAssetFormData } from "../zod/createAssetForm";
 import { SearchableInputDropdown, type DropdownOption } from "@/components/SearchableInputDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
+import { ManageHPPaymentModal } from "./ManageHPPaymentModal";
 
 interface HirePurchaseTabProps {
   register: UseFormRegister<CreateAssetFormData>;
@@ -26,6 +27,9 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
   const isReadonly = isAdmin ? false : isTaxAgent;
   const isHpEnabled = !!hpStartDate; // Enable other fields only if HP Start Date is filled
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Check if all required fields are present for Manage Payment button
   const isManagePaymentEnabled = !!(
@@ -106,13 +110,22 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
             variant="primary"
             disabled={!isManagePaymentEnabled || isReadonly}
             className="px-6 py-4 w-full"
+            onClick={() => {
+              setIsModalOpen(true);
+            }}
           >
             Manage Payment
           </Button>
         </div>
       </div>
 
-      
+      {/* HP Payment Management Modal */}
+      <ManageHPPaymentModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+        }}
+      />
     </Card>
   );
 };

@@ -2,7 +2,42 @@ import type {
   WorkOrder,
   MaintenanceSummary,
   WorkOrderSummary,
+  Warranty,
 } from "./types";
+
+// Mock Warranties
+export const MOCK_WARRANTIES: Warranty[] = [
+  {
+    id: "WAR-2024-001",
+    assetIds: ["AST-001", "AST-009"], // Excavators
+    startDate: "2024-01-15",
+    endDate: "2026-01-15",
+  },
+  {
+    id: "WAR-2024-002",
+    assetIds: ["AST-003", "AST-008", "AST-015"], // Cranes
+    startDate: "2024-03-20",
+    endDate: "2026-03-20",
+  },
+  {
+    id: "WAR-2024-003",
+    assetIds: ["AST-004", "AST-011", "AST-018"], // Generators
+    startDate: "2024-06-01",
+    endDate: "2027-06-01",
+  },
+  {
+    id: "WAR-2024-004",
+    assetIds: ["AST-004"], // Generator Cummins 500kVA
+    startDate: "2024-02-10",
+    endDate: "2026-02-10",
+  },
+  {
+    id: "WAR-2024-005",
+    assetIds: ["AST-006", "AST-013", "AST-020"], // Compressors
+    startDate: "2024-04-15",
+    endDate: "2025-04-15"
+  },
+];
 
 // Mock Work Orders
 export const MOCK_WORK_ORDERS: WorkOrder[] = [
@@ -28,6 +63,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 3500.0,
     actualCost: 3200.0,
     progress: 65,
+    warrantyStatus: "Claimable",
     notes: "Track tension was significantly off. Replaced damaged links and adjusted alignment.",
     partsUsed: [
       {
@@ -67,6 +103,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 800.0,
     actualCost: 750.0,
     progress: 100,
+    warrantyStatus: "No Warranty",
     partsUsed: [
       {
         id: "P-002",
@@ -97,6 +134,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 8000.0,
     actualCost: 8500.0,
     progress: 100,
+    warrantyStatus: "Claimable",
   },
   {
     id: "WO-004",
@@ -115,6 +153,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     scheduledDate: "2025-10-08",
     estimatedCost: 1200.0,
     progress: 0,
+    warrantyStatus: "No Warranty",
   },
   {
     id: "WO-005",
@@ -134,6 +173,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 0.0,
     progress: 0,
     warrantyId: "WAR-2024-004",
+    warrantyStatus: "Claimed",
   },
 ];
 

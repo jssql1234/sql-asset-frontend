@@ -15,6 +15,8 @@ export type MaintenanceStatus =
 
 export type ServiceBy = "In-House" | "Outsourced";
 
+export type WarrantyStatus = "No Warranty" | "Claimable" | "Claimed";
+
 export interface AssetCostAllocation {
   assetId: string;
   assetCode: string;
@@ -51,6 +53,7 @@ export interface WorkOrder {
   partsUsed?: PartUsed[];
   logs?: MaintenanceLog[];
   warrantyId?: string;
+  warrantyStatus?: WarrantyStatus;
 }
 
 export interface PartUsed {
@@ -66,6 +69,13 @@ export interface MaintenanceLog {
   timestamp: string;
   technician: string;
   notes: string;
+}
+
+export interface Warranty {
+  id: string;
+  assetIds: string[]; // Assets covered by this warranty
+  startDate: string;
+  endDate: string;
 }
 
 export interface MaintenanceSummary {
@@ -147,6 +157,7 @@ export interface WorkOrderFormData {
   costAllocations?: AssetCostAllocation[];
   notes?: string;
   warrantyId?: string;
+  warrantyStatus?: WarrantyStatus;
 }
 
 export interface ScheduleFormData {

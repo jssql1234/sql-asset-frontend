@@ -23,6 +23,15 @@ const STATUS_BADGE_VARIANT: Record<
   Overdue: "red",
 };
 
+const WARRANTY_STATUS_BADGE_VARIANT: Record<
+  "No Warranty" | "Claimable" | "Claimed",
+  "primary" | "red" | "green" | "yellow" | "blue" | "grey"
+> = {
+  "No Warranty": "grey",
+  Claimable: "green",
+  Claimed: "blue",
+};
+
 interface WorkOrderTableProps {
   workOrders: WorkOrder[];
   filters: WorkOrderFilters;
@@ -175,6 +184,15 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
           const status = getValue() as WorkOrder["status"];
           const variant = STATUS_BADGE_VARIANT[status] ?? "grey";
           return <Badge text={status} variant={variant} className="h-6 px-3" />;
+        },
+      },
+      {
+        accessorKey: "warrantyStatus",
+        header: "Warranty",
+        cell: ({ getValue }) => {
+          const warrantyStatus = (getValue() as WorkOrder["warrantyStatus"]) || "No Warranty";
+          const variant = WARRANTY_STATUS_BADGE_VARIANT[warrantyStatus] ?? "grey";
+          return <Badge text={warrantyStatus} variant={variant} className="h-6 px-3" />;
         },
       },
     ],

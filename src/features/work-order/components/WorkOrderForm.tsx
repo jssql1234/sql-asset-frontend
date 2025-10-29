@@ -13,6 +13,7 @@ import type {
   MaintenanceStatus,
   ServiceBy,
   AssetCostAllocation,
+  Warranty,
 } from "../types";
 import {
   MOCK_ASSETS,
@@ -23,6 +24,8 @@ import {
   STATUS_OPTIONS,
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
+import { WarrantyCheckDialog } from "./WarrantyCheckDialog";
+import { checkWarrantyCoverage as checkWarrantyCoverageAPI } from "../services/warrantyService";
 
 interface WorkOrderFormProps {
   isOpen: boolean;
@@ -73,6 +76,11 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   const [assigneeOptions, setAssigneeOptions] =
     useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
   const [costAllocations, setCostAllocations] = useState<AssetCostAllocation[]>([]);
+
+  // Warranty checking states
+  const [matchedWarranty, setMatchedWarranty] = useState<Warranty | null>(null);
+  const [showWarrantyDialog, setShowWarrantyDialog] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   // Validation error states
   const [errors, setErrors] = useState<{
@@ -328,13 +336,57 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
       return;
     }
 
+    // Check warranty coverage before submitting (only in create mode)
+    if (!isEditMode && selectedAssets.length > 0) {
+      checkWarrantyCoverageAsync();
+    } else {
+      // No warranty check needed in edit mode - proceed with submission
+      submitWorkOrder(null);
+    }
+  };
+
+  // Async function to check warranty coverage using API
+  const checkWarrantyCoverageAsync = async () => {
+    setIsProcessing(true);
+    
+    try {
+      // Call the warranty service API
+      const response = await checkWarrantyCoverageAPI(selectedAssets);
+      
+      if (response.success && response.data) {
+        // Found warranty coverage - show dialog
+        setMatchedWarranty(response.data);
+        setShowWarrantyDialog(true);
+      } else {
+        // No warranty found - proceed with submission
+        submitWorkOrder(null);
+      }
+    } catch (error) {
+      console.error("Error checking warranty:", error);
+      // On error, proceed without warranty (user can manually check later)
+      addToast({
+        title: "Warranty Check Failed",
+        description: "Could not verify warranty coverage. Work order will be created without warranty information.",
+        variant: "warning",
+        duration: 5000,
+      });
+      submitWorkOrder(null);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const submitWorkOrder = (warranty: Warranty | null = matchedWarranty) => {
+
     // Include cost allocations in form data
-    const submitData = {
+    const submitData: WorkOrderFormData = {
       ...formData,
       costAllocations:
         formData.serviceBy === "Outsourced" && selectedAssets.length > 0
           ? costAllocations
           : undefined,
+      warrantyId: warranty?.id,
+      warrantyStatus: warranty ? ("Claimable" as const) : ("No Warranty" as const),
     };
 
     onSubmit(submitData);
@@ -1002,19 +1054,42 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
             <button
               type="button"
               onClick={handleClose}
-              className="px-4 py-2 rounded text-primary hover:bg-primary/10 transition-colors label-large"
+              disabled={isProcessing}
+              className="px-4 py-2 rounded text-primary hover:bg-primary/10 transition-colors label-large disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large"
+              disabled={isProcessing}
+              className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              {isEditMode ? "Save Changes" : "Create Work Order"}
+              {isProcessing ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Checking Warranty...
+                </>
+              ) : (
+                isEditMode ? "Save Changes" : "Create Work Order"
+              )}
             </button>
           </div>
         </form>
       </DialogContent>
+
+      {/* Warranty Check Dialog */}
+      <WarrantyCheckDialog
+        isOpen={showWarrantyDialog}
+        onClose={() => setShowWarrantyDialog(false)}
+        onConfirm={() => {
+          setShowWarrantyDialog(false);
+          submitWorkOrder();
+        }}
+        warranty={matchedWarranty}
+      />
     </Dialog>
   );
 };

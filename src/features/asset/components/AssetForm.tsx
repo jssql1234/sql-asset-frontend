@@ -7,7 +7,6 @@ import { Option, Tabs, type TabItem, Button, Card } from "@/components/ui/compon
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { Tooltip } from "@/components/ui/components/Tooltip";
-import { useToast } from "@/components/ui/components/Toast/useToast";
 import TabHeader from "@/components/TabHeader";
 import { SerialNumberTab } from "./SerialNumberTab";
 import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
@@ -380,8 +379,6 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
   const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
   const [batchMode, setBatchMode] = useState(false);
-  const { addToast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const { hasPermission } = usePermissions();
 
@@ -507,22 +504,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     // Handle form submission
     onSuccess?.(data);
   };
-
-  const handleFakeSubmit = () => {
-    setIsSubmitting(() => true);
-    // Simulate API call
-    setTimeout(() => {
-      addToast({
-        variant: "success",
-        title: isEditMode ? "Asset Updated (Fake)" : "Asset Created (Fake)",
-        description: "This is a fake submission for testing purposes.",
-        duration: 5000,
-      });
-      setIsSubmitting(() => false);
-      onBack?.();
-    }, 1000);
-  };
-
 
   // Mock data for dropdowns
   const assetGroups: SelectDropdownOption[] = [
@@ -966,10 +947,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       </div>
       {/* Footer */}
       <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">
-        <Button onClick={handleFakeSubmit} disabled={isSubmitting} variant="outline" className="bg-warning text-onWarning hover:bg-warning/90">
-          {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : "Fake Submit (Test)"}
-        </Button>
-        <Button onClick={() => formRef.current?.requestSubmit()} disabled={isSubmitting}>
+        <Button onClick={() => formRef.current?.requestSubmit()} disabled={false}>
           {isEditMode ? "Update Asset" : "Create Asset"}
         </Button>
       </div>

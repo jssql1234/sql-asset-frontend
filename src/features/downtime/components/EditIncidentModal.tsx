@@ -1,19 +1,45 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from "@/components/ui/components";
+import React, { useState, useEffect, useMemo } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
+import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { Trash2 } from "lucide-react";
+import { downtimeAssetGroups, downtimeAssets } from "@/features/downtime/mockData";
 
 interface EditIncidentModalProps {
   open: boolean;
   incident: DowntimeIncident | null;
   onClose: () => void;
+}
+
+interface ReadOnlyFieldProps {
+  label: string;
+  valueClassName?: string;
+  children: React.ReactNode;
+}
+
+const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, valueClassName, children }) => (
+  <div className="rounded-lg border border-outlineVariant/60 bg-surfaceContainerLow px-3 py-2">
+    <span className="label-small text-onSurfaceVariant">{label}</span>
+    <div className={`mt-1 text-onSurface body-medium ${valueClassName ?? ""}`}>
+      {children}
+    </div>
+  </div>
+);
+
+const DEFAULT_ASSET_CATEGORY = "all";
+
+interface AssetDropdownItem {
+  id: string;
+  label: string;
+  sublabel?: string;
+  groupId: string;
+  groupLabel: string;
 }
 
 export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
@@ -23,7 +49,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
 }) => {
   const [formData, setFormData] = useState<EditDowntimeInput>({
     id: "",
-    assetId: "",
+    assetIds: [],
     priority: "Medium",
     status: "Down",
     description: "",
@@ -35,6 +61,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
   
   const updateMutation = useUpdateDowntimeIncident(() => {
     handleClose();
@@ -49,7 +76,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     if (incident && open) {
       setFormData({
         id: incident.id,
-        assetId: incident.assetId,
+        assetIds: incident.assets.map((asset) => asset.id),
         priority: incident.priority,
         status: incident.status,
         description: incident.description,
@@ -61,13 +88,106 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
       });
       setErrors({});
       setIsEditMode(false);
+      const initialCategory = incident.assets[0]?.groupId ?? DEFAULT_ASSET_CATEGORY;
+      setSelectedCategoryId(initialCategory);
     }
   }, [incident, open]);
+
+  const assetCategories = useMemo(
+    () => [
+      { id: DEFAULT_ASSET_CATEGORY, label: "All Assets" },
+      ...downtimeAssetGroups.map((group) => ({
+        id: group.id,
+        label: group.label,
+        sublabel: group.sublabel,
+      })),
+    ],
+    []
+  );
+
+  const baseAssetItems = useMemo<AssetDropdownItem[]>(
+    () =>
+      downtimeAssets.map((asset) => ({
+        id: asset.id,
+        label: asset.name,
+        sublabel: asset.location ?? asset.groupLabel,
+        groupId: asset.groupId,
+        groupLabel: asset.groupLabel,
+      })),
+    []
+  );
+
+  const baseAssetItemMap = useMemo(() => {
+    const map = new Map<string, AssetDropdownItem>();
+    baseAssetItems.forEach((item) => {
+      map.set(item.id, item);
+    });
+    return map;
+  }, [baseAssetItems]);
+
+  const assetItemMap = useMemo(() => {
+    const map = new Map(baseAssetItemMap);
+    incident?.assets.forEach((asset) => {
+      map.set(asset.id, {
+        id: asset.id,
+        label: asset.name,
+        sublabel: asset.location ?? asset.groupLabel,
+        groupId: asset.groupId ?? DEFAULT_ASSET_CATEGORY,
+        groupLabel: asset.groupLabel ?? "Other Assets",
+      });
+    });
+    return map;
+  }, [baseAssetItemMap, incident]);
+
+  const assetItems = useMemo(() => {
+    const baseItems =
+      selectedCategoryId === DEFAULT_ASSET_CATEGORY
+        ? baseAssetItems
+        : baseAssetItems.filter((item) => item.groupId === selectedCategoryId);
+
+    const itemMap = new Map<string, AssetDropdownItem>();
+    baseItems.forEach((item) => {
+      itemMap.set(item.id, item);
+    });
+
+    formData.assetIds.forEach((id) => {
+      if (!itemMap.has(id)) {
+        const match = assetItemMap.get(id);
+        if (match) {
+          itemMap.set(id, match);
+        }
+      }
+    });
+
+    return Array.from(itemMap.values());
+  }, [selectedCategoryId, baseAssetItems, formData.assetIds, assetItemMap]);
+
+  const selectedAssets = useMemo(
+    () =>
+      formData.assetIds.map((id) => {
+        const match = assetItemMap.get(id);
+        return {
+          id,
+          name: match?.label ?? id,
+          groupLabel: match?.groupLabel,
+        };
+      }),
+    [formData.assetIds, assetItemMap]
+  );
+
+  const handleAssetSelectionChange = (selectedIds: string[]) => {
+    setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
+    setErrors((prev) => ({
+      ...prev,
+      assetIds: selectedIds.length === 0 ? "Select at least one asset" : "",
+    }));
+  };
 
   const handleClose = () => {
     setErrors({});
     setIsDeleteDialogOpen(false);
     setIsEditMode(false);
+    setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
     onClose();
   };
 
@@ -78,7 +198,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
 
   const handleConfirmDelete = async () => {
     if (!incident) return;
-    await deleteMutation.mutate(incident.id);
+    await deleteMutation.mutateAsync(incident.id);
     setIsDeleteDialogOpen(false);
   };
 
@@ -104,7 +224,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     
     // Clear errors and submit
     setErrors({});
-    await updateMutation.mutate(validation.data);
+    await updateMutation.mutateAsync(validation.data);
   };
 
   const handleInputChange = (field: keyof EditDowntimeInput) => (
@@ -119,27 +239,40 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   };
 
   const handleStatusSelect = (status: EditDowntimeInput["status"]) => {
-    setFormData((prev) => ({
-      ...prev,
-      status,
-      // If resolving, set end time to now if not already set
-      endTime: status === "Resolved" && !prev.endTime ? new Date().toISOString() : prev.endTime,
-    }));
+    setFormData((prev) => {
+      const nextEndTime = status === "Resolved"
+        ? prev.endTime ?? new Date().toISOString()
+        : undefined;
+
+      return {
+        ...prev,
+        status,
+        endTime: nextEndTime,
+      };
+    });
     setErrors((prev) => ({ ...prev, status: "", endTime: "", resolutionNotes: "" }));
   };
 
-  const handleDateTimeChange = (field: "startTime" | "endTime") => (date: string | Date | Date[] | string[] | undefined) => {
+  const handleDateTimeChange = (field: "startTime" | "endTime") => (date: string | Date | Date[] | string[] | undefined | null) => {
+    if (date === null || date === undefined || (Array.isArray(date) && date.length === 0)) {
+      setFormData((prev) => ({ ...prev, [field]: field === "endTime" ? undefined : "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+      return;
+    }
+
     if (date instanceof Date) {
       setFormData((prev) => ({ ...prev, [field]: date.toISOString() }));
     } else if (typeof date === "string") {
       setFormData((prev) => ({ ...prev, [field]: date }));
-    } else if (field === "endTime" && date === undefined) {
-      setFormData((prev) => ({ ...prev, [field]: undefined }));
     }
     setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   if (!incident) return null;
+
+  const incidentAssetSummary = incident.assets
+    .map((asset) => `${asset.name} (${asset.id})`)
+    .join(", ");
 
   return (
     <Dialog
@@ -156,18 +289,52 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4">
-          {/* Asset Name (Read-only) */}
+          {/* Assets */}
           <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Asset</label>
-            <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
-              {incident.assetName} ({incident.assetId})
-            </div>
+            {isEditMode ? (
+              <>
+                <label className="label-medium text-onSurface">Assets*</label>
+                <SearchWithDropdown
+                  categories={assetCategories}
+                  selectedCategoryId={selectedCategoryId}
+                  onCategoryChange={setSelectedCategoryId}
+                  items={assetItems}
+                  selectedIds={formData.assetIds}
+                  onSelectionChange={handleAssetSelectionChange}
+                  placeholder="Search assets..."
+                  emptyMessage="No assets found"
+                  className="w-full"
+                  hideSelectedField={formData.assetIds.length === 0}
+                />
+                {errors.assetIds && (
+                  <span className="text-sm text-error">{errors.assetIds}</span>
+                )}
+              </>
+            ) : (
+              <ReadOnlyField label="Assets">
+                {selectedAssets.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {selectedAssets.map((asset) => (
+                      <span
+                        key={asset.id}
+                        className="rounded-full bg-surfaceContainerHighest px-3 py-1 text-xs text-onSurfaceVariant"
+                      >
+                        {asset.name} ({asset.id})
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-onSurfaceVariant">—</span>
+                )}
+              </ReadOnlyField>
+            )}
           </div>
 
           {/* Priority Selection */}
           <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Priority*</label>
             {isEditMode ? (
+              <>
+                <label className="label-medium text-onSurface">Priority*</label>
               <DropdownMenu className="w-full">
                 <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
                 <DropdownMenuContent>
@@ -183,46 +350,45 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+              </>
             ) : (
-              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
-                {formData.priority}
-              </div>
+              <ReadOnlyField label="Priority*">{formData.priority}</ReadOnlyField>
             )}
           </div>
 
           {/* Status Selection */}
           <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Status*</label>
             {isEditMode ? (
-              <DropdownMenu className="w-full">
-                <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
-                <DropdownMenuContent>
-                  {STATUS_OPTIONS.map((option) => (
-                    <DropdownMenuItem
-                      key={option.value}
-                      onClick={() => {
-                        handleStatusSelect(option.value);
-                      }}
-                    >
-                    {option.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <>
+                <label className="label-medium text-onSurface">Status*</label>
+                <DropdownMenu className="w-full">
+                  <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
+                  <DropdownMenuContent>
+                    {STATUS_OPTIONS.map((option) => (
+                      <DropdownMenuItem
+                        key={option.value}
+                        onClick={() => {
+                          handleStatusSelect(option.value);
+                        }}
+                      >
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
-              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
-                {formData.status}
-              </div>
+              <ReadOnlyField label="Status*">{formData.status}</ReadOnlyField>
             )}
           </div>
 
           {/* Start Time */}
           <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Start Time*</label>
             {isEditMode ? (
               <>
+                <label className="label-medium text-onSurface">Start Time*</label>
                 <SemiDatePicker
-                  value={new Date(formData.startTime)}
+                  value={formData.startTime ? new Date(formData.startTime) : null}
                   onChange={handleDateTimeChange("startTime")}
                   inputType="dateTime"
                   className="w-full"
@@ -232,20 +398,18 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                 )}
               </>
             ) : (
-              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
+              <ReadOnlyField label="Start Time*">
                 {new Date(formData.startTime).toLocaleString()}
-              </div>
+              </ReadOnlyField>
             )}
           </div>
 
           {/* End Time (show if resolved) */}
           {formData.status === "Resolved" && (
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">
-                End Time*
-              </label>
               {isEditMode ? (
                 <>
+                  <label className="label-medium text-onSurface">End Time*</label>
                   <SemiDatePicker
                     value={formData.endTime ? new Date(formData.endTime) : null}
                     onChange={handleDateTimeChange("endTime")}
@@ -257,18 +421,18 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                   )}
                 </>
               ) : (
-                <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium">
+                <ReadOnlyField label="End Time*">
                   {formData.endTime ? new Date(formData.endTime).toLocaleString() : "—"}
-                </div>
+                </ReadOnlyField>
               )}
             </div>
           )}
 
           {/* Description */}
           <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Description*</label>
             {isEditMode ? (
               <>
+                <label className="label-medium text-onSurface">Description*</label>
                 <TextArea
                   value={formData.description}
                   onChange={handleInputChange("description")}
@@ -280,18 +444,18 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                 )}
               </>
             ) : (
-              <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium min-h-[100px] whitespace-pre-wrap">
+              <ReadOnlyField label="Description*" valueClassName="whitespace-pre-wrap">
                 {formData.description}
-              </div>
+              </ReadOnlyField>
             )}
           </div>
 
           {/* Resolution Notes (show if resolved) */}
           {formData.status === "Resolved" && (
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Resolution Notes*</label>
               {isEditMode ? (
                 <>
+                  <label className="label-medium text-onSurface">Resolution Notes*</label>
                   <TextArea
                     value={formData.resolutionNotes ?? ""}
                     onChange={handleInputChange("resolutionNotes")}
@@ -303,9 +467,9 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                   )}
                 </>
               ) : (
-                <div className="p-2 bg-surfaceContainerHighest border border-outlineVariant rounded text-onSurface body-medium min-h-[80px] whitespace-pre-wrap">
+                <ReadOnlyField label="Resolution Notes*" valueClassName="whitespace-pre-wrap">
                   {formData.resolutionNotes ?? "—"}
-                </div>
+                </ReadOnlyField>
               )}
             </div>
           )}
@@ -374,7 +538,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
               This will permanently remove the downtime incident for
               {" "}
               <span className="font-medium text-onSurface">
-                {incident.assetName} ({incident.assetId})
+                {incidentAssetSummary || "selected assets"}
               </span>
               . This action cannot be undone.
             </p>

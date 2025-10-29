@@ -22,25 +22,41 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
     if (!searchQuery.trim()) return incidents;
     
     const query = searchQuery.toLowerCase();
-    return incidents.filter((incident) => 
-      incident.assetName.toLowerCase().includes(query) ||
-      incident.assetId.toLowerCase().includes(query) ||
-      incident.description.toLowerCase().includes(query)
-    );
+    return incidents.filter((incident) => {
+      const assetTokens = incident.assets
+        .map((asset) => `${asset.name} ${asset.id}`.toLowerCase())
+        .join(" ");
+
+      return (
+        assetTokens.includes(query) ||
+        incident.description.toLowerCase().includes(query)
+      );
+    });
   }, [incidents, searchQuery]);
 
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
-        accessorKey: "assetName",
-        header: "Asset",
+        accessorKey: "assets",
+        header: "Assets",
         cell: ({ row }) => (
-          <div>
-            <div className="font-medium">{row.original.assetName}</div>
-            <div className="text-sm text-onSurfaceVariant">{row.original.assetId}</div>
+          <div className="space-y-1">
+            {row.original.assets.length > 0 ? (
+              <>
+                <div className="font-medium">{row.original.assets[0]?.name}</div>
+                <div className="text-sm text-onSurfaceVariant">{row.original.assets[0]?.id}</div>
+                {row.original.assets.length > 1 && (
+                  <div className="text-xs text-onSurfaceVariant">
+                    +{row.original.assets.length - 1} more asset{row.original.assets.length - 1 === 1 ? "" : "s"}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-onSurfaceVariant">—</div>
+            )}
           </div>
         ),
-        enableSorting: true,
+  enableSorting: false,
         enableColumnFilter: false,
       },
       {

@@ -24,24 +24,45 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   const filteredIncidents = useMemo(() => {
     if (!searchValue.trim()) return resolvedIncidents;
     
-    return resolvedIncidents.filter((incident) => 
-      incident.assetName.toLowerCase().includes(searchValue.toLowerCase()) ||
-      incident.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-      incident.resolutionNotes?.toLowerCase().includes(searchValue.toLowerCase())
-    );
+    const query = searchValue.toLowerCase();
+
+    return resolvedIncidents.filter((incident) => {
+      const assetTokens = incident.assets
+        .map((asset) => `${asset.name} ${asset.id}`.toLowerCase())
+        .join(" ");
+      const descriptionText = incident.description.toLowerCase();
+      const resolutionText = incident.resolutionNotes?.toLowerCase() ?? "";
+
+      return (
+        assetTokens.includes(query) ||
+        descriptionText.includes(query) ||
+        resolutionText.includes(query)
+      );
+    });
   }, [searchValue, resolvedIncidents]);
 
   // Table column definitions
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
-        accessorKey: "assetName",
-        header: "Asset",
+        accessorKey: "assets",
+        header: "Assets",
         enableColumnFilter: false,
         cell: ({ row }) => (
-          <div>
-            <div className="font-medium">{row.original.assetName}</div>
-            <div className="text-sm text-onSurfaceVariant">{row.original.assetId}</div>
+          <div className="space-y-1">
+            {row.original.assets.length > 0 ? (
+              <>
+                <div className="font-medium">{row.original.assets[0]?.name}</div>
+                <div className="text-sm text-onSurfaceVariant">{row.original.assets[0]?.id}</div>
+                {row.original.assets.length > 1 && (
+                  <div className="text-xs text-onSurfaceVariant">
+                    +{row.original.assets.length - 1} more asset{row.original.assets.length - 1 === 1 ? "" : "s"}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-onSurfaceVariant">—</div>
+            )}
           </div>
         ),
       },

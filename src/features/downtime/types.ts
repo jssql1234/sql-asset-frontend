@@ -1,7 +1,14 @@
+export interface DowntimeAssetInfo {
+  id: string;
+  name: string;
+  groupId?: string;
+  groupLabel?: string;
+  location?: string;
+}
+
 export interface DowntimeIncident {
   id: string;
-  assetName: string;
-  assetId: string;
+  assets: DowntimeAssetInfo[];
   priority: "Low" | "Medium" | "High" | "Critical";
   status: "Down" | "Resolved";
   startTime: string; // ISO date string
@@ -34,7 +41,7 @@ export interface AssetOption {
 }
 
 export interface DowntimeFormData {
-  assetId: string;
+  assetIds: string[];
   priority: DowntimeIncident["priority"];
   description: string;
   startTime: string;

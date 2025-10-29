@@ -52,23 +52,26 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
 
   const createIncident = async (input: CreateDowntimeInput) => {
     try {
-      const newIncident = createDowntimeIncident(input);
+  const newIncident = createDowntimeIncident(input);
       
       // Invalidate and refetch
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
         queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
+        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
       ]);
 
       addToast({
         variant: "success",
         title: "Downtime Incident Created",
-        description: "The incident has been logged successfully",
+        description: input.assetIds.length > 1
+          ? `Downtime logged for ${String(input.assetIds.length)} assets.`
+          : "The incident has been logged successfully",
         duration: 5000,
       });
 
       onSuccess?.();
-      return newIncident;
+  return newIncident;
     } catch (error) {
       const description = error instanceof Error ? error.message : "Please try again";
       addToast({
@@ -80,7 +83,7 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
     }
   };
 
-  return { mutate: createIncident, isPending: false };
+  return { mutate: createIncident, mutateAsync: createIncident, isPending: false };
 }
 
 // Hook to update an existing downtime incident
@@ -101,7 +104,9 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
       addToast({
         variant: "success",
         title: "Incident Updated",
-        description: "The incident has been updated successfully",
+        description: input.assetIds.length > 1
+          ? `The incident has been updated for ${String(input.assetIds.length)} assets.`
+          : "The incident has been updated successfully",
         duration: 5000,
       });
 
@@ -118,7 +123,7 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
     }
   };
 
-  return { mutate: updateIncident, isPending: false };
+  return { mutate: updateIncident, mutateAsync: updateIncident, isPending: false };
 }
 
 // Hook to delete a downtime incident
@@ -154,5 +159,5 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
     }
   };
 
-  return { mutate: deleteIncident, isPending: false };
+  return { mutate: deleteIncident, mutateAsync: deleteIncident, isPending: false };
 }

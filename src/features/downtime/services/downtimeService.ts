@@ -1,6 +1,6 @@
-import type { DowntimeIncident, DowntimeSummary } from "../types";
+import type { DowntimeAssetInfo, DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import { getDowntimeAssetName } from "../mockData";
+import { getDowntimeAssetInfo, getDowntimeAssetName } from "../mockData";
 
 // Utility functions for date/time formatting and duration calculations
 /**
@@ -106,11 +106,20 @@ export const fetchDowntimeSummary = (): Promise<DowntimeSummary> => {
 export const createDowntimeIncident = (
   input: CreateDowntimeInput
 ): DowntimeIncident => {
-  // Find asset name (in real app, this would come from asset API)
-  const newIncident: DowntimeIncident = {
+  const assets: DowntimeAssetInfo[] = input.assetIds.map((assetId) => {
+    const assetInfo = getDowntimeAssetInfo(assetId);
+    return {
+      id: assetId,
+      name: assetInfo?.name ?? getDowntimeAssetName(assetId),
+      groupId: assetInfo?.groupId,
+      groupLabel: assetInfo?.groupLabel,
+      location: assetInfo?.location,
+    };
+  });
+
+  const incident: DowntimeIncident = {
     id: String(nextId++),
-    assetName: getDowntimeAssetName(input.assetId),
-    assetId: input.assetId,
+    assets,
     priority: input.priority,
     status: input.status,
     startTime: input.startTime,
@@ -118,37 +127,53 @@ export const createDowntimeIncident = (
     description: input.description,
     reportedBy: input.reportedBy ?? "Current User",
   };
-  
-  // Calculate duration if end time is provided
-  if (newIncident.endTime) {
-    newIncident.downtimeDuration = calculateDuration(
-      newIncident.startTime,
-      newIncident.endTime
+
+  if (incident.endTime) {
+    incident.downtimeDuration = calculateDuration(
+      incident.startTime,
+      incident.endTime
     );
   }
-  
-  // If status is Resolved, add to resolved store, otherwise to incidents store
+
   if (input.status === "Resolved") {
-    resolvedStore = [newIncident, ...resolvedStore];
+    resolvedStore = [incident, ...resolvedStore];
   } else {
-    incidentsStore = [newIncident, ...incidentsStore];
+    incidentsStore = [incident, ...incidentsStore];
   }
-  return newIncident;
+
+  return incident;
 };
 
 // Update an existing downtime incident
 export const updateDowntimeIncident = (
   input: EditDowntimeInput
 ): DowntimeIncident => {
-  const index = incidentsStore.findIndex(i => i.id === input.id);
-  if (index === -1) {
+  const assetIds: string[] = input.assetIds;
+  const assetEntries: DowntimeAssetInfo[] = assetIds.map((assetId) => {
+    const assetInfo = getDowntimeAssetInfo(assetId);
+    return {
+      id: assetId,
+      name: assetInfo?.name ?? getDowntimeAssetName(assetId),
+      groupId: assetInfo?.groupId,
+      groupLabel: assetInfo?.groupLabel,
+      location: assetInfo?.location,
+    };
+  });
+
+  const existingActiveIndex = incidentsStore.findIndex((incident) => incident.id === input.id);
+  const existingResolvedIndex = resolvedStore.findIndex((incident) => incident.id === input.id);
+
+  const getExistingIncident = () => {
+    if (existingActiveIndex !== -1) return incidentsStore[existingActiveIndex];
+    if (existingResolvedIndex !== -1) return resolvedStore[existingResolvedIndex];
     throw new Error("Incident not found");
-  }
-  
+  };
+
+  const baseIncident = getExistingIncident();
+
   const updatedIncident: DowntimeIncident = {
-    ...incidentsStore[index],
-    assetName: getDowntimeAssetName(input.assetId),
-    assetId: input.assetId,
+    ...baseIncident,
+    assets: assetEntries,
     priority: input.priority,
     status: input.status,
     description: input.description,
@@ -158,23 +183,32 @@ export const updateDowntimeIncident = (
     resolvedBy: input.resolvedBy,
     resolutionNotes: input.resolutionNotes,
   };
-  
-  // Calculate duration if end time is provided
+
   if (updatedIncident.endTime) {
     updatedIncident.downtimeDuration = calculateDuration(
       updatedIncident.startTime,
       updatedIncident.endTime
     );
+  } else {
+    delete updatedIncident.downtimeDuration;
   }
-  
-  // If status changed to Resolved, move to resolved store
-  if (input.status === "Resolved" && incidentsStore[index].status !== "Resolved") {
-    incidentsStore = incidentsStore.filter(i => i.id !== input.id);
+
+  const isResolved = input.status === "Resolved";
+
+  if (existingActiveIndex !== -1) {
+    incidentsStore.splice(existingActiveIndex, 1);
+  }
+
+  if (existingResolvedIndex !== -1) {
+    resolvedStore.splice(existingResolvedIndex, 1);
+  }
+
+  if (isResolved) {
     resolvedStore = [updatedIncident, ...resolvedStore];
   } else {
-    incidentsStore[index] = updatedIncident;
+    incidentsStore = [updatedIncident, ...incidentsStore];
   }
-  
+
   return updatedIncident;
 };
 

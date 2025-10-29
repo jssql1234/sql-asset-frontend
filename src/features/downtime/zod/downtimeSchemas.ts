@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Schema for creating a new downtime incident
 export const createDowntimeSchema = z.object({
-  assetId: z.string().min(1, "Asset is required"),
+  assetIds: z.array(z.string().min(1, "Asset is required")).min(1, "Select at least one asset"),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -36,7 +36,7 @@ export const createDowntimeSchema = z.object({
 // Schema for editing an existing downtime incident
 export const editDowntimeSchema = z.object({
   id: z.string().min(1, "Incident ID is required"),
-  assetId: z.string().min(1, "Asset is required"),
+  assetIds: z.array(z.string().min(1, "Asset is required")).min(1, "Select at least one asset"),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
   description: z.string().min(10, "Description must be at least 10 characters"),

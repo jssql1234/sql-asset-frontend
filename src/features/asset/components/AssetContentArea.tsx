@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button, Card } from "@/components/ui/components";
+import { Button, Card, Switch } from "@/components/ui/components";
 import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
-import { cn } from "@/utils/utils";
 import AssetForm from "./AssetForm";
 import type { Asset } from "@/types/asset";
-import { useGetAsset, useCreateAsset, useUpdateAsset } from "../hooks/useAssetService";
+import { useGetAsset, useCreateAsset, useUpdateAsset, useDeleteAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
@@ -16,7 +15,6 @@ import { Delete, Edit, Plus } from "@/assets/icons";
 import { usePermissions } from "@/hooks/usePermissions";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { useToast } from "@/components/ui/components/Toast/useToast";
-
 
 // Column definitions for TanStack Table
 const createColumns = (): CustomColumnDef<Asset>[] => [
@@ -35,6 +33,20 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
     meta: { label: "Batch ID" },
     enableSorting: true,
     enableColumnFilter: false,
+    cell: ({ row, getValue }) => {
+      const value = getValue() as string;
+      if (row.getIsGrouped()) {
+        return (
+          <div>
+            <div className="font-medium">{value || "Ungrouped"}</div>
+            <div className="text-sm text-muted-foreground">
+              {row.subRows.length} asset{row.subRows.length !== 1 ? "s" : ""}
+            </div>
+          </div>
+        );
+      }
+      return value || "-";
+    },
   },
   {
     id: "name",
@@ -108,59 +120,6 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
     enableSorting: true,
     enableColumnFilter: false,
   },
-  // {
-  //   id: "qe",
-  //   accessorKey: "qe",
-  //   header: "QE", 
-  //   meta: { label: "QE" },
-  //   cell: ({ getValue }) => {
-  //     const value = getValue() as number;
-  //     return value.toLocaleString();
-  //   },
-  // },
-  // {
-  //   id: "re",
-  //   accessorKey: "re",
-  //   header: "RE",
-  //   meta: { label: "RE" },
-  //   cell: ({ getValue }) => {
-  //     const value = getValue() as number;
-  //     return value.toLocaleString();
-  //   },
-  // },
-  // {
-  //   id: "ia",
-  //   accessorKey: "ia",
-  //   header: "IA",
-  //   meta: { label: "IA" },
-  //   cell: ({ getValue }) => {
-  //     const value = getValue() as number;
-  //     return value.toLocaleString();
-  //   },
-  // },
-  // {
-  //   id: "aa",
-  //   accessorKey: "aa",
-  //   header: "AA",
-  //   meta: { label: "AA" },
-  //   cell: ({ getValue }) => {
-  //     const value = getValue() as number;
-  //     return value.toLocaleString();
-  //   },
-  // },
-  // {
-  //   id: "aca",
-  //   accessorKey: "aca",
-  //   header: "ACA",
-  //   meta: { 
-  //     label: "ACA",
-  //     filterOptions: { "true": "Yes", "false": "No" }
-  //   },
-  //   cell: ({ getValue }) => {
-  //     const value = getValue() as boolean;
-  //     return value ? "Yes" : "No";
-  //   },
-  // },
   {
     id: "active",
     accessorKey: "active",
@@ -176,16 +135,6 @@ const createColumns = (): CustomColumnDef<Asset>[] => [
     enableSorting: true,
     enableColumnFilter: false,
   },
-  // {
-  //   id: "personalUsePct",
-  //   accessorKey: "personalUsePct",
-  //   header: "Personal Use %",
-  //   meta: { label: "Personal Use %" },
-  //   cell: ({ getValue }) => {
-  //     const value = getValue() as number;
-  //     return value.toLocaleString();
-  //   },
-  // },
 ];
 
 interface UserAssetContentAreaProps {
@@ -239,6 +188,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     setEditingAsset(null);
     void navigate('/asset');
   });
+
+  const deleteAssetMutation = useDeleteAsset();
 
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
@@ -303,6 +254,17 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const allColumns = useMemo(() => createColumns(), []);
   const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
+  // Compute table columns based on batch mode (exclude id in batch mode)
+  const tableColumns = useMemo(() => 
+    groupByBatch ? allColumns.filter(col => col.id !== "id") : allColumns,
+    [allColumns, groupByBatch]
+  );
+
+  // Update visible columns when switching modes
+  useEffect(() => {
+    setVisibleColumns(tableColumns);
+  }, [tableColumns]);
+
   // Handle row selection and maintain asset ID mapping
   const handleRowSelectionChange = (rows: Asset[]) => {
 
@@ -312,6 +274,15 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     } else {
       setSelectedAssetIds([]);
     }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedAssetIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedAssetIds.length} selected asset(s)? This action cannot be undone.`)) return;
+    selectedAssetIds.forEach(id => {
+      deleteAssetMutation.mutate(id);
+    });
+    setSelectedAssetIds([]);
   };
 
   // Filter assets based on search value and tax year (for tax agents)
@@ -472,32 +443,18 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           {/* Header actions */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              {/* <div className="label-medium-bold text-onSurface">Asset Overview</div> */}
-              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
-              onClick={() => {
-                setGroupByBatch(!groupByBatch);
-              }}>
-                <button
-                  type="button"
-                  className={cn(
-                    "px-3 py-1 body-small",
-                    !groupByBatch && "bg-primary text-onPrimary"
-                  )}
-                >
-                  Asset
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "px-3 py-1 body-small",
-                    groupByBatch && "bg-primary text-onPrimary"
-                  )}
-                >
-                  Batch
-                </button>
+              {/* Batch Mode Toggle */}
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={groupByBatch}
+                  onCheckedChange={setGroupByBatch}
+                />
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Batch Mode
+                </label>
               </div>
               <TableColumnVisibility
-                columns={allColumns}
+                columns={tableColumns}
                 visibleColumns={visibleColumns}
                 setVisibleColumns={setVisibleColumns}
                 className="size-32"
@@ -538,7 +495,9 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                    >
                      <Edit className="h-4 w-4" />Edit
                    </Button>
-                   <Button variant="destructive" size="sm"><Delete className="h-4 w-4" />Delete Selected</Button>
+                   <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
+                     <Delete className="h-4 w-4" />Delete Selected
+                   </Button>
                    <Button variant="destructive" size="sm" onClick={() => {
                      void navigate('/disposal');
                    }}>Dispose</Button>
@@ -556,6 +515,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
             selectedCount={selectedAssetIds.length}
+            enableGrouping={true}
+            grouping={groupByBatch ? ['batchId'] : []}
           />
         </Card>
         </div>

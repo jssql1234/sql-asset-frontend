@@ -16,6 +16,8 @@ import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErro
 import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
+import BatchDetachModal from "./BatchDetachModal";
+import { useGetBatchAssets, useGetBatchQuantity, useBulkUpdateAssets, useCreateMultipleAssets, useBulkUpdateAssetBatchId } from "../hooks/useAssetService";
 
 interface SerialNumberData {
   serial: string;
@@ -380,7 +382,17 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
   const [batchMode, setBatchMode] = useState(false);
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
+  const [showDetachModal, setShowDetachModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingData, setPendingData] = useState<CreateAssetFormData | null>(null);
   const { hasPermission } = usePermissions();
+
+  // Batch hooks
+  const { data: batchAssets } = useGetBatchAssets(batchMode && editingAsset?.batchId ? editingAsset.batchId : '');
+  const { data: originalQuantity } = useGetBatchQuantity(batchMode && editingAsset?.batchId ? editingAsset.batchId : '');
+  const bulkUpdateAssetsMutation = useBulkUpdateAssets();
+  const createMultipleMutation = useCreateMultipleAssets();
+  const bulkDetachMutation = useBulkUpdateAssetBatchId();
 
   // Determine user role based on permissions or prop
   const isTaxAgent = hasPermission("processCA", "execute");
@@ -436,7 +448,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     defaultValues,
   });
 
-  // Populate form when editingAsset changes (following department pattern)
+  // Populate form when editingAsset changes
   useEffect(() => {
     if (editingAsset) {
       reset({
@@ -466,6 +478,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     }
   }, [editingAsset, reset, defaultValues]);
 
+  // Set initial quantity for batch edit
+  useEffect(() => {
+    if (originalQuantity !== undefined && editingAsset && batchMode && editingAsset.batchId) {
+      setValue("quantity", originalQuantity);
+    }
+  }, [originalQuantity, editingAsset, batchMode, setValue]);
+
   // Determine if we're in edit mode
   const isEditMode = Boolean(editingAsset);
   const title = isEditMode ? "Edit Asset" : "Create Asset";
@@ -493,16 +512,97 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     }
   }, [inactive, setValue]);
 
-
   const formRef = useRef<HTMLFormElement>(null);
 
   useImperativeHandle(ref, () => ({
     submit: () => formRef.current?.requestSubmit(),
   }));
 
+  const handleBatchConfirmDetach = (selectedIds: string[]) => {
+    if (originalQuantity && pendingData) {
+      const numToDetach = originalQuantity - pendingData.quantity;
+      if (selectedIds.length === numToDetach) {
+        bulkDetachMutation.mutate({ assetIds: selectedIds, newBatchId: null });
+        setShowDetachModal(false);
+        // Proceed with onSuccess if needed, but since batch handled, just navigate
+        onSuccess?.(pendingData);
+        onBack?.();
+      }
+    }
+  };
+
   const onSubmit = (data: CreateAssetFormData): void => {
-    // Handle form submission
-    onSuccess?.(data);
+    setIsSubmitting(true);
+    const isBatchCreate = batchMode && !editingAsset;
+    const isBatchEdit = batchMode && editingAsset?.batchId && originalQuantity !== undefined && batchAssets;
+
+    if (isBatchCreate) {
+      // Create multiple assets for batch
+      const batchId = data.code;
+      const numAssets = data.quantity;
+      const newAssets: Asset[] = [];
+      for (let i = 0; i < numAssets; i++) {
+        const newId = `ASSET-${batchId}-${String(i + 1).padStart(3, '0')}`;
+        newAssets.push({
+          id: newId,
+          batchId,
+          name: data.assetName,
+          group: data.assetGroup,
+          description: data.description ?? '',
+          acquireDate: data.acquireDate ?? '',
+          purchaseDate: data.purchaseDate ?? '',
+          cost: Number(data.cost ?? '0') || 0,
+          qty: 1, // Each asset qty=1
+          active: !data.inactive,
+        });
+      }
+      createMultipleMutation.mutate(newAssets);
+    } else if (isBatchEdit) {
+      const batchId = editingAsset.batchId;
+      const newQty = data.quantity;
+
+      // Prepare update partial for existing assets
+      const updatePartial = {
+        name: data.assetName,
+        group: data.assetGroup,
+        description: data.description ?? '',
+        acquireDate: data.acquireDate ?? '',
+        purchaseDate: data.purchaseDate ?? '',
+        cost: Number(data.cost ?? '0') || 0,
+        active: !data.inactive,
+        qty: 1,
+      };
+
+      const updatePayloads = batchAssets.map(asset => ({ id: asset.id, ...updatePartial }));
+
+      bulkUpdateAssetsMutation.mutate(updatePayloads);
+
+      if (newQty > originalQuantity) {
+        // Add new assets
+        const numToAdd = newQty - originalQuantity;
+        const newAssets: Asset[] = [];
+        for (let i = 0; i < numToAdd; i++) {
+          const newId = `ASSET-${batchId}-${(originalQuantity + i + 1).toString().padStart(3, '0')}`;
+          newAssets.push({
+            id: newId,
+            batchId,
+            ...updatePartial,
+          });
+        }
+        createMultipleMutation.mutate(newAssets);
+      } else if (newQty < originalQuantity) {
+        // Open detach modal
+        setPendingData(data);
+        setShowDetachModal(true);
+        return; // Wait for confirmation
+      }
+    } else {
+      // Normal single asset create or edit
+      onSuccess?.(data);
+    }
+
+    onBack?.();
+    setIsSubmitting(false);
   };
 
   // Mock data for dropdowns
@@ -648,6 +748,9 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         },
       ];
 
+  // Define isBatchEdit for modal conditional
+  const isBatchEdit = batchMode && editingAsset?.batchId && originalQuantity !== undefined && batchAssets;
+
   return (
     <div className="bg-surface min-h-screen">
       <div className="mx-auto max-w-[1600px]">
@@ -685,14 +788,14 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
               tooltip: batchMode ? "Exit batch mode" : "Enter batch mode",
             },
             ]}
-            />
+          />
         </div>
 
         {/* Split into left and right */}
         <div className="flex flex-row gap-6 items-stretch px-6 pb-10">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
-             <form ref={formRef} onSubmit={(e) => { e.preventDefault(); void handleSubmit(onSubmit)(e); }} className="space-y-6">
+             <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Main Form Fields */}
               <Card className="p-6">
                 {/* Inactive Status Section - Compact */}
@@ -747,7 +850,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  {/* Batch ID */}
+                  {/* Batch ID or Asset ID */}
                   {batchMode ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
@@ -807,7 +910,22 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  {batchMode && (
+                  {batchMode && !isEditMode ? (
+                  <div>
+                    <label className="block text-sm font-medium text-onSurface">
+                      Number of Assets in Batch <span className="text-error">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      {...register("quantity", { valueAsNumber: true })}
+                      min="1"
+                      max="999"
+                    />
+                    {errors.quantity && (
+                      <span className="body-small text-error mt-1 block">{errors.quantity.message}</span>
+                    )}
+                  </div>
+                  ) : batchMode && isEditMode ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Assets in Batch <span className="text-error">*</span>
@@ -821,8 +939,14 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                     {errors.quantity && (
                       <span className="body-small text-error mt-1 block">{errors.quantity.message}</span>
                     )}
+                    {originalQuantity !== undefined && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Current: {originalQuantity} | Changing to: {watch("quantity")}
+                      </p>
+                    )}
                   </div>
-                  )}
+                  ) : null
+                  }
 
                   {/* Units per Asset */}
                   <div>
@@ -944,11 +1068,25 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             </div>
           )}
         </div>  
+        {/* Detach Modal */}
+        {isBatchEdit && batchAssets && originalQuantity && pendingData && (
+          <BatchDetachModal
+            open={showDetachModal}
+            onOpenChange={setShowDetachModal}
+            batchAssets={batchAssets}
+            numToDetach={originalQuantity - pendingData.quantity}
+            onConfirm={handleBatchConfirmDetach}
+          />
+        )}
       </div>
       {/* Footer */}
       <div className="flex justify-end gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">
-        <Button onClick={() => formRef.current?.requestSubmit()} disabled={false}>
-          {isEditMode ? "Update Asset" : "Create Asset"}
+        <Button 
+          type="submit" 
+          onClick={() => formRef.current?.requestSubmit()}
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? 'Processing...' : (isEditMode ? "Update Asset" : "Create Asset")}
         </Button>
       </div>
     </div>

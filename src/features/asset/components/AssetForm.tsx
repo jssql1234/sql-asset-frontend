@@ -334,7 +334,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
                   if (typeof date === 'string') {
                     formatted = date;
                   } else if (date instanceof Date) {
-                    formatted = date.toISOString().split('T')[0];
+                    formatted = date.toLocaleDateString('en-CA');
                   }
                   field.onChange(formatted);
                 }}
@@ -357,7 +357,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
                   if (typeof date === 'string') {
                     formatted = date;
                   } else if (date instanceof Date) {
-                    formatted = date.toISOString().split('T')[0];
+                    formatted = date.toLocaleDateString('en-CA');
                   }
                   field.onChange(formatted);
                 }}
@@ -735,7 +735,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toISOString().split('T')[0];
+                              formatted = date.toLocaleDateString('en-CA');
                             }
                             setValue("inactiveStart", formatted);
                           }}
@@ -752,7 +752,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toISOString().split('T')[0];
+                              formatted = date.toLocaleDateString('en-CA');
                             }
                             setValue("inactiveEnd", formatted);
                           }}
@@ -898,7 +898,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toISOString().split('T')[0];
+                              formatted = date.toLocaleDateString('en-CA');
                             }
                             field.onChange(formatted);
                           }}
@@ -930,7 +930,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toISOString().split('T')[0];
+                              formatted = date.toLocaleDateString('en-CA');
                             }
                             field.onChange(formatted);
                           }}

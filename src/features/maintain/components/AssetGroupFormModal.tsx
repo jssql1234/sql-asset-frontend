@@ -27,7 +27,6 @@ const initialFormState: AssetGroupFormData = {
   id: '',
   name: '',
   description: '',
-  status: 'Active',
 };
 
 const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
@@ -59,7 +58,6 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
         id: editingAssetGroup.id,
         name: editingAssetGroup.name,
         description: editingAssetGroup.description,
-        status: editingAssetGroup.status,
       });
       setErrors({});
       setSubmitError('');
@@ -72,7 +70,6 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
       id: newId,
       name: '',
       description: '',
-      status: 'Active',
     });
     setErrors({});
     setSubmitError('');
@@ -179,21 +176,6 @@ const AssetGroupFormModal: React.FC<AssetGroupFormModalProps> = ({
                 )}
               </div>
               {errors.id && <p className="text-sm text-error mt-1">{errors.id}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="assetGroupStatus" className="block text-sm font-medium text-onSurface mb-1">
-                Status
-              </label>
-              <select
-                id="assetGroupStatus"
-                value={formData.status}
-                onChange={(event) => { handleInputChange('status', event.target.value); }}
-                className="w-full px-3 py-2 border rounded-md bg-surfaceContainerHighest text-onSurface focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
             </div>
           </div>
 

@@ -95,7 +95,6 @@ export function createAssetGroupFromForm(formData: AssetGroupFormData): AssetGro
     id: normalizedId,
     name: formData.name.trim(),
     description: formData.description.trim(),
-    status: formData.status,
     createdAt: new Date().toISOString().split('T')[0]
   };
 }

@@ -1,10 +1,7 @@
-export type AssetGroupStatus = 'Active' | 'Inactive';
-
 export interface AssetGroup {
   id: string;
   name: string;
   description: string;
-  status: AssetGroupStatus;
   createdAt: string;
 }
 
@@ -12,7 +9,6 @@ export interface AssetGroupFormData {
   id: string;
   name: string;
   description: string;
-  status: AssetGroupStatus;
 }
 
 export interface AssetGroupsFilters {

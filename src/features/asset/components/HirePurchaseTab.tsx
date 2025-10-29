@@ -1,6 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
+import { Button } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control } from "react-hook-form";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
@@ -16,10 +17,25 @@ interface HirePurchaseTabProps {
 
 const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, watch }) => {
   const hpInstalmentValue = watch("hpInstalment", "");
+  const hpStartDate = watch("hpStartDate", "");
+  const hpDeposit = watch("hpDeposit", "");
+  const hpInterest = watch("hpInterest");
+  const cost = watch("cost", "");
   const { hasPermission } = usePermissions();
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
   const isReadonly = isAdmin ? false : isTaxAgent;
+  const isHpEnabled = !!hpStartDate; // Enable other fields only if HP Start Date is filled
+
+  // Check if all required fields are present for Manage Payment button
+  const isManagePaymentEnabled = !!(
+    hpStartDate &&
+    hpInstalmentValue &&
+    hpDeposit &&
+    hpInterest &&
+    hpInterest !== 0 &&
+    cost
+  );
 
   // Options for instalment dropdown (excluding "Other")
   const instalmentOptions: DropdownOption[] = [
@@ -60,7 +76,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
               setValue("hpInstalment", value);
             }}
             options={instalmentOptions}
-            disabled={isReadonly}
+            disabled={isReadonly || !isHpEnabled}
             placeholder="Select Instalment"
             position= "top"
           />
@@ -68,22 +84,35 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         {hpInstalmentValue === "other" && (
           <div>
             <label className="block text-sm font-medium text-onSurface">Custom Instalment</label>
-            <Input type="number" {...register("hpInstalmentUser")} disabled={isReadonly} />
+            <Input type="number" {...register("hpInstalmentUser")} disabled={isReadonly || !isHpEnabled} />
           </div>
         )}
         <div>
           <label className="block text-sm font-medium text-onSurface">Deposit Amount</label>
-          <Input {...register("hpDeposit")} placeholder="0.00" disabled={isReadonly} />
+          <Input {...register("hpDeposit")} placeholder="0.00" disabled={isReadonly || !isHpEnabled} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Interest Rate (%)</label>
-          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" disabled={isReadonly} />
+          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" disabled={isReadonly || !isHpEnabled} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Finance</label>
-          <Input {...register("hpFinance")} placeholder="0.00" disabled={isReadonly} />
+          <Input {...register("hpFinance")} placeholder="0.00" disabled={isReadonly || !isHpEnabled} />
+        </div>
+
+        {/* Manage Payment Button */}
+        <div className="flex flex-col justify-end">
+          <Button
+            variant="primary"
+            disabled={!isManagePaymentEnabled || isReadonly}
+            className="px-6 py-4 w-full"
+          >
+            Manage Payment
+          </Button>
         </div>
       </div>
+
+      
     </Card>
   );
 };

@@ -174,6 +174,32 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
 
   const canDeleteSelected = hasSelection && selectedIds.every(id => (assetCounts[id] ?? 0) === 0);
 
+  const handleColumnOrderChange = useCallback((orderedIds: string[]) => {
+    const orderedVisibleIds = orderedIds.filter((id) => id !== 'select');
+
+    handleSetVisibleColumns((previous) => {
+      const columnById = new Map(previous.map((column) => [column.id ?? '', column]));
+      const nextOrder = orderedVisibleIds
+        .map((id) => columnById.get(id))
+        .filter((column): column is ColumnDef<AssetGroup> => Boolean(column));
+
+      if (nextOrder.length === 0) {
+        return previous;
+      }
+
+      if (nextOrder.length < previous.length) {
+        const remaining = previous.filter((column) => !orderedVisibleIds.includes(column.id ?? ''));
+        nextOrder.push(...remaining);
+      }
+
+      const isSameOrder =
+        nextOrder.length === previous.length &&
+        nextOrder.every((column, index) => column === previous[index]);
+
+      return isSameOrder ? previous : nextOrder;
+    });
+  }, [handleSetVisibleColumns]);
+
   return (
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
@@ -243,6 +269,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
         enableRowClickSelection
         onRowSelectionChange={handleRowSelectionChange}
         rowSelection={rowSelection}
+        onColumnOrderChange={handleColumnOrderChange}
       />
     </Card>
   );

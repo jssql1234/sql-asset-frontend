@@ -92,6 +92,7 @@ interface DataTableExtendedProps<TData, TValue> {
   onGroupingChange?: (grouping: GroupingState) => void;
   expanded?: ExpandedState;
   onExpandedChange?: (expanded: ExpandedState) => void;
+  onColumnOrderChange?: (columnOrder: string[]) => void;
 }
 
 type ColumnDefWithHeaderAlign<TData, TValue> = ColumnDef<TData, TValue> & {
@@ -102,6 +103,21 @@ function hasHeaderAlign<TData, TValue>(
   columnDef: ColumnDef<TData, TValue>
 ): columnDef is ColumnDefWithHeaderAlign<TData, TValue> {
   return 'headerAlign' in columnDef;
+}
+
+function resolveColumnId<TData, TValue>(
+  column: ColumnDef<TData, TValue> | CustomColumnDef<TData, TValue>,
+  index: number
+): string {
+  if (column.id) {
+    return column.id;
+  }
+
+  if ('accessorKey' in column && column.accessorKey) {
+    return String(column.accessorKey);
+  }
+
+  return `col-${index.toString()}`;
 }
 
 // Draggable header component
@@ -266,6 +282,7 @@ export function DataTableExtended<TData, TValue>({
   onGroupingChange,
   expanded,
   onExpandedChange,
+  onColumnOrderChange,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -278,13 +295,7 @@ export function DataTableExtended<TData, TValue>({
   const effectiveColumns = showCheckbox ? [createSelectionColumn<TData, TValue>(), ...columns] : columns;
   
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
-    return effectiveColumns.map((col, index) => {
-      if (col.id) return col.id;
-      if ('accessorKey' in col && col.accessorKey) {
-        return String(col.accessorKey);
-      }
-      return `col-${index.toString()}`;
-    });
+    return effectiveColumns.map((col, index) => resolveColumnId(col, index));
   });
   
   // DnD state
@@ -325,16 +336,20 @@ export function DataTableExtended<TData, TValue>({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (active.id !== over?.id && over?.id) {
-      const oldIndex = columnOrder.indexOf(active.id as string);
-      const newIndex = columnOrder.indexOf(over.id as string);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        setColumnOrder(arrayMove(columnOrder, oldIndex, newIndex));
-      }
+      setColumnOrder((previousOrder) => {
+        const oldIndex = previousOrder.indexOf(active.id as string);
+        const newIndex = previousOrder.indexOf(over.id as string);
+
+        if (oldIndex === -1 || newIndex === -1) {
+          return previousOrder;
+        }
+
+        return arrayMove(previousOrder, oldIndex, newIndex);
+      });
     }
-    
+
     setActiveId(null);
     setOverId(null);
   };
@@ -432,6 +447,29 @@ export function DataTableExtended<TData, TValue>({
       },
     },
   });
+
+  useEffect(() => {
+    const effectiveColumnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
+
+    setColumnOrder((previousOrder) => {
+      const filtered = previousOrder.filter((id) => effectiveColumnIds.includes(id));
+      const additions = effectiveColumnIds.filter((id) => !filtered.includes(id));
+      const nextOrder = [...filtered, ...additions];
+
+      const sameLength = nextOrder.length === previousOrder.length;
+      if (sameLength && nextOrder.every((id, idx) => id === previousOrder[idx])) {
+        return previousOrder;
+      }
+
+      return nextOrder;
+    });
+  }, [effectiveColumns]);
+
+  useEffect(() => {
+    if (onColumnOrderChange) {
+      onColumnOrderChange(columnOrder);
+    }
+  }, [columnOrder, onColumnOrderChange]);
 
   // Double-click handler
   useEffect(() => {

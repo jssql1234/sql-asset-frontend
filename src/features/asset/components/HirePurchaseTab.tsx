@@ -64,7 +64,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
               if (typeof date === 'string') {
                 formatted = date;
               } else if (date instanceof Date) {
-                formatted = date.toISOString().split('T')[0];
+                formatted = date.toLocaleDateString('en-CA');
               }
               setValue("hpStartDate", formatted);
             }}

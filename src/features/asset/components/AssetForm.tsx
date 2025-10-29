@@ -335,7 +335,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
                   if (typeof date === 'string') {
                     formatted = date;
                   } else if (date instanceof Date) {
-                    formatted = date.toLocaleDateString('en-CA');
+                    formatted = date.toISOString().split('T')[0];
                   }
                   field.onChange(formatted);
                 }}
@@ -358,7 +358,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
                   if (typeof date === 'string') {
                     formatted = date;
                   } else if (date instanceof Date) {
-                    formatted = date.toLocaleDateString('en-CA');
+                    formatted = date.toISOString().split('T')[0];
                   }
                   field.onChange(formatted);
                 }}
@@ -519,7 +519,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   }));
 
   const handleBatchConfirmDetach = (selectedIds: string[]) => {
-    if (originalQuantity && pendingData) {
+    if (typeof originalQuantity === "number" && pendingData) {
       const numToDetach = originalQuantity - pendingData.quantity;
       if (selectedIds.length === numToDetach) {
         bulkDetachMutation.mutate({ assetIds: selectedIds, newBatchId: null });
@@ -534,10 +534,8 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const onSubmit = (data: CreateAssetFormData): void => {
     setIsSubmitting(true);
     const isBatchCreate = batchMode && !editingAsset;
-    const isBatchEdit = batchMode && editingAsset?.batchId && originalQuantity !== undefined && batchAssets;
 
     if (isBatchCreate) {
-      // Create multiple assets for batch
       const batchId = data.code;
       const numAssets = data.quantity;
       const newAssets: Asset[] = [];
@@ -549,25 +547,24 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           name: data.assetName,
           group: data.assetGroup,
           description: data.description ?? '',
-          acquireDate: data.acquireDate ?? '',
-          purchaseDate: data.purchaseDate ?? '',
+          acquireDate: '',
+          purchaseDate: '',
           cost: Number(data.cost ?? '0') || 0,
-          qty: 1, // Each asset qty=1
+          qty: 1,
           active: !data.inactive,
         });
       }
       createMultipleMutation.mutate(newAssets);
-    } else if (isBatchEdit) {
+    } else if (batchMode && editingAsset?.batchId && batchAssets && originalQuantity !== undefined) {
       const batchId = editingAsset.batchId;
       const newQty = data.quantity;
 
-      // Prepare update partial for existing assets
       const updatePartial = {
         name: data.assetName,
         group: data.assetGroup,
         description: data.description ?? '',
-        acquireDate: data.acquireDate ?? '',
-        purchaseDate: data.purchaseDate ?? '',
+        acquireDate: '',
+        purchaseDate: '',
         cost: Number(data.cost ?? '0') || 0,
         active: !data.inactive,
         qty: 1,
@@ -578,7 +575,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       bulkUpdateAssetsMutation.mutate(updatePayloads);
 
       if (newQty > originalQuantity) {
-        // Add new assets
         const numToAdd = newQty - originalQuantity;
         const newAssets: Asset[] = [];
         for (let i = 0; i < numToAdd; i++) {
@@ -591,13 +587,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         }
         createMultipleMutation.mutate(newAssets);
       } else if (newQty < originalQuantity) {
-        // Open detach modal
         setPendingData(data);
         setShowDetachModal(true);
-        return; // Wait for confirmation
+        setIsSubmitting(false);
+        return;
       }
     } else {
-      // Normal single asset create or edit
       onSuccess?.(data);
     }
 
@@ -748,8 +743,26 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         },
       ];
 
-  // Define isBatchEdit for modal conditional
-  const isBatchEdit = batchMode && editingAsset?.batchId && originalQuantity !== undefined && batchAssets;
+  // Determine when the detach modal should render
+  let detachModalContext: {
+    batchAssets: Asset[];
+    originalQuantity: number;
+    pendingData: CreateAssetFormData;
+  } | null = null;
+
+  if (
+    batchMode &&
+    editingAsset?.batchId &&
+    Array.isArray(batchAssets) &&
+    typeof originalQuantity === "number" &&
+    pendingData !== null
+  ) {
+    detachModalContext = {
+      batchAssets,
+      originalQuantity,
+      pendingData,
+    };
+  }
 
   return (
     <div className="bg-surface min-h-screen">
@@ -771,10 +784,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                 const newBatchMode = !batchMode;
                 setBatchMode(newBatchMode);
                 if (newBatchMode) {
+                  // Switch to batch tabs and clear date fields not applicable in batch mode
                   const batchModeTabs = ["allocation", "serial-no", "warranty"];
                   if (!batchModeTabs.includes(activeTab)) {
                     setActiveTab("allocation");
                   }
+                  setValue("purchaseDate", "");
+                  setValue("acquireDate", "");
                 } else {
                   const normalModeTabs = ["allowance", "hire-purchase", "depreciation", "allocation", "serial-no", "warranty"];
                   if (!normalModeTabs.includes(activeTab)) {
@@ -795,7 +811,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         <div className="flex flex-row gap-6 items-stretch px-6 pb-10">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
-             <form ref={formRef} onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+             <form
+               ref={formRef}
+               onSubmit={(event) => {
+                 void handleSubmit(onSubmit)(event);
+               }}
+               className="space-y-6"
+             >
               {/* Main Form Fields */}
               <Card className="p-6">
                 {/* Inactive Status Section - Compact */}
@@ -819,7 +841,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toLocaleDateString('en-CA');
+                              formatted = date.toISOString().split('T')[0];
                             }
                             setValue("inactiveStart", formatted);
                           }}
@@ -836,7 +858,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toLocaleDateString('en-CA');
+                              formatted = date.toISOString().split('T')[0];
                             }
                             setValue("inactiveEnd", formatted);
                           }}
@@ -876,10 +898,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                   </>
                   )}
 
-                  {/* Asset Name */}
+                  {/* Asset Name / Batch Name */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
-                      Asset Name <span className="text-error">*</span>
+                      {batchMode ? 'Batch Name' : 'Asset Name'} <span className="text-error">*</span>
                     </label>
                     <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
                     {errors.assetName && (
@@ -980,73 +1002,75 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                   <TextArea {...register("description")} placeholder="Enter description" rows={3} />
                 </div>
 
-                {/* Dates */}
+                {/* Dates - hidden in batch mode */}
+                {!batchMode && (
                   <div className={`grid grid-cols-1 gap-4 ${activeTab === "depreciation" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
-                  <div>
-                    <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
-                      Purchase Date
-                      <Tooltip 
-                        text="The date on the purchase invoice. Used for accounting records."
-                        positionX="right"
-                        positionY="below"
-                      />
-                    </label>
-                    <Controller
-                      name="purchaseDate"
-                      control={control}
-                      render={({ field }) => (
-                        <SemiDatePicker
-                          inputType="date"
-                          value={field.value}
-                          onChange={(date) => {
-                            let formatted = '';
-                            if (typeof date === 'string') {
-                              formatted = date;
-                            } else if (date instanceof Date) {
-                              formatted = date.toLocaleDateString('en-CA');
-                            }
-                            field.onChange(formatted);
-                          }}
-                          className="border-none"
-                          errorMsg={errors.purchaseDate?.message}
-                          placeholder="dd/mm/yyyy"
+                    <div>
+                      <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
+                        Purchase Date
+                        <Tooltip
+                          text="The date on the purchase invoice. Used for accounting records."
+                          positionX="right"
+                          positionY="below"
                         />
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium  text-onSurface mb-2 flex items-center gap-1">
-                      Date First Used / Depreciation Start Date
-                      <Tooltip 
-                        text="The date the asset is ready and first used in the business. Used for Capital Allowance calculation. Also indicates the start of depreciation."
-                        positionX="right"
-                        positionY="below"
+                      </label>
+                      <Controller
+                        name="purchaseDate"
+                        control={control}
+                        render={({ field }) => (
+                          <SemiDatePicker
+                            inputType="date"
+                            value={field.value}
+                            onChange={(date) => {
+                              let formatted = '';
+                              if (typeof date === 'string') {
+                                formatted = date;
+                              } else if (date instanceof Date) {
+                                formatted = date.toISOString().split('T')[0];
+                              }
+                              field.onChange(formatted);
+                            }}
+                            className="border-none"
+                            errorMsg={errors.purchaseDate?.message}
+                            placeholder="dd/mm/yyyy"
+                          />
+                        )}
                       />
-                    </label>
-                    <Controller
-                      name="acquireDate"
-                      control={control}
-                      render={({ field }) => (
-                        <SemiDatePicker
-                          inputType="date"
-                          value={field.value}
-                          onChange={(date) => {
-                            let formatted = '';
-                            if (typeof date === 'string') {
-                              formatted = date;
-                            } else if (date instanceof Date) {
-                              formatted = date.toLocaleDateString('en-CA');
-                            }
-                            field.onChange(formatted);
-                          }}
-                          className="border-none"
-                          errorMsg={errors.acquireDate?.message}
-                          placeholder="dd/mm/yyyy"
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium  text-onSurface mb-2 flex items-center gap-1">
+                        Date First Used / Depreciation Start Date
+                        <Tooltip
+                          text="The date the asset is ready and first used in the business. Used for Capital Allowance calculation. Also indicates the start of depreciation."
+                          positionX="right"
+                          positionY="below"
                         />
-                      )}
-                    />
+                      </label>
+                      <Controller
+                        name="acquireDate"
+                        control={control}
+                        render={({ field }) => (
+                          <SemiDatePicker
+                            inputType="date"
+                            value={field.value}
+                            onChange={(date) => {
+                              let formatted = '';
+                              if (typeof date === 'string') {
+                                formatted = date;
+                              } else if (date instanceof Date) {
+                                formatted = date.toISOString().split('T')[0];
+                              }
+                              field.onChange(formatted);
+                            }}
+                            className="border-none"
+                            errorMsg={errors.acquireDate?.message}
+                            placeholder="dd/mm/yyyy"
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
-                </div>
+                )}
               </Card>
 
               {/* Tabs */}
@@ -1069,12 +1093,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           )}
         </div>  
         {/* Detach Modal */}
-        {isBatchEdit && batchAssets && originalQuantity && pendingData && (
+        {detachModalContext && (
           <BatchDetachModal
             open={showDetachModal}
             onOpenChange={setShowDetachModal}
-            batchAssets={batchAssets}
-            numToDetach={originalQuantity - pendingData.quantity}
+            batchAssets={detachModalContext.batchAssets}
+            numToDetach={detachModalContext.originalQuantity - detachModalContext.pendingData.quantity}
             onConfirm={handleBatchConfirmDetach}
           />
         )}

@@ -17,125 +17,176 @@ import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDr
 import { useToast } from "@/components/ui/components/Toast/useToast";
 
 // Column definitions for TanStack Table
-const createColumns = (): CustomColumnDef<Asset>[] => [
-  {
-    id: "id",
-    accessorKey: "id",
-    header: "Asset ID",
-    meta: { label: "Asset ID" },
-    enableSorting: true,
-    enableColumnFilter: false,
-  },
-  {
-    id: "batchId", 
-    accessorKey: "batchId", 
+const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
+  const columns: CustomColumnDef<Asset>[] = [];
+
+  // Asset ID (excluded in batch mode)
+  if (!groupByBatch) {
+    columns.push({
+      id: "id",
+      accessorKey: "id",
+      header: "Asset ID",
+      meta: { label: "Asset ID" },
+      enableSorting: true,
+      enableColumnFilter: false,
+    });
+  }
+
+  // Batch ID (grouping anchor)
+  columns.push({
+    id: "batchId",
+    accessorKey: "batchId",
     header: "Batch ID",
     meta: { label: "Batch ID" },
     enableSorting: true,
     enableColumnFilter: false,
     cell: ({ row, getValue }) => {
-      const value = getValue() as string;
+      const value = getValue() || '';
       if (row.getIsGrouped()) {
         return (
           <div>
             <div className="font-medium">{value || "Ungrouped"}</div>
             <div className="text-sm text-muted-foreground">
-              {row.subRows.length} asset{row.subRows.length !== 1 ? "s" : ""}
+              {row.subRows.length.toString()} asset{row.subRows.length !== 1 ? "s" : ""}
             </div>
           </div>
         );
       }
       return value || "-";
     },
-  },
-  {
+  });
+
+  // Name (aggregate first value in batch mode)
+  columns.push({
     id: "name",
     accessorKey: "name",
-    header: "Asset Name", 
+    header: "Asset Name",
     meta: { label: "Asset Name" },
     enableSorting: true,
     enableColumnFilter: false,
-  },
-  {
+    ...(groupByBatch && {
+      aggregationFn: (_columnId, leafRows) => String(leafRows[0].getValue('name') ?? ''),
+    }),
+  });
+
+  // Group (aggregate first value in batch mode)
+  columns.push({
     id: "group",
     accessorKey: "group",
     header: "Asset Group",
     meta: { label: "Asset Group" },
     enableSorting: true,
     enableColumnFilter: false,
-  },
-  {
+    ...(groupByBatch && {
+      aggregationFn: (_columnId, leafRows) => String(leafRows[0].getValue('group') ?? ''),
+    }),
+  });
+
+  // Description (aggregate first value in batch mode)
+  columns.push({
     id: "description",
     accessorKey: "description",
     header: "Description",
     meta: { label: "Description" },
     cell: ({ getValue }) => {
-      const value = getValue() as string;
+      const value = getValue();
       return (
-        <span className="truncate block" title={value}>
+        <span className="truncate block" title={typeof value === 'string' ? value : ''}>
           {value}
         </span>
       );
     },
     enableSorting: true,
     enableColumnFilter: false,
-  },
-  {
-    id: "acquireDate",
-    accessorKey: "acquireDate",
-    header: "Acquire Date",
-    meta: { label: "Acquire Date" },
-    enableSorting: true,
-    enableColumnFilter: false,
-  },
-  {
-    id: "purchaseDate", 
-    accessorKey: "purchaseDate", 
-    header: "Purchase Date",
-    meta: { label: "Purchase Date" },
-    enableSorting: true,
-    enableColumnFilter: false,
-  },
-  {
+    ...(groupByBatch && {
+      aggregationFn: (_columnId, leafRows) => String(leafRows[0].getValue('description') ?? ''),
+    }),
+  });
+
+  // Acquire & Purchase Dates (excluded in batch mode)
+  if (!groupByBatch) {
+    columns.push({
+      id: "acquireDate",
+      accessorKey: "acquireDate",
+      header: "Acquire Date",
+      meta: { label: "Acquire Date" },
+      enableSorting: true,
+      enableColumnFilter: false,
+    });
+
+    columns.push({
+      id: "purchaseDate",
+      accessorKey: "purchaseDate",
+      header: "Purchase Date",
+      meta: { label: "Purchase Date" },
+      enableSorting: true,
+      enableColumnFilter: false,
+    });
+  }
+
+  // Cost (sum in batch mode)
+  columns.push({
     id: "cost",
     accessorKey: "cost",
     header: "Cost",
     meta: { label: "Cost" },
     cell: ({ getValue }) => {
-      const value = getValue() as number;
-      return value.toLocaleString();
+      const value = Number(getValue() || 0);
+      return Number.isFinite(value) ? value.toLocaleString() : '-';
     },
     enableSorting: true,
     enableColumnFilter: false,
-  },
-  {
-    id: "qty",
-    accessorKey: "qty",
-    header: "Qty",
-    meta: { label: "Qty" },
+    ...(groupByBatch && { aggregationFn: 'sum' as const }),
+  });
+
+  // Quantity (excluded in batch mode)
+  if (!groupByBatch) {
+    columns.push({
+      id: "qty",
+      accessorKey: "qty",
+      header: "Qty",
+      meta: { label: "Qty" },
     cell: ({ getValue }) => {
-      const value = getValue() as number;
-      return value.toLocaleString();
+      const value = Number(getValue() || 0);
+      return Number.isFinite(value) ? value.toLocaleString() : '-';
     },
-    enableSorting: true,
-    enableColumnFilter: false,
-  },
-  {
+      enableSorting: true,
+      enableColumnFilter: false,
+    });
+  }
+
+  // Active (custom aggregate summary in batch mode)
+  columns.push({
     id: "active",
     accessorKey: "active",
     header: "Active",
-    meta: { 
+    meta: {
       label: "Active",
-      filterOptions: { "true": "Yes", "false": "No" }
+      filterOptions: { true: "Yes", false: "No" },
     },
-    cell: ({ getValue }) => {
-      const value = getValue() as boolean;
+    cell: ({ row, getValue }) => {
+      if (row.getIsGrouped()) {
+        const leafRows = row.getLeafRows();
+        const total = leafRows.length;
+        const activeCount = leafRows.filter((r) => (r.original).active).length;
+        return `${activeCount.toString()}/${total.toString()} active`;
+      }
+      const value = Boolean(getValue());
       return value ? "Yes" : "No";
     },
     enableSorting: true,
     enableColumnFilter: false,
-  },
-];
+    ...(groupByBatch && {
+      aggregationFn: (_columnId, leafRows) => {
+        const total = leafRows.length;
+        const activeCount = leafRows.filter((r) => (r.original).active).length;
+        return `${activeCount.toString()}/${total.toString()} active`;
+      },
+    }),
+  });
+
+  return columns;
+};
 
 interface UserAssetContentAreaProps {
   selectedTaxYear?: string;
@@ -144,6 +195,7 @@ interface UserAssetContentAreaProps {
 
 export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxYear, onTaxYearChange }: UserAssetContentAreaProps) {
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
   const [groupByBatch, setGroupByBatch] = useState(false);
@@ -250,35 +302,56 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
      }
    }, [location.pathname, params.id, assets, navigate]);
   
-  // Create columns and manage visibility
-  const allColumns = useMemo(() => createColumns(), []);
+  // Create columns and manage visibility (dynamic by batch mode)
+  const allColumns = useMemo(() => createColumns(groupByBatch), [groupByBatch]);
   const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
-  // Compute table columns based on batch mode (exclude id in batch mode)
-  const tableColumns = useMemo(() => 
-    groupByBatch ? allColumns.filter(col => col.id !== "id") : allColumns,
-    [allColumns, groupByBatch]
-  );
+  // Use dynamic columns directly (exclusions handled in createColumns)
+  const tableColumns = useMemo(() => allColumns, [allColumns]);
 
   // Update visible columns when switching modes
   useEffect(() => {
     setVisibleColumns(tableColumns);
   }, [tableColumns]);
 
+  // Clear selection when switching between batch and asset modes
+  useEffect(() => {
+    setSelectedAssetIds([]);
+    setSelectedBatchIds([]);
+  }, [groupByBatch]);
+
   // Handle row selection and maintain asset ID mapping
   const handleRowSelectionChange = (rows: Asset[]) => {
-
-    if (assets && rows.length > 0) {
-      const assetIds = rows.map(row => row.id);
-      setSelectedAssetIds(assetIds);
-    } else {
+    if (!assets || rows.length === 0) {
       setSelectedAssetIds([]);
+      setSelectedBatchIds([]);
+      return;
     }
+
+    if (!groupByBatch) {
+      setSelectedAssetIds(rows.map((r) => r.id));
+      setSelectedBatchIds([]);
+      return;
+    }
+
+    // Batch mode: track selected batch IDs and map to all assets in those batches
+    const batchIds = Array.from(new Set(rows.map((r) => r.batchId || '').filter(Boolean)));
+    setSelectedBatchIds(batchIds);
+    
+    const assetsToInclude = new Set<string>();
+    const source = filteredAssets ?? assets;
+    for (const r of rows) {
+      const batch = r.batchId || '';
+      source
+        .filter((a) => (a.batchId || '') === batch)
+        .forEach((a) => assetsToInclude.add(a.id));
+    }
+    setSelectedAssetIds(Array.from(assetsToInclude));
   };
 
   const handleDeleteSelected = () => {
     if (selectedAssetIds.length === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedAssetIds.length} selected asset(s)? This action cannot be undone.`)) return;
+    if (!confirm(`Are you sure you want to delete ${selectedAssetIds.length.toString()} selected asset(s)? This action cannot be undone.`)) return;
     selectedAssetIds.forEach(id => {
       deleteAssetMutation.mutate(id);
     });
@@ -305,32 +378,50 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     if (searchValue.trim()) {
       const searchLower = searchValue.toLowerCase().trim();
       filtered = filtered.filter(asset =>
-        (asset.id || '').toLowerCase().includes(searchLower) ||
-        (asset.batchId || '').toLowerCase().includes(searchLower) ||
-        (asset.name || '').toLowerCase().includes(searchLower) ||
-        (asset.group || '').toLowerCase().includes(searchLower) ||
-        (asset.description || '').toLowerCase().includes(searchLower)
+        asset.id.toLowerCase().includes(searchLower) ||
+        asset.batchId.toLowerCase().includes(searchLower) ||
+        asset.name.toLowerCase().includes(searchLower) ||
+        asset.group.toLowerCase().includes(searchLower) ||
+        asset.description.toLowerCase().includes(searchLower)
       );
     }
 
     return filtered;
   }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
 
+  const totalAssetCost = useMemo(() => {
+    if (!assets) {
+      return 0;
+    }
+
+    return assets.reduce((sum, asset) => sum + asset.cost, 0);
+  }, [assets]);
+
+  const totalAssets = assets?.length ?? 0;
+
+  const activeAssetCount = useMemo(() => {
+    if (!assets) {
+      return 0;
+    }
+
+    return assets.filter(asset => asset.active).length;
+  }, [assets]);
+
   // Summary cards data
   const summaryCardsData: SummaryCardItem[] = [
     {
       label: "Total Asset Cost",
-      value: `RM ${(assets?.reduce((sum, asset) => sum + (asset.cost || 0), 0) ?? 0).toLocaleString()}`,
+      value: `RM ${totalAssetCost.toLocaleString()}`,
       description: "Combined cost of all assets",
     },
     {
       label: "Total Assets",
-      value: assets?.length.toString() ?? "0",
+      value: String(totalAssets),
       description: "Total registered assets",
     },
     {
       label: "Active Assets",
-      value: assets?.filter(asset => asset.active).length.toString() ?? "0",
+      value: String(activeAssetCount),
       description: "Currently active assets",
     },
     {
@@ -446,8 +537,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
               {/* Batch Mode Toggle */}
               <div className="flex items-center space-x-2">
                 <Switch
-                  checked={groupByBatch}
-                  onCheckedChange={setGroupByBatch}
+                  isChecked={groupByBatch}
+                  onChange={setGroupByBatch}
                 />
                 <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                   Batch Mode
@@ -471,7 +562,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                 Add
               </Button>
               </PermissionGuard>
-               {selectedAssetIds.length > 0 && (
+               {(groupByBatch ? selectedBatchIds.length > 0 : selectedAssetIds.length > 0) && (
                  <div className="flex items-center gap-2">
                    <Button
                      variant="outline"
@@ -501,22 +592,29 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                    <Button variant="destructive" size="sm" onClick={() => {
                      void navigate('/disposal');
                    }}>Dispose</Button>
-                   <div className="body-small text-onSurfaceVariant">{selectedAssetIds.length} selected</div>
+                   <div className="body-small text-onSurfaceVariant">
+                     {groupByBatch ? `${selectedBatchIds.length.toString()} batch${selectedBatchIds.length !== 1 ? 'es' : ''} selected` : `${selectedAssetIds.length.toString()} selected`}
+                   </div>
                  </div>
                )}
             </div>
           </div>
 
           <DataTableExtended
+            key={`asset-table-${groupByBatch ? 'batch' : 'asset'}`}
             columns={visibleColumns}
             data={filteredAssets ?? []}
             showPagination={true}
             showCheckbox={true}
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
-            selectedCount={selectedAssetIds.length}
+            selectedCount={groupByBatch ? selectedBatchIds.length : selectedAssetIds.length}
+            totalCount={groupByBatch 
+              ? (filteredAssets ? new Set(filteredAssets.map(a => a.batchId)).size : 0)
+              : filteredAssets?.length ?? 0}
             enableGrouping={true}
             grouping={groupByBatch ? ['batchId'] : []}
+            expanded={groupByBatch ? {} : undefined}
           />
         </Card>
         </div>
@@ -531,21 +629,21 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             setEditingAsset(null);
             void navigate(`/asset`);
           }}
-          onSuccess={(data) => {
-            const asset: Asset = {
-              id: data.code,
-              batchId: data.batchID ?? '',
-              name: data.assetName,
-              group: data.assetGroup,
-              description: data.description ?? '',
-              acquireDate: data.acquireDate || '',
-              purchaseDate: data.purchaseDate ?? '',
-              cost: Number(data.cost ?? '0') || 0,
+      onSuccess={(data) => {
+        const asset: Asset = {
+          id: data.code,
+          batchId: data.batchID ?? '',
+          name: data.assetName,
+          group: data.assetGroup,
+          description: data.description ?? '',
+          acquireDate: data.acquireDate,
+          purchaseDate: data.purchaseDate ?? '',
+          cost: Number(data.cost ?? '0'),
               qty: data.quantity,
-              active: !data.inactive,
-            };
-            createAssetMutation.mutate(asset);
-          }}
+          active: !data.inactive,
+        };
+        createAssetMutation.mutate(asset);
+      }}
         />
       ) : (
         <AssetForm
@@ -558,21 +656,21 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             setEditingAsset(null);
             void navigate(`/asset`);
           }}
-          onSuccess={(data) => {
-            const asset: Asset = {
-              id: data.code,
-              batchId: data.batchID ?? '',
-              name: data.assetName,
-              group: data.assetGroup,
-              description: data.description ?? '',
-              acquireDate: data.acquireDate || '',
-              purchaseDate: data.purchaseDate ?? '',
-              cost: Number(data.cost ?? '0') || 0,
+      onSuccess={(data) => {
+        const asset: Asset = {
+          id: data.code,
+          batchId: data.batchID ?? '',
+          name: data.assetName,
+          group: data.assetGroup,
+          description: data.description ?? '',
+          acquireDate: data.acquireDate,
+          purchaseDate: data.purchaseDate ?? '',
+          cost: Number(data.cost ?? '0'),
               qty: data.quantity,
-              active: !data.inactive,
-            };
-            updateAssetMutation.mutate(asset);
-          }}
+          active: !data.inactive,
+        };
+        updateAssetMutation.mutate(asset);
+      }}
         />
       )}
     </>

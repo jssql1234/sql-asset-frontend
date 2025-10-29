@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { DialogExtended } from '@/components/DialogExtended';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/DialogExtended';
 import { Button } from '@/components/ui/components';
 import type { Asset } from '@/types/asset';
 import { type CustomColumnDef } from '@/components/ui/utils/dataTable';
@@ -45,7 +45,11 @@ const simpleColumns: CustomColumnDef<Asset>[] = [
     header: 'Cost',
     cell: ({ getValue }) => {
       const value = getValue() as number;
-      return value ? `RM ${value.toLocaleString()}` : '-';
+      if (typeof value !== 'number' || Number.isNaN(value)) {
+        return '-';
+      }
+
+      return `RM ${value.toLocaleString()}`;
     },
     enableSorting: false,
     enableColumnFilter: false,
@@ -54,6 +58,7 @@ const simpleColumns: CustomColumnDef<Asset>[] = [
 
 export default function BatchDetachModal({ open, onOpenChange, batchAssets, numToDetach, onConfirm }: BatchDetachModalProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const requiredSelectionLabel = String(numToDetach);
 
   const handleSelectionChange = (rows: Asset[]) => {
     setSelectedIds(rows.map(row => row.id));
@@ -66,39 +71,49 @@ export default function BatchDetachModal({ open, onOpenChange, batchAssets, numT
   };
 
   return (
-    <DialogExtended
-      open={open}
-      onOpenChange={onOpenChange}
-      title={`Select ${numToDetach} assets to detach from batch`}
-      description={`Choose exactly ${numToDetach} assets to remove from the batch. These assets will no longer be associated with the batch ID.`}
-    >
-      <div className="max-h-[400px] overflow-auto mb-4">
-        <DataTableExtended
-          columns={simpleColumns}
-          data={batchAssets}
-          showCheckbox={true}
-          enableRowClickSelection={true}
-          onRowSelectionChange={handleSelectionChange}
-          showPagination={false}
-        />
-      </div>
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={() => onOpenChange(false)}>
-          Cancel
-        </Button>
-        <Button
-          variant="destructive"
-          disabled={selectedIds.length !== numToDetach}
-          onClick={handleConfirm}
-        >
-          Detach {numToDetach} Assets
-        </Button>
-      </div>
-      {selectedIds.length !== numToDetach && (
-        <p className="text-sm text-destructive mt-2">
-          Please select exactly {numToDetach} assets to proceed.
-        </p>
-      )}
-    </DialogExtended>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {`Select ${requiredSelectionLabel} assets to detach from batch`}
+          </DialogTitle>
+          <DialogDescription>
+            {`Choose exactly ${requiredSelectionLabel} assets to remove from the batch. These assets will no longer be associated with the batch ID.`}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="max-h-[400px] overflow-auto mb-4">
+          <DataTableExtended
+            columns={simpleColumns}
+            data={batchAssets}
+            showCheckbox
+            enableRowClickSelection
+            onRowSelectionChange={handleSelectionChange}
+            showPagination={false}
+          />
+        </div>
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => {
+              onOpenChange(false);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={selectedIds.length !== numToDetach}
+            onClick={handleConfirm}
+          >
+            Detach {requiredSelectionLabel} Assets
+          </Button>
+        </div>
+        {selectedIds.length !== numToDetach && (
+          <p className="text-sm text-destructive mt-2">
+            Please select exactly {requiredSelectionLabel} assets to proceed.
+          </p>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

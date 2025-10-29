@@ -104,7 +104,7 @@ function hasHeaderAlign<TData, TValue>(
   return 'headerAlign' in columnDef;
 }
 
-// Draggable header component (moved to top-level)
+// Draggable header component
 function DraggableHeader<TData, TValue>({
   header,
   index,
@@ -118,6 +118,8 @@ function DraggableHeader<TData, TValue>({
   activeId: string | null;
   overId: string | null;
 }) {
+  const isSelectionColumn = header.column.id === 'select';
+  
   const {
     attributes,
     listeners,
@@ -147,10 +149,10 @@ function DraggableHeader<TData, TValue>({
     <div className="flex items-center gap-2">
       <div
         onClick={(e) => {
-          e.stopPropagation();  // Prevent DnD interference
+          e.stopPropagation();
           header.column.getToggleSortingHandler()?.(e);
         }}
-        className={cn('flex items-center gap-2 w-full justify-between select-none', {  // Ensure select-none
+        className={cn('flex items-center gap-2 w-full justify-between select-none', {
           'cursor-pointer': header.column.getCanSort(),
           'justify-end': hasHeaderAlign(header.column.columnDef) && header.column.columnDef.headerAlign === 'right',
         })}
@@ -182,6 +184,19 @@ function DraggableHeader<TData, TValue>({
 
   const isActive = header.column.id === activeId;
   const isOver = header.column.id === overId && !isActive;
+
+  if (isSelectionColumn) {
+    return (
+      <TableHead
+        className={cn('relative', {
+          'rounded-tl-md': index === 0,
+          'rounded-tr-md': index === totalHeaders - 1,
+        })}
+      >
+        {headerContent}
+      </TableHead>
+    );
+  }
 
   return (
     <TableHead
@@ -259,11 +274,12 @@ export function DataTableExtended<TData, TValue>({
   const [internalGrouping, setInternalGrouping] = useState<GroupingState>([]);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
   
-  // Column ordering state - safer initialization
+  // Compute effective columns first (including selection column if enabled)
+  const effectiveColumns = showCheckbox ? [createSelectionColumn<TData, TValue>(), ...columns] : columns;
+  
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
-    return columns.map((col, index) => {
+    return effectiveColumns.map((col, index) => {
       if (col.id) return col.id;
-      // Check if accessorKey exists as a property
       if ('accessorKey' in col && col.accessorKey) {
         return String(col.accessorKey);
       }
@@ -326,7 +342,7 @@ export function DataTableExtended<TData, TValue>({
   // Create table instance with faceted filtering support
   const table = useReactTable({
     data,
-    columns: showCheckbox ? [createSelectionColumn<TData, TValue>(), ...columns] : columns,
+    columns: effectiveColumns,  // Use effective columns here
     enableRowSelection: showCheckbox || enableRowClickSelection,
     onColumnOrderChange: setColumnOrder,
     filterFromLeafRows: true,

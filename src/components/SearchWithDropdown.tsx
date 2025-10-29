@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "@/assets/icons";
 import { cn } from "@/utils/utils";
 import { Input } from "@/components/ui/components/Input";
 import { Badge } from "@/components/ui/components/Badge";
 import Card from "@/components/ui/components/Card";
+
+const EMPTY_SELECTION: readonly string[] = [];
 
 interface SearchWithDropdownItem {
   id: string;
@@ -12,16 +14,12 @@ interface SearchWithDropdownItem {
 }
 
 interface SearchWithDropdownProps {
-  // Category dropdown props
   categories: SearchWithDropdownItem[];
   selectedCategoryId?: string;
   onCategoryChange: (categoryId: string) => void;
-
-  // Search multi-select props
   items: SearchWithDropdownItem[];
   selectedIds?: string[];
   onSelectionChange: (selectedIds: string[]) => void;
-
   placeholder?: string;
   className?: string;
   maxHeight?: string;
@@ -31,12 +29,29 @@ interface SearchWithDropdownProps {
   disable?: boolean;
 }
 
+// Helper function to render asset labels with styled IDs
+const renderAssetLabel = (label: string) => {
+  const idPattern = /^(.+?)\s*\(([^)]+)\)$/;
+  const match = idPattern.exec(label);
+  
+  if (match) {
+    const [, name, id] = match;
+    return (
+      <>
+        {name} <span className="text-xs text-onSurfaceVariant">({id})</span>
+      </>
+    );
+  }
+  
+  return label;
+};
+
 export const SearchWithDropdown = ({
   categories,
   selectedCategoryId,
   onCategoryChange,
   items,
-  selectedIds = [],
+  selectedIds,
   onSelectionChange,
   placeholder = "Search...",
   className,
@@ -52,23 +67,45 @@ export const SearchWithDropdown = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Get selected category label
-  const selectedCategory = categories.find(
-    (cat) => cat.id === selectedCategoryId
-  );
-  const categoryLabel =
-    selectedCategory?.label || categories[0]?.label || "All categories";
+  const resolvedSelectedIds = selectedIds ?? EMPTY_SELECTION;
+  const normalizedSearch = searchTerm.trim().toLowerCase();
 
-  // Filter items based on search term and remove selected items
-  const filteredItems = items.filter(
-    (item) =>
-      !selectedIds.includes(item.id) && // Remove selected items from dropdown
-      (item.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (item.sublabel &&
-          item.sublabel.toLowerCase().includes(searchTerm.toLowerCase())))
+  const selectedCategory = useMemo(
+    () => categories.find((category) => category.id === selectedCategoryId),
+    [categories, selectedCategoryId]
   );
 
-  // Close dropdowns when clicking outside
+  const categoryLabel = selectedCategory
+    ? selectedCategory.label
+    : categories[0]?.label ?? "All categories";
+
+  const itemsById = useMemo(() => {
+    const map = new Map<string, SearchWithDropdownItem>();
+    items.forEach((item) => {
+      map.set(item.id, item);
+    });
+    return map;
+  }, [items]);
+
+  const filteredItems = useMemo(() => {
+    return items.filter((item) => {
+      if (resolvedSelectedIds.includes(item.id)) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      const labelMatch = item.label.toLowerCase().includes(normalizedSearch);
+      const sublabelMatch = item.sublabel
+        ?.toLowerCase()
+        .includes(normalizedSearch);
+
+      return labelMatch || Boolean(sublabelMatch);
+    });
+  }, [items, normalizedSearch, resolvedSelectedIds]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -81,27 +118,39 @@ export const SearchWithDropdown = ({
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  // Handle category selection (single select, closes dropdown)
+  // Auto-close dropdown when no items are available (but only when an item is selected)
+  const prevFilteredLengthRef = useRef<number>(filteredItems.length);
+  
+  useEffect(() => {
+    // Close dropdown only when filtered items transition from having items to being empty
+    // This happens when user selects the last available item
+    if (isSearchDropdownOpen && filteredItems.length === 0 && prevFilteredLengthRef.current > 0) {
+      setIsSearchDropdownOpen(false);
+    }
+    prevFilteredLengthRef.current = filteredItems.length;
+  }, [filteredItems.length, isSearchDropdownOpen]);
+
   const handleCategoryClick = (categoryId: string) => {
     onCategoryChange(categoryId);
     setIsCategoryDropdownOpen(false);
   };
 
-  // Toggle item selection (multi-select)
   const handleItemClick = (itemId: string) => {
-    const newSelectedIds = selectedIds.includes(itemId)
-      ? selectedIds.filter((id) => id !== itemId)
-      : [...selectedIds, itemId];
+    const nextSelection = resolvedSelectedIds.includes(itemId)
+      ? resolvedSelectedIds.filter((id) => id !== itemId)
+      : [...resolvedSelectedIds, itemId];
 
-    onSelectionChange(newSelectedIds);
+    onSelectionChange(nextSelection);
+    setSearchTerm("");
   };
 
-  // Handle category dropdown toggle
   const handleCategoryDropdownToggle = () => {
-    setIsCategoryDropdownOpen(!isCategoryDropdownOpen);
+    setIsCategoryDropdownOpen((prev) => !prev);
     setIsSearchDropdownOpen(false);
   };
 
@@ -123,8 +172,8 @@ export const SearchWithDropdown = ({
   // Remove selected item
   const handleRemoveItem = (itemId: string, event: React.MouseEvent) => {
     event.stopPropagation();
-    const newSelectedIds = selectedIds.filter((id) => id !== itemId);
-    onSelectionChange(newSelectedIds);
+    const nextSelection = resolvedSelectedIds.filter((id) => id !== itemId);
+    onSelectionChange(nextSelection);
   };
 
   return (
@@ -163,7 +212,9 @@ export const SearchWithDropdown = ({
                       <button
                         key={category.id}
                         type="button"
-                        onClick={() => handleCategoryClick(category.id)}
+                        onClick={() => {
+                          handleCategoryClick(category.id);
+                        }}
                         className={cn(
                           "flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors",
                           selected && "bg-primaryContainer/30"
@@ -217,7 +268,11 @@ export const SearchWithDropdown = ({
               placeholder={placeholder}
               value={searchTerm}
               onChange={
-                disable ? undefined : (e) => setSearchTerm(e.target.value)
+                disable
+                  ? undefined
+                  : (event) => {
+                      setSearchTerm(event.target.value);
+                    }
               }
               onFocus={disable ? undefined : handleSearchFocus}
               onKeyDown={disable ? undefined : handleKeyDown}
@@ -236,11 +291,13 @@ export const SearchWithDropdown = ({
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => handleItemClick(item.id)}
+                        onClick={() => {
+                          handleItemClick(item.id);
+                        }}
                         className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium">{item.label}</span>
+                          <span className="font-medium">{renderAssetLabel(item.label)}</span>
                           {item.sublabel && (
                             <span className="text-xs text-onSurfaceVariant opacity-75">
                               {item.sublabel}
@@ -262,18 +319,22 @@ export const SearchWithDropdown = ({
       )}
       
       {/* Selected Items Display */}
-      {!hideSelectedField || selectedIds.length > 0 ? (
-        <Card className="bg-surfaceContainerLowest p-3 max-h-40 overflow-y-auto">
-          {/* Header with Clear all button */}
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-onSurfaceVariant">
-              {selectedIds.length} item{selectedIds.length > 1 ? "s" : ""}{" "}
-              selected
-            </span>
-            {!disable && selectedIds.length > 0 && (
+      {!hideSelectedField || resolvedSelectedIds.length > 0 ? (
+        <Card className="bg-surfaceContainerLow/60 border border-outlineVariant/60 rounded-xl p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div className="flex items-center gap-2">
+              <Badge
+                text={String(resolvedSelectedIds.length)}
+                variant="primary"
+                className="px-2 py-1 text-xs"
+              />
+            </div>
+            {!disable && resolvedSelectedIds.length > 0 && (
               <button
                 type="button"
-                onClick={() => onSelectionChange([])}
+                onClick={() => {
+                  onSelectionChange([]);
+                }}
                 className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
               >
                 Clear all
@@ -281,45 +342,62 @@ export const SearchWithDropdown = ({
             )}
           </div>
 
-          {/* Selected items chips */}
-          <div className="flex flex-wrap gap-2">
-            {selectedIds.map((id) => {
-              const item = items.find((i) => i.id === id);
-              if (!item) return null;
-
-              return (
-                <div key={id} className="relative group">
-                  <Badge
-                    text={item.label}
-                    variant="primary"
-                    className={!disable ? "pr-7" : ""}
-                  />
-                  {!disable && (
-                    <button
-                      type="button"
-                      onClick={(e) => handleRemoveItem(id, e)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-primary/20 rounded-full p-0.5 transition-colors"
-                      aria-label={`Remove ${item.label}`}
+          {resolvedSelectedIds.length === 0 ? (
+            <div className="flex items-center justify-center rounded-lg border border-dashed border-outlineVariant/50 bg-surfaceContainerLowest px-4 py-6 text-sm text-onSurfaceVariant">
+              Use the search above to add items to this list.
+            </div>
+          ) : (
+            <div className="max-h-40 overflow-y-auto">
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {resolvedSelectedIds.map((id) => {
+                  const item = itemsById.get(id);
+                  return (
+                    <li
+                      key={id}
+                      className="group relative rounded-lg border border-outlineVariant/60 bg-surfaceContainerHighest px-3 py-2 transition-all hover:border-primary/70 hover:shadow-sm"
                     >
-                      <svg
-                        className="w-3.5 h-3.5 text-error"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-onSurface">
+                            {renderAssetLabel(item?.label ?? id)}
+                          </span>
+                          {item?.sublabel && (
+                            <span className="text-xs text-onSurfaceVariant mt-1">
+                              {item.sublabel}
+                            </span>
+                          )}
+                        </div>
+                        {!disable && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              handleRemoveItem(id, event);
+                            }}
+                            className="rounded-full p-1 text-onSurfaceVariant transition-colors hover:bg-primary/15 hover:text-primary"
+                            aria-label={`Remove ${item?.label ?? id}`}
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
         </Card>
       ) : null}
     </div>

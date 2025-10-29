@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/components";
 import { useSidebar } from "./SidebarContext";
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "./SidebarConstant";
 
-//Provides CSS variables for sidebar dimensions.
+//Define CSS for sidebar dimensions.
 function SidebarWrapper({ className, style, children, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -26,14 +26,14 @@ function SidebarWrapper({ className, style, children, ...props }: React.Componen
   );
 }
 
-//Main content area that sits next to the sidebar.
+//Main content area sits next to the sidebar.
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
     <main data-slot="sidebar-inset" className={cn("bg-background relative flex w-full flex-1 flex-col", className)} {...props}/>
   );
 }
 
-//Toggles the sidebar open/closed state.
+//Menu icon to open/close sidebar.
 function SidebarTrigger({
   className,
   onClick,
@@ -53,15 +53,13 @@ function SidebarTrigger({
   );
 }
 
-//Props for SidebarSeparator component.
 export interface SidebarSeparatorProps
   extends React.ComponentPropsWithoutRef<typeof SeparatorPrimitive> {
   orientation?: "horizontal" | "vertical";
 }
 
-//Visual divider for separating sidebar sections.
+//Horizontal/vertical Line divider.
 function SidebarSeparator({ className, orientation = "horizontal", ...props }: SidebarSeparatorProps) {
-  // Filter out props that are added by DropdownMenuContent's cloneElement
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { isFocused, index, onHover, ...validProps } = props as Record<string, unknown>;
   
@@ -76,13 +74,9 @@ function SidebarSeparator({ className, orientation = "horizontal", ...props }: S
   );
 }
 
-//Breadcrumb item for navigation.
-export interface SidebarBreadcrumbItem { label: string }
+export interface SidebarBreadcrumbProps { items: { label: string }[]; className?: string } 
 
-//Props for SidebarBreadcrumb component.
-export interface SidebarBreadcrumbProps { items: SidebarBreadcrumbItem[]; className?: string } 
-
-//Breadcrumb navigation component for sidebar header.
+//Breadcrumb component for sidebar header.
 function SidebarBreadcrumb({ items, className }: SidebarBreadcrumbProps) {
   if (items.length === 0) return null;
 
@@ -92,7 +86,7 @@ function SidebarBreadcrumb({ items, className }: SidebarBreadcrumbProps) {
     >
       {items.map((crumb, index) => (
         <React.Fragment key={crumb.label}>
-          {index > 0 && <span aria-hidden="true">/</span>}
+          {index > 0 && <span aria-hidden="true">&gt;</span>}
           <span>{crumb.label}</span>
         </React.Fragment>
       ))}
@@ -108,7 +102,8 @@ function Sidebar({ collapsible = "icon", className, children, ...props }: Sideba
   const { state } = useSidebar();
 
   return (
-    <div className="group peer text-sidebar-foreground hidden md:block" data-state={state} data-collapsible={state === "collapsed" ? collapsible : ""} data-slot="sidebar">
+    <div className="group peer text-sidebar-foreground hidden md:block" 
+         data-state={state} data-collapsible={state === "collapsed" ? collapsible : ""} data-slot="sidebar">
       {/* Sidebar gap spacer */} 
       <div
         data-slot="sidebar-gap"
@@ -122,8 +117,8 @@ function Sidebar({ collapsible = "icon", className, children, ...props }: Sideba
       <div
         data-slot="sidebar-container"
         className={cn(
-          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex left-0",
-          "group-data-[collapsible=icon]:w-(--sidebar-collapsed-width) border-r border-gray-200",
+          "fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear",
+           "md:flex left-0 group-data-[collapsible=icon]:w-(--sidebar-collapsed-width) border-r border-gray-200",
           className
         )}
         {...props}
@@ -134,20 +129,20 @@ function Sidebar({ collapsible = "icon", className, children, ...props }: Sideba
   );
 }
 
-//Sidebar header section component.
+//Sidebar header (within sidebar).
 function SidebarHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="sidebar-header" data-sidebar="header" className={cn("flex flex-col gap-2 px-3 py-2 group-data-[collapsible=icon]:px-0", className)} {...props}/>
   );
 }
 
-//Sidebar content/main section component.
-function SidebarContent({
+//Tax computation and Asset Maintenance modules.
+function SidebarBody({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   return (
-    <div data-slot="sidebar-content" data-sidebar="content" className={cn(
+    <div data-slot="sidebar-body" data-sidebar="body" className={cn(
         "flex min-h-0 flex-1 flex-col gap-2 overflow-auto px-2 group-data-[collapsible=icon]:overflow-hidden group-data-[collapsible=icon]:px-0",
         className
       )}
@@ -156,21 +151,21 @@ function SidebarContent({
   );
 }
 
-//Sidebar footer section component.
+//Sidebar footer.
 function SidebarFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="sidebar-footer" data-sidebar="footer" className={cn("flex flex-col gap-2 px-3 py-2 group-data-[collapsible=icon]:px-0", className)} {...props}/>
   );
 }
 
-//Groups related menu items together.
+//Tax computation group and asset maintenance group.
 function SidebarGroup({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="sidebar-group" data-sidebar="group" className={cn("relative flex w-full min-w-0 flex-col px-3 py-2 group-data-[collapsible=icon]:px-0", className)} {...props}/>
   );
 }
 
-//Displays a title for a group of menu items.
+//Sidebar group title.
 function SidebarGroupTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div data-slot="sidebar-group-title" data-sidebar="group-title" className={cn(
@@ -251,16 +246,11 @@ const sidebarMenuButtonVariants = cva(
   }
 );
 
-//Props for SidebarMenuButton component.
-export interface SidebarMenuButtonProps
-  extends React.ComponentProps<"button">,
-    VariantProps<typeof sidebarMenuButtonVariants> {
-  asChild?: boolean;  
-  isActive?: boolean;
-  children?: React.ReactNode;
+export interface SidebarMenuButtonProps extends React.ComponentProps<"button">, VariantProps<typeof sidebarMenuButtonVariants> {
+  asChild?: boolean; isActive?: boolean; children?: React.ReactNode;
 }
 
-//Interactive button for sidebar menu items.
+//For asset mainpage, tools, notifications, and user profile. 
 function SidebarMenuButton({ asChild = false, isActive = false, size = "default", className, ...props }: SidebarMenuButtonProps) {
   const Comp = asChild ? Slot : "button";
 
@@ -269,39 +259,22 @@ function SidebarMenuButton({ asChild = false, isActive = false, size = "default"
   );
 }
 
-//Props for SidebarMenuButtonWithTooltip.
-export interface SidebarMenuButtonWithTooltipProps extends React.HTMLAttributes<HTMLDivElement> {
-  tooltip?: string;
-  children: React.ReactElement;
-}
+export interface SidebarMenuButtonWithTooltipProps extends React.HTMLAttributes<HTMLDivElement> { tooltip?: string; children: React.ReactElement }
 
-//Wrapper that shows tooltip when sidebar is collapsed.
+//Shows tooltip when hover in collapsed sidebar.
 function SidebarMenuButtonWithTooltip({ tooltip, children, className, onMouseEnter, onMouseLeave, ...props }: SidebarMenuButtonWithTooltipProps) {
   const { state } = useSidebar();
   const [showTooltip, setShowTooltip] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isCollapsed = Boolean(tooltip) && state === "collapsed";
 
-  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (isCollapsed) setShowTooltip(true);
-    onMouseEnter?.(event);
-  };
-
-  const handleMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (isCollapsed) setShowTooltip(false);
-    onMouseLeave?.(event);
-  };
+  const handleMouseEnter = (event: React.MouseEvent<HTMLDivElement>) => { if (isCollapsed) setShowTooltip(true); onMouseEnter?.(event) };
+  const handleMouseLeave = (event: React.MouseEvent<HTMLDivElement>) => { if (isCollapsed) setShowTooltip(false); onMouseLeave?.(event) };
 
   const wrapperClassName = cn(isCollapsed ? "relative flex" : "contents", className);
 
   return (
-    <div
-      ref={containerRef}
-      className={wrapperClassName}
-      {...props}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
+    <div ref={containerRef} className={wrapperClassName} {...props} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       {children}
       {isCollapsed && showTooltip && (
         <div
@@ -322,7 +295,6 @@ function SidebarMenuButtonWithTooltip({ tooltip, children, className, onMouseEnt
   );
 }
 
-//Props for SidebarUserInfo component.
 export interface SidebarUserInfoProps { name: string; email: string; className?: string }
 
 //Shows user name and email in a formatted layout.
@@ -335,4 +307,4 @@ function SidebarUserInfo({ name, email, className }: SidebarUserInfoProps) {
   );
 }
 
-export { SidebarWrapper, SidebarInset, SidebarTrigger, SidebarSeparator, SidebarBreadcrumb, Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupTitle, SidebarGroupItem, SidebarMenuButton, SidebarMenuButtonWithTooltip, SidebarUserInfo };
+export { SidebarWrapper, SidebarInset, SidebarTrigger, SidebarSeparator, SidebarBreadcrumb, Sidebar, SidebarHeader, SidebarBody, SidebarFooter, SidebarGroup, SidebarGroupTitle, SidebarGroupItem, SidebarMenuButton, SidebarMenuButtonWithTooltip, SidebarUserInfo };

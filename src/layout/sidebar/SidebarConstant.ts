@@ -6,6 +6,7 @@ export const SIDEBAR_COOKIE_MAX_AGE = 604800;
 export const SIDEBAR_WIDTH = "15rem" as const;
 export const SIDEBAR_COLLAPSED_WIDTH = "3rem" as const;
 export const SIDEBAR_KEYBOARD_SHORTCUT = "s" as const;
+export const mockUser: UserProfile = { name: "Adam", email: "Adam@sql.com.my" };
 
 interface NavigationSection { title: string; items: NavigationItem[] }
 interface NavigationItem { name: string; url: string; icon: ComponentType<{ className?: string }>; filledIcon: ComponentType<{ className?: string }> }
@@ -46,7 +47,3 @@ export const toolsMenuItems: ToolsMenuItem[] = [
   { label: "Maintain Service Provider", route: "/maintain-service-provider" },
   { label: "Asset History", route: "/asset-history", separator: true },
 ];
-
-export const mockUser: UserProfile = { name: "Adam", email: "Adam@sql.com.my" };
-
-

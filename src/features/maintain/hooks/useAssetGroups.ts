@@ -14,9 +14,8 @@ import {
   formatAssetGroupDate,
 } from '../utils/assetGroupUtils';
 import { useToast } from '@/components/ui/components/Toast';
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import type { ExportColumn } from '@/utils/exportUtils';
+import { exportTableData } from '@/utils/exportUtils';
 
 interface StoredAssetMain {
   'asset-group'?: unknown;
@@ -333,11 +332,49 @@ export function useAssetGroups() {
     persistAssetGroups(sampleAssetGroups);
   }, [persistAssetGroups]);
 
-  const exportData = useCallback((format: string, visibleIds: string[]) => {
-    if (typeof window === 'undefined') {
-      return;
-    }
+  const isAssetCountContext = (ctx: unknown): ctx is { assetCounts?: Record<string, number> } => {
+    return ctx !== null && typeof ctx === 'object' && 'assetCounts' in ctx;
+  };
 
+  const exportColumns: ExportColumn<AssetGroup>[] = useMemo(() => ([
+    {
+      id: 'assetGroupCode',
+      header: 'Asset Group Code',
+      key: 'code',
+      getValue: (group: AssetGroup) => group.id,
+    },
+    {
+      id: 'name',
+      header: 'Asset Group Name',
+      key: 'name',
+      getValue: (group: AssetGroup) => group.name,
+    },
+    {
+      id: 'description',
+      header: 'Description',
+      key: 'description',
+      getValue: (group: AssetGroup) => group.description || 'No description provided',
+    },
+    {
+      id: 'assetCount',
+      header: 'Asset Count',
+      key: 'assetCount',
+      getValue: (group: AssetGroup, ctx?: unknown) => {
+        if (isAssetCountContext(ctx)) {
+          return String(ctx.assetCounts?.[group.id] ?? 0);
+        }
+        return '0';
+      },
+    },
+    {
+      id: 'createdAt',
+      header: 'Created Date',
+      key: 'createdDate',
+      getValue: (group: AssetGroup) => formatAssetGroupDate(group.createdAt) || '-',
+    },
+  ]), []);
+
+  const exportData = useCallback((format: string, visibleIds: string[]) => {
     const exportGroups = selectedAssetGroupIds.length > 0 
       ? filteredAssetGroups.filter(group => selectedAssetGroupIds.includes(group.id))
       : filteredAssetGroups;
@@ -346,178 +383,27 @@ export function useAssetGroups() {
       return;
     }
 
-    const fieldConfig = {
-      assetGroupCode: {
-        header: 'Asset Group Code',
-        key: 'code',
-        getValue: (group: AssetGroup) => group.id,
-      },
-      name: {
-        header: 'Asset Group Name',
-        key: 'name',
-        getValue: (group: AssetGroup) => group.name,
-      },
-      description: {
-        header: 'Description',
-        key: 'description',
-        getValue: (group: AssetGroup) => group.description || 'No description provided',
-      },
-      assetCount: {
-        header: 'Asset Count',
-        key: 'assetCount',
-        getValue: (group: AssetGroup) => String(assetGroupAssetCounts[group.id] ?? 0),
-      },
-      createdAt: {
-        header: 'Created Date',
-        key: 'createdDate',
-        getValue: (group: AssetGroup) => formatAssetGroupDate(group.createdAt) || '-',
-      },
-    };
-
-    const includedKeys = new Set(visibleIds);
-    if (includedKeys.has('name')) {
-      includedKeys.add('description');
+    let includedKeys = [...visibleIds];
+    if (includedKeys.includes('name') && !includedKeys.includes('description')) {
+      includedKeys = [...includedKeys, 'description'];
     }
 
-    const headers = Array.from(includedKeys).map(key => fieldConfig[key as keyof typeof fieldConfig].header);
+    const extraContext = { assetCounts: assetGroupAssetCounts };
 
-    const exportBody = exportGroups.map(group => 
-      Array.from(includedKeys).map(key => fieldConfig[key as keyof typeof fieldConfig].getValue(group))
+    exportTableData(
+      exportGroups,
+      exportColumns,
+      includedKeys,
+      format,
+      'asset-groups',
+      extraContext,
+      { 
+        rootTag: 'assetGroups', 
+        itemTag: 'group', 
+        htmlTitle: 'Asset Groups Export' 
+      }
     );
-
-    const dateStr = new Date().toISOString().split('T')[0];
-    let filename = `asset-groups-${format.toUpperCase()}-${dateStr}`;
-    let blob: Blob;
-
-    const escapeXml = (unsafe: string): string => {
-      return unsafe
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&apos;');
-    };
-
-    switch (format.toLowerCase()) {
-      case 'csv': {
-        const csvRows = [headers, ...exportBody];
-        const csvContent = csvRows.map(row => 
-          row.map(field => `"${field.replace(/"/g, '""')}"`).join(',')
-        ).join('\n');
-        blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        filename += '.csv';
-        break;
-      }
-
-      case 'json': {
-        const jsonData = exportGroups.map(group => {
-          const data: Record<string, string | number> = {};
-          includedKeys.forEach(key => {
-            const configKey = key as keyof typeof fieldConfig;
-            data[fieldConfig[configKey].key] = fieldConfig[configKey].getValue(group);
-          });
-          return data;
-        });
-        blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-        filename += '.json';
-        break;
-      }
-
-      case 'txt': {
-        const txtContent = [headers.join('\t'), ...exportBody.map(row => row.map(String).join('\t'))].join('\n');
-        blob = new Blob([txtContent], { type: 'text/plain' });
-        filename += '.txt';
-        break;
-      }
-
-      case 'html': {
-        const htmlContent = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Asset Groups Export</title>
-  <style>table { border-collapse: collapse; } th, td { border: 1px solid #ddd; padding: 8px; } th { background-color: #f2f2f2; }</style>
-</head>
-<body>
-  <h1>Asset Groups</h1>
-  <table>
-    <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-    <tbody>${exportBody.map(row => `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
-  </table>
-</body>
-</html>`;
-        blob = new Blob([htmlContent], { type: 'text/html' });
-        filename += '.html';
-        break;
-      }
-
-      case 'xml': {
-        let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<assetGroups>\n';
-        exportGroups.forEach(group => {
-          xmlContent += '  <group>\n';
-          includedKeys.forEach(key => {
-            const configKey = key as keyof typeof fieldConfig;
-            const value = fieldConfig[configKey].getValue(group);
-            const escapedValue = escapeXml(value);
-            xmlContent += `    <${fieldConfig[configKey].key}>${escapedValue}</${fieldConfig[configKey].key}>\n`;
-          });
-          xmlContent += '  </group>\n';
-        });
-        xmlContent += '</assetGroups>';
-        blob = new Blob([xmlContent], { type: 'application/xml' });
-        filename += '.xml';
-        break;
-      }
-
-      case 'xlsx': {
-        const wsData = exportGroups.map(group => {
-          const row: Record<string, string | number> = {};
-          includedKeys.forEach(key => {
-            const configKey = key as keyof typeof fieldConfig;
-            row[fieldConfig[configKey].header] = fieldConfig[configKey].getValue(group);
-          });
-          return row;
-        });
-        const ws = XLSX.utils.json_to_sheet(wsData);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Asset Groups');
-        const arrayBuffer = XLSX.write(wb, { type: 'array' }) as ArrayBuffer;
-        blob = new Blob([arrayBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-        filename += '.xlsx';
-        break;
-      }
-
-      case 'pdf': {
-        const doc = new jsPDF('l', 'mm', 'a4');
-        (autoTable as unknown as (doc: jsPDF, options: unknown) => void)(doc, {
-          head: [headers],
-          body: exportBody.map(row => row.map(cell => cell)),
-          startY: 20,
-          theme: 'grid',
-          styles: { fontSize: 7, cellPadding: 2, overflow: 'linebreak' },
-          headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold' },
-          margin: { top: 20 }
-        });
-        blob = doc.output('blob');
-        filename += '.pdf';
-        break;
-      }
-
-      default:
-        console.warn('Unsupported export format:', format);
-        return;
-    }
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, [filteredAssetGroups, selectedAssetGroupIds, assetGroupAssetCounts]);
+  }, [filteredAssetGroups, selectedAssetGroupIds, assetGroupAssetCounts, exportColumns]);
 
   const getNewAssetGroupId = useCallback(() => generateAssetGroupId(assetGroups), [assetGroups]);
 

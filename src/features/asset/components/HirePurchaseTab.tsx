@@ -125,6 +125,11 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         onClose={() => {
           setIsModalOpen(false);
         }}
+        depositAmount={parseFloat(hpDeposit ?? '0') || 0}
+        interestRate={hpInterest ?? 0}
+        numberOfInstalments={parseInt(hpInstalmentValue ?? '0') || 0}
+        totalCost={parseFloat(cost ?? '0') || 0}
+        startDate={hpStartDate ?? ''}
       />
     </Card>
   );

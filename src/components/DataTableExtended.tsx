@@ -456,14 +456,14 @@ export function DataTableExtended<TData, TValue>({
 
   return (
     <div ref={containerRef} className="flex flex-col h-full">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
+      <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
           <Table style={{ width: '100%', height: '100%' }}>
             <TableHeader>
               <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
@@ -500,9 +500,9 @@ export function DataTableExtended<TData, TValue>({
               )}
             </TableBody>
           </Table>
-        </div>
-        <ActiveHeaderOverlay headerId={activeId} table={table} />
-      </DndContext>
+          <ActiveHeaderOverlay headerId={activeId} table={table} />
+        </DndContext>
+      </div>
       
       {showPagination && (
         <TablePagination

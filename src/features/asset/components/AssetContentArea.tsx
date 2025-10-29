@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Card, Switch } from "@/components/ui/components";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Card } from "@/components/ui/components";
 import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
+import { cn } from "@/utils/utils";
 import AssetForm from "./AssetForm";
 import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset, useUpdateAsset, useDeleteAsset } from "../hooks/useAssetService";
@@ -194,6 +195,7 @@ interface UserAssetContentAreaProps {
 }
 
 export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxYear, onTaxYearChange }: UserAssetContentAreaProps) {
+  const isMountedRef = useRef(false);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -203,6 +205,14 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
   const [availableTaxYears, setAvailableTaxYears] = useState<SelectDropdownOption[]>([]);
+
+  // Track mount status
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Use external tax year if provided, otherwise use internal state
   const selectedTaxYear = externalSelectedTaxYear ?? internalSelectedTaxYear;
@@ -322,8 +332,41 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     setRowSelection({});
   }, [groupByBatch]);
 
+  // Filter assets based on search value and tax year (for tax agents)
+  const filteredAssets = useMemo(() => {
+    if (!assets) return assets;
+
+    let filtered = assets;
+
+    // Apply tax year filter for tax agents
+    if (isTaxAgent && selectedTaxYear) {
+      const taxYearNum = parseInt(selectedTaxYear);
+      filtered = filtered.filter(asset => {
+        if (!asset.acquireDate) return false;
+        const acquireYear = new Date(asset.acquireDate).getFullYear();
+        return acquireYear <= taxYearNum;
+      });
+    }
+
+    // Apply search filter
+    if (searchValue.trim()) {
+      const searchLower = searchValue.toLowerCase().trim();
+      filtered = filtered.filter(asset =>
+        asset.id.toLowerCase().includes(searchLower) ||
+        asset.batchId.toLowerCase().includes(searchLower) ||
+        asset.name.toLowerCase().includes(searchLower) ||
+        asset.group.toLowerCase().includes(searchLower) ||
+        asset.description.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
+  }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
+
   // Handle row selection and maintain asset ID mapping
   const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
+    if (!isMountedRef.current) return;
+    
     if (!assets || rows.length === 0) {
       setSelectedAssetIds([]);
       setSelectedBatchIds([]);
@@ -358,8 +401,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         .forEach((a) => assetsToInclude.add(a.id));
     }
     setSelectedAssetIds(Array.from(assetsToInclude));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assets, groupByBatch]);
+  }, [assets, groupByBatch, filteredAssets]);
 
   const handleDeleteSelected = () => {
     if (selectedAssetIds.length === 0) return;
@@ -369,37 +411,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     });
     setSelectedAssetIds([]);
   };
-
-  // Filter assets based on search value and tax year (for tax agents)
-  const filteredAssets = useMemo(() => {
-    if (!assets) return assets;
-
-    let filtered = assets;
-
-    // Apply tax year filter for tax agents
-    if (isTaxAgent && selectedTaxYear) {
-      const taxYearNum = parseInt(selectedTaxYear);
-      filtered = filtered.filter(asset => {
-        if (!asset.acquireDate) return false;
-        const acquireYear = new Date(asset.acquireDate).getFullYear();
-        return acquireYear <= taxYearNum;
-      });
-    }
-
-    // Apply search filter
-    if (searchValue.trim()) {
-      const searchLower = searchValue.toLowerCase().trim();
-      filtered = filtered.filter(asset =>
-        asset.id.toLowerCase().includes(searchLower) ||
-        asset.batchId.toLowerCase().includes(searchLower) ||
-        asset.name.toLowerCase().includes(searchLower) ||
-        asset.group.toLowerCase().includes(searchLower) ||
-        asset.description.toLowerCase().includes(searchLower)
-      );
-    }
-
-    return filtered;
-  }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
 
   const totalAssetCost = useMemo(() => {
     if (!assets) {
@@ -546,15 +557,29 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           {/* Header actions */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              {/* Batch Mode Toggle */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  isChecked={groupByBatch}
-                  onChange={setGroupByBatch}
-                />
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Batch Mode
-                </label>
+              {/* Asset/Batch Toggle */}
+              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
+              onClick={() => {
+                setGroupByBatch(!groupByBatch);
+              }}>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    !groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Asset
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Batch
+                </button>
               </div>
               <TableColumnVisibility
                 columns={tableColumns}
@@ -613,7 +638,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           </div>
 
           <DataTableExtended
-            key={`asset-table-${groupByBatch ? 'batch' : 'asset'}`}
             columns={visibleColumns}
             data={filteredAssets ?? []}
             showPagination={true}

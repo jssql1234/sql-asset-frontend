@@ -286,6 +286,10 @@ export function DataTableExtended<TData, TValue>({
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  const pendingRowSelectionRef = useRef<Record<string, boolean> | null>(null);
+  const latestOnRowSelectionChangeRef = useRef<typeof onRowSelectionChange>(onRowSelectionChange);
+  useEffect(() => { latestOnRowSelectionChangeRef.current = onRowSelectionChange; }, [onRowSelectionChange]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
@@ -299,9 +303,27 @@ export function DataTableExtended<TData, TValue>({
   // Track mount status
   useEffect(() => {
     isMountedRef.current = true;
+    setHasMounted(true);
+    // Flush any pending selection captured before mount
+    if (pendingRowSelectionRef.current) {
+      const pending = pendingRowSelectionRef.current;
+      if (!rowSelection) {
+        setInternalRowSelection(pending);
+      }
+      const cb = latestOnRowSelectionChangeRef.current;
+      if (cb) {
+        const selectedRowIds = Object.keys(pending).filter((key) => pending[key]);
+        const selectedRows = selectedRowIds
+          .map((id) => table.getRow(id))
+          .map((row) => row.original);
+        try { cb(selectedRows, selectedRowIds); } catch { /* no-op */ }
+      }
+      pendingRowSelectionRef.current = null;
+    }
     return () => {
       isMountedRef.current = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
   // Compute effective columns first (including selection column if enabled)
@@ -484,25 +506,16 @@ export function DataTableExtended<TData, TValue>({
     data,
     columns: effectiveColumns,  // Use effective columns here
     enableRowSelection: showCheckbox || enableRowClickSelection,
-    onColumnOrderChange: (updaterOrValue) => {
+    onColumnOrderChange: hasMounted ? ((updaterOrValue) => {
       if (isMountedRef.current) {
         setColumnOrder(
-          typeof updaterOrValue === 'function' 
-            ? updaterOrValue(columnOrder) 
+          typeof updaterOrValue === 'function'
+            ? (updaterOrValue as (prev: string[]) => string[])(columnOrder)
             : updaterOrValue
         );
-      } else {
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            setColumnOrder(
-              typeof updaterOrValue === 'function' 
-                ? updaterOrValue(columnOrder) 
-                : updaterOrValue
-            );
-          }
-        }, 0);
       }
-    },
+      // Ignore pre-mount updates from table init
+    }) : undefined,
     filterFromLeafRows: true,
     getCoreRowModel: getCoreRowModel(),
     
@@ -523,45 +536,25 @@ export function DataTableExtended<TData, TValue>({
       getExpandedRowModel: getExpandedRowModel(),
     }),
     
-    onSortingChange: (updaterOrValue) => {
+    onSortingChange: hasMounted ? ((updaterOrValue) => {
       if (isMountedRef.current) {
         setSorting(
           typeof updaterOrValue === 'function' 
-            ? updaterOrValue(sorting) 
+            ? (updaterOrValue as (prev: SortingState) => SortingState)(sorting) 
             : updaterOrValue
         );
-      } else {
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            setSorting(
-              typeof updaterOrValue === 'function' 
-                ? updaterOrValue(sorting) 
-                : updaterOrValue
-            );
-          }
-        }, 0);
       }
-    },
-    onColumnFiltersChange: (updaterOrValue) => {
+    }) : undefined,
+    onColumnFiltersChange: hasMounted ? ((updaterOrValue) => {
       if (isMountedRef.current) {
         setColumnFilters(
           typeof updaterOrValue === 'function' 
-            ? updaterOrValue(columnFilters) 
+            ? (updaterOrValue as (prev: ColumnFiltersState) => ColumnFiltersState)(columnFilters) 
             : updaterOrValue
         );
-      } else {
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            setColumnFilters(
-              typeof updaterOrValue === 'function' 
-                ? updaterOrValue(columnFilters) 
-                : updaterOrValue
-            );
-          }
-        }, 0);
       }
-    },
-    onRowSelectionChange: (updaterOrValue) => {
+    }) : undefined,
+    onRowSelectionChange: hasMounted ? ((updaterOrValue) => {
       const newSelection =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentRowSelection) : updaterOrValue;
 
@@ -589,70 +582,50 @@ export function DataTableExtended<TData, TValue>({
         if (isMountedRef.current) {
           setInternalRowSelection(filteredSelection);
         } else {
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              setInternalRowSelection(filteredSelection);
-            }
-          }, 0);
+          pendingRowSelectionRef.current = filteredSelection;
         }
       }
 
-      if (onRowSelectionChange && isMountedRef.current) {
-        const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
-        
-        // Map to selected rows (already filtered to group rows only if grouping is enabled)
-        const selectedRows = selectedRowIds
-          .map((id) => table.getRow(id))
-          .map((row) => row.original);
-        
-        // Defer the callback to ensure it runs after mount
-        setTimeout(() => {
-          if (isMountedRef.current) {
-            onRowSelectionChange(selectedRows, selectedRowIds);
-          }
-        }, 0);
+      if (onRowSelectionChange) {
+        if (isMountedRef.current) {
+          const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
+          const selectedRows = selectedRowIds
+            .map((id) => table.getRow(id))
+            .map((row) => row.original);
+          onRowSelectionChange(selectedRows, selectedRowIds);
+        } else {
+          pendingRowSelectionRef.current = filteredSelection;
+        }
       }
-    },
-    onGroupingChange: (updaterOrValue) => {
+    }) : undefined,
+    onGroupingChange: hasMounted ? ((updaterOrValue) => {
       const newGrouping =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentGrouping) : updaterOrValue;
 
       if (!grouping) {
         if (isMountedRef.current) {
           setInternalGrouping(newGrouping);
-        } else {
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              setInternalGrouping(newGrouping);
-            }
-          }, 0);
         }
       }
 
       if (onGroupingChange) {
         onGroupingChange(newGrouping);
       }
-    },
-    onExpandedChange: (updaterOrValue) => {
+    }) : undefined,
+    onExpandedChange: hasMounted ? ((updaterOrValue) => {
       const newExpanded =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
 
       if (!expanded) {
         if (isMountedRef.current) {
           setInternalExpanded(newExpanded);
-        } else {
-          setTimeout(() => {
-            if (isMountedRef.current) {
-              setInternalExpanded(newExpanded);
-            }
-          }, 0);
         }
       }
 
       if (onExpandedChange) {
         onExpandedChange(newExpanded);
       }
-    },
+    }) : undefined,
     filterFns: {
       multiSelect: multiSelectFilterFn,
       fuzzyArrayIncludes: fuzzyArrayIncludesFilterFn,
@@ -979,7 +952,7 @@ function DataTableRow<TData>({
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
-              row.getIsGrouped() && 'font-semibold cursor-pointer'
+              row.getIsGrouped() && 'cursor-pointer'
             )}
           >
             {sortedCells.map((cell, i) => (

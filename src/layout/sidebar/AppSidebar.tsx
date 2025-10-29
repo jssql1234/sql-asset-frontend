@@ -46,7 +46,6 @@ export function AppSidebar(props: SidebarProps) {
               <SidebarGroupItem items={section.items} pathname={location.pathname} />
             </SidebarGroup>
           </React.Fragment>
-          
         ))}
       </SidebarBody>
       
@@ -92,12 +91,19 @@ export function AppSidebar(props: SidebarProps) {
             </SidebarMenuButtonWithTooltip>
           </DropdownMenuTrigger>
           <DropdownMenuContent className={cn("min-w-58 rounded-lg border border-border", collapsedMenuShiftClass)} defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
-            {toolsMenuItems.map((item, index) => (
-              <React.Fragment key={item.route}>
-                {item.separator && index > 0 && <SidebarSeparator />}
-                <DropdownMenuItem onClick={() => void navigate(item.route)}>{item.label}</DropdownMenuItem>
-              </React.Fragment>
-            ))}
+            {toolsMenuItems.flatMap((item, index) => {
+              const nodes: React.ReactNode[] = [];
+
+              if (item.separator && index > 0) {
+                nodes.push(
+                  <SidebarSeparator key={`tools-separator-${item.route}`} />
+                );
+              }
+              nodes.push(
+                <DropdownMenuItem key={`tools-item-${item.route}`} onClick={() => void navigate(item.route)}>{item.label}</DropdownMenuItem>
+              );
+              return nodes;
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
@@ -32,44 +32,52 @@ const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, valueClassName, ch
   </div>
 );
 
-const DEFAULT_ASSET_CATEGORY = "all";
+const DEFAULT_ASSET_CATEGORY = "all" as const;
 
 interface AssetDropdownItem {
   id: string;
   label: string;
-  sublabel?: string;
   groupId: string;
   groupLabel: string;
 }
+
+const getDefaultFormData = (): EditDowntimeInput => ({
+  id: "",
+  assetIds: [],
+  priority: "Medium",
+  status: "Down",
+  description: "",
+  startTime: new Date().toISOString(),
+  endTime: undefined,
+  resolutionNotes: "",
+});
 
 export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   open,
   incident,
   onClose,
 }) => {
-  const [formData, setFormData] = useState<EditDowntimeInput>({
-    id: "",
-    assetIds: [],
-    priority: "Medium",
-    status: "Down",
-    description: "",
-    startTime: new Date().toISOString(),
-    endTime: undefined,
-    resolutionNotes: "",
-  });
-  
+  const [formData, setFormData] = useState<EditDowntimeInput>(getDefaultFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
   
-  const updateMutation = useUpdateDowntimeIncident(() => {
-    handleClose();
-  });
+  const resetForm = useCallback(() => {
+    setFormData(getDefaultFormData());
+    setErrors({});
+    setIsDeleteDialogOpen(false);
+    setIsEditMode(false);
+    setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
+  }, []);
 
-  const deleteMutation = useDeleteDowntimeIncident(() => {
-    handleClose();
-  });
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [onClose, resetForm]);
+
+  const updateMutation = useUpdateDowntimeIncident(handleClose);
+  const deleteMutation = useDeleteDowntimeIncident(handleClose);
 
   // Update form data when incident changes
   useEffect(() => {
@@ -88,8 +96,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
       });
       setErrors({});
       setIsEditMode(false);
-      const initialCategory = incident.assets[0]?.groupId ?? DEFAULT_ASSET_CATEGORY;
-      setSelectedCategoryId(initialCategory);
+      setSelectedCategoryId(incident.assets[0]?.groupId ?? DEFAULT_ASSET_CATEGORY);
     }
   }, [incident, open]);
 
@@ -99,174 +106,152 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
       ...downtimeAssetGroups.map((group) => ({
         id: group.id,
         label: group.label,
-        sublabel: group.sublabel,
       })),
     ],
     []
   );
 
-  const baseAssetItems = useMemo<AssetDropdownItem[]>(
-    () =>
-      downtimeAssets.map((asset) => ({
-        id: asset.id,
-        label: asset.name,
-        sublabel: asset.location ?? asset.groupLabel,
-        groupId: asset.groupId,
-        groupLabel: asset.groupLabel,
-      })),
-    []
-  );
-
-  const baseAssetItemMap = useMemo(() => {
+  const allAssetItemsMap = useMemo(() => {
     const map = new Map<string, AssetDropdownItem>();
-    baseAssetItems.forEach((item) => {
-      map.set(item.id, item);
-    });
-    return map;
-  }, [baseAssetItems]);
-
-  const assetItemMap = useMemo(() => {
-    const map = new Map(baseAssetItemMap);
-    incident?.assets.forEach((asset) => {
+    downtimeAssets.forEach((asset) => {
       map.set(asset.id, {
         id: asset.id,
-        label: asset.name,
-        sublabel: asset.location ?? asset.groupLabel,
-        groupId: asset.groupId ?? DEFAULT_ASSET_CATEGORY,
-        groupLabel: asset.groupLabel ?? "Other Assets",
+        label: `${asset.name} (${asset.id})`,
+        groupId: asset.groupId,
+        groupLabel: asset.groupLabel,
       });
     });
+    
+    // Add incident assets if available
+    incident?.assets.forEach((asset) => {
+      if (!map.has(asset.id)) {
+        map.set(asset.id, {
+          id: asset.id,
+          label: `${asset.name} (${asset.id})`,
+          groupId: asset.groupId ?? DEFAULT_ASSET_CATEGORY,
+          groupLabel: asset.groupLabel ?? "Other Assets",
+        });
+      }
+    });
+    
     return map;
-  }, [baseAssetItemMap, incident]);
+  }, [incident]);
 
   const assetItems = useMemo(() => {
-    const baseItems =
-      selectedCategoryId === DEFAULT_ASSET_CATEGORY
-        ? baseAssetItems
-        : baseAssetItems.filter((item) => item.groupId === selectedCategoryId);
+    const allItems = Array.from(allAssetItemsMap.values());
+    const filteredItems = selectedCategoryId === DEFAULT_ASSET_CATEGORY
+      ? allItems
+      : allItems.filter((item) => item.groupId === selectedCategoryId);
 
+    // Ensure selected assets are always included
     const itemMap = new Map<string, AssetDropdownItem>();
-    baseItems.forEach((item) => {
-      itemMap.set(item.id, item);
-    });
-
+    filteredItems.forEach((item) => itemMap.set(item.id, item));
+    
     formData.assetIds.forEach((id) => {
       if (!itemMap.has(id)) {
-        const match = assetItemMap.get(id);
-        if (match) {
-          itemMap.set(id, match);
-        }
+        const match = allAssetItemsMap.get(id);
+        if (match) itemMap.set(id, match);
       }
     });
 
     return Array.from(itemMap.values());
-  }, [selectedCategoryId, baseAssetItems, formData.assetIds, assetItemMap]);
+  }, [selectedCategoryId, allAssetItemsMap, formData.assetIds]);
 
   const selectedAssets = useMemo(
     () =>
       formData.assetIds.map((id) => {
-        const match = assetItemMap.get(id);
+        const match = allAssetItemsMap.get(id);
         return {
           id,
           name: match?.label ?? id,
           groupLabel: match?.groupLabel,
         };
       }),
-    [formData.assetIds, assetItemMap]
+    [formData.assetIds, allAssetItemsMap]
   );
 
-  const handleAssetSelectionChange = (selectedIds: string[]) => {
+  const handleAssetSelectionChange = useCallback((selectedIds: string[]) => {
     setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
     setErrors((prev) => ({
       ...prev,
       assetIds: selectedIds.length === 0 ? "Select at least one asset" : "",
     }));
-  };
+  }, []);
 
-  const handleClose = () => {
-    setErrors({});
+  const handleDeleteClick = useCallback(() => {
+    if (incident) setIsDeleteDialogOpen(true);
+  }, [incident]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (incident) {
+      await deleteMutation.mutateAsync(incident.id);
+      setIsDeleteDialogOpen(false);
+    }
+  }, [incident, deleteMutation]);
+
+  const handleCancelDelete = useCallback(() => {
     setIsDeleteDialogOpen(false);
-    setIsEditMode(false);
-    setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
-    onClose();
-  };
+  }, []);
 
-  const handleDeleteClick = () => {
-    if (!incident) return;
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!incident) return;
-    await deleteMutation.mutateAsync(incident.id);
-    setIsDeleteDialogOpen(false);
-  };
-
-  const handleCancelDelete = () => {
-    setIsDeleteDialogOpen(false);
-  };
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
+    e?.preventDefault();
     
-    // Validate form data
     const validation = editDowntimeSchema.safeParse(formData);
     
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
       validation.error.issues.forEach((issue) => {
-        const path = issue.path.join(".");
-        fieldErrors[path] = issue.message;
+        fieldErrors[issue.path.join(".")] = issue.message;
       });
       setErrors(fieldErrors);
       return;
     }
     
-    // Clear errors and submit
     setErrors({});
     await updateMutation.mutateAsync(validation.data);
-  };
+  }, [formData, updateMutation]);
 
-  const handleInputChange = (field: keyof EditDowntimeInput) => (
+  const handleInputChange = useCallback((field: keyof EditDowntimeInput) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }));
     setErrors(prev => ({ ...prev, [field]: "" }));
-  };
+  }, []);
 
-  const handlePrioritySelect = (priority: EditDowntimeInput["priority"]) => {
+  const handlePrioritySelect = useCallback((priority: EditDowntimeInput["priority"]) => {
     setFormData(prev => ({ ...prev, priority }));
-  };
+  }, []);
 
-  const handleStatusSelect = (status: EditDowntimeInput["status"]) => {
-    setFormData((prev) => {
-      const nextEndTime = status === "Resolved"
-        ? prev.endTime ?? new Date().toISOString()
-        : undefined;
-
-      return {
-        ...prev,
-        status,
-        endTime: nextEndTime,
-      };
-    });
+  const handleStatusSelect = useCallback((status: EditDowntimeInput["status"]) => {
+    setFormData((prev) => ({
+      ...prev,
+      status,
+      endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
+    }));
     setErrors((prev) => ({ ...prev, status: "", endTime: "", resolutionNotes: "" }));
-  };
+  }, []);
 
-  const handleDateTimeChange = (field: "startTime" | "endTime") => (date: string | Date | Date[] | string[] | undefined | null) => {
+  const handleDateTimeChange = useCallback((field: "startTime" | "endTime") => (
+    date: string | Date | Date[] | string[] | undefined | null
+  ) => {
     if (date === null || date === undefined || (Array.isArray(date) && date.length === 0)) {
       setFormData((prev) => ({ ...prev, [field]: field === "endTime" ? undefined : "" }));
       setErrors((prev) => ({ ...prev, [field]: "" }));
       return;
     }
 
-    if (date instanceof Date) {
-      setFormData((prev) => ({ ...prev, [field]: date.toISOString() }));
-    } else if (typeof date === "string") {
-      setFormData((prev) => ({ ...prev, [field]: date }));
-    }
+    const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+    setFormData((prev) => ({ ...prev, [field]: isoDate }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
-  };
+  }, []);
+
+  const toggleEditMode = useCallback(() => { 
+    setIsEditMode(true); 
+  }, []);
+
+  const toggleCancelEdit = useCallback(() => {
+    setIsEditMode(false);
+  }, []);
 
   if (!incident) return null;
 
@@ -275,21 +260,16 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     .join(", ");
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          handleClose();
-        }
-      }}
-    >
+    <Dialog open={open} onOpenChange={(isOpen) => { 
+      if (!isOpen) handleClose(); 
+    }}>
       <DialogContent className="w-[600px] max-w-[90vw] max-h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>{isEditMode ? "Edit Incident" : "Incident Details"}</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto min-h-0">
-          <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-col gap-4 pr-1">
+          <form onSubmit={(e) => { void handleSubmit(e); }} className="flex flex-col gap-4 pr-1">
             {/* Assets */}
             <div className="flex flex-col gap-2">
               {isEditMode ? (
@@ -321,7 +301,6 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                           className="flex flex-col gap-1 rounded-md border border-outlineVariant/60 bg-surfaceContainerHighest px-3 py-2"
                         >
                           <span className="body-small text-onSurface">{asset.name}</span>
-                          <span className="label-small text-onSurfaceVariant">{asset.id}</span>
                         </div>
                       ))}
                     </div>
@@ -337,21 +316,16 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
               {isEditMode ? (
                 <>
                   <label className="label-medium text-onSurface">Priority*</label>
-                <DropdownMenu className="w-full">
-                  <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
-                  <DropdownMenuContent>
-                    {PRIORITY_OPTIONS.map((option) => (
-                      <DropdownMenuItem
-                        key={option.value}
-                        onClick={() => {
-                          handlePrioritySelect(option.value);
-                        }}
-                      >
-                        {option.label}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                  <DropdownMenu className="w-full">
+                    <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
+                    <DropdownMenuContent>
+                      {PRIORITY_OPTIONS.map((option) => (
+                        <DropdownMenuItem key={option.value} onClick={() => { handlePrioritySelect(option.value); }}>
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <ReadOnlyField label="Priority*">{formData.priority}</ReadOnlyField>
@@ -367,12 +341,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                     <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
                     <DropdownMenuContent>
                       {STATUS_OPTIONS.map((option) => (
-                        <DropdownMenuItem
-                          key={option.value}
-                          onClick={() => {
-                            handleStatusSelect(option.value);
-                          }}
-                        >
+                        <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>
                           {option.label}
                         </DropdownMenuItem>
                       ))}
@@ -482,55 +451,27 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           {isEditMode ? (
             <>
               <div className="flex gap-2">
-                <Button variant="outline" type="button" onClick={() => { setIsEditMode(false); }}>
-                  Cancel
-                </Button>
-                <Button
-                  variant="default"
-                  type="submit"
-                  onClick={() => void handleSubmit()}
-                >
-                  Update Incident
-                </Button>
+                <Button variant="outline" type="button" onClick={toggleCancelEdit}>Cancel</Button>
+                <Button variant="default" type="submit" onClick={() => { void handleSubmit(); }}>Update Incident</Button>
               </div>
             </>
           ) : (
-            <div className="flex gap-2 w-full justify-between">
-              <Button
-                variant="ghost"
-                type="button"
-                onClick={handleDeleteClick}
-                className="text-error hover:text-error hover:bg-errorContainer"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+            <div className="flex gap-2">
+              <Button variant="ghost"type="button" onClick={handleDeleteClick} className="text-error hover:text-error hover:bg-errorContainer">
+                <Trash2 className="h-4 w-4 mr-2" />Delete
               </Button>
-              <div className="flex gap-2">
-                <Button variant="outline" type="button" onClick={handleClose}>
-                  Close
-                </Button>
-                <Button
-                  variant="default"
-                  type="button"
-                  onClick={() => { setIsEditMode(true); }}
-                >
-                  Edit
-                </Button>
-              </div>
+              <Button variant="default" type="button" onClick={toggleEditMode}>Edit</Button>              
             </div>
           )}
         </DialogFooter>
       </DialogContent>
-      <Dialog
-        open={isDeleteDialogOpen}
-        onOpenChange={(isOpen) => {
-          if (isOpen) {
-            setIsDeleteDialogOpen(true);
-          } else {
-            handleCancelDelete();
-          }
-        }}
-      >
+      <Dialog open={isDeleteDialogOpen} onOpenChange={(isOpen) => {
+        if (isOpen) {
+          setIsDeleteDialogOpen(true);
+        } else {
+          handleCancelDelete();
+        }
+      }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="text-error">
@@ -555,18 +496,10 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           </div>
 
           <DialogFooter className="pt-4">
-            <Button
-              variant="outline"
-              type="button"
-              onClick={handleCancelDelete}
-            >
+            <Button variant="outline" type="button" onClick={handleCancelDelete}>
               Cancel
             </Button>
-            <Button
-              variant="destructive"
-              type="button"
-              onClick={() => void handleConfirmDelete()}
-            >
+            <Button variant="destructive" type="button" onClick={() => { void handleConfirmDelete(); }}>
               Delete Incident
             </Button>
           </DialogFooter>

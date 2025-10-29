@@ -118,21 +118,11 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
           Current Incidents ({filteredIncidents.length})
         </h2>
         <div className="flex-shrink-0 w-80">
-          <Search
-            searchValue={searchQuery}
-            onSearch={setSearchQuery}
-            searchPlaceholder="Search incidents..."
-            live={true}
-          />
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
         </div>
       </div>
       
-      <DataTableExtended
-        columns={columns}
-        data={filteredIncidents}
-        showPagination={true}
-        onRowDoubleClick={onEditIncident}
-      />
+      <DataTableExtended columns={columns} data={filteredIncidents} showPagination={true} onRowDoubleClick={onEditIncident} />
     </div>
   );
 };

@@ -1,7 +1,6 @@
 export interface DowntimeAssetGroup {
   id: string;
   label: string;
-  sublabel?: string;
   assets: {
     id: string;
     name: string;
@@ -21,7 +20,6 @@ export const downtimeAssetGroups: DowntimeAssetGroup[] = [
   {
     id: "assembly-line",
     label: "Assembly Line",
-    sublabel: "Production Zone A",
     assets: [
       { id: "CBT-001", name: "Conveyor Belt A1", location: "Zone A - Conveyor" },
       { id: "PMP-002", name: "Pump System B2", location: "Zone B - Fluids" },
@@ -30,7 +28,6 @@ export const downtimeAssetGroups: DowntimeAssetGroup[] = [
   {
     id: "power-systems",
     label: "Power Systems",
-    sublabel: "Utilities Bay",
     assets: [
       { id: "GEN-003", name: "Generator C3", location: "Backup Power Wing" },
       { id: "AC-004", name: "Air Compressor D4", location: "Compressor Room" },
@@ -39,7 +36,6 @@ export const downtimeAssetGroups: DowntimeAssetGroup[] = [
   {
     id: "support-equipment",
     label: "Support Equipment",
-    sublabel: "Maintenance Block",
     assets: [
       { id: "HP-005", name: "Hydraulic Press E5", location: "Fabrication Area" },
       { id: "CS-006", name: "Cooling System F6", location: "Thermal Control" },

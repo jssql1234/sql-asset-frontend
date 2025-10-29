@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Card, Switch } from "@/components/ui/components";
 import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
@@ -196,6 +196,7 @@ interface UserAssetContentAreaProps {
 export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxYear, onTaxYearChange }: UserAssetContentAreaProps) {
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
   const [groupByBatch, setGroupByBatch] = useState(false);
@@ -318,15 +319,24 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   useEffect(() => {
     setSelectedAssetIds([]);
     setSelectedBatchIds([]);
+    setRowSelection({});
   }, [groupByBatch]);
 
   // Handle row selection and maintain asset ID mapping
-  const handleRowSelectionChange = (rows: Asset[]) => {
+  const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
     if (!assets || rows.length === 0) {
       setSelectedAssetIds([]);
       setSelectedBatchIds([]);
+      setRowSelection({});
       return;
     }
+
+    // Update rowSelection state
+    const newRowSelection: Record<string, boolean> = {};
+    selectedRowIds.forEach(id => {
+      newRowSelection[id] = true;
+    });
+    setRowSelection(newRowSelection);
 
     if (!groupByBatch) {
       setSelectedAssetIds(rows.map((r) => r.id));
@@ -339,6 +349,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     setSelectedBatchIds(batchIds);
     
     const assetsToInclude = new Set<string>();
+    // Use current filteredAssets if available, otherwise fall back to all assets
     const source = filteredAssets ?? assets;
     for (const r of rows) {
       const batch = r.batchId || '';
@@ -347,7 +358,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         .forEach((a) => assetsToInclude.add(a.id));
     }
     setSelectedAssetIds(Array.from(assetsToInclude));
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assets, groupByBatch]);
 
   const handleDeleteSelected = () => {
     if (selectedAssetIds.length === 0) return;
@@ -608,6 +620,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             showCheckbox={true}
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
+            rowSelection={rowSelection}
             selectedCount={groupByBatch ? selectedBatchIds.length : selectedAssetIds.length}
             totalCount={groupByBatch 
               ? (filteredAssets ? new Set(filteredAssets.map(a => a.batchId)).size : 0)

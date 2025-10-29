@@ -285,6 +285,7 @@ export function DataTableExtended<TData, TValue>({
   onColumnOrderChange,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
@@ -294,6 +295,14 @@ export function DataTableExtended<TData, TValue>({
   const currentRowSelection = rowSelection ?? internalRowSelection;
   const currentGrouping = grouping ?? internalGrouping;
   const currentExpanded = expanded ?? internalExpanded;
+
+  // Track mount status
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
   
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
@@ -470,7 +479,17 @@ export function DataTableExtended<TData, TValue>({
     data,
     columns: effectiveColumns,  // Use effective columns here
     enableRowSelection: showCheckbox || enableRowClickSelection,
-    onColumnOrderChange: setColumnOrder,
+    onColumnOrderChange: (updaterOrValue) => {
+      if (isMountedRef.current) {
+        setColumnOrder(updaterOrValue as any);
+      } else {
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setColumnOrder(updaterOrValue as any);
+          }
+        }, 0);
+      }
+    },
     filterFromLeafRows: true,
     getCoreRowModel: getCoreRowModel(),
     
@@ -489,8 +508,28 @@ export function DataTableExtended<TData, TValue>({
       getExpandedRowModel: getExpandedRowModel(),
     }),
     
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
+    onSortingChange: (updaterOrValue) => {
+      if (isMountedRef.current) {
+        setSorting(updaterOrValue as any);
+      } else {
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setSorting(updaterOrValue as any);
+          }
+        }, 0);
+      }
+    },
+    onColumnFiltersChange: (updaterOrValue) => {
+      if (isMountedRef.current) {
+        setColumnFilters(updaterOrValue as any);
+      } else {
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setColumnFilters(updaterOrValue as any);
+          }
+        }, 0);
+      }
+    },
     onRowSelectionChange: (updaterOrValue) => {
       const newSelection =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentRowSelection) : updaterOrValue;
@@ -502,20 +541,32 @@ export function DataTableExtended<TData, TValue>({
       if (isGroupingEnabled) {
         // Only keep group rows in the selection state
         filteredSelection = Object.keys(newSelection).reduce<Record<string, boolean>>((acc, key) => {
-          const row = table.getRow(key);
-          // Only include group rows in the selection state
-          if (row.getIsGrouped() && newSelection[key]) {
-            acc[key] = true;
+          try {
+            const row = table.getRow(key);
+            // Only include group rows in the selection state
+            if (row.getIsGrouped() && newSelection[key]) {
+              acc[key] = true;
+            }
+          } catch {
+            // Row not found, skip it
           }
           return acc;
         }, {});
       }
 
       if (!rowSelection) {
-        setInternalRowSelection(filteredSelection);
+        if (isMountedRef.current) {
+          setInternalRowSelection(filteredSelection);
+        } else {
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              setInternalRowSelection(filteredSelection);
+            }
+          }, 0);
+        }
       }
 
-      if (onRowSelectionChange) {
+      if (onRowSelectionChange && isMountedRef.current) {
         const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
         
         // Map to selected rows (already filtered to group rows only if grouping is enabled)
@@ -523,8 +574,12 @@ export function DataTableExtended<TData, TValue>({
           .map((id) => table.getRow(id))
           .map((row) => row.original);
         
-        // Pass both selected rows and their IDs
-        onRowSelectionChange(selectedRows, selectedRowIds);
+        // Defer the callback to ensure it runs after mount
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            onRowSelectionChange(selectedRows, selectedRowIds);
+          }
+        }, 0);
       }
     },
     onGroupingChange: (updaterOrValue) => {
@@ -532,7 +587,15 @@ export function DataTableExtended<TData, TValue>({
         typeof updaterOrValue === 'function' ? updaterOrValue(currentGrouping) : updaterOrValue;
 
       if (!grouping) {
-        setInternalGrouping(newGrouping);
+        if (isMountedRef.current) {
+          setInternalGrouping(newGrouping);
+        } else {
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              setInternalGrouping(newGrouping);
+            }
+          }, 0);
+        }
       }
 
       if (onGroupingChange) {
@@ -544,7 +607,15 @@ export function DataTableExtended<TData, TValue>({
         typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
 
       if (!expanded) {
-        setInternalExpanded(newExpanded);
+        if (isMountedRef.current) {
+          setInternalExpanded(newExpanded);
+        } else {
+          setTimeout(() => {
+            if (isMountedRef.current) {
+              setInternalExpanded(newExpanded);
+            }
+          }, 0);
+        }
       }
 
       if (onExpandedChange) {
@@ -795,17 +866,25 @@ function DataTableRow<TData>({
     const isInteractiveElement = target.closest(
       'button, a, input, select, textarea, [role="button"]'
     );
+    const groupingActive = Array.isArray((table.getState() as any)?.grouping) && (table.getState() as any).grouping.length > 0;
 
-    // Handle grouped row expansion/collapse
+    // Prioritize selection on row click when enabled
+    if (
+      enableRowClickSelection &&
+      !isInteractiveElement &&
+      row.getCanSelect() &&
+      (!groupingActive || row.getIsGrouped())
+    ) {
+      event.preventDefault();
+      row.toggleSelected();
+      return;
+    }
+
+    // Fallback: expand/collapse grouped rows when clicking non-interactive area
     if (row.getIsGrouped() && !isInteractiveElement) {
       event.preventDefault();
       row.getToggleExpandedHandler()();
       return;
-    }
-
-    if (enableRowClickSelection && !isInteractiveElement && row.getCanSelect()) {
-      event.preventDefault();
-      row.toggleSelected();
     }
   };
 

@@ -456,16 +456,16 @@ export function DataTableExtended<TData, TValue>({
 
   return (
     <div ref={containerRef} className="flex flex-col h-full">
-      <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
-        <Table style={{ width: '100%', height: '100%' }}>
-          <TableHeader>
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDragEnd={handleDragEnd}
-            >
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
+          <Table style={{ width: '100%', height: '100%' }}>
+            <TableHeader>
               <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                 {table.getHeaderGroups().map((headerGroup) => {
                   const totalHeaders = headerGroup.headers.length;
@@ -485,24 +485,24 @@ export function DataTableExtended<TData, TValue>({
                   );
                 })}
               </SortableContext>
-              <ActiveHeaderOverlay headerId={activeId} table={table} />
-            </DndContext>
-          </TableHeader>
-          
-          <TableBody>
-            {isLoading ? (
-              <SkeletonRow columns={columns} rowCount={5} />
-            ) : table.getRowModel().rows.length ? (
-              <DataTableRow
-                table={table}
-                enableRowClickSelection={enableRowClickSelection}
-              />
-            ) : (
-              <EmptyDataRow columnLength={columns.length} />
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            
+            <TableBody>
+              {isLoading ? (
+                <SkeletonRow columns={columns} rowCount={5} />
+              ) : table.getRowModel().rows.length ? (
+                <DataTableRow
+                  table={table}
+                  enableRowClickSelection={enableRowClickSelection}
+                />
+              ) : (
+                <EmptyDataRow columnLength={columns.length} />
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <ActiveHeaderOverlay headerId={activeId} table={table} />
+      </DndContext>
       
       {showPagination && (
         <TablePagination

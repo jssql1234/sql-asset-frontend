@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Button, Card } from '@/components/ui/components';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableColumnVisibility } from '@/components/ui/components/Table';
+import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
@@ -11,6 +11,8 @@ import {
   formatCurrency,
   formatDate,
 } from '../utils/sparePartsUtils';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableSelectionSync } from '@/components/DataTableExtended/hooks/useTableSelectionSync';
 
 interface SparePartsTableProps {
   spareParts: SparePart[];
@@ -174,110 +176,42 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
     },
   ]), []);
 
-  const selectionColumn = useMemo(
-    () => columnDefs.find(column => column.id === 'select'),
-    [columnDefs],
-  );
+  const {
+    toggleableColumns,
+    visibleColumns,
+    setVisibleColumns,
+    displayedColumns,
+    handleColumnOrderChange,
+  } = useTableColumns<SparePart, unknown>({
+    columns: columnDefs,
+    lockedColumnIds: ['select'],
+    onVisibleColumnsChange,
+  });
 
-  const visibilityColumns = useMemo(
-    () => columnDefs.filter(column => column.id !== 'select'),
-    [columnDefs],
-  );
+  const getPartId = useCallback((part: SparePart) => part.id, []);
 
-  const [visibleColumns, setVisibleColumns] = useState(visibilityColumns);
-
-  const handleSetVisibleColumns = useCallback((newVisible: React.SetStateAction<ColumnDef<SparePart>[]>) => {
-    setVisibleColumns(prev => {
-      const updated = typeof newVisible === 'function' ? newVisible(prev) : newVisible;
-      onVisibleColumnsChange?.(updated);
-      return updated;
-    });
-  }, [onVisibleColumnsChange]);
-
-  useEffect(() => {
-    const initialVisible = visibilityColumns;
-    setVisibleColumns(initialVisible);
-    onVisibleColumnsChange?.(initialVisible);
-  }, [visibilityColumns, onVisibleColumnsChange]);
-
-  const displayedColumns = useMemo(() => {
-    const cols: ColumnDef<SparePart>[] = [];
-    if (selectionColumn) {
-      cols.push(selectionColumn);
-    }
-    cols.push(...visibleColumns);
-    return cols;
-  }, [selectionColumn, visibleColumns]);
-
-  const handleRowSelectionChange = (
-    selectedRows: SparePart[],
-  ) => {
-    const selectedIds = new Set(selectedRows.map(part => part.id));
-
-    selectedIds.forEach(id => {
-      if (!selectedParts.includes(id)) {
-        onToggleSelection(id);
-      }
-    });
-
-    selectedParts.forEach(id => {
-      if (!selectedIds.has(id)) {
-        onToggleSelection(id);
-      }
-    });
-  };
-
-  const selectedCount = selectedParts.length;
-  const hasSelection = selectedCount > 0;
-  const rowSelection = selectedParts.reduce<Record<string, boolean>>((acc, partId) => {
-    const index = spareParts.findIndex(part => part.id === partId);
-    if (index !== -1) {
-      acc[index.toString()] = true;
-    }
-    return acc;
-  }, {});
-
-  const selectedPartForEdit = useMemo(() => {
-    if (selectedParts.length === 1) {
-      return spareParts.find(part => part.id === selectedParts[0]);
-    }
-    return undefined;
-  }, [selectedParts, spareParts]);
-
-  const handleColumnOrderChange = useCallback((orderedIds: string[]) => {
-    const orderedVisibleIds = orderedIds.filter((id) => id !== 'select');
-
-    handleSetVisibleColumns((previous) => {
-      const columnById = new Map(previous.map((column) => [column.id ?? '', column]));
-      const nextOrder = orderedVisibleIds
-        .map((id) => columnById.get(id))
-        .filter((column): column is ColumnDef<SparePart> => Boolean(column));
-
-      if (nextOrder.length === 0) {
-        return previous;
-      }
-
-      if (nextOrder.length < previous.length) {
-        const remaining = previous.filter((column) => !orderedVisibleIds.includes(column.id ?? ''));
-        nextOrder.push(...remaining);
-      }
-
-      const isSameOrder =
-        nextOrder.length === previous.length &&
-        nextOrder.every((column, index) => column === previous[index]);
-
-      return isSameOrder ? previous : nextOrder;
-    });
-  }, [handleSetVisibleColumns]);
+  const {
+    rowSelection,
+    handleRowSelectionChange,
+    selectedCount,
+    hasSelection,
+    singleSelectedItem,
+    clearSelection,
+  } = useTableSelectionSync({
+    data: spareParts,
+    selectedIds: selectedParts,
+    getRowId: getPartId,
+    onToggleSelection,
+  });
 
   return (
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableColumnVisibility
-            columns={visibilityColumns}
+          <TableVisibilityControl
+            columns={toggleableColumns}
             visibleColumns={visibleColumns}
-            setVisibleColumns={handleSetVisibleColumns}
+            setVisibleColumns={setVisibleColumns}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -296,8 +230,8 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { if (selectedPartForEdit) onEditPart(selectedPartForEdit); }}
-                disabled={!selectedPartForEdit}
+                onClick={() => { if (singleSelectedItem) onEditPart(singleSelectedItem); }}
+                disabled={!singleSelectedItem}
                 className="flex items-center gap-2"
               >
                 <Edit className="h-4 w-4" />
@@ -319,9 +253,7 @@ export const SparePartsTable: React.FC<SparePartsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  selectedParts.forEach(id => { onToggleSelection(id); });
-                }}
+                onClick={clearSelection}
               >
                 Clear Selection
               </Button>

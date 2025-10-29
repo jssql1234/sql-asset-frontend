@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Button, Card } from '@/components/ui/components';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableColumnVisibility } from '@/components/ui/components/Table';
+import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import type { Location } from '../types/locations';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableSelectionSync } from '@/components/DataTableExtended/hooks/useTableSelectionSync';
 
 interface LocationsTableProps {
   locations: Location[];
@@ -83,70 +85,39 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
     },
   ]), []);
 
-  const selectionColumn = useMemo(
-    () => columnDefs.find(column => column.id === 'select'),
-    [columnDefs],
-  );
+  const {
+    toggleableColumns,
+    visibleColumns,
+    setVisibleColumns,
+    displayedColumns,
+    handleColumnOrderChange,
+  } = useTableColumns<Location, unknown>({
+    columns: columnDefs,
+    lockedColumnIds: ['select'],
+  });
 
-  const visibilityColumns = useMemo(
-    () => columnDefs.filter(column => column.id !== 'select'),
-    [columnDefs],
-  );
+  const getLocationId = useCallback((location: Location) => location.id, []);
 
-  const [visibleColumns, setVisibleColumns] = useState(visibilityColumns);
-
-  useEffect(() => {
-    setVisibleColumns(visibilityColumns);
-  }, [visibilityColumns]);
-
-  const displayedColumns = useMemo(() => {
-    const cols: ColumnDef<Location>[] = [];
-    if (selectionColumn) {
-      cols.push(selectionColumn);
-    }
-    cols.push(...visibleColumns);
-    return cols;
-  }, [selectionColumn, visibleColumns]);
-
-  const handleRowSelectionChange = (selectedRows: Location[]) => {
-    const selectedIds = new Set(selectedRows.map(location => location.id));
-
-    selectedIds.forEach(id => {
-      if (!selectedLocations.includes(id)) {
-        onToggleSelection(id);
-      }
-    });
-
-    selectedLocations.forEach(id => {
-      if (!selectedIds.has(id)) {
-        onToggleSelection(id);
-      }
-    });
-  };
-
-  const selectedCount = selectedLocations.length;
-  const hasSelection = selectedCount > 0;
-  const rowSelection = selectedLocations.reduce<Record<string, boolean>>((acc, locationId) => {
-    const index = locations.findIndex(location => location.id === locationId);
-    if (index !== -1) {
-      acc[index.toString()] = true;
-    }
-    return acc;
-  }, {});
-
-  const selectedLocationForEdit = useMemo(() => {
-    if (selectedLocations.length === 1) {
-      return locations.find(location => location.id === selectedLocations[0]);
-    }
-    return undefined;
-  }, [locations, selectedLocations]);
+  const {
+    rowSelection,
+    handleRowSelectionChange,
+    selectedCount,
+    hasSelection,
+    singleSelectedItem,
+    clearSelection,
+  } = useTableSelectionSync({
+    data: locations,
+    selectedIds: selectedLocations,
+    getRowId: getLocationId,
+    onToggleSelection,
+  });
 
   return (
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableColumnVisibility
-            columns={visibilityColumns}
+          <TableVisibilityControl
+            columns={toggleableColumns}
             visibleColumns={visibleColumns}
             setVisibleColumns={setVisibleColumns}
           />
@@ -167,8 +138,8 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { if (selectedLocationForEdit) onEditLocation(selectedLocationForEdit); }}
-                disabled={!selectedLocationForEdit}
+                onClick={() => { if (singleSelectedItem) onEditLocation(singleSelectedItem); }}
+                disabled={!singleSelectedItem}
                 className="flex items-center gap-2"
               >
                 <Edit className="h-4 w-4" />
@@ -188,9 +159,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  selectedLocations.forEach(id => { onToggleSelection(id); });
-                }}
+                onClick={clearSelection}
               >
                 Clear Selection
               </Button>
@@ -209,6 +178,7 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
         enableRowClickSelection
         onRowSelectionChange={handleRowSelectionChange}
         rowSelection={rowSelection}
+        onColumnOrderChange={handleColumnOrderChange}
       />
     </Card>
   );

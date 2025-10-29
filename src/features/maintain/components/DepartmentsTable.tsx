@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useCallback } from 'react';
 import { Button, Card } from '@/components/ui/components';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableColumnVisibility } from '@/components/ui/components/Table';
+import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
 import type { Department } from '../types/departments';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableSelectionSync } from '@/components/DataTableExtended/hooks/useTableSelectionSync';
 
 interface DepartmentsTableProps {
   departments: Department[];
@@ -139,70 +141,39 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
     },
   ]), [departmentStaffCounts]);
 
-  const selectionColumn = useMemo(
-    () => columnDefs.find(column => column.id === 'select'),
-    [columnDefs],
-  );
+  const {
+    toggleableColumns,
+    visibleColumns,
+    setVisibleColumns,
+    displayedColumns,
+    handleColumnOrderChange,
+  } = useTableColumns<Department, unknown>({
+    columns: columnDefs,
+    lockedColumnIds: ['select'],
+  });
 
-  const visibilityColumns = useMemo(
-    () => columnDefs.filter(column => column.id !== 'select'),
-    [columnDefs],
-  );
+  const getDepartmentId = useCallback((department: Department) => department.id, []);
 
-  const [visibleColumns, setVisibleColumns] = useState(visibilityColumns);
-
-  useEffect(() => {
-    setVisibleColumns(visibilityColumns);
-  }, [visibilityColumns]);
-
-  const displayedColumns = useMemo(() => {
-    const cols: ColumnDef<Department>[] = [];
-    if (selectionColumn) {
-      cols.push(selectionColumn);
-    }
-    cols.push(...visibleColumns);
-    return cols;
-  }, [selectionColumn, visibleColumns]);
-
-  const handleRowSelectionChange = (selectedRows: Department[]) => {
-    const selectedIds = new Set(selectedRows.map(department => department.id));
-
-    selectedIds.forEach(id => {
-      if (!selectedDepartments.includes(id)) {
-        onToggleSelection(id);
-      }
-    });
-
-    selectedDepartments.forEach(id => {
-      if (!selectedIds.has(id)) {
-        onToggleSelection(id);
-      }
-    });
-  };
-
-  const selectedCount = selectedDepartments.length;
-  const hasSelection = selectedCount > 0;
-  const rowSelection = selectedDepartments.reduce<Record<string, boolean>>((acc, departmentId) => {
-    const index = departments.findIndex(department => department.id === departmentId);
-    if (index !== -1) {
-      acc[index.toString()] = true;
-    }
-    return acc;
-  }, {});
-
-  const selectedDepartmentForEdit = useMemo(() => {
-    if (selectedDepartments.length === 1) {
-      return departments.find(department => department.id === selectedDepartments[0]);
-    }
-    return undefined;
-  }, [departments, selectedDepartments]);
+  const {
+    rowSelection,
+    handleRowSelectionChange,
+    selectedCount,
+    hasSelection,
+    singleSelectedItem,
+    clearSelection,
+  } = useTableSelectionSync({
+    data: departments,
+    selectedIds: selectedDepartments,
+    getRowId: getDepartmentId,
+    onToggleSelection,
+  });
 
   return (
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableColumnVisibility
-            columns={visibilityColumns}
+          <TableVisibilityControl
+            columns={toggleableColumns}
             visibleColumns={visibleColumns}
             setVisibleColumns={setVisibleColumns}
           />
@@ -223,8 +194,8 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { if (selectedDepartmentForEdit) onEditDepartment(selectedDepartmentForEdit); }}
-                disabled={!selectedDepartmentForEdit}
+                onClick={() => { if (singleSelectedItem) onEditDepartment(singleSelectedItem); }}
+                disabled={!singleSelectedItem}
                 className="flex items-center gap-2"
               >
                 <Edit className="h-4 w-4" />
@@ -244,9 +215,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  selectedDepartments.forEach(id => { onToggleSelection(id); });
-                }}
+                onClick={clearSelection}
               >
                 Clear Selection
               </Button>
@@ -265,6 +234,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
         enableRowClickSelection
         onRowSelectionChange={handleRowSelectionChange}
         rowSelection={rowSelection}
+        onColumnOrderChange={handleColumnOrderChange}
       />
     </Card>
   );

@@ -2,7 +2,7 @@
  * DataTableExtended - Extended wrapper for DataTable with additional features
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { 
   useReactTable,
   getCoreRowModel,
@@ -292,7 +292,12 @@ export function DataTableExtended<TData, TValue>({
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
   
   // Compute effective columns first (including selection column if enabled)
-  const effectiveColumns = showCheckbox ? [createSelectionColumn<TData, TValue>(), ...columns] : columns;
+  const effectiveColumns = useMemo(() => {
+    if (showCheckbox) {
+      return [createSelectionColumn<TData, TValue>(), ...columns];
+    }
+    return columns;
+  }, [columns, showCheckbox]);
   
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
     return effectiveColumns.map((col, index) => resolveColumnId(col, index));

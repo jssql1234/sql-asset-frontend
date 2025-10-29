@@ -486,11 +486,19 @@ export function DataTableExtended<TData, TValue>({
     enableRowSelection: showCheckbox || enableRowClickSelection,
     onColumnOrderChange: (updaterOrValue) => {
       if (isMountedRef.current) {
-        setColumnOrder(updaterOrValue as any);
+        setColumnOrder(
+          typeof updaterOrValue === 'function' 
+            ? updaterOrValue(columnOrder) 
+            : updaterOrValue
+        );
       } else {
         setTimeout(() => {
           if (isMountedRef.current) {
-            setColumnOrder(updaterOrValue as any);
+            setColumnOrder(
+              typeof updaterOrValue === 'function' 
+                ? updaterOrValue(columnOrder) 
+                : updaterOrValue
+            );
           }
         }, 0);
       }
@@ -517,22 +525,38 @@ export function DataTableExtended<TData, TValue>({
     
     onSortingChange: (updaterOrValue) => {
       if (isMountedRef.current) {
-        setSorting(updaterOrValue as any);
+        setSorting(
+          typeof updaterOrValue === 'function' 
+            ? updaterOrValue(sorting) 
+            : updaterOrValue
+        );
       } else {
         setTimeout(() => {
           if (isMountedRef.current) {
-            setSorting(updaterOrValue as any);
+            setSorting(
+              typeof updaterOrValue === 'function' 
+                ? updaterOrValue(sorting) 
+                : updaterOrValue
+            );
           }
         }, 0);
       }
     },
     onColumnFiltersChange: (updaterOrValue) => {
       if (isMountedRef.current) {
-        setColumnFilters(updaterOrValue as any);
+        setColumnFilters(
+          typeof updaterOrValue === 'function' 
+            ? updaterOrValue(columnFilters) 
+            : updaterOrValue
+        );
       } else {
         setTimeout(() => {
           if (isMountedRef.current) {
-            setColumnFilters(updaterOrValue as any);
+            setColumnFilters(
+              typeof updaterOrValue === 'function' 
+                ? updaterOrValue(columnFilters) 
+                : updaterOrValue
+            );
           }
         }, 0);
       }
@@ -800,21 +824,21 @@ export function DataTableExtended<TData, TValue>({
           table={useExternalPagination ? undefined : table}
           totalCount={
             consumerExternalPagination
-              ? (totalCount as number)
+              ? totalCount
               : groupingActive
                 ? table.getRowModel().rows.filter((r) => r.getIsGrouped()).length
                 : undefined
           }
           currentPage={
             consumerExternalPagination
-              ? (currentPage as number)
+              ? currentPage
               : groupingActive
                 ? table.getState().pagination.pageIndex
                 : undefined
           }
           pageSize={
             consumerExternalPagination
-              ? (pageSize as number)
+              ? pageSize
               : groupingActive
                 ? table.getState().pagination.pageSize
                 : undefined
@@ -823,14 +847,14 @@ export function DataTableExtended<TData, TValue>({
             consumerExternalPagination
               ? onPageChange
               : groupingActive
-                ? (page: number) => table.setPageIndex(page)
+                ? (page: number) => { table.setPageIndex(page); }
                 : undefined
           }
           onPageSizeChange={
             consumerExternalPagination
               ? onPageSizeChange
               : groupingActive
-                ? (size: number) => table.setPageSize(size)
+                ? (size: number) => { table.setPageSize(size); }
                 : undefined
           }
           selectedCount={
@@ -911,7 +935,8 @@ function DataTableRow<TData>({
     const isInteractiveElement = target.closest(
       'button, a, input, select, textarea, [role="button"]'
     );
-    const groupingActive = Array.isArray((table.getState() as any)?.grouping) && (table.getState() as any).grouping.length > 0;
+    const state = table.getState();
+    const groupingActive = Array.isArray(state.grouping) && state.grouping.length > 0;
 
     // Prioritize selection on row click when enabled
     if (

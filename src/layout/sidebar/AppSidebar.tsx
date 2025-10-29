@@ -2,7 +2,7 @@ import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HomeFilled, Dots, User } from "@/assets/icons";
 import { Bell, ChevronsUpDown, LogOut, Settings, Shuffle } from "lucide-react";
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenuButton, SidebarGroup, SidebarGroupTitle, SidebarSeparator, SidebarGroupItem, SidebarUserInfo, SidebarMenuButtonWithTooltip } from "./SidebarPrimitives";
+import { Sidebar, SidebarBody, SidebarFooter, SidebarHeader, SidebarMenuButton, SidebarGroup, SidebarGroupTitle, SidebarSeparator, SidebarGroupItem, SidebarUserInfo, SidebarMenuButtonWithTooltip } from "./SidebarPrimitives";
 import { navigationSections, mockUser, toolsMenuItems } from "./SidebarConstant";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components/DropdownButton";
 import type { SidebarProps } from "./SidebarPrimitives";
@@ -20,7 +20,7 @@ export function AppSidebar(props: SidebarProps) {
   
   return (
     <Sidebar collapsible="icon" {...props}>
-      {/* Header - Home page */}
+      {/* Header - Asset home page with home icon */}
       <SidebarHeader>
         <SidebarMenuButton
           size="lg"
@@ -35,8 +35,8 @@ export function AppSidebar(props: SidebarProps) {
         </SidebarMenuButton>
       </SidebarHeader>
 
-      {/* Body - All module pages*/}
-      <SidebarContent>
+      {/* Body - All module pages fron tax comp and asset maintenance*/}
+      <SidebarBody>
         {navigationSections.map((section, sectionIndex) => (
           <React.Fragment key={section.title}>
             {sectionIndex > 0 && <SidebarSeparator className="group-data-[collapsible=icon]:block hidden mx-2 my-1" />}
@@ -48,11 +48,11 @@ export function AppSidebar(props: SidebarProps) {
           </React.Fragment>
           
         ))}
-      </SidebarContent>
+      </SidebarBody>
       
-      {/* Footer - Tools dropdown, profile dropdown, and switch user toggle(temporary) */}
+      {/* Footer - Notification, tools, profile dropdown, and switch user toggle(temp) */}
       <SidebarFooter>
-        {/* Switch User */}
+        {/* Switch User (Temp) */}
         <DropdownMenu className="w-full">
           <DropdownMenuTrigger>
             <SidebarMenuButtonWithTooltip tooltip="Switch User">

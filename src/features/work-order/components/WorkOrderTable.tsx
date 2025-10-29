@@ -3,6 +3,8 @@ import { Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import type { WorkOrder, WorkOrderFilters } from "../types";
+import { useSidebar } from "@/layout/sidebar/SidebarContext";
+import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "@/layout/sidebar/SidebarConstant";
 
 const PRIORITY_BADGE_VARIANT: Record<
   WorkOrder["priority"],
@@ -45,6 +47,9 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   onEditWorkOrder,
   onViewDetails,
 }) => {
+  const { state } = useSidebar();
+  const sidebarWidth = state === "collapsed" ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
+
   // Filter work orders based on current filters
   const filteredWorkOrders = useMemo(() => {
     return workOrders.filter((workOrder) => {
@@ -83,20 +88,18 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         header: "ID",
         cell: ({ getValue }) => {
           const woNumber = getValue() as string;
-          return (
-            <span >
-              {woNumber}
-            </span>
-          );
+          return <div className="w-30">{ woNumber }</div>;
         },
+        className: "w-24",
       },
       {
         accessorKey: "assetName",
         header: "Asset",
         cell: ({ row }) => (
           <div>
-
-            <div className="text-sm text-onSurfaceVariant">{row.original.assetCode}</div>
+            <div className="text-sm text-onSurfaceVariant">
+              {row.original.assetCode}
+            </div>
           </div>
         ),
       },
@@ -106,8 +109,11 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const title = getValue() as string;
           return (
-            <div className="max-w-sm">
-              <div className="line-clamp-3 text-onSurface leading-relaxed" title={title}>
+            <div className="max-w-xs w-50">
+              <div
+                className="line-clamp-3 text-onSurface leading-relaxed"
+                title={title}
+              >
                 {title}
               </div>
             </div>
@@ -128,7 +134,9 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const priority = getValue() as WorkOrder["priority"];
           const variant = PRIORITY_BADGE_VARIANT[priority] ?? "grey";
-          return <Badge text={priority} variant={variant} className="h-6 px-3" />;
+          return (
+            <Badge text={priority} variant={variant} className="h-6 px-3" />
+          );
         },
       },
       {
@@ -152,7 +160,9 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         header: "Service By",
         cell: ({ getValue }) => {
           const serviceBy = getValue() as string;
-          return <span className="label-medium text-onSurface">{serviceBy}</span>;
+          return (
+            <span className="label-medium text-onSurface">{serviceBy}</span>
+          );
         },
       },
       {
@@ -161,7 +171,9 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const assignedTo = getValue() as string | undefined;
           return (
-            <span className="label-medium text-onSurface">{assignedTo || "-"}</span>
+            <span className="label-medium text-onSurface">
+              {assignedTo || "-"}
+            </span>
           );
         },
       },
@@ -172,7 +184,11 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
           const cost = getValue() as number;
           return (
             <span className="label-medium text-onSurface">
-              RM {cost.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              RM{" "}
+              {cost.toLocaleString("en-US", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
           );
         },
@@ -190,9 +206,17 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         accessorKey: "warrantyStatus",
         header: "Warranty",
         cell: ({ getValue }) => {
-          const warrantyStatus = (getValue() as WorkOrder["warrantyStatus"]) || "No Warranty";
-          const variant = WARRANTY_STATUS_BADGE_VARIANT[warrantyStatus] ?? "grey";
-          return <Badge text={warrantyStatus} variant={variant} className="h-6 px-3" />;
+          const warrantyStatus =
+            (getValue() as WorkOrder["warrantyStatus"]) || "No Warranty";
+          const variant =
+            WARRANTY_STATUS_BADGE_VARIANT[warrantyStatus] ?? "grey";
+          return (
+            <Badge
+              text={warrantyStatus}
+              variant={variant}
+              className="h-6 px-3"
+            />
+          );
         },
       },
     ],
@@ -200,21 +224,20 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h2 className="title-medium font-medium text-onSurface">
-          Work Orders ({filteredWorkOrders.length})
-        </h2>
+      <div
+        className="flex flex-col gap-4 overflow-x-auto transition-[max-width] duration-100 ease-linear"
+        style={{
+          maxWidth: `calc(100vw - ${sidebarWidth} - 3rem)`,
+        }}
+      >
+        <DataTableExtended
+          columns={columns}
+          data={filteredWorkOrders}
+          showPagination={true}
+          className="border border-outline"
+          onRowDoubleClick={onEditWorkOrder}
+        />
       </div>
-      
-      <DataTableExtended
-        columns={columns}
-        data={filteredWorkOrders}
-        showPagination={true}
-        className="border border-outline"
-        onRowDoubleClick={onEditWorkOrder}
-      />
-    </div>
   );
 };
 

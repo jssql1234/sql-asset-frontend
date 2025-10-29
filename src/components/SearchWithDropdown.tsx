@@ -123,6 +123,18 @@ export const SearchWithDropdown = ({
     };
   }, []);
 
+  // Auto-close dropdown when no items are available (but only when an item is selected)
+  const prevFilteredLengthRef = useRef<number>(filteredItems.length);
+  
+  useEffect(() => {
+    // Close dropdown only when filtered items transition from having items to being empty
+    // This happens when user selects the last available item
+    if (isSearchDropdownOpen && filteredItems.length === 0 && prevFilteredLengthRef.current > 0) {
+      setIsSearchDropdownOpen(false);
+    }
+    prevFilteredLengthRef.current = filteredItems.length;
+  }, [filteredItems.length, isSearchDropdownOpen]);
+
   const handleCategoryClick = (categoryId: string) => {
     onCategoryChange(categoryId);
     setIsCategoryDropdownOpen(false);
@@ -163,13 +175,6 @@ export const SearchWithDropdown = ({
     const nextSelection = resolvedSelectedIds.filter((id) => id !== itemId);
     onSelectionChange(nextSelection);
   };
-
-  const selectedSummaryText =
-    resolvedSelectedIds.length === 0
-      ? "No items selected"
-      : `${String(resolvedSelectedIds.length)} item${
-          resolvedSelectedIds.length > 1 ? "s" : ""
-        } selected`;
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
@@ -323,9 +328,6 @@ export const SearchWithDropdown = ({
                 variant="primary"
                 className="px-2 py-1 text-xs"
               />
-              <span className="text-sm text-onSurfaceVariant">
-                {selectedSummaryText}
-              </span>
             </div>
             {!disable && resolvedSelectedIds.length > 0 && (
               <button
@@ -345,54 +347,56 @@ export const SearchWithDropdown = ({
               Use the search above to add items to this list.
             </div>
           ) : (
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {resolvedSelectedIds.map((id) => {
-                const item = itemsById.get(id);
-                return (
-                  <li
-                    key={id}
-                    className="group relative rounded-lg border border-outlineVariant/60 bg-surfaceContainerHighest px-3 py-2 transition-all hover:border-primary/70 hover:shadow-sm"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-onSurface">
-                          {renderAssetLabel(item?.label ?? id)}
-                        </span>
-                        {item?.sublabel && (
-                          <span className="text-xs text-onSurfaceVariant mt-1">
-                            {item.sublabel}
+            <div className="max-h-40 overflow-y-auto">
+              <ul className="grid gap-2 sm:grid-cols-2">
+                {resolvedSelectedIds.map((id) => {
+                  const item = itemsById.get(id);
+                  return (
+                    <li
+                      key={id}
+                      className="group relative rounded-lg border border-outlineVariant/60 bg-surfaceContainerHighest px-3 py-2 transition-all hover:border-primary/70 hover:shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-onSurface">
+                            {renderAssetLabel(item?.label ?? id)}
                           </span>
+                          {item?.sublabel && (
+                            <span className="text-xs text-onSurfaceVariant mt-1">
+                              {item.sublabel}
+                            </span>
+                          )}
+                        </div>
+                        {!disable && (
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              handleRemoveItem(id, event);
+                            }}
+                            className="rounded-full p-1 text-onSurfaceVariant transition-colors hover:bg-primary/15 hover:text-primary"
+                            aria-label={`Remove ${item?.label ?? id}`}
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
+                            </svg>
+                          </button>
                         )}
                       </div>
-                      {!disable && (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            handleRemoveItem(id, event);
-                          }}
-                          className="rounded-full p-1 text-onSurfaceVariant transition-colors hover:bg-primary/15 hover:text-primary"
-                          aria-label={`Remove ${item?.label ?? id}`}
-                        >
-                          <svg
-                            className="h-3.5 w-3.5"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </button>
-                      )}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
         </Card>
       ) : null}

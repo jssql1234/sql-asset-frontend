@@ -411,7 +411,12 @@ export function DataTableExtended<TData, TValue>({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);  // Add back for drop indicator
 
-  const isExternalPagination = totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
+  // Determine if consumer provided external pagination props
+  const consumerExternalPagination =
+    totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
+  // Grouping active implies we want to drive the pagination footer via external props
+  const groupingActive = enableGrouping && currentGrouping.length > 0;
+  const useExternalPagination = consumerExternalPagination || groupingActive;
 
   // DnD sensors
   const sensors = useSensors(
@@ -493,7 +498,9 @@ export function DataTableExtended<TData, TValue>({
     filterFromLeafRows: true,
     getCoreRowModel: getCoreRowModel(),
     
-    ...(showPagination && !isExternalPagination && {
+    // Keep internal pagination when consumer did NOT provide external pagination.
+    // For grouping-driven external footer we still rely on internal pagination underneath.
+    ...(showPagination && !consumerExternalPagination && {
       getPaginationRowModel: getPaginationRowModel(),
     }),
 
@@ -790,13 +797,51 @@ export function DataTableExtended<TData, TValue>({
       
       {showPagination && (
         <TablePagination
-          table={isExternalPagination ? undefined : table}
-          totalCount={totalCount}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
-          onPageSizeChange={onPageSizeChange}
-          selectedCount={selectedCount}
+          table={useExternalPagination ? undefined : table}
+          totalCount={
+            consumerExternalPagination
+              ? (totalCount as number)
+              : groupingActive
+                ? table.getRowModel().rows.filter((r) => r.getIsGrouped()).length
+                : undefined
+          }
+          currentPage={
+            consumerExternalPagination
+              ? (currentPage as number)
+              : groupingActive
+                ? table.getState().pagination.pageIndex
+                : undefined
+          }
+          pageSize={
+            consumerExternalPagination
+              ? (pageSize as number)
+              : groupingActive
+                ? table.getState().pagination.pageSize
+                : undefined
+          }
+          onPageChange={
+            consumerExternalPagination
+              ? onPageChange
+              : groupingActive
+                ? (page: number) => table.setPageIndex(page)
+                : undefined
+          }
+          onPageSizeChange={
+            consumerExternalPagination
+              ? onPageSizeChange
+              : groupingActive
+                ? (size: number) => table.setPageSize(size)
+                : undefined
+          }
+          selectedCount={
+            consumerExternalPagination
+              ? selectedCount
+              : groupingActive
+                ? table
+                    .getRowModel()
+                    .rows.filter((r) => r.getIsGrouped() && r.getIsSelected()).length
+                : undefined
+          }
         />
       )}
     </div>

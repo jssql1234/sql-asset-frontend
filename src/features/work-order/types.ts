@@ -156,6 +156,7 @@ export interface WorkOrderFormData {
   actualCost?: number;
   costAllocations?: AssetCostAllocation[];
   notes?: string;
+  partsUsed?: PartUsed[];
   warrantyId?: string;
   warrantyStatus?: WarrantyStatus;
 }

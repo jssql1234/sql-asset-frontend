@@ -22,25 +22,45 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
     if (!searchQuery.trim()) return incidents;
     
     const query = searchQuery.toLowerCase();
-    return incidents.filter((incident) => 
-      incident.assetName.toLowerCase().includes(query) ||
-      incident.assetId.toLowerCase().includes(query) ||
-      incident.description.toLowerCase().includes(query)
-    );
+    return incidents.filter((incident) => {
+      const assetTokens = incident.assets
+        .map((asset) => `${asset.name} ${asset.id}`.toLowerCase())
+        .join(" ");
+
+      return (
+        assetTokens.includes(query) ||
+        incident.description.toLowerCase().includes(query)
+      );
+    });
   }, [incidents, searchQuery]);
 
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
-        accessorKey: "assetName",
-        header: "Asset",
+        accessorKey: "assets",
+        header: "Assets",
         cell: ({ row }) => (
-          <div>
-            <div className="font-medium">{row.original.assetName}</div>
-            <div className="text-sm text-onSurfaceVariant">{row.original.assetId}</div>
+          <div className="max-w-xl">
+            {row.original.assets.length > 0 ? (
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2">
+                {row.original.assets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm transition hover:border-primary/60"
+                    title={`${asset.name} (${asset.id})${asset.location ? ` · ${asset.location}` : ""}`}
+                  >
+                    <div className="text-sm font-medium text-onSurface truncate" title={asset.name}>
+                      {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-onSurfaceVariant">—</div>
+            )}
           </div>
         ),
-        enableSorting: true,
+        enableSorting: false,
         enableColumnFilter: false,
       },
       {
@@ -98,21 +118,11 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
           Current Incidents ({filteredIncidents.length})
         </h2>
         <div className="flex-shrink-0 w-80">
-          <Search
-            searchValue={searchQuery}
-            onSearch={setSearchQuery}
-            searchPlaceholder="Search incidents..."
-            live={true}
-          />
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
         </div>
       </div>
       
-      <DataTableExtended
-        columns={columns}
-        data={filteredIncidents}
-        showPagination={true}
-        onRowDoubleClick={onEditIncident}
-      />
+      <DataTableExtended columns={columns} data={filteredIncidents} showPagination={true} onRowDoubleClick={onEditIncident} />
     </div>
   );
 };

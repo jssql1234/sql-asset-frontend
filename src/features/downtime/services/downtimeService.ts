@@ -1,6 +1,6 @@
-import type { DowntimeIncident, DowntimeSummary } from "../types";
+import type { DowntimeAssetInfo, DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import { getDowntimeAssetName } from "../mockData";
+import { getDowntimeAssetInfo, getDowntimeAssetName } from "../mockData";
 
 // Utility functions for date/time formatting and duration calculations
 /**
@@ -10,20 +10,14 @@ import { getDowntimeAssetName } from "../mockData";
  * @returns Formatted duration string (e.g., "2h 30m")
  */
 export const calculateDuration = (startTime: string, endTime: string): string => {
-  const start = new Date(startTime);
-  const end = new Date(endTime);
-  const diffMs = end.getTime() - start.getTime();
+  const diffMs = new Date(endTime).getTime() - new Date(startTime).getTime();
   
   if (diffMs < 0) return "0m";
   
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
   
-  if (hours === 0) {
-    return `${minutes.toString()}m`;
-  }
-  
-  return `${hours.toString()}h ${minutes.toString()}m`;
+  return hours === 0 ? `${String(minutes)}m` : `${String(hours)}h ${String(minutes)}m`;
 };
 
 /**
@@ -32,8 +26,7 @@ export const calculateDuration = (startTime: string, endTime: string): string =>
  * @returns Formatted date string
  */
 export const formatDate = (isoDate: string): string => {
-  const date = new Date(isoDate);
-  return date.toLocaleDateString(undefined, {
+  return new Date(isoDate).toLocaleDateString(undefined, {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -46,8 +39,7 @@ export const formatDate = (isoDate: string): string => {
  * @returns Formatted time string
  */
 export const formatTime = (isoDate: string): string => {
-  const date = new Date(isoDate);
-  return date.toLocaleTimeString(undefined, {
+  return new Date(isoDate).toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -58,6 +50,18 @@ let incidentsStore: DowntimeIncident[] = [];
 let resolvedStore: DowntimeIncident[] = [];
 let nextId = 100; // Start IDs from 100 for new incidents
 
+// Helper to convert asset ID to asset info
+const mapAssetIdToInfo = (assetId: string): DowntimeAssetInfo => {
+  const assetInfo = getDowntimeAssetInfo(assetId);
+  return {
+    id: assetId,
+    name: assetInfo?.name ?? getDowntimeAssetName(assetId),
+    groupId: assetInfo?.groupId,
+    groupLabel: assetInfo?.groupLabel,
+    location: assetInfo?.location,
+  };
+};
+
 // Helper function to calculate summary statistics
 const calculateSummary = (): DowntimeSummary => {
   const activeIncidents = incidentsStore.filter(i => i.status === "Down").length;
@@ -65,19 +69,17 @@ const calculateSummary = (): DowntimeSummary => {
   const totalResolved = resolvedStore.length;
   
   // Calculate total downtime from resolved incidents
-  let totalMinutes = 0;
-  resolvedStore.forEach(incident => {
+  const totalMinutes = resolvedStore.reduce((acc, incident) => {
     if (incident.startTime && incident.endTime) {
-      const start = new Date(incident.startTime);
-      const end = new Date(incident.endTime);
-      const diffMs = end.getTime() - start.getTime();
-      totalMinutes += Math.floor(diffMs / (1000 * 60));
+      const diffMs = new Date(incident.endTime).getTime() - new Date(incident.startTime).getTime();
+      return acc + Math.floor(diffMs / (1000 * 60));
     }
-  });
+    return acc;
+  }, 0);
   
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
-  const totalDowntime = `${hours.toString()}h ${minutes.toString()}m`;
+  const totalDowntime = `${String(hours)}h ${String(minutes)}m`;
   
   return {
     activeIncidents,
@@ -103,52 +105,45 @@ export const fetchDowntimeSummary = (): Promise<DowntimeSummary> => {
 };
 
 // Create a new downtime incident
-export const createDowntimeIncident = (
-  input: CreateDowntimeInput
-): DowntimeIncident => {
-  // Find asset name (in real app, this would come from asset API)
-  const newIncident: DowntimeIncident = {
+export const createDowntimeIncident = (input: CreateDowntimeInput): DowntimeIncident => {
+  const assets: DowntimeAssetInfo[] = input.assetIds.map(mapAssetIdToInfo);
+
+  const incident: DowntimeIncident = {
     id: String(nextId++),
-    assetName: getDowntimeAssetName(input.assetId),
-    assetId: input.assetId,
+    assets,
     priority: input.priority,
     status: input.status,
     startTime: input.startTime,
     endTime: input.endTime,
     description: input.description,
     reportedBy: input.reportedBy ?? "Current User",
+    downtimeDuration: input.endTime ? calculateDuration(input.startTime, input.endTime) : undefined,
   };
-  
-  // Calculate duration if end time is provided
-  if (newIncident.endTime) {
-    newIncident.downtimeDuration = calculateDuration(
-      newIncident.startTime,
-      newIncident.endTime
-    );
-  }
-  
-  // If status is Resolved, add to resolved store, otherwise to incidents store
-  if (input.status === "Resolved") {
-    resolvedStore = [newIncident, ...resolvedStore];
-  } else {
-    incidentsStore = [newIncident, ...incidentsStore];
-  }
-  return newIncident;
+
+  const targetStore = input.status === "Resolved" ? resolvedStore : incidentsStore;
+  targetStore.unshift(incident);
+
+  return incident;
 };
 
 // Update an existing downtime incident
-export const updateDowntimeIncident = (
-  input: EditDowntimeInput
-): DowntimeIncident => {
-  const index = incidentsStore.findIndex(i => i.id === input.id);
-  if (index === -1) {
-    throw new Error("Incident not found");
-  }
-  
+export const updateDowntimeIncident = (input: EditDowntimeInput): DowntimeIncident => {
+  const assets: DowntimeAssetInfo[] = input.assetIds.map(mapAssetIdToInfo);
+
+  const existingActiveIndex = incidentsStore.findIndex((incident) => incident.id === input.id);
+  const existingResolvedIndex = resolvedStore.findIndex((incident) => incident.id === input.id);
+
+  const baseIncident = existingActiveIndex !== -1 
+    ? incidentsStore[existingActiveIndex]
+    : existingResolvedIndex !== -1 
+    ? resolvedStore[existingResolvedIndex]
+    : null;
+
+  if (!baseIncident) throw new Error("Incident not found");
+
   const updatedIncident: DowntimeIncident = {
-    ...incidentsStore[index],
-    assetName: getDowntimeAssetName(input.assetId),
-    assetId: input.assetId,
+    ...baseIncident,
+    assets,
     priority: input.priority,
     status: input.status,
     description: input.description,
@@ -157,24 +152,20 @@ export const updateDowntimeIncident = (
     reportedBy: input.reportedBy,
     resolvedBy: input.resolvedBy,
     resolutionNotes: input.resolutionNotes,
+    downtimeDuration: input.endTime ? calculateDuration(input.startTime, input.endTime) : undefined,
   };
-  
-  // Calculate duration if end time is provided
-  if (updatedIncident.endTime) {
-    updatedIncident.downtimeDuration = calculateDuration(
-      updatedIncident.startTime,
-      updatedIncident.endTime
-    );
+
+  // Remove from current store
+  if (existingActiveIndex !== -1) {
+    incidentsStore.splice(existingActiveIndex, 1);
+  } else if (existingResolvedIndex !== -1) {
+    resolvedStore.splice(existingResolvedIndex, 1);
   }
-  
-  // If status changed to Resolved, move to resolved store
-  if (input.status === "Resolved" && incidentsStore[index].status !== "Resolved") {
-    incidentsStore = incidentsStore.filter(i => i.id !== input.id);
-    resolvedStore = [updatedIncident, ...resolvedStore];
-  } else {
-    incidentsStore[index] = updatedIncident;
-  }
-  
+
+  // Add to appropriate store
+  const targetStore = input.status === "Resolved" ? resolvedStore : incidentsStore;
+  targetStore.unshift(updatedIncident);
+
   return updatedIncident;
 };
 

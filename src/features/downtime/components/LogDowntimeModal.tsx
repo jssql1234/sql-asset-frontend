@@ -1,273 +1,272 @@
-import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button } from "@/components/ui/components";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
+import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import { downtimeAssets } from "@/features/downtime/mockData";
+import { downtimeAssetGroups, downtimeAssets } from "@/features/downtime/mockData";
 
 interface LogDowntimeModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-const assetOptions = downtimeAssets.map(({ id, name }) => ({ value: id, label: name }));
+const DEFAULT_ASSET_CATEGORY = "all" as const;
+
+interface AssetDropdownItem {
+  id: string;
+  label: string;
+  groupId: string;
+  groupLabel: string;
+}
+
+const getDefaultFormData = (): CreateDowntimeInput => ({
+  assetIds: [],
+  priority: "Medium",
+  status: "Down",
+  description: "",
+  startTime: new Date().toISOString(),
+});
 
 export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   open,
   onClose,
 }) => {
-  const [formData, setFormData] = useState<CreateDowntimeInput>({
-    assetId: "",
-    priority: "Medium",
-    status: "Down",
-    description: "",
-    startTime: new Date().toISOString(),
-  });
-  
+  const [formData, setFormData] = useState<CreateDowntimeInput>(getDefaultFormData);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
   
-  const createMutation = useCreateDowntimeIncident(() => {
-    handleClose();
-  });
+  const resetForm = useCallback(() => {
+    setFormData(getDefaultFormData());
+    setErrors({});
+    setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
+  }, []);
+
+  const handleClose = useCallback(() => {
+    resetForm();
+    onClose();
+  }, [onClose, resetForm]);
+
+  const createMutation = useCreateDowntimeIncident(handleClose);
 
   // Reset form when modal opens
   useEffect(() => {
-    if (open) {
-      setFormData({
-        assetId: "",
-        priority: "Medium",
-        status: "Down",
-        description: "",
-        startTime: new Date().toISOString(),
+    if (open) resetForm();
+  }, [open, resetForm]);
+
+  const assetCategories = useMemo(
+    () => [
+      { id: DEFAULT_ASSET_CATEGORY, label: "All Assets" },
+      ...downtimeAssetGroups.map((group) => ({
+        id: group.id,
+        label: group.label,
+      })),
+    ],
+    []
+  );
+
+  const allAssetItemsMap = useMemo(() => {
+    const map = new Map<string, AssetDropdownItem>();
+    downtimeAssets.forEach((asset) => {
+      map.set(asset.id, {
+        id: asset.id,
+        label: `${asset.name} (${asset.id})`,
+        groupId: asset.groupId,
+        groupLabel: asset.groupLabel,
       });
-      setErrors({});
-    }
-  }, [open]);
-
-  const handleClose = () => {
-    setFormData({
-      assetId: "",
-      priority: "Medium",
-      status: "Down",
-      description: "",
-      startTime: new Date().toISOString(),
     });
-    setErrors({});
-    onClose();
-  };
+    return map;
+  }, []);
 
-  const getSelectedAssetLabel = () => {
-    const option = assetOptions.find((opt) => opt.value === formData.assetId);
-    return option?.label ?? "Select Asset";
-  };
+  const assetItems = useMemo(() => {
+    const allItems = Array.from(allAssetItemsMap.values());
+    const filteredItems = selectedCategoryId === DEFAULT_ASSET_CATEGORY
+      ? allItems
+      : allItems.filter((item) => item.groupId === selectedCategoryId);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form data
+    const itemMap = new Map<string, AssetDropdownItem>();
+    filteredItems.forEach((item) => itemMap.set(item.id, item));
+
+    formData.assetIds.forEach((id) => {
+      if (!itemMap.has(id)) {
+        const match = allAssetItemsMap.get(id);
+        if (match) itemMap.set(id, match);
+      }
+    });
+
+    return Array.from(itemMap.values());
+  }, [selectedCategoryId, allAssetItemsMap, formData.assetIds]);
+
+  const handleAssetSelectionChange = useCallback((selectedIds: string[]) => {
+    setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
+    setErrors((prev) => ({
+      ...prev,
+      assetIds: selectedIds.length === 0 ? "Select at least one asset" : "",
+    }));
+  }, []);
+
+  const handleSubmit = useCallback((e?: React.FormEvent) => {
+    e?.preventDefault();
+
     const validation = createDowntimeSchema.safeParse(formData);
-    
+
     if (!validation.success) {
       const fieldErrors: Record<string, string> = {};
       validation.error.issues.forEach((issue) => {
-        const path = issue.path.join(".");
-        fieldErrors[path] = issue.message;
+        fieldErrors[issue.path.join(".")] = issue.message;
       });
       setErrors(fieldErrors);
       return;
     }
-    
-    // Clear errors and submit
+
     setErrors({});
-    void createMutation.mutate(validation.data);
-  };
+    createMutation.mutate(validation.data);
+  }, [formData, createMutation]);
 
-  const handleAssetSelect = (assetId: string) => {
-    setFormData((prev) => ({ ...prev, assetId }));
-    setErrors((prev) => ({ ...prev, assetId: "" }));
-  };
-
-  const handlePrioritySelect = (priority: CreateDowntimeInput["priority"]) => {
+  const handlePrioritySelect = useCallback((priority: CreateDowntimeInput["priority"]) => {
     setFormData((prev) => ({ ...prev, priority }));
-  };
+  }, []);
 
-  const handleStatusSelect = (status: CreateDowntimeInput["status"]) => {
+  const handleStatusSelect = useCallback((status: CreateDowntimeInput["status"]) => {
     setFormData((prev) => ({
       ...prev,
       status,
-      // If resolving, set end time to now if not already set
-      endTime: status === "Resolved" && !prev.endTime ? new Date().toISOString() : prev.endTime,
+      endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
     }));
     setErrors((prev) => ({ ...prev, status: "", endTime: "" }));
-  };
+  }, []);
 
-  const handleDateTimeChange = (date: string | Date | Date[] | string[] | undefined) => {
-    if (date instanceof Date) {
-      setFormData((prev) => ({ ...prev, startTime: date.toISOString() }));
-    } else if (typeof date === "string") {
-      setFormData((prev) => ({ ...prev, startTime: date }));
+  const handleDateTimeChange = useCallback((field: "startTime" | "endTime") => (
+    date: string | Date | Date[] | string[] | undefined | null
+  ) => {
+    if (date === null || date === undefined || (Array.isArray(date) && date.length === 0)) {
+      setFormData((prev) => ({ ...prev, [field]: field === "endTime" ? undefined : "" }));
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+      return;
     }
-    setErrors((prev) => ({ ...prev, startTime: "" }));
-  };
 
-  const handleEndDateTimeChange = (date: string | Date | Date[] | string[] | undefined) => {
-    if (date instanceof Date) {
-      setFormData((prev) => ({ ...prev, endTime: date.toISOString() }));
-    } else if (typeof date === "string") {
-      setFormData((prev) => ({ ...prev, endTime: date }));
-    } else if (date === undefined) {
-      setFormData((prev) => ({ ...prev, endTime: undefined }));
-    }
-    setErrors((prev) => ({ ...prev, endTime: "" }));
-  };
+    const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+    setFormData((prev) => ({ ...prev, [field]: isoDate }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  }, []);
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, description: e.target.value }));
     setErrors((prev) => ({ ...prev, description: "" }));
-  };
+  }, []);
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          handleClose();
-        }
-      }}
-    >
-      <DialogContent className="w-[400px] max-w-[90vw]">
-        <DialogHeader>
+    <Dialog open={open} onOpenChange={(isOpen) => { 
+      if (!isOpen) handleClose(); 
+    }}>
+      <DialogContent className="w-[600px] max-w-[90vw] max-h-[90vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Asset*</label>
-            <DropdownMenu className="w-full">
-              <DropdownMenuTrigger 
-                label={getSelectedAssetLabel()} 
-                className="w-full justify-between" 
-              />
-              <DropdownMenuContent>
-                {assetOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      handleAssetSelect(option.value);
-                    }}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            {errors.assetId && (
-              <span className="text-sm text-error">{errors.assetId}</span>
-            )}
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Priority*</label>
-            <DropdownMenu className="w-full">
-              <DropdownMenuTrigger 
-                label={formData.priority} 
-                className="w-full justify-between" 
-              />
-              <DropdownMenuContent>
-                {PRIORITY_OPTIONS.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      handlePrioritySelect(option.value);
-                    }}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Status*</label>
-            <DropdownMenu className="w-full">
-              <DropdownMenuTrigger 
-                label={formData.status} 
-                className="w-full justify-between" 
-              />
-              <DropdownMenuContent>
-                {STATUS_OPTIONS.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      handleStatusSelect(option.value);
-                    }}
-                  >
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Start Time*</label>
-            <SemiDatePicker
-              value={new Date(formData.startTime)}
-              onChange={handleDateTimeChange}
-              inputType="dateTime"
-              className="w-full"
-            />
-            {errors.startTime && (
-              <span className="text-sm text-error">{errors.startTime}</span>
-            )}
-          </div>
-
-          {formData.status === "Resolved" && (
+        <div className="flex-1 overflow-y-auto min-h-0">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 pr-1">
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">End Time*</label>
+              <label className="label-medium text-onSurface">Assets*</label>
+              <SearchWithDropdown
+                categories={assetCategories}
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={setSelectedCategoryId}
+                items={assetItems}
+                selectedIds={formData.assetIds}
+                onSelectionChange={handleAssetSelectionChange}
+                placeholder="Search assets..."
+                emptyMessage="No assets found"
+                className="w-full"
+                hideSelectedField={formData.assetIds.length === 0}
+              />
+              {errors.assetIds && (
+                <span className="text-sm text-error">{errors.assetIds}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="label-medium text-onSurface">Priority*</label>
+              <DropdownMenu className="w-full">
+                <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
+                <DropdownMenuContent matchTriggerWidth>
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <DropdownMenuItem key={option.value} onClick={() => { handlePrioritySelect(option.value); }}>
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="label-medium text-onSurface">Status*</label>
+              <DropdownMenu className="w-full">
+                <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
+                <DropdownMenuContent matchTriggerWidth>
+                  {STATUS_OPTIONS.map((option) => (
+                    <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>
+                      {option.label}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="label-medium text-onSurface">Start Time*</label>
               <SemiDatePicker
-                value={formData.endTime ? new Date(formData.endTime) : null}
-                onChange={handleEndDateTimeChange}
+                value={formData.startTime ? new Date(formData.startTime) : null}
+                onChange={handleDateTimeChange("startTime")}
                 inputType="dateTime"
                 className="w-full"
               />
-              {errors.endTime && (
-                <span className="text-sm text-error">{errors.endTime}</span>
+              {errors.startTime && (
+                <span className="text-sm text-error">{errors.startTime}</span>
               )}
             </div>
-          )}
 
-          <div className="flex flex-col gap-2">
-            <label className="label-medium text-onSurface">Description*</label>
-            <TextArea
-              value={formData.description}
-              onChange={handleDescriptionChange}
-              placeholder="Describe the issue... (minimum 10 characters)"
-              className="min-h-[100px]"
-            />
-            {errors.description && (
-              <span className="text-sm text-error">{errors.description}</span>
+            {formData.status === "Resolved" && (
+              <div className="flex flex-col gap-2">
+                <label className="label-medium text-onSurface">End Time*</label>
+                <SemiDatePicker
+                  value={formData.endTime ? new Date(formData.endTime) : null}
+                  onChange={handleDateTimeChange("endTime")}
+                  inputType="dateTime"
+                  className="w-full"
+                />
+                {errors.endTime && (
+                  <span className="text-sm text-error">{errors.endTime}</span>
+                )}
+              </div>
             )}
-          </div>
 
-          <DialogFooter>
-            <Button variant="outline" type="button" onClick={handleClose}>
-              Cancel
-            </Button>
-            <Button
-              variant="default"
-              type="submit"
-              disabled={createMutation.isPending}
-            >
-              {createMutation.isPending ? "Logging..." : "Log Incident"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="flex flex-col gap-2">
+              <label className="label-medium text-onSurface">Description*</label>
+              <TextArea
+                value={formData.description}
+                onChange={handleDescriptionChange}
+                placeholder="Describe the issue... (minimum 10 characters)"
+                className="min-h-[100px]"
+              />
+              {errors.description && (
+                <span className="text-sm text-error">{errors.description}</span>
+              )}
+            </div>
+          </form>
+        </div>
+
+        <DialogFooter className="flex-shrink-0">
+          <Button variant="outline" type="button" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button variant="default" type="submit" disabled={createMutation.isPending} onClick={handleSubmit}>
+            {createMutation.isPending ? "Logging..." : "Log Incident"}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

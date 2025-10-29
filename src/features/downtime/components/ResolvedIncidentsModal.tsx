@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -20,28 +20,57 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   const [searchValue, setSearchValue] = useState("");
   const { data: resolvedIncidents = [], isLoading } = useGetResolvedIncidents({ enabled: open });
 
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
   // Filter incidents based on search
   const filteredIncidents = useMemo(() => {
     if (!searchValue.trim()) return resolvedIncidents;
     
-    return resolvedIncidents.filter((incident) => 
-      incident.assetName.toLowerCase().includes(searchValue.toLowerCase()) ||
-      incident.description.toLowerCase().includes(searchValue.toLowerCase()) ||
-      incident.resolutionNotes?.toLowerCase().includes(searchValue.toLowerCase())
-    );
+    const query = searchValue.toLowerCase();
+
+    return resolvedIncidents.filter((incident) => {
+      const assetTokens = incident.assets
+        .map((asset) => `${asset.name} ${asset.id}`.toLowerCase())
+        .join(" ");
+      const descriptionText = incident.description.toLowerCase();
+      const resolutionText = incident.resolutionNotes?.toLowerCase() ?? "";
+
+      return (
+        assetTokens.includes(query) ||
+        descriptionText.includes(query) ||
+        resolutionText.includes(query)
+      );
+    });
   }, [searchValue, resolvedIncidents]);
 
   // Table column definitions
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
-        accessorKey: "assetName",
-        header: "Asset",
+        accessorKey: "assets",
+        header: "Assets",
         enableColumnFilter: false,
         cell: ({ row }) => (
-          <div>
-            <div className="font-medium">{row.original.assetName}</div>
-            <div className="text-sm text-onSurfaceVariant">{row.original.assetId}</div>
+          <div className="max-w-xl">
+            {row.original.assets.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {row.original.assets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm"
+                    title={`${asset.name} (${asset.id})${asset.location ? ` · ${asset.location}` : ""}`}
+                  >
+                    <div className="text-sm font-medium text-onSurface truncate" title={asset.name}>
+                      {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-onSurfaceVariant">—</div>
+            )}
           </div>
         ),
       },
@@ -113,19 +142,13 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
   );
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) {
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+    <Dialog open={open} onOpenChange={(isOpen) => { 
+      if (!isOpen) handleClose(); 
+    }}>
+      <DialogContent className="w-full max-w-[1100px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Resolved Incidents</DialogTitle>
         </DialogHeader>
-        
         <div className="flex-shrink-0 mb-4">
           <Search
             searchValue={searchValue}
@@ -149,8 +172,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
 
         <div className="flex-shrink-0 mt-4 text-center">
           <span className="body-small text-onSurfaceVariant">
-            Showing {filteredIncidents.length} resolved incident
-            {filteredIncidents.length !== 1 ? "s" : ""}
+            Showing {filteredIncidents.length} resolved incident{filteredIncidents.length !== 1 ? "s" : ""}
           </span>
         </div>
       </DialogContent>

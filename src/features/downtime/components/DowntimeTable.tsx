@@ -40,23 +40,27 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         accessorKey: "assets",
         header: "Assets",
         cell: ({ row }) => (
-          <div className="space-y-1">
+          <div className="max-w-xl">
             {row.original.assets.length > 0 ? (
-              <>
-                <div className="font-medium">{row.original.assets[0]?.name}</div>
-                <div className="text-sm text-onSurfaceVariant">{row.original.assets[0]?.id}</div>
-                {row.original.assets.length > 1 && (
-                  <div className="text-xs text-onSurfaceVariant">
-                    +{row.original.assets.length - 1} more asset{row.original.assets.length - 1 === 1 ? "" : "s"}
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2">
+                {row.original.assets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm transition hover:border-primary/60"
+                    title={`${asset.name} (${asset.id})${asset.location ? ` · ${asset.location}` : ""}`}
+                  >
+                    <div className="text-sm font-medium text-onSurface truncate" title={asset.name}>
+                      {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>
+                    </div>
                   </div>
-                )}
-              </>
+                ))}
+              </div>
             ) : (
               <div className="text-onSurfaceVariant">—</div>
             )}
           </div>
         ),
-  enableSorting: false,
+        enableSorting: false,
         enableColumnFilter: false,
       },
       {

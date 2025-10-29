@@ -49,17 +49,21 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         header: "Assets",
         enableColumnFilter: false,
         cell: ({ row }) => (
-          <div className="space-y-1">
+          <div className="max-w-xl">
             {row.original.assets.length > 0 ? (
-              <>
-                <div className="font-medium">{row.original.assets[0]?.name}</div>
-                <div className="text-sm text-onSurfaceVariant">{row.original.assets[0]?.id}</div>
-                {row.original.assets.length > 1 && (
-                  <div className="text-xs text-onSurfaceVariant">
-                    +{row.original.assets.length - 1} more asset{row.original.assets.length - 1 === 1 ? "" : "s"}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {row.original.assets.map((asset) => (
+                  <div
+                    key={asset.id}
+                    className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm"
+                    title={`${asset.name} (${asset.id})${asset.location ? ` · ${asset.location}` : ""}`}
+                  >
+                    <div className="text-sm font-medium text-onSurface truncate" title={asset.name}>
+                      {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>
+                    </div>
                   </div>
-                )}
-              </>
+                ))}
+              </div>
             ) : (
               <div className="text-onSurfaceVariant">—</div>
             )}
@@ -142,7 +146,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
         }
       }}
     >
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+  <DialogContent className="w-full max-w-[1100px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Resolved Incidents</DialogTitle>
         </DialogHeader>

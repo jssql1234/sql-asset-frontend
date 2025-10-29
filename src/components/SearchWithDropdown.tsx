@@ -29,6 +29,23 @@ interface SearchWithDropdownProps {
   disable?: boolean;
 }
 
+// Helper function to render asset labels with styled IDs
+const renderAssetLabel = (label: string) => {
+  const idPattern = /^(.+?)\s*\(([^)]+)\)$/;
+  const match = idPattern.exec(label);
+  
+  if (match) {
+    const [, name, id] = match;
+    return (
+      <>
+        {name} <span className="text-xs text-onSurfaceVariant">({id})</span>
+      </>
+    );
+  }
+  
+  return label;
+};
+
 export const SearchWithDropdown = ({
   categories,
   selectedCategoryId,
@@ -275,7 +292,7 @@ export const SearchWithDropdown = ({
                         className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium">{item.label}</span>
+                          <span className="font-medium">{renderAssetLabel(item.label)}</span>
                           {item.sublabel && (
                             <span className="text-xs text-onSurfaceVariant opacity-75">
                               {item.sublabel}
@@ -339,7 +356,7 @@ export const SearchWithDropdown = ({
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-onSurface">
-                          {item?.label ?? id}
+                          {renderAssetLabel(item?.label ?? id)}
                         </span>
                         {item?.sublabel && (
                           <span className="text-xs text-onSurfaceVariant mt-1">

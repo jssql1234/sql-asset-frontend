@@ -101,7 +101,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Finance</label>
-          <Input {...register("hpFinance")} placeholder="0.00" disabled={isReadonly || !isHpEnabled} />
+          <Input {...register("hpFinance")} placeholder="ABC BANK" disabled={isReadonly || !isHpEnabled} />
         </div>
 
         {/* Manage Payment Button */}

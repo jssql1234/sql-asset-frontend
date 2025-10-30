@@ -17,7 +17,7 @@ import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
 import BatchDetachModal from "./BatchDetachModal";
-import { useGetBatchAssets, useGetBatchQuantity, useBulkUpdateAssets, useCreateMultipleAssets, useBulkUpdateAssetBatchId } from "../hooks/useAssetService";
+import { useGetBatchAssets, useGetBatchQuantity, useBulkUpdateAssets, useCreateMultipleAssets, useBulkUpdateAssetBatchId, useGetAsset } from "../hooks/useAssetService";
 
 interface SerialNumberData {
   serial: string;
@@ -380,19 +380,11 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 
 const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
   const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
-  const [batchMode, setBatchMode] = useState(false);
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const [showDetachModal, setShowDetachModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingData, setPendingData] = useState<CreateAssetFormData | null>(null);
   const { hasPermission } = usePermissions();
-
-  // Batch hooks
-  const { data: batchAssets } = useGetBatchAssets(batchMode && editingAsset?.batchId ? editingAsset.batchId : '');
-  const { data: originalQuantity } = useGetBatchQuantity(batchMode && editingAsset?.batchId ? editingAsset.batchId : '');
-  const bulkUpdateAssetsMutation = useBulkUpdateAssets();
-  const createMultipleMutation = useCreateMultipleAssets();
-  const bulkDetachMutation = useBulkUpdateAssetBatchId();
 
   // Determine user role based on permissions or prop
   const isTaxAgent = hasPermission("processCA", "execute");
@@ -401,17 +393,30 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Use prop userRole if provided, otherwise determine from permissions
   const effectiveUserRole = userRole ?? (isAdmin ? 'admin' : (isTaxAgent ? 'taxAgent' : 'normal'));
 
+  // Consolidate batch hooks after currentMode state
+  // Remove duplicate batchAssets and originalQuantity declarations
+
+  // In the component, after [currentMode, setCurrentMode]
+  const [currentMode, setCurrentMode] = useState<'normal' | 'batch'>('normal');
+
+  // Batch hooks here
+  const { data: batchAssets } = useGetBatchAssets(currentMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
+  const { data: originalQuantity } = useGetBatchQuantity(currentMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
+
+  // Remove the duplicate in the second edit
+
   // Set default active tab based on effective user role
-  const getDefaultActiveTab = () => {
+  const getDefaultActiveTab = useCallback(() => {
     if (effectiveUserRole === 'taxAgent' || effectiveUserRole === 'admin') {
       return "allowance";
     }
     return "hire-purchase";
-  };
+  }, [effectiveUserRole]);
 
-  const [activeTab, setActiveTab] = useState(() => getDefaultActiveTab());
+  const [activeTab, setActiveTab] = useState(getDefaultActiveTab);
 
-  const defaultValues: CreateAssetFormData = useMemo(() => ({
+  // Mode-specific default values
+  const normalDefaultValues: CreateAssetFormData = useMemo(() => ({
     inactive: false,
     quantity: 1,
     quantityPerUnit: 1,
@@ -423,7 +428,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     extraCommercial: false,
     extraNewVehicle: false,
     serialNumbers: [],
-    code: "",
+    code: "", // Will be prefilled later
     assetName: "",
     assetGroup: "",
     cost: "",
@@ -435,25 +440,63 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     rentedApportionPercentage: "0",
   }), []);
 
-  const {
-    register,
-    handleSubmit,
-    watch,
-    setValue,
-    control,
-    reset,
-    formState: { errors },
-  } = useForm<CreateAssetFormData>({
+  const batchDefaultValues: CreateAssetFormData = useMemo(() => ({
+    inactive: false,
+    quantity: 1,
+    quantityPerUnit: 1,
+    depreciationMethod: "Straight Line",
+    depreciationFrequency: "Yearly",
+    usefulLife: 10,
+    aca: false,
+    extraCheckbox: false,
+    extraCommercial: false,
+    extraNewVehicle: false,
+    serialNumbers: [],
+    code: "", // Batch ID, will be prefilled
+    assetName: "",
+    assetGroup: "",
+    cost: "",
+    description: "",
+    purchaseDate: "", // Hidden in batch
+    acquireDate: "", // Hidden in batch
+    taxYear: new Date().getFullYear().toString(),
+    selfUsePercentage: "100",
+    rentedApportionPercentage: "0",
+  }), []);
+
+  // Separate form instances
+  const normalForm = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetFormSchema),
-    defaultValues,
+    defaultValues: normalDefaultValues,
   });
 
-  // Populate form when editingAsset changes
+  const batchForm = useForm<CreateAssetFormData>({
+    resolver: zodResolver(createAssetFormSchema),
+    defaultValues: batchDefaultValues,
+  });
+
+  // Active form reference
+  const activeForm = currentMode === 'normal' ? normalForm : batchForm;
+  // Ensure mutations are declared early, after permissions
+  const bulkUpdateAssetsMutation = useBulkUpdateAssets();
+  const createMultipleMutation = useCreateMultipleAssets();
+  const bulkDetachMutation = useBulkUpdateAssetBatchId();
+
+  // Active form destructuring without activeReset
+  const { register: activeRegister, handleSubmit: activeHandleSubmit, watch: activeWatch, setValue: activeSetValue, control: activeControl, formState: { errors: activeErrors } } = activeForm;
+
+  // Determine initial mode and populate forms
   useEffect(() => {
     if (editingAsset) {
-      reset({
+      const isBatchEdit = !!editingAsset.batchId;
+      const targetMode: 'normal' | 'batch' = isBatchEdit ? 'batch' : 'normal';
+      setCurrentMode(targetMode);
+
+      const targetReset = targetMode === 'normal' ? normalForm.reset : batchForm.reset;
+
+      targetReset({
         code: editingAsset.id,
-        batchID: editingAsset.batchId,
+        batchID: editingAsset.batchId || '',
         assetName: editingAsset.name,
         assetGroup: editingAsset.group,
         description: editingAsset.description,
@@ -473,17 +516,25 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         extraNewVehicle: false,
         serialNumbers: [],
       });
+
+      // Reset the other form to defaults
+      const otherForm = targetMode === 'normal' ? batchForm : normalForm;
+      otherForm.reset(targetMode === 'normal' ? batchDefaultValues : normalDefaultValues);
     } else {
-      reset(defaultValues);
+      // Creation mode: default to normal, prefill IDs in both (for when switching)
+      setCurrentMode('normal');
+      normalForm.reset(normalDefaultValues);
+      batchForm.reset(batchDefaultValues);
+      // Prefill logic will be in separate effect
     }
-  }, [editingAsset, reset, defaultValues]);
+  }, [editingAsset, normalForm, batchForm, normalDefaultValues, batchDefaultValues]);
 
   // Set initial quantity for batch edit
   useEffect(() => {
-    if (originalQuantity !== undefined && editingAsset && batchMode && editingAsset.batchId) {
-      setValue("quantity", originalQuantity);
+    if (originalQuantity !== undefined && editingAsset && currentMode === 'batch' && editingAsset.batchId) {
+      activeSetValue("quantity", originalQuantity);
     }
-  }, [originalQuantity, editingAsset, batchMode, setValue]);
+  }, [originalQuantity, editingAsset, currentMode, activeSetValue]);
 
   // Determine if we're in edit mode
   const isEditMode = Boolean(editingAsset);
@@ -491,14 +542,14 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
   // Memoize the serial numbers change handler to prevent unnecessary re-renders
   const handleSerialNumbersChange = useCallback((serialNumbers: SerialNumberData[]) => {
-    setValue("serialNumbers", serialNumbers);
-  }, [setValue]);
+    activeSetValue("serialNumbers", serialNumbers);
+  }, [activeSetValue]);
 
   // Watch form values for reactivity
-  const serialNumbersValue = watch("serialNumbers");
-  const quantity = watch("quantity");
-  const quantityPerUnit = watch("quantityPerUnit");
-  const inactive = watch("inactive");
+  const serialNumbersValue = activeWatch("serialNumbers");
+  const quantity = activeWatch("quantity");
+  const quantityPerUnit = activeWatch("quantityPerUnit");
+  const inactive = activeWatch("inactive");
 
   // Memoize serialNumbers to prevent unnecessary re-renders
   const memoizedSerialNumbers = useMemo(() => serialNumbersValue, [serialNumbersValue]);
@@ -506,11 +557,11 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   useEffect(() => {
     if (inactive) {
       const today = new Date().toISOString().split('T')[0];
-      setValue("inactiveStart", today);
+      activeSetValue("inactiveStart", today);
     } else {
-      setValue("inactiveStart", "");
+      activeSetValue("inactiveStart", "");
     }
-  }, [inactive, setValue]);
+  }, [inactive, activeSetValue]);
 
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -518,22 +569,206 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     submit: () => formRef.current?.requestSubmit(),
   }));
 
+  // handleBatchConfirmDetach uses bulkDetachMutation
   const handleBatchConfirmDetach = (selectedIds: string[]) => {
     if (typeof originalQuantity === "number" && pendingData) {
       const numToDetach = originalQuantity - pendingData.quantity;
       if (selectedIds.length === numToDetach) {
         bulkDetachMutation.mutate({ assetIds: selectedIds, newBatchId: null });
         setShowDetachModal(false);
-        // Proceed with onSuccess if needed, but since batch handled, just navigate
         onSuccess?.(pendingData);
         onBack?.();
       }
     }
   };
 
+  // Ensure detachModalContext is defined once, before return
+  const detachModalContext = useMemo(() => {
+    if (
+      currentMode === 'batch' &&
+      editingAsset?.batchId &&
+      Array.isArray(batchAssets) &&
+      typeof originalQuantity === "number" &&
+      pendingData !== null
+    ) {
+      return {
+        batchAssets,
+        originalQuantity,
+        pendingData,
+      };
+    }
+    return null;
+  }, [currentMode, editingAsset, batchAssets, originalQuantity, pendingData]);
+
+  // In return, use {detachModalContext && <BatchDetachModal ... />}
+
+  // Update detachModalContext to use currentMode
+  // let detachModalContext: {
+  //   batchAssets: Asset[];
+  //   originalQuantity: number;
+  //   pendingData: CreateAssetFormData;
+  // } | null = null;
+
+  // if (
+  //   currentMode === 'batch' &&
+  //   editingAsset?.batchId &&
+  //   Array.isArray(batchAssets) &&
+  //   typeof originalQuantity === "number" &&
+  //   pendingData !== null
+  // ) {
+  //   detachModalContext = {
+  //     batchAssets,
+  //     originalQuantity,
+  //     pendingData,
+  //   };
+  // }
+
+  // Update tabs definition to use currentMode
+  const tabs: TabItem[] = currentMode === 'batch'
+    ? [
+        {
+          label: "Allocation",
+          value: "allocation",
+          content: <AllocationTab {...commonTabProps} />,
+        },
+        {
+          label: "Serial No",
+          value: "serial-no",
+          content: (
+            <SerialNumberTab
+              quantity={quantity}
+              quantityPerUnit={quantityPerUnit}
+              isBatchMode={true}
+              serialNumbers={memoizedSerialNumbers}
+              onSerialNumbersChange={handleSerialNumbersChange}
+            />
+          ),
+        },
+        {
+          label: "Warranty",
+          value: "warranty",
+          content: <WarrantyTab {...commonTabProps} />,
+        },
+      ]
+    : effectiveUserRole === 'taxAgent'
+    ? [
+        {
+          label: "Allowance",
+          value: "allowance",
+          content: <AllowanceTab {...commonTabProps} />,
+        },
+        {
+          label: "Hire Purchase",
+          value: "hire-purchase",
+          content: <HirePurchaseTab {...commonTabProps} />,
+        },
+      ]
+    : effectiveUserRole === 'admin'
+    ? [
+        {
+          label: "Allowance",
+          value: "allowance",
+          content: <AllowanceTab {...commonTabProps} />,
+        },
+        {
+          label: "Hire Purchase",
+          value: "hire-purchase",
+          content: <HirePurchaseTab {...commonTabProps} />,
+        },
+        {
+          label: "Depreciation",
+          value: "depreciation",
+          content: (
+            <DepreciationTab
+              control={activeControl}
+              watch={activeWatch}
+              setValue={activeSetValue}
+              onScheduleStateChange={setDepreciationScheduleView}
+            />
+          ),
+        },
+        {
+          label: "Allocation",
+          value: "allocation",
+          content: <AllocationTab {...commonTabProps} />,
+        },
+        {
+          label: "Serial No",
+          value: "serial-no",
+          content: (
+            <SerialNumberTab
+              quantity={quantity}
+              quantityPerUnit={quantityPerUnit}
+              isBatchMode={false}
+              serialNumbers={memoizedSerialNumbers}
+              onSerialNumbersChange={handleSerialNumbersChange}
+            />
+          ),
+        },
+        {
+          label: "Warranty",
+          value: "warranty",
+          content: <WarrantyTab {...commonTabProps} />,
+        },
+      ]
+    : [
+        {
+          label: "Hire Purchase",
+          value: "hire-purchase",
+          content: <HirePurchaseTab {...commonTabProps} />,
+        },
+        {
+          label: "Depreciation",
+          value: "depreciation",
+          content: (
+            <DepreciationTab
+              control={activeControl}
+              watch={activeWatch}
+              setValue={activeSetValue}
+              onScheduleStateChange={setDepreciationScheduleView}
+            />
+          ),
+        },
+        {
+          label: "Allocation",
+          value: "allocation",
+          content: <AllocationTab {...commonTabProps} />,
+        },
+        {
+          label: "Serial No",
+          value: "serial-no",
+          content: (
+            <SerialNumberTab
+              quantity={quantity}
+              quantityPerUnit={quantityPerUnit}
+              isBatchMode={false}
+              serialNumbers={memoizedSerialNumbers}
+              onSerialNumbersChange={handleSerialNumbersChange}
+            />
+          ),
+        },
+        {
+          label: "Warranty",
+          value: "warranty",
+          content: <WarrantyTab {...commonTabProps} />,
+        },
+      ];
+
+  // Update TabHeader actions: conditional mode toggle
+  const modeToggleAction = !editingAsset ? {
+    label: currentMode === 'batch' ? "Exit Batch" : "Batch",
+    onAction: () => handleModeSwitch(currentMode === 'batch' ? 'normal' : 'batch'),
+    variant: currentMode === 'batch' ? "destructive" : "default",
+    size: "sm" as const,
+    position: "inline" as const,
+    tooltip: currentMode === 'batch' ? "Exit batch mode" : "Enter batch mode",
+  } : null;
+
+  // For onSubmit, ensure it's a block
   const onSubmit = (data: CreateAssetFormData): void => {
     setIsSubmitting(true);
-    const isBatchCreate = batchMode && !editingAsset;
+    const isBatchCreate = currentMode === 'batch' && !editingAsset;
+    const isBatchEdit = currentMode === 'batch' && editingAsset?.batchId;
 
     if (isBatchCreate) {
       const batchId = data.code;
@@ -555,7 +790,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         });
       }
       createMultipleMutation.mutate(newAssets);
-    } else if (batchMode && editingAsset?.batchId && batchAssets && originalQuantity !== undefined) {
+    } else if (isBatchEdit && batchAssets && originalQuantity !== undefined) {
       const batchId = editingAsset.batchId;
       const newQty = data.quantity;
 
@@ -608,201 +843,138 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     { value: "vehicles", label: "Vehicles" },
   ];
 
-  const assetGroupValue = watch("assetGroup", "");
+  const assetGroupValue = activeWatch("assetGroup", "");
 
   // Define tabs based on batch mode and user permissions
-  const commonTabProps: TabProps = { register, setValue, watch, control, errors, selectedTaxYear, taxYearOptions };
+  const commonTabProps: TabProps = { register: activeRegister, setValue: activeSetValue, watch: activeWatch, control: activeControl, errors: activeErrors, selectedTaxYear, taxYearOptions };
 
-  const tabs: TabItem[] = batchMode
-    ? [
-        {
-          label: "Allocation",
-          value: "allocation",
-          content: <AllocationTab {...commonTabProps} />,
-        },
-        {
-          label: "Serial No",
-          value: "serial-no",
-          content: (
-            <SerialNumberTab
-              quantity={quantity}
-              quantityPerUnit={quantityPerUnit}
-              isBatchMode={batchMode}
-              serialNumbers={memoizedSerialNumbers}
-              onSerialNumbersChange={handleSerialNumbersChange}
-            />
-          ),
-        },
-        {
-          label: "Warranty",
-          value: "warranty",
-          content: <WarrantyTab {...commonTabProps} />,
-        },
-      ]
-    : effectiveUserRole === 'taxAgent'
-    ? [
-        {
-          label: "Allowance",
-          value: "allowance",
-          content: <AllowanceTab {...commonTabProps} />,
-        },
-        {
-          label: "Hire Purchase",
-          value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
-        },
-      ]
-    : effectiveUserRole === 'admin'
-    ? [
-        {
-          label: "Allowance",
-          value: "allowance",
-          content: <AllowanceTab {...commonTabProps} />,
-        },
-        {
-          label: "Hire Purchase",
-          value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
-        },
-        {
-          label: "Depreciation",
-          value: "depreciation",
-          content: (
-            <DepreciationTab
-              control={control}
-              watch={watch}
-              setValue={setValue}
-              onScheduleStateChange={setDepreciationScheduleView}
-            />
-          ),
-        },
-        {
-          label: "Allocation",
-          value: "allocation",
-          content: <AllocationTab {...commonTabProps} />,
-        },
-        {
-          label: "Serial No",
-          value: "serial-no",
-          content: (
-            <SerialNumberTab
-              quantity={quantity}
-              quantityPerUnit={quantityPerUnit}
-              isBatchMode={batchMode}
-              serialNumbers={memoizedSerialNumbers}
-              onSerialNumbersChange={handleSerialNumbersChange}
-            />
-          ),
-        },
-        {
-          label: "Warranty",
-          value: "warranty",
-          content: <WarrantyTab {...commonTabProps} />,
-        },
-      ]
-    : [
-        {
-          label: "Hire Purchase",
-          value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
-        },
-        {
-          label: "Depreciation",
-          value: "depreciation",
-          content: (
-            <DepreciationTab
-              control={control}
-              watch={watch}
-              setValue={setValue}
-              onScheduleStateChange={setDepreciationScheduleView}
-            />
-          ),
-        },
-        {
-          label: "Allocation",
-          value: "allocation",
-          content: <AllocationTab {...commonTabProps} />,
-        },
-        {
-          label: "Serial No",
-          value: "serial-no",
-          content: (
-            <SerialNumberTab
-              quantity={quantity}
-              quantityPerUnit={quantityPerUnit}
-              isBatchMode={batchMode}
-              serialNumbers={memoizedSerialNumbers}
-              onSerialNumbersChange={handleSerialNumbersChange}
-            />
-          ),
-        },
-        {
-          label: "Warranty",
-          value: "warranty",
-          content: <WarrantyTab {...commonTabProps} />,
-        },
-      ];
+  // Get assets for ID prefill
+  const { data: allAssets } = useGetAsset();
+
+  // Functions to generate next IDs
+  const generateNextAssetId = useCallback(() => {
+    if (!allAssets || allAssets.length === 0) {
+      return 'ASSET-001';
+    }
+    const maxNum = allAssets
+      .map(asset => {
+        const match = /^ASSET-(\d{3})$/.exec(asset.id);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .reduce((max, num) => Math.max(max, num), 0);
+    const nextNum = maxNum + 1;
+    return `ASSET-${nextNum.toString().padStart(3, '0')}`;
+  }, [allAssets]);
+
+  const generateNextBatchId = useCallback(() => {
+    if (!allAssets || allAssets.length === 0) {
+      return 'B001';
+    }
+    const batchIds = [...new Set(allAssets.map(a => a.batchId).filter(Boolean))];
+    const maxNum = batchIds
+      .map(batchId => {
+        const match = /^B(\d{3})$/.exec(batchId);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .reduce((max, num) => Math.max(max, num), 0);
+    const nextNum = maxNum + 1;
+    return `B${nextNum.toString().padStart(3, '0')}`;
+  }, [allAssets]);
+
+  // Prefill IDs on creation
+  useEffect(() => {
+    if (!editingAsset && allAssets) {
+      // Prefill for normal form
+      normalForm.setValue('code', generateNextAssetId());
+      // Prefill for batch form
+      batchForm.setValue('code', generateNextBatchId());
+    }
+  }, [allAssets, editingAsset, normalForm, batchForm, generateNextAssetId, generateNextBatchId]);
+
+  // Confirmation modal states
+  const [showModeConfirm, setShowModeConfirm] = useState(false);
+  const [pendingMode, setPendingMode] = useState<'normal' | 'batch' | null>(null);
+
+  // Mode switch handler
+  const handleModeSwitch = useCallback((newMode: 'normal' | 'batch') => {
+    if (editingAsset) {
+      // Disabled in edit mode
+      return;
+    }
+    setPendingMode(newMode);
+    setShowModeConfirm(true);
+  }, [editingAsset]);
+
+  // Confirm switch
+  const confirmModeSwitch = useCallback(() => {
+    if (!pendingMode) return;
+
+    // Reset current form
+    if (currentMode === 'normal') {
+      normalForm.reset(normalDefaultValues);
+    } else {
+      batchForm.reset(batchDefaultValues);
+    }
+
+    setCurrentMode(pendingMode);
+
+    // Adjust active tab
+    const defaultTab = pendingMode === 'batch' ? 'allocation' : getDefaultActiveTab();
+    setActiveTab(defaultTab);
+
+    // Clear mode-specific fields if switching to batch
+    if (pendingMode === 'batch') {
+      activeSetValue('purchaseDate', '');
+      activeSetValue('acquireDate', '');
+    }
+
+    setShowModeConfirm(false);
+    setPendingMode(null);
+  }, [pendingMode, currentMode, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab, activeSetValue]);
+
+  // Cancel switch
+  const cancelModeSwitch = useCallback(() => {
+    setShowModeConfirm(false);
+    setPendingMode(null);
+  }, []);
 
   // Determine when the detach modal should render
-  let detachModalContext: {
-    batchAssets: Asset[];
-    originalQuantity: number;
-    pendingData: CreateAssetFormData;
-  } | null = null;
+  // let detachModalContext: {
+  //   batchAssets: Asset[];
+  //   originalQuantity: number;
+  //   pendingData: CreateAssetFormData;
+  // } | null = null;
 
-  if (
-    batchMode &&
-    editingAsset?.batchId &&
-    Array.isArray(batchAssets) &&
-    typeof originalQuantity === "number" &&
-    pendingData !== null
-  ) {
-    detachModalContext = {
-      batchAssets,
-      originalQuantity,
-      pendingData,
-    };
-  }
+  // if (
+  //   currentMode === 'batch' &&
+  //   editingAsset?.batchId &&
+  //   Array.isArray(batchAssets) &&
+  //   typeof originalQuantity === "number" &&
+  //   pendingData !== null
+  // ) {
+  //   detachModalContext = {
+  //     batchAssets,
+  //     originalQuantity,
+  //     pendingData,
+  //   };
+  // }
 
   return (
     <div className="bg-surface min-h-screen">
       <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
         <div className="flex h-full flex-col gap-6 p-2 md:p-6">
-          <TabHeader title={title}
-          subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}
-          actions={[
-            {
-              label: "Back",
-              onAction: onBack,
-              variant: "outline",
-              size: "default",
-            },
-            {
-              label: batchMode ? "Exit Batch" : "Batch",
-              onAction: () => {
-                const newBatchMode = !batchMode;
-                setBatchMode(newBatchMode);
-                if (newBatchMode) {
-                  // Switch to batch tabs and clear date fields not applicable in batch mode
-                  const batchModeTabs = ["allocation", "serial-no", "warranty"];
-                  if (!batchModeTabs.includes(activeTab)) {
-                    setActiveTab("allocation");
-                  }
-                  setValue("purchaseDate", "");
-                  setValue("acquireDate", "");
-                } else {
-                  const normalModeTabs = ["allowance", "hire-purchase", "depreciation", "allocation", "serial-no", "warranty"];
-                  if (!normalModeTabs.includes(activeTab)) {
-                    setActiveTab("allowance");
-                  }
-                }
+          <TabHeader 
+            title={title}
+            subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}
+            actions={[
+              {
+                label: "Back",
+                onAction: onBack,
+                variant: "outline",
+                size: "default",
               },
-              variant: batchMode ? "destructive" : "default",
-              size: "sm",
-              position: "inline",
-              tooltip: batchMode ? "Exit batch mode" : "Enter batch mode",
-            },
+              ...(modeToggleAction ? [modeToggleAction] : []),
             ]}
           />
         </div>
@@ -814,7 +986,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
              <form
                ref={formRef}
                onSubmit={(event) => {
-                 void handleSubmit(onSubmit)(event);
+                 void activeHandleSubmit(onSubmit)(event);
                }}
                className="space-y-6"
              >
@@ -827,7 +999,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       <div className="flex items-center gap-2">
                         <Option
                           type="checkbox"
-                          {...register("inactive")}
+                          {...activeRegister("inactive")}
                           checked={inactive}
                         />
                         <label className="body-small text-onSurfaceVariant whitespace-nowrap">Inactive</label>
@@ -835,7 +1007,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       <div className="flex items-center gap-2">
                         <SemiDatePicker
                           inputType="date"
-                          value={watch("inactiveStart")}
+                          value={activeWatch("inactiveStart")}
                           onChange={(date) => {
                             let formatted = '';
                             if (typeof date === 'string') {
@@ -843,7 +1015,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             } else if (date instanceof Date) {
                               formatted = date.toISOString().split('T')[0];
                             }
-                            setValue("inactiveStart", formatted);
+                            activeSetValue("inactiveStart", formatted);
                           }}
                           className="border-none w-36"
                           placeholder="Start Date"
@@ -852,7 +1024,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                         <span className="body-small text-onSurfaceVariant">to</span>
                         <SemiDatePicker
                           inputType="date"
-                          value={watch("inactiveEnd")}
+                          value={activeWatch("inactiveEnd")}
                           onChange={(date) => {
                             let formatted = '';
                             if (typeof date === 'string') {
@@ -860,7 +1032,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             } else if (date instanceof Date) {
                               formatted = date.toISOString().split('T')[0];
                             }
-                            setValue("inactiveEnd", formatted);
+                            activeSetValue("inactiveEnd", formatted);
                           }}
                           className="border-none w-36"
                           placeholder="End Date"
@@ -873,14 +1045,14 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {/* Batch ID or Asset ID */}
-                  {batchMode ? (
+                  {currentMode === 'batch' ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Batch ID <span className="text-error">*</span>
                     </label>
-                    <Input {...register("code")} placeholder="Enter Batch ID" />
-                    {errors.code && (
-                      <span className="body-small text-error mt-1 block">{errors.code.message}</span>
+                    <Input {...activeRegister("code")} placeholder="Enter Batch ID" />
+                    {activeErrors.code && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.code.message}</span>
                     )}
                   </div>
                   ) : (
@@ -890,9 +1062,9 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                     <label className="block text-sm font-medium text-onSurface">
                       Asset ID <span className="text-error">*</span>
                     </label>
-                    <Input {...register("code")} placeholder="Enter Asset ID" />
-                    {errors.code && (
-                      <span className="body-small text-error mt-1 block">{errors.code.message}</span>
+                    <Input {...activeRegister("code")} placeholder="Enter Asset ID" />
+                    {activeErrors.code && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.code.message}</span>
                       )}
                     </div>
                   </>
@@ -901,11 +1073,11 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                   {/* Asset Name / Batch Name */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
-                      {batchMode ? 'Batch Name' : 'Asset Name'} <span className="text-error">*</span>
+                      {currentMode === 'batch' ? 'Batch Name' : 'Asset Name'} <span className="text-error">*</span>
                     </label>
-                    <Input {...register("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
-                    {errors.assetName && (
-                      <span className="body-small text-error mt-1 block">{errors.assetName.message}</span>
+                    <Input {...activeRegister("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
+                    {activeErrors.assetName && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.assetName.message}</span>
                     )}
                   </div>
 
@@ -920,50 +1092,50 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       placeholder="-- Choose Asset Group --"
                       options={assetGroups}
                       onChange={(nextValue) => {
-                        setValue("assetGroup", nextValue, { shouldValidate: true});
+                        activeSetValue("assetGroup", nextValue, { shouldValidate: true});
                       }}
                       matchTriggerWidth={false}
                       contentClassName="w-fit"
                     />
-                    {errors.assetGroup && (
-                      <span className="body-small text-error mt-1 block">{errors.assetGroup.message}</span>
+                    {activeErrors.assetGroup && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.assetGroup.message}</span>
                     )}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  {batchMode && !isEditMode ? (
-                  <div>
-                    <label className="block text-sm font-medium text-onSurface">
-                      Number of Assets in Batch <span className="text-error">*</span>
-                    </label>
-                    <Input
-                      type="number"
-                      {...register("quantity", { valueAsNumber: true })}
-                      min="1"
-                      max="999"
-                    />
-                    {errors.quantity && (
-                      <span className="body-small text-error mt-1 block">{errors.quantity.message}</span>
-                    )}
-                  </div>
-                  ) : batchMode && isEditMode ? (
+                  {currentMode === 'batch' && !isEditMode ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Assets in Batch <span className="text-error">*</span>
                     </label>
                     <Input
                       type="number"
-                      {...register("quantity", { valueAsNumber: true })}
+                      {...activeRegister("quantity", { valueAsNumber: true })}
                       min="1"
                       max="999"
                     />
-                    {errors.quantity && (
-                      <span className="body-small text-error mt-1 block">{errors.quantity.message}</span>
+                    {activeErrors.quantity && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.quantity.message}</span>
+                    )}
+                  </div>
+                  ) : currentMode === 'batch' && isEditMode ? (
+                  <div>
+                    <label className="block text-sm font-medium text-onSurface">
+                      Assets in Batch <span className="text-error">*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      {...activeRegister("quantity", { valueAsNumber: true })}
+                      min="1"
+                      max="999"
+                    />
+                    {activeErrors.quantity && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.quantity.message}</span>
                     )}
                     {originalQuantity !== undefined && (
                       <p className="text-sm text-muted-foreground mt-1">
-                        Current: {originalQuantity} | Changing to: {watch("quantity")}
+                        Current: {originalQuantity} | Changing to: {activeWatch("quantity")}
                       </p>
                     )}
                   </div>
@@ -977,21 +1149,21 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                     </label>
                     <Input
                       type="number"
-                      {...register("quantityPerUnit", { valueAsNumber: true })}
+                      {...activeRegister("quantityPerUnit", { valueAsNumber: true })}
                       min="1"
                       max="999"
                     />
-                    {errors.quantityPerUnit && (
-                      <span className="body-small text-error mt-1 block">{errors.quantityPerUnit.message}</span>
+                    {activeErrors.quantityPerUnit && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.quantityPerUnit.message}</span>
                     )}
                   </div>
 
                   {/* Total Cost */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">Total Cost</label>
-                    <Input {...register("cost")} placeholder="0.00" />
-                    {errors.cost && (
-                      <span className="body-small text-error mt-1 block">{errors.cost.message}</span>
+                    <Input {...activeRegister("cost")} placeholder="0.00" />
+                    {activeErrors.cost && (
+                      <span className="body-small text-error mt-1 block">{activeErrors.cost.message}</span>
                     )}
                   </div>
                 </div>
@@ -999,11 +1171,11 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                 {/* Description */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-onSurface">Description</label>
-                  <TextArea {...register("description")} placeholder="Enter description" rows={3} />
+                  <TextArea {...activeRegister("description")} placeholder="Enter description" rows={3} />
                 </div>
 
                 {/* Dates - hidden in batch mode */}
-                {!batchMode && (
+                {currentMode !== 'batch' && (
                   <div className={`grid grid-cols-1 gap-4 ${activeTab === "depreciation" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
                     <div>
                       <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
@@ -1016,7 +1188,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       </label>
                       <Controller
                         name="purchaseDate"
-                        control={control}
+                        control={activeControl}
                         render={({ field }) => (
                           <SemiDatePicker
                             inputType="date"
@@ -1031,7 +1203,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                               field.onChange(formatted);
                             }}
                             className="border-none"
-                            errorMsg={errors.purchaseDate?.message}
+                            errorMsg={activeErrors.purchaseDate?.message}
                             placeholder="dd/mm/yyyy"
                           />
                         )}
@@ -1048,7 +1220,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       </label>
                       <Controller
                         name="acquireDate"
-                        control={control}
+                        control={activeControl}
                         render={({ field }) => (
                           <SemiDatePicker
                             inputType="date"
@@ -1063,7 +1235,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                               field.onChange(formatted);
                             }}
                             className="border-none"
-                            errorMsg={errors.acquireDate?.message}
+                            errorMsg={activeErrors.acquireDate?.message}
                             placeholder="dd/mm/yyyy"
                           />
                         )}
@@ -1075,7 +1247,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
               {/* Tabs */}
               <Tabs
-                key={`tabs-${batchMode ? 'batch' : 'normal'}`}
+                key={`tabs-${currentMode}`}
                 tabs={tabs}
                 variant={"underline"}
                 className="m-0"
@@ -1085,14 +1257,15 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             </form>
           </div>
 
-          {/* Right: Reserved section - Only show when Depreciation tab is active */}
-          {activeTab === "depreciation" && (
+          {/* Right: Depreciation Schedule */}
+          {activeTab === "depreciation" && currentMode === 'normal' && ( // Only in normal mode
             <div className="flex-1 max-w-md">
               <DepreciationSchedulePanel view={depreciationScheduleView} />
             </div>
           )}
         </div>  
-        {/* Detach Modal */}
+
+        {/* Detach Modal - unchanged */}
         {detachModalContext && (
           <BatchDetachModal
             open={showDetachModal}
@@ -1101,6 +1274,26 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             numToDetach={detachModalContext.originalQuantity - detachModalContext.pendingData.quantity}
             onConfirm={handleBatchConfirmDetach}
           />
+        )}
+
+        {/* Mode Confirmation Modal */}
+        {showModeConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <Card className="p-6 max-w-md w-full mx-4">
+              <h3 className="title-small text-onSurface mb-2">Confirm Mode Switch</h3>
+              <p className="body-medium text-onSurfaceVariant mb-4">
+                Switching to {pendingMode === 'batch' ? 'batch' : 'normal'} mode will clear the current form data, including tabs. Continue?
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={cancelModeSwitch}>
+                  Cancel
+                </Button>
+                <Button onClick={confirmModeSwitch}>
+                  Continue
+                </Button>
+              </div>
+            </Card>
+          </div>
         )}
       </div>
       {/* Footer */}

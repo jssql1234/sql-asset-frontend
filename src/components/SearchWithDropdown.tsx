@@ -297,7 +297,9 @@ export const SearchWithDropdown = ({
                         className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium">{renderAssetLabel(item.label)}</span>
+                          <span className="font-medium">
+                            {renderAssetLabel(item.label)}
+                          </span>
                           {item.sublabel && (
                             <span className="text-xs text-onSurfaceVariant opacity-75">
                               {item.sublabel}
@@ -317,17 +319,19 @@ export const SearchWithDropdown = ({
           </div>
         </div>
       )}
-      
+
       {/* Selected Items Display */}
       {!hideSelectedField || resolvedSelectedIds.length > 0 ? (
         <Card className="bg-surfaceContainerLow/60 border border-outlineVariant/60 rounded-xl p-4">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2">
-              <Badge
-                text={String(resolvedSelectedIds.length)}
+            <div className="flex items-center gap-2 text-sm text-onSurfaceVariant">
+              {/* <Badge
+                text={`selected ${String(resolvedSelectedIds.length)} items`}
                 variant="primary"
                 className="px-2 py-1 text-xs"
-              />
+              /> */}
+              Selected {resolvedSelectedIds.length}{" "}
+              {resolvedSelectedIds.length === 1 ? "item" : "items"}
             </div>
             {!disable && resolvedSelectedIds.length > 0 && (
               <button
@@ -379,7 +383,7 @@ export const SearchWithDropdown = ({
                             <svg
                               className="h-3.5 w-3.5"
                               fill="none"
-                              stroke="currentColor"
+                              stroke="red"
                               viewBox="0 0 24 24"
                             >
                               <path

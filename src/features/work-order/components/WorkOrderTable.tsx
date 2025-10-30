@@ -234,7 +234,6 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
           columns={columns}
           data={filteredWorkOrders}
           showPagination={true}
-          className="border border-outline"
           onRowDoubleClick={onEditWorkOrder}
         />
       </div>

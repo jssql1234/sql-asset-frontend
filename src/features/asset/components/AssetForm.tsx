@@ -23,6 +23,7 @@ import { useLocation } from "react-router-dom";
 // Add interface for navigation state
 interface LocationState {
   initialMode?: 'normal' | 'batch';
+  listMode?: 'normal' | 'batch';
 }
 
 interface SerialNumberData {
@@ -42,7 +43,7 @@ interface TabProps {
 
 interface AssetFormProps {
   onSuccess?: (data: CreateAssetFormData) => void;
-  onBack?: () => void;
+  onBack?: (mode: 'normal' | 'batch') => void;
   editingAsset?: Asset | null;
   selectedTaxYear?: string;
   taxYearOptions?: SelectDropdownOption[];
@@ -386,8 +387,9 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 
 const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
   const location = useLocation();
-  // Read initialModeFromState immediately - location.state should be available synchronously
+  // Read initialModeFromState and listMode immediately - location.state should be available synchronously
   const initialModeFromState = (location.state as LocationState | undefined)?.initialMode;
+  const listModeFromState = (location.state as LocationState | undefined)?.listMode;
 
   const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
@@ -416,10 +418,14 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
   // Use state for manual mode switching (toggle button), but initialize from computedMode
   const [currentMode, setCurrentMode] = useState<'normal' | 'batch'>(computedMode);
-  
+
   // Use computedMode directly for rendering in creation mode (no state dependency)
   // In edit mode, use currentMode (synced in effect)
   const effectiveMode = editingAsset ? currentMode : computedMode;
+
+  // Determine which mode to use for onBack callback
+  // Priority: listModeFromState (edit mode) > initialModeFromState (create mode) > effectiveMode (fallback)
+  const backMode = listModeFromState ?? initialModeFromState ?? effectiveMode;
 
   // Batch hooks here - use effectiveMode for correct behavior
   const { data: batchAssets } = useGetBatchAssets(effectiveMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
@@ -684,7 +690,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         bulkDetachMutation.mutate({ assetIds: selectedIds, newBatchId: null });
         setShowDetachModal(false);
         onSuccess?.(pendingData);
-        onBack?.();
+        onBack?.(backMode);
       }
     }
   };
@@ -943,7 +949,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       onSuccess?.(data);
     }
 
-    onBack?.();
+    onBack?.(backMode);
     setIsSubmitting(false);
   };
 
@@ -1060,7 +1066,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             actions={[
               {
                 label: "Back",
-                onAction: onBack,
+                onAction: () => onBack?.(backMode),
                 variant: "outline",
                 size: "default",
               },
@@ -1374,9 +1380,9 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       {/* Footer */}
       <div className="flex justify-end items-center gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">
         <div className="flex gap-4">
-          <Button 
+          <Button
             variant="outline"
-            onClick={onBack}
+            onClick={() => onBack?.(backMode)}
           >
             Cancel
           </Button>

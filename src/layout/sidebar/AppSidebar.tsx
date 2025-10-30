@@ -135,19 +135,10 @@ export function AppSidebar(props: SidebarProps) {
             </SidebarMenuButtonWithTooltip>
           </DropdownMenuTrigger>
           <DropdownMenuContent className={cn("min-w-58 rounded-lg border border-border", collapsedMenuShiftClass)} defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
-            {toolsMenuItems.flatMap((item, index) => {
-              const nodes: React.ReactNode[] = [];
-
-              if (item.separator && index > 0) {
-                nodes.push(
-                  <SidebarSeparator key={`tools-separator-${item.route}`} />
-                );
-              }
-              nodes.push(
-                <DropdownMenuItem key={`tools-item-${item.route}`} onClick={() => void navigate(item.route)}>{item.label}</DropdownMenuItem>
-              );
-              return nodes;
-            })}
+            {toolsMenuItems.flatMap((item, index) => [
+              ...(item.separator && index > 0 ? [<SidebarSeparator key={`sep-${item.route}`} />] : []),
+              <DropdownMenuItem key={item.route} onClick={() => void navigate(item.route)}>{item.label}</DropdownMenuItem>
+            ])}
           </DropdownMenuContent>
         </DropdownMenu>
 

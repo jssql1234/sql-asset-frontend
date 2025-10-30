@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Card } from "@/components/ui/components";
 import { useToast } from "@/components/ui/components/Toast";
 import TabHeader from "@/components/TabHeader";
 import Search from "@/components/Search";
@@ -22,17 +21,17 @@ interface WorkRequestTabProps {
 const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
   workRequests,
   filters,
-  selectedWorkRequestIds,
+  // selectedWorkRequestIds,
   isLoading = false,
   onFilterChange,
   onSelectionChange,
   onOpenCreateModal,
   onOpenReviewModal,
-  onDelete,
+  // onDelete,
 }) => {
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isDeletingItems, setIsDeletingItems] = useState(false);
-  const { addToast } = useToast();
+  // const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  // const [isDeletingItems, setIsDeletingItems] = useState(false);
+  // const { addToast } = useToast();
 
 
   return (
@@ -57,20 +56,18 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
         showLiveSearchIcon={true}
       />
 
-      <Card className="flex flex-col gap-4 border border-outline bg-surfaceContainer p-0 min-h-[500px]">
-        <div className="border-t border-outline">
-          <WorkRequestTable
-            workRequests={workRequests}
-            selectedWorkRequestIds={selectedWorkRequestIds}
-            isLoading={isLoading}
-            onSelectionChange={onSelectionChange}
-            onEditWorkRequest={onOpenReviewModal}
-          />
-        </div>
-      </Card>
+      <div className="border-t border-outline">
+        <WorkRequestTable
+          workRequests={workRequests}
+          // selectedWorkRequestIds={selectedWorkRequestIds}
+          isLoading={isLoading}
+          onSelectionChange={onSelectionChange}
+          onEditWorkRequest={onOpenReviewModal}
+        />
+      </div>
       
       {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
+      {/* <DeleteConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={async () => {
@@ -140,7 +137,7 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
           const workRequest = workRequests.find(wr => wr.id === id);
           return workRequest ? `${workRequest.requesterName} - ${workRequest.problemDescription.slice(0, 50)}${workRequest.problemDescription.length > 50 ? '...' : ''}` : '';
         })}
-      />
+      /> */}
     </div>
   );
 };

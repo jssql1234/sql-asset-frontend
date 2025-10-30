@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HomeFilled, Dots, User } from "@/assets/icons";
-import { Bell, ChevronsUpDown, LogOut, Settings, Shuffle } from "lucide-react";
+import { HomeFilled, Dots, User, BellFilled, Bell} from "@/assets/icons";
+import { ChevronsUpDown, LogOut, Settings, Shuffle } from "lucide-react";
 import { Sidebar, SidebarBody, SidebarFooter, SidebarHeader, SidebarMenuButton, SidebarGroup, SidebarGroupTitle, SidebarSeparator, SidebarGroupItem, SidebarUserInfo, SidebarMenuButtonWithTooltip } from "./SidebarPrimitives";
 import { navigationSections, mockUser, toolsMenuItems } from "./SidebarConstant";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components/DropdownButton";
@@ -25,13 +25,17 @@ export function AppSidebar(props: SidebarProps) {
         <SidebarMenuButton
           size="lg"
           type="button"
-          onClick={() => { void navigate("/asset"); }}
+          onClick={() => {
+            void navigate("/asset");
+          }}
           className="flex w-full items-center gap-2 group-data-[collapsible=icon]:gap-0"
         >
           <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
             <HomeFilled className="size-4" />
           </div>
-          <span className="truncate font-medium group-data-[collapsible=icon]:hidden">SQL Asset</span>
+          <span className="truncate font-medium group-data-[collapsible=icon]:hidden">
+            SQL Asset
+          </span>
         </SidebarMenuButton>
       </SidebarHeader>
 
@@ -39,31 +43,59 @@ export function AppSidebar(props: SidebarProps) {
       <SidebarBody>
         {navigationSections.map((section, sectionIndex) => (
           <React.Fragment key={section.title}>
-            {sectionIndex > 0 && <SidebarSeparator className="group-data-[collapsible=icon]:block hidden mx-2 my-1" />}
-            
+            {sectionIndex > 0 && (
+              <SidebarSeparator className="group-data-[collapsible=icon]:block hidden mx-2 my-1" />
+            )}
+
             <SidebarGroup className="p-0">
               <SidebarGroupTitle>{section.title}</SidebarGroupTitle>
-              <SidebarGroupItem items={section.items} pathname={location.pathname} />
+              <SidebarGroupItem
+                items={section.items}
+                pathname={location.pathname}
+              />
             </SidebarGroup>
           </React.Fragment>
         ))}
       </SidebarBody>
-      
+
       {/* Footer - Notification, tools, profile dropdown, and switch user toggle(temp) */}
       <SidebarFooter>
         {/* Switch User (Temp) */}
         <DropdownMenu className="w-full">
           <DropdownMenuTrigger>
             <SidebarMenuButtonWithTooltip tooltip="Switch User">
-              <SidebarMenuButton size="default" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 data-[state=open]:bg-gray-200">
+              <SidebarMenuButton
+                size="default"
+                className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 data-[state=open]:bg-gray-200"
+              >
                 <Shuffle className="size-4 group-data-[collapsible=icon]:size-5" />
-                <span className="group-data-[collapsible=icon]:hidden text-red-500">Switch User</span>
+                <span className="group-data-[collapsible=icon]:hidden text-red-500">
+                  Switch User
+                </span>
               </SidebarMenuButton>
             </SidebarMenuButtonWithTooltip>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className={cn("min-w-58 rounded-lg border border-border", collapsedMenuShiftClass)} defaultAlignment="right" matchTriggerWidth={false} disablePortal={true}>
+          <DropdownMenuContent
+            className={cn(
+              "min-w-58 rounded-lg border border-border",
+              collapsedMenuShiftClass
+            )}
+            defaultAlignment="right"
+            matchTriggerWidth={false}
+            disablePortal={true}
+          >
             {users.map((user) => (
-              <DropdownMenuItem key={user.id} onClick={() => { setCurrentUser(user); }} className={currentUser?.id === user.id ? "bg-sidebar-accent" : ""}>{user.name} ({user.email})</DropdownMenuItem>
+              <DropdownMenuItem
+                key={user.id}
+                onClick={() => {
+                  setCurrentUser(user);
+                }}
+                className={
+                  currentUser?.id === user.id ? "bg-sidebar-accent" : ""
+                }
+              >
+                {user.name} ({user.email})
+              </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -72,21 +104,33 @@ export function AppSidebar(props: SidebarProps) {
         <SidebarMenuButtonWithTooltip tooltip="Notifications">
           <SidebarMenuButton
             size="default"
+            isActive={location.pathname === "/notifications"}
             onClick={() => void navigate("/notifications")}
             className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
           >
-            <Bell className="size-4 group-data-[collapsible=icon]:size-5" />
-            <span className="group-data-[collapsible=icon]:hidden">Notifications</span>
+            {location.pathname === "/notifications" ? (
+              <BellFilled className="size-4 group-data-[collapsible=icon]:size-5" />
+            ) : (
+              <Bell className="size-4 group-data-[collapsible=icon]:size-5" />
+            )}
+            <span className="group-data-[collapsible=icon]:hidden">
+              Notifications
+            </span>
           </SidebarMenuButton>
         </SidebarMenuButtonWithTooltip>
-        
+
         {/* Tools */}
         <DropdownMenu className="w-full">
           <DropdownMenuTrigger>
             <SidebarMenuButtonWithTooltip tooltip="Tools">
-              <SidebarMenuButton size="default" className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 data-[state=open]:bg-gray-200">
+              <SidebarMenuButton
+                size="default"
+                className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0 data-[state=open]:bg-gray-200"
+              >
                 <Dots className="size-4 group-data-[collapsible=icon]:size-5" />
-                <span className="group-data-[collapsible=icon]:hidden">Tools</span>
+                <span className="group-data-[collapsible=icon]:hidden">
+                  Tools
+                </span>
               </SidebarMenuButton>
             </SidebarMenuButtonWithTooltip>
           </DropdownMenuTrigger>
@@ -111,19 +155,43 @@ export function AppSidebar(props: SidebarProps) {
         <DropdownMenu className="w-full">
           <DropdownMenuTrigger>
             <SidebarMenuButtonWithTooltip tooltip="User Profile">
-              <SidebarMenuButton size="lg" className="group-data-[collapsible=icon]:justify-center data-[state=open]:bg-gray-200">
+              <SidebarMenuButton
+                size="lg"
+                className="group-data-[collapsible=icon]:justify-center data-[state=open]:bg-gray-200"
+              >
                 <User className="size-4 group-data-[collapsible=icon]:size-5" />
-                <SidebarUserInfo name={mockUser.name} email={mockUser.email} className="flex-1 group-data-[collapsible=icon]:hidden" />
+                <SidebarUserInfo
+                  name={mockUser.name}
+                  email={mockUser.email}
+                  className="flex-1 group-data-[collapsible=icon]:hidden"
+                />
                 <ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" />
               </SidebarMenuButton>
             </SidebarMenuButtonWithTooltip>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent className={cn("min-w-56 rounded-lg border border-border/50", collapsedMenuShiftClass)} defaultAlignment="right" matchTriggerWidth={false}>
-            <SidebarUserInfo name={mockUser.name} email={mockUser.email} className="px-3 py-2" />
+          <DropdownMenuContent
+            className={cn(
+              "min-w-56 rounded-lg border border-border/50",
+              collapsedMenuShiftClass
+            )}
+            defaultAlignment="right"
+            matchTriggerWidth={false}
+          >
+            <SidebarUserInfo
+              name={mockUser.name}
+              email={mockUser.email}
+              className="px-3 py-2"
+            />
             <SidebarSeparator />
-            <DropdownMenuItem className="flex items-center gap-2"><Settings className="size-4" /><span>Settings</span></DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2"><LogOut className="size-4" /><span>Log out</span></DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2">
+              <Settings className="size-4" />
+              <span>Settings</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2">
+              <LogOut className="size-4" />
+              <span>Log out</span>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarFooter>

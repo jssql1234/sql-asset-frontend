@@ -25,7 +25,6 @@ export interface AssetCostAllocation {
 
 export interface WorkOrder {
   id: string;
-  workOrderNumber: string;
   assetId: string;
   assetName: string;
   assetCode: string;
@@ -132,7 +131,6 @@ export interface MaintenanceModalState {
 }
 
 export interface WorkOrderFormData {
-  workOrderNumber: string;
   assetId: string;
   assetName: string;
   jobTitle: string;

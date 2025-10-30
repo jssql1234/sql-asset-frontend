@@ -98,7 +98,6 @@ const WorkOrdersPage: React.FC = () => {
     // Generate new work order
     const newWorkOrder: WorkOrder = {
       id: `WO-${Date.now()}`,
-      workOrderNumber: formData.workOrderNumber,
       assetId: formData.assetId,
       assetName: formData.assetName,
       assetCode: formData.assetId, // Simplified for now

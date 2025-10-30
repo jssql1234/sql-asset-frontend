@@ -43,7 +43,6 @@ export const MOCK_WARRANTIES: Warranty[] = [
 export const MOCK_WORK_ORDERS: WorkOrder[] = [
   {
     id: "WO-001",
-    workOrderNumber: "WO-2025-001",
     assetId: "AST-001",
     assetName: "Excavator CAT 320D",
     assetCode: "EXC-001",
@@ -84,7 +83,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-002",
-    workOrderNumber: "WO-2025-002",
     assetId: "AST-006",
     assetName: "Compressor Atlas Copco XAS 185",
     assetCode: "CMP-006",
@@ -114,7 +112,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-003",
-    workOrderNumber: "WO-2025-003",
     assetId: "AST-003",
     assetName: "Crane Liebherr LTM 1060",
     assetCode: "CRN-003",
@@ -135,7 +132,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-004",
-    workOrderNumber: "WO-2025-004",
     assetId: "AST-007",
     assetName: "Welding Machine Lincoln Electric",
     assetCode: "WLD-007",
@@ -153,7 +149,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-005",
-    workOrderNumber: "WO-2025-005",
     assetId: "AST-004",
     assetName: "Generator Cummins 500kVA",
     assetCode: "GEN-004",

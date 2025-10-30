@@ -50,7 +50,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   const isEditMode = workOrder !== null;
 
   const [formData, setFormData] = useState<WorkOrderFormData>({
-    workOrderNumber: "",
     assetId: "",
     assetName: "",
     jobTitle: "",
@@ -144,7 +143,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   useEffect(() => {
     if (workOrder) {
       setFormData({
-        workOrderNumber: workOrder.workOrderNumber,
         assetId: workOrder.assetId,
         assetName: workOrder.assetName,
         jobTitle: workOrder.jobTitle,
@@ -184,22 +182,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
       setPartsUsed([]);
     }
   }, [workOrder]);
-
-  // Generate work order number on mount (Create mode only)
-  useEffect(() => {
-    if (!isEditMode && isOpen && !formData.workOrderNumber) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, "0");
-      setFormData((prev) => ({
-        ...prev,
-        workOrderNumber: `WO-${year}${month}-${random}`,
-      }));
-    }
-  }, [isOpen, isEditMode, formData.workOrderNumber]);
 
   // Update scheduled dates if prefilledDates changes (Create mode)
   useEffect(() => {
@@ -413,7 +395,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     // Show success toast
     addToast({
       title: isEditMode ? "Work Order Updated" : "Work Order Created",
-      description: `Work order ${formData.workOrderNumber} has been ${isEditMode ? "updated" : "created"} successfully.`,
+      description: `Work order has been ${isEditMode ? "updated" : "created"} successfully.`,
       variant: "success",
       duration: 3000,
     });
@@ -424,7 +406,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   const handleClose = () => {
     // Reset form
     setFormData({
-      workOrderNumber: "",
       assetId: "",
       assetName: "",
       jobTitle: "",
@@ -454,7 +435,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-outlineVariant">
           <h2 className="headline-small font-semibold text-onSurface">
-            {isEditMode ? "Edit Work Order" : "Create Work Order"}
+            {isEditMode ? `Edit Work Order - ${workOrder.id}` : "Create Work Order"}
           </h2>
         </div>
 
@@ -467,17 +448,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                 Basic Information
               </h3>
               <div className="space-y-4">
-                <div>
-                  <label className="label-large block mb-2 text-onSurface">
-                    Work Order No{" "}
-                    {!isEditMode && <span className="text-error">*</span>}
-                  </label>
-                  <Input
-                    value={formData.workOrderNumber}
-                    disabled
-                    className="w-full"
-                  />
-                </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Assets <span className="text-error">*</span>
@@ -497,6 +467,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     emptyMessage="No assets found"
                     disable={isEditMode}
                     hideSelectedField={true}
+                    hideSearchField={isEditMode}
                   />
                   {errors.assets && (
                     <p className="text-error body-small mt-1">
@@ -504,15 +475,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     </p>
                   )}
                 </div>
-              </div>
-            </section>
-
-            {/* Work Details */}
-            <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">
-                Work Details
-              </h3>
-              <div className="space-y-4">
+            
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Job Title <span className="text-error">*</span>
@@ -600,7 +563,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                 </div>
               </div>
             </section>
-
             {/* Resource Assignment */}
             <section>
               <h3 className="title-medium font-semibold text-onSurface mb-4">

@@ -2,7 +2,9 @@ import { useState, useRef } from 'react';
 import { useUserContext } from '@/context/UserContext';
 import type { User } from '@/types/user';
 import { useToast } from '@/components/ui/components/Toast/useToast';
-import { exportToCSV, importFromCSV, type CSVConfig, type CSVRow } from '@/utils/csvUtils';
+import { importFromCSV, type CSVConfig, type CSVRow } from '@/utils/csvUtils';
+import type { ExportColumn } from '@/utils/exportUtils';
+import { exportTableData } from '@/utils/exportUtils';
 
 // User CSV configuration
 export const userCSVConfig: CSVConfig<User> = {
@@ -46,6 +48,52 @@ export const userCSVConfig: CSVConfig<User> = {
 	return { data, errors };
   }
 };
+
+// User export columns for exportUtils
+export const userExportColumns: ExportColumn<User>[] = [
+  {
+    id: 'name',
+    header: 'Name',
+    key: 'name',
+    getValue: (user: User) => user.name,
+  },
+  {
+    id: 'email',
+    header: 'Email',
+    key: 'email',
+    getValue: (user: User) => user.email,
+  },
+  {
+    id: 'phone',
+    header: 'Phone',
+    key: 'phone',
+    getValue: (user: User) => user.phone ?? '',
+  },
+  {
+    id: 'position',
+    header: 'Position',
+    key: 'position',
+    getValue: (user: User) => user.position ?? '',
+  },
+  {
+    id: 'department',
+    header: 'Department',
+    key: 'department',
+    getValue: (user: User) => user.department ?? '',
+  },
+  {
+    id: 'location',
+    header: 'Location',
+    key: 'location',
+    getValue: (user: User) => user.location ?? '',
+  },
+  {
+    id: 'groupId',
+    header: 'User Group',
+    key: 'groupId',
+    getValue: (user: User) => user.groupId,
+  },
+];
 
 export const useMaintainUser = () => {
   const { users, groups, deleteUser, addUser, updateUser } = useUserContext();
@@ -202,40 +250,48 @@ export const useMaintainUser = () => {
 		fileInputRef.current?.click();
 	};
   
-  const handleExportCSV = () => {
-		try {
-		exportToCSV(users, userCSVConfig);
-		addToast({
-			variant: 'success',
-			title: 'Export Successful',
-			description: 'Users exported to CSV successfully.',
-		});
-		} catch {
-		addToast({
-			variant: 'error',
-			title: 'Export Failed',
-			description: 'Failed to export users to CSV.',
-		});
-		}
-	};
+  const handleExportData = (format: string) => {
+  try {
+  exportTableData(
+  	users,
+  	userExportColumns,
+  	userExportColumns.map(c => c.id),
+  	format,
+  	'users',
+  	undefined,
+  	{ htmlTitle: 'Users Export' }
+  );
+  addToast({
+  	variant: 'success',
+  	title: 'Export Successful',
+  	description: `Users exported to ${format.toUpperCase()} successfully.`,
+  });
+  } catch {
+  addToast({
+  	variant: 'error',
+  	title: 'Export Failed',
+  	description: `Failed to export users to ${format.toUpperCase()}.`,
+  });
+  }
+ };
 
 	return {
-    users,
-    groups,
-    fileInputRef,
-    isModalOpen,
-    editingUser,
-    deleteDialogOpen,
-    userToDelete,
-    handleAddUser,
-    handleEditUser,
-    handleSaveUser,
-    handleCloseModal,
-    handleDeleteClick,
-    handleConfirmDelete,
-    handleCancelDelete,
-    handleExportCSV,
-    handleImportCSV,
-    handleFileChange,
+	   users,
+	   groups,
+	   fileInputRef,
+	   isModalOpen,
+	   editingUser,
+	   deleteDialogOpen,
+	   userToDelete,
+	   handleAddUser,
+	   handleEditUser,
+	   handleSaveUser,
+	   handleCloseModal,
+	   handleDeleteClick,
+	   handleConfirmDelete,
+	   handleCancelDelete,
+	   handleExportData,
+	   handleImportCSV,
+	   handleFileChange,
 	}
 }

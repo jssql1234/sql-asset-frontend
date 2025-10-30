@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/components";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useManageHPPayment, type UseManageHPPaymentProps } from "../hooks/useManageHPPayment";
+import { EarlySettlementDialog } from "./EarlySettlementDialog";
 
 interface ManageHPPaymentModalProps extends UseManageHPPaymentProps {
   isOpen: boolean;
@@ -24,10 +25,15 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
     financialYearGroups,
     totals,
     expandedYears,
+    paymentSchedule,
+    isEarlySettlementOpen,
     toggleEditMode,
     toggleYearExpansion,
     resetPaymentSchedule,
     savePaymentSchedule,
+    openEarlySettlement,
+    closeEarlySettlement,
+    applyEarlySettlement,
   } = useManageHPPayment(paymentProps);
 
   return (
@@ -47,7 +53,7 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
               )}
               {isEditMode && (
                 <>
-                  <Button onClick={() => { console.log('Early Settlement clicked'); }} variant="outline">
+                  <Button onClick={openEarlySettlement} variant="outline">
                     Early Settlement
                   </Button>
                   <Button onClick={resetPaymentSchedule} variant="outline">
@@ -182,6 +188,14 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
           </div>
         </div>
       </DialogContent>
+
+      {/* Early Settlement Dialog */}
+      <EarlySettlementDialog
+        isOpen={isEarlySettlementOpen}
+        onClose={closeEarlySettlement}
+        paymentSchedule={paymentSchedule}
+        onApply={applyEarlySettlement}
+      />
     </Dialog>
   );
 };

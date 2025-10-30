@@ -22,6 +22,7 @@ export const useManageHPPayment = ({
   const [financialYearGroups, setFinancialYearGroups] = useState<FinancialYearGroup[]>([]);
   const [totals, setTotals] = useState<{ totalInstalments: number; totalPrincipal: number; totalInterest: number; totalInstalmentAmount: number; totalPaymentMade: number } | null>(null);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(() => new Set()); // Track expanded YA groups
+  const [isEarlySettlementOpen, setIsEarlySettlementOpen] = useState(false);
 
   // Load payment schedule when data changes
   useEffect(() => {
@@ -120,6 +121,30 @@ export const useManageHPPayment = ({
     setExpandedYears(newExpanded);
   };
 
+  const openEarlySettlement = () => {
+    setIsEarlySettlementOpen(true);
+  };
+
+  const closeEarlySettlement = () => {
+    setIsEarlySettlementOpen(false);
+  };
+
+  const applyEarlySettlement = (settlementMonth: number, interestAmount: number) => {
+    // Apply early settlement logic
+    const newSchedule = [...paymentSchedule];
+    for (let i = settlementMonth; i < newSchedule.length; i++) {
+      newSchedule[i] = {
+        ...newSchedule[i],
+        principalAmount: 0,
+        interestAmount: 0,
+        totalInstalmentAmount: 0,
+        outstandingPrincipal: 0,
+      };
+    }
+    setPaymentSchedule(newSchedule);
+    setIsEarlySettlementOpen(false);
+  };
+
   const savePaymentSchedule = () => {
     // TODO: Implement save functionality
     console.log('Saving payment schedule:', paymentSchedule);
@@ -132,9 +157,13 @@ export const useManageHPPayment = ({
     financialYearGroups,
     totals,
     expandedYears,
+    isEarlySettlementOpen,
     toggleEditMode,
     toggleYearExpansion,
     resetPaymentSchedule,
     savePaymentSchedule,
+    openEarlySettlement,
+    closeEarlySettlement,
+    applyEarlySettlement,
   };
 };

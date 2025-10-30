@@ -1,33 +1,53 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
-import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
+import {
+  useUpdateDowntimeIncident,
+  useDeleteDowntimeIncident,
+} from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { Trash2 } from "lucide-react";
-import { downtimeAssetGroups, downtimeAssets } from "@/features/downtime/mockData";
+import { ReadOnlyField } from "./ReadOnlyField";
+import {
+  DEFAULT_ASSET_CATEGORY,
+  useAssetCategories,
+  useFilteredAssetItems,
+  useFormErrors,
+  useDateTimeChange,
+} from "@/features/downtime/hooks/useDowntimeForm";
 
-interface EditIncidentModalProps { open: boolean; incident: DowntimeIncident | null; onClose: () => void }
-interface ReadOnlyFieldProps { label: React.ReactNode; valueClassName?: string; children: React.ReactNode }
-interface AssetDropdownItem { id: string; label: string; groupId: string; groupLabel: string }
+interface EditIncidentModalProps {
+  open: boolean;
+  incident: DowntimeIncident | null;
+  onClose: () => void;
+}
 
-const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, valueClassName, children }) => (
-  <div className="rounded-lg border border-outlineVariant/60 bg-surfaceContainerLow px-3 py-2">
-    <span className="label-small text-onSurfaceVariant">{label}</span>
-    <div className={`mt-1 text-onSurface body-medium ${valueClassName ?? ""}`}>
-      {children}
-    </div>
-  </div>
-);
-
-const DEFAULT_ASSET_CATEGORY = "all" as const;
-
-const getDefaultFormData = (): EditDowntimeInput => ({ id: "", assetIds: [], priority: "Low", status: "Down", description: "", 
-                                                       startTime: new Date().toISOString(), endTime: undefined, resolutionNotes: "" });
+const getDefaultFormData = (): EditDowntimeInput => ({
+  id: "",
+  assetIds: [],
+  priority: "Low",
+  status: "Down",
+  description: "",
+  startTime: new Date().toISOString(),
+  endTime: undefined,
+  resolutionNotes: "",
+});
 
 export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   open,
@@ -35,18 +55,24 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   onClose,
 }) => {
   const [formData, setFormData] = useState<EditDowntimeInput>(getDefaultFormData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
-  
+
+  const { errors, setFieldErrors, clearErrors } = useFormErrors();
+  const { assetCategories, allAssetItemsMap } = useAssetCategories(incident);
+  const assetItems = useFilteredAssetItems(selectedCategoryId, allAssetItemsMap, formData.assetIds);
+  const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
+    clearErrors(field);
+  });
+
   const resetForm = useCallback(() => {
     setFormData(getDefaultFormData());
-    setErrors({});
+    setFieldErrors({});
     setIsDeleteDialogOpen(false);
     setIsEditMode(false);
     setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
-  }, []);
+  }, [setFieldErrors]);
 
   const handleClose = useCallback(() => {
     resetForm();
@@ -71,68 +97,11 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         reportedBy: incident.reportedBy,
         resolvedBy: incident.resolvedBy,
       });
-      setErrors({});
+      setFieldErrors({});
       setIsEditMode(false);
       setSelectedCategoryId(incident.assets[0]?.groupId ?? DEFAULT_ASSET_CATEGORY);
     }
-  }, [incident, open]);
-
-  const assetCategories = useMemo(
-    () => [
-      { id: DEFAULT_ASSET_CATEGORY, label: "All Assets" },
-      ...downtimeAssetGroups.map((group) => ({
-        id: group.id,
-        label: group.label,
-      })),
-    ],
-    []
-  );
-
-  const allAssetItemsMap = useMemo(() => {
-    const map = new Map<string, AssetDropdownItem>();
-    downtimeAssets.forEach((asset) => {
-      map.set(asset.id, {
-        id: asset.id,
-        label: `${asset.name} (${asset.id})`,
-        groupId: asset.groupId,
-        groupLabel: asset.groupLabel,
-      });
-    });
-    
-    // Add incident assets if available
-    incident?.assets.forEach((asset) => {
-      if (!map.has(asset.id)) {
-        map.set(asset.id, {
-          id: asset.id,
-          label: `${asset.name} (${asset.id})`,
-          groupId: asset.groupId ?? DEFAULT_ASSET_CATEGORY,
-          groupLabel: asset.groupLabel ?? "Other Assets",
-        });
-      }
-    });
-    
-    return map;
-  }, [incident]);
-
-  const assetItems = useMemo(() => {
-    const allItems = Array.from(allAssetItemsMap.values());
-    const filteredItems = selectedCategoryId === DEFAULT_ASSET_CATEGORY
-      ? allItems
-      : allItems.filter((item) => item.groupId === selectedCategoryId);
-
-    // Ensure selected assets are always included
-    const itemMap = new Map<string, AssetDropdownItem>();
-    filteredItems.forEach((item) => itemMap.set(item.id, item));
-    
-    formData.assetIds.forEach((id) => {
-      if (!itemMap.has(id)) {
-        const match = allAssetItemsMap.get(id);
-        if (match) itemMap.set(id, match);
-      }
-    });
-
-    return Array.from(itemMap.values());
-  }, [selectedCategoryId, allAssetItemsMap, formData.assetIds]);
+  }, [incident, open, setFieldErrors]);
 
   const selectedAssets = useMemo(
     () =>
@@ -147,13 +116,13 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     [formData.assetIds, allAssetItemsMap]
   );
 
-  const handleAssetSelectionChange = useCallback((selectedIds: string[]) => {
-    setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
-    setErrors((prev) => ({
-      ...prev,
-      assetIds: selectedIds.length === 0 ? "Select at least one asset" : "",
-    }));
-  }, []);
+  const handleAssetSelectionChange = useCallback(
+    (selectedIds: string[]) => {
+      setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
+      clearErrors(selectedIds.length === 0 ? "" : "assetIds");
+    },
+    [clearErrors]
+  );
 
   const handleDeleteClick = useCallback(() => {
     if (incident) setIsDeleteDialogOpen(true);
@@ -170,61 +139,54 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
     setIsDeleteDialogOpen(false);
   }, []);
 
-  const handleSubmit = useCallback(async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    
-    const validation = editDowntimeSchema.safeParse(formData);
-    
-    if (!validation.success) {
-      const fieldErrors: Record<string, string> = {};
-      validation.error.issues.forEach((issue) => {
-        fieldErrors[issue.path.join(".")] = issue.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-    
-    setErrors({});
-    await updateMutation.mutateAsync(validation.data);
-  }, [formData, updateMutation]);
+  const handleSubmit = useCallback(
+    async (e?: React.FormEvent) => {
+      e?.preventDefault();
 
-  const handleInputChange = useCallback((field: keyof EditDowntimeInput) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }));
-    setErrors(prev => ({ ...prev, [field]: "" }));
-  }, []);
+      const validation = editDowntimeSchema.safeParse(formData);
+
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.issues.forEach((issue) => {
+          fieldErrors[issue.path.join(".")] = issue.message;
+        });
+        setFieldErrors(fieldErrors);
+        return;
+      }
+
+      setFieldErrors({});
+      await updateMutation.mutateAsync(validation.data);
+    },
+    [formData, updateMutation, setFieldErrors]
+  );
+
+  const handleInputChange = useCallback(
+    (field: keyof EditDowntimeInput) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+      clearErrors(field);
+    },
+    [clearErrors]
+  );
 
   const handlePrioritySelect = useCallback((priority: EditDowntimeInput["priority"]) => {
-    setFormData(prev => ({ ...prev, priority }));
+    setFormData((prev) => ({ ...prev, priority }));
   }, []);
 
-  const handleStatusSelect = useCallback((status: EditDowntimeInput["status"]) => {
-    setFormData((prev) => ({
-      ...prev,
-      status,
-      endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
-      resolutionNotes: status !== "Resolved" ? "" : prev.resolutionNotes,
-    }));
-    setErrors((prev) => ({ ...prev, status: "", endTime: "", resolutionNotes: "" }));
-  }, []);
+  const handleStatusSelect = useCallback(
+    (status: EditDowntimeInput["status"]) => {
+      setFormData((prev) => ({
+        ...prev,
+        status,
+        endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
+        resolutionNotes: status !== "Resolved" ? "" : prev.resolutionNotes,
+      }));
+      clearErrors("status", "endTime", "resolutionNotes");
+    },
+    [clearErrors]
+  );
 
-  const handleDateTimeChange = useCallback((field: "startTime" | "endTime") => (
-    date: string | Date | Date[] | string[] | undefined | null
-  ) => {
-    if (date === null || date === undefined || (Array.isArray(date) && date.length === 0)) {
-      setFormData((prev) => ({ ...prev, [field]: field === "endTime" ? undefined : "" }));
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-      return;
-    }
-
-    const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
-    setFormData((prev) => ({ ...prev, [field]: isoDate }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-  }, []);
-
-  const toggleEditMode = useCallback(() => { 
-    setIsEditMode(true); 
+  const toggleEditMode = useCallback(() => {
+    setIsEditMode(true);
   }, []);
 
   const toggleCancelEdit = useCallback(() => {

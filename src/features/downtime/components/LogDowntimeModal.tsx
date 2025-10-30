@@ -1,5 +1,16 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  Button,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
@@ -7,12 +18,18 @@ import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchema
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import { downtimeAssetGroups, downtimeAssets } from "@/features/downtime/mockData";
+import {
+  DEFAULT_ASSET_CATEGORY,
+  useAssetCategories,
+  useFilteredAssetItems,
+  useFormErrors,
+  useDateTimeChange,
+} from "@/features/downtime/hooks/useDowntimeForm";
 
-interface LogDowntimeModalProps { open: boolean; onClose: () => void }
-interface AssetDropdownItem { id: string; label: string; groupId: string; groupLabel: string }
-
-const DEFAULT_ASSET_CATEGORY = "all" as const;
+interface LogDowntimeModalProps {
+  open: boolean;
+  onClose: () => void;
+}
 
 const getDefaultFormData = (): CreateDowntimeInput => ({
   assetIds: [],
@@ -23,19 +40,22 @@ const getDefaultFormData = (): CreateDowntimeInput => ({
   resolutionNotes: "",
 });
 
-export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
-  open,
-  onClose,
-}) => {
+export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClose }) => {
   const [formData, setFormData] = useState<CreateDowntimeInput>(getDefaultFormData);
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
-  
+
+  const { errors, setFieldErrors, clearErrors } = useFormErrors();
+  const { assetCategories, allAssetItemsMap } = useAssetCategories();
+  const assetItems = useFilteredAssetItems(selectedCategoryId, allAssetItemsMap, formData.assetIds);
+  const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
+    clearErrors(field);
+  });
+
   const resetForm = useCallback(() => {
     setFormData(getDefaultFormData());
-    setErrors({});
+    setFieldErrors({});
     setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
-  }, []);
+  }, [setFieldErrors]);
 
   const handleClose = useCallback(() => {
     resetForm();
@@ -49,126 +69,81 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
     if (open) resetForm();
   }, [open, resetForm]);
 
-  const assetCategories = useMemo(
-    () => [
-      { id: DEFAULT_ASSET_CATEGORY, label: "All Assets" },
-      ...downtimeAssetGroups.map((group) => ({
-        id: group.id,
-        label: group.label,
-      })),
-    ],
-    []
+  const handleAssetSelectionChange = useCallback(
+    (selectedIds: string[]) => {
+      setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
+      clearErrors(selectedIds.length === 0 ? "" : "assetIds");
+    },
+    [clearErrors]
   );
 
-  const allAssetItemsMap = useMemo(() => {
-    const map = new Map<string, AssetDropdownItem>();
-    downtimeAssets.forEach((asset) => {
-      map.set(asset.id, {
-        id: asset.id,
-        label: `${asset.name} (${asset.id})`,
-        groupId: asset.groupId,
-        groupLabel: asset.groupLabel,
-      });
-    });
-    return map;
-  }, []);
+  const handleSubmit = useCallback(
+    (e?: React.FormEvent) => {
+      e?.preventDefault();
 
-  const assetItems = useMemo(() => {
-    const allItems = Array.from(allAssetItemsMap.values());
-    const filteredItems = selectedCategoryId === DEFAULT_ASSET_CATEGORY
-      ? allItems
-      : allItems.filter((item) => item.groupId === selectedCategoryId);
+      const validation = createDowntimeSchema.safeParse(formData);
 
-    const itemMap = new Map<string, AssetDropdownItem>();
-    filteredItems.forEach((item) => itemMap.set(item.id, item));
-
-    formData.assetIds.forEach((id) => {
-      if (!itemMap.has(id)) {
-        const match = allAssetItemsMap.get(id);
-        if (match) itemMap.set(id, match);
+      if (!validation.success) {
+        const fieldErrors: Record<string, string> = {};
+        validation.error.issues.forEach((issue) => {
+          fieldErrors[issue.path.join(".")] = issue.message;
+        });
+        setFieldErrors(fieldErrors);
+        return;
       }
-    });
 
-    return Array.from(itemMap.values());
-  }, [selectedCategoryId, allAssetItemsMap, formData.assetIds]);
-
-  const handleAssetSelectionChange = useCallback((selectedIds: string[]) => {
-    setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
-    setErrors((prev) => ({
-      ...prev,
-      assetIds: selectedIds.length === 0 ? "Select at least one asset" : "",
-    }));
-  }, []);
-
-  const handleSubmit = useCallback((e?: React.FormEvent) => {
-    e?.preventDefault();
-
-    const validation = createDowntimeSchema.safeParse(formData);
-
-    if (!validation.success) {
-      const fieldErrors: Record<string, string> = {};
-      validation.error.issues.forEach((issue) => {
-        fieldErrors[issue.path.join(".")] = issue.message;
-      });
-      setErrors(fieldErrors);
-      return;
-    }
-
-    setErrors({});
-    createMutation.mutate(validation.data);
-  }, [formData, createMutation]);
+      setFieldErrors({});
+      createMutation.mutate(validation.data);
+    },
+    [formData, createMutation, setFieldErrors]
+  );
 
   const handlePrioritySelect = useCallback((priority: CreateDowntimeInput["priority"]) => {
     setFormData((prev) => ({ ...prev, priority }));
   }, []);
 
-  const handleStatusSelect = useCallback((status: CreateDowntimeInput["status"]) => {
-    setFormData((prev) => {
-      const newData: CreateDowntimeInput = {
-        ...prev,
-        status,
-        endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
-      };
-      
-      // When switching to Resolved, move description to resolutionNotes if resolutionNotes is empty
-      if (status === "Resolved" && !prev.resolutionNotes && prev.description) {
-        newData.resolutionNotes = prev.description;
-        newData.description = "";
-      }
-      // When switching from Resolved to Down, move resolutionNotes to description if description is empty
-      else if (status === "Down" && !prev.description && prev.resolutionNotes) {
-        newData.description = prev.resolutionNotes;
-        newData.resolutionNotes = "";
-      }
-      
-      return newData;
-    });
-    setErrors((prev) => ({ ...prev, status: "", endTime: "", description: "", resolutionNotes: "" }));
-  }, []);
+  const handleStatusSelect = useCallback(
+    (status: CreateDowntimeInput["status"]) => {
+      setFormData((prev) => {
+        const newData: CreateDowntimeInput = {
+          ...prev,
+          status,
+          endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
+        };
 
-  const handleDateTimeChange = useCallback((field: "startTime" | "endTime") => (
-    date: string | Date | Date[] | string[] | undefined | null
-  ) => {
-    if (date === null || date === undefined || (Array.isArray(date) && date.length === 0)) {
-      setFormData((prev) => ({ ...prev, [field]: field === "endTime" ? undefined : "" }));
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-      return;
-    }
+        // When switching to Resolved, move description to resolutionNotes if resolutionNotes is empty
+        if (status === "Resolved" && !prev.resolutionNotes && prev.description) {
+          newData.resolutionNotes = prev.description;
+          newData.description = "";
+        }
+        // When switching from Resolved to Down, move resolutionNotes to description if description is empty
+        else if (status === "Down" && !prev.description && prev.resolutionNotes) {
+          newData.description = prev.resolutionNotes;
+          newData.resolutionNotes = "";
+        }
 
-    const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
-    setFormData((prev) => ({ ...prev, [field]: isoDate }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-  }, []);
+        return newData;
+      });
+      clearErrors("status", "endTime", "description", "resolutionNotes");
+    },
+    [clearErrors]
+  );
 
-  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, description: e.target.value }));
-    setErrors((prev) => ({ ...prev, description: "" }));
-  }, []);
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setFormData((prev) => ({ ...prev, description: e.target.value }));
+      clearErrors("description");
+    },
+    [clearErrors]
+  );
 
-  const handleResolutionNotesChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, resolutionNotes: e.target.value }));
-    setErrors((prev) => ({ ...prev, resolutionNotes: "" }));
-  }, []);
+  const handleResolutionNotesChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      setFormData((prev) => ({ ...prev, resolutionNotes: e.target.value }));
+      clearErrors("resolutionNotes");
+    },
+    [clearErrors]
+  );
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { 

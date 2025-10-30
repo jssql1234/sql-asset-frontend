@@ -1,8 +1,12 @@
 import type { DowntimeAssetInfo, DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import { getDowntimeAssetInfo, getDowntimeAssetName, mockActiveIncidents, mockResolvedIncidents } from "../mockData";
+import {
+  getDowntimeAssetInfo,
+  getDowntimeAssetName,
+  mockActiveIncidents,
+  mockResolvedIncidents,
+} from "../mockData";
 
-// Utility functions for date/time formatting and duration calculations
 /**
  * Calculate the duration between two timestamps
  * @param startTime - Start timestamp in ISO format
@@ -11,12 +15,12 @@ import { getDowntimeAssetInfo, getDowntimeAssetName, mockActiveIncidents, mockRe
  */
 export const calculateDuration = (startTime: string, endTime: string): string => {
   const diffMs = new Date(endTime).getTime() - new Date(startTime).getTime();
-  
+
   if (diffMs < 0) return "0m";
-  
+
   const hours = Math.floor(diffMs / (1000 * 60 * 60));
   const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-  
+
   return hours === 0 ? `${String(minutes)}m` : `${String(hours)}h ${String(minutes)}m`;
 };
 
@@ -50,20 +54,20 @@ let incidentsStore: DowntimeIncident[] = [];
 let resolvedStore: DowntimeIncident[] = [];
 let nextId = 100; // Start IDs from 100 for new incidents
 
-// Initialize mock data
+/**
+ * Initialize mock data stores
+ */
 const initializeMockData = (): void => {
   if (incidentsStore.length === 0 && resolvedStore.length === 0) {
-    // Create some active incidents
     incidentsStore = [...mockActiveIncidents];
-
-    // Create some resolved incidents
     resolvedStore = [...mockResolvedIncidents];
-
     nextId = 6;
   }
 };
 
-// Helper to convert asset ID to asset info
+/**
+ * Convert asset ID to asset info object
+ */
 const mapAssetIdToInfo = (assetId: string): DowntimeAssetInfo => {
   const assetInfo = getDowntimeAssetInfo(assetId);
   return {
@@ -75,12 +79,14 @@ const mapAssetIdToInfo = (assetId: string): DowntimeAssetInfo => {
   };
 };
 
-// Helper function to calculate summary statistics
+/**
+ * Calculate summary statistics from incident stores
+ */
 const calculateSummary = (): DowntimeSummary => {
-  const activeIncidents = incidentsStore.filter(i => i.status === "Down").length;
+  const activeIncidents = incidentsStore.filter((i) => i.status === "Down").length;
   const totalIncidents = incidentsStore.length + resolvedStore.length;
   const totalResolved = resolvedStore.length;
-  
+
   // Calculate total downtime from resolved incidents
   const totalMinutes = resolvedStore.reduce((acc, incident) => {
     if (incident.startTime && incident.endTime) {
@@ -89,11 +95,11 @@ const calculateSummary = (): DowntimeSummary => {
     }
     return acc;
   }, 0);
-  
+
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   const totalDowntime = `${String(hours)}h ${String(minutes)}m`;
-  
+
   return {
     activeIncidents,
     totalIncidents,
@@ -150,11 +156,12 @@ export const updateDowntimeIncident = (input: EditDowntimeInput): DowntimeIncide
   const existingActiveIndex = incidentsStore.findIndex((incident) => incident.id === input.id);
   const existingResolvedIndex = resolvedStore.findIndex((incident) => incident.id === input.id);
 
-  const baseIncident = existingActiveIndex !== -1 
-    ? incidentsStore[existingActiveIndex]
-    : existingResolvedIndex !== -1 
-    ? resolvedStore[existingResolvedIndex]
-    : null;
+  const baseIncident =
+    existingActiveIndex !== -1
+      ? incidentsStore[existingActiveIndex]
+      : existingResolvedIndex !== -1
+        ? resolvedStore[existingResolvedIndex]
+        : null;
 
   if (!baseIncident) throw new Error("Incident not found");
 
@@ -188,6 +195,6 @@ export const updateDowntimeIncident = (input: EditDowntimeInput): DowntimeIncide
 
 // Delete a downtime incident
 export const deleteDowntimeIncident = (id: string): void => {
-  incidentsStore = incidentsStore.filter(i => i.id !== id);
-  resolvedStore = resolvedStore.filter(i => i.id !== id);
+  incidentsStore = incidentsStore.filter((i) => i.id !== id);
+  resolvedStore = resolvedStore.filter((i) => i.id !== id);
 };

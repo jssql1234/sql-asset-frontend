@@ -3,7 +3,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 import type { DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import { fetchDowntimeIncidents, fetchResolvedIncidents, fetchDowntimeSummary, createDowntimeIncident, updateDowntimeIncident, deleteDowntimeIncident } from "../services/downtimeService";
+import {
+  fetchDowntimeIncidents,
+  fetchResolvedIncidents,
+  fetchDowntimeSummary,
+  createDowntimeIncident,
+  updateDowntimeIncident,
+  deleteDowntimeIncident,
+} from "../services/downtimeService";
 
 // Query keys for React Query cache management
 export const DOWNTIME_QUERY_KEYS = {
@@ -45,6 +52,17 @@ export function useGetDowntimeSummary() {
   });
 }
 
+/**
+ * Shared utility to invalidate all downtime-related queries
+ */
+const invalidateDowntimeQueries = async (queryClient: ReturnType<typeof useQueryClient>) => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
+    queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
+    queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
+  ]);
+};
+
 // Hook to create a new downtime incident
 export function useCreateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
@@ -53,18 +71,15 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (input: CreateDowntimeInput) => Promise.resolve(createDowntimeIncident(input)),
     onSuccess: async (_data, variables) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
-      ]);
+      await invalidateDowntimeQueries(queryClient);
 
       addToast({
         variant: "success",
         title: "Downtime Incident Created",
-        description: variables.assetIds.length > 1
-          ? `Downtime logged for ${String(variables.assetIds.length)} assets.`
-          : "The incident has been logged successfully",
+        description:
+          variables.assetIds.length > 1
+            ? `Downtime logged for ${String(variables.assetIds.length)} assets.`
+            : "The incident has been logged successfully",
         duration: 5000,
       });
 
@@ -88,18 +103,15 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
   return useMutation({
     mutationFn: (input: EditDowntimeInput) => Promise.resolve(updateDowntimeIncident(input)),
     onSuccess: async (_data, variables) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
-      ]);
+      await invalidateDowntimeQueries(queryClient);
 
       addToast({
         variant: "success",
         title: "Incident Updated",
-        description: variables.assetIds.length > 1
-          ? `The incident has been updated for ${String(variables.assetIds.length)} assets.`
-          : "The incident has been updated successfully",
+        description:
+          variables.assetIds.length > 1
+            ? `The incident has been updated for ${String(variables.assetIds.length)} assets.`
+            : "The incident has been updated successfully",
         duration: 5000,
       });
 
@@ -126,10 +138,7 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
       return Promise.resolve();
     },
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
-        queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.summary }),
-      ]);
+      await invalidateDowntimeQueries(queryClient);
 
       addToast({
         variant: "success",

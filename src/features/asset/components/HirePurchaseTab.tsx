@@ -85,12 +85,6 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
             position= "top"
           />
         </div>
-        {hpInstalmentValue === "other" && (
-          <div>
-            <label className="block text-sm font-medium text-onSurface">Custom Instalment</label>
-            <Input type="number" {...register("hpInstalmentUser")} disabled={isReadonly || !isHpEnabled} />
-          </div>
-        )}
         <div>
           <label className="block text-sm font-medium text-onSurface">Deposit Amount</label>
           <Input {...register("hpDeposit")} placeholder="0.00" disabled={isReadonly || !isHpEnabled} />

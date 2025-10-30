@@ -252,7 +252,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
           {/* Asset Selection */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-onSurface">
-              Search Assets <span className="text-error">*</span>
+              Assets <span className="text-error">*</span>
             </label>
             <SearchWithDropdown
               categories={assetCategories}
@@ -272,6 +272,7 @@ export const CreateWorkRequestModal: React.FC<CreateWorkRequestModalProps> = ({
               }}
               placeholder="Search asset by name or ID..."
               emptyMessage="No assets found"
+              hideSelectedField={true}
             />
             {errors.selectedAssets && (
               <p className="text-error body-small">Please select at least one asset</p>

@@ -517,6 +517,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         serialNumbers: [],
       });
 
+      // Set activeTab for editing
+      const targetTab = targetMode === 'batch' ? 'allocation' : getDefaultActiveTab();
+      setActiveTab(targetTab);
+
       // Reset the other form to defaults
       const otherForm = targetMode === 'normal' ? batchForm : normalForm;
       otherForm.reset(targetMode === 'normal' ? batchDefaultValues : normalDefaultValues);
@@ -527,7 +531,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       batchForm.reset(batchDefaultValues);
       // Prefill logic will be in separate effect
     }
-  }, [editingAsset, normalForm, batchForm, normalDefaultValues, batchDefaultValues]);
+  }, [editingAsset, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab]);
 
   // Set initial quantity for batch edit
   useEffect(() => {
@@ -1231,10 +1235,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
               {/* Tabs */}
               <Tabs
                 key={`tabs-${currentMode}`}
+                defaultValue={activeTab}
                 tabs={tabs}
                 variant={"underline"}
                 className="m-0"
-                defaultValue={activeTab}
                 onValueChange={setActiveTab}
               />
             </form>

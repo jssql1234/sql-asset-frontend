@@ -544,6 +544,56 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const isEditMode = Boolean(editingAsset);
   const title = isEditMode ? "Edit Asset" : "Create Asset";
 
+  // Container ref for layout calculations
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [layoutKey, setLayoutKey] = useState(0);
+
+  // Force layout recalculation on mount/edit mode change or mode switch to fix footer spacing issue
+  // This covers both entering edit mode and switching modes in creation mode
+  useEffect(() => {
+    // Use setTimeout to ensure this runs after React's initial render cycle
+    const timeoutId = setTimeout(() => {
+      // Update layoutKey to force remounting of keyed components
+      // This mimics the effect of switching tabs - React remounts content which triggers layout recalculation
+      setLayoutKey(prev => prev + 1);
+      
+      // Also trigger layout recalculation directly
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (containerRef.current) {
+            const _offsetHeight = containerRef.current.offsetHeight;
+            const _scrollHeight = containerRef.current.scrollHeight;
+            if (_offsetHeight === 0 || _scrollHeight === 0) {
+              return;
+            }
+          }
+          // Trigger resize to recalculate sticky positioning
+          window.dispatchEvent(new Event('resize'));
+        });
+      });
+    }, 100); // Small delay to ensure tabs are fully rendered
+    
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, [isEditMode, currentMode]); // Trigger on edit mode entry or mode switch
+
+  // Also trigger recalculation when activeTab changes (matches tab switch behavior)
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (containerRef.current) {
+          const _offsetHeight = containerRef.current.offsetHeight;
+          const _scrollHeight = containerRef.current.scrollHeight;
+          if (_offsetHeight === 0 || _scrollHeight === 0) {
+            return undefined;
+          }
+        }
+        window.dispatchEvent(new Event('resize'));
+      });
+    });
+  }, [activeTab]);
+
   // Memoize the serial numbers change handler to prevent unnecessary re-renders
   const handleSerialNumbersChange = useCallback((serialNumbers: SerialNumberData[]) => {
     activeSetValue("serialNumbers", serialNumbers);
@@ -947,7 +997,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // }
 
   return (
-    <div className="bg-surface min-h-screen">
+    <div ref={containerRef} className="bg-surface min-h-screen">
       <div className="mx-auto max-w-[1600px]">
         {/* Header/Title */}
         <div className="flex h-full flex-col gap-6 p-2 md:p-6">
@@ -1234,7 +1284,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
               {/* Tabs */}
               <Tabs
-                key={`tabs-${currentMode}`}
+                key={`tabs-${currentMode}-${String(layoutKey)}`}
                 defaultValue={activeTab}
                 tabs={tabs}
                 variant={"underline"}

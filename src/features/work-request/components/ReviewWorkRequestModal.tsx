@@ -16,6 +16,7 @@ import { MaintenanceHistoryTable } from './MaintenanceHistoryTable';
 import { CreateWorkOrderModal } from '@/features/work-order/components/CreateWorkOrderModal';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { workRequestService, maintenanceHistoryService } from '../services/workRequestService';
+import DeleteConfirmationDialog from './DeleteConfirmationDialog';
 
 import type { 
   WorkRequest,
@@ -51,6 +52,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
     description: string;
     jobTitle: string;
   } | null>(null);
+  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
 
   // Asset categories for SearchWithDropdown (disabled in review mode)
   const assetCategories = [
@@ -105,7 +107,7 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
     setIsCreateWorkOrderModalOpen(true);
   };
 
-  const handleWorkOrderCreated = async (data: WorkOrderFormData) => {
+  const handleWorkOrderCreated = async (_data: WorkOrderFormData) => {
     if (!workRequest) return;
 
     try {
@@ -173,6 +175,7 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
     setRejectReasonError(false);
     setIsCreateWorkOrderModalOpen(false);
     setPrefilledWorkOrderData(null);
+    setIsDeleteConfirmationOpen(false);
     onClose();
   };
 
@@ -327,7 +330,7 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
               // Show Delete button for APPROVED or REJECTED status
               <Button
                 variant="destructive"
-                onClick={handleDeleteWorkRequest}
+                onClick={() => setIsDeleteConfirmationOpen(true)}
               >
                 Delete
               </Button>
@@ -417,6 +420,17 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteConfirmationOpen}
+        onClose={() => setIsDeleteConfirmationOpen(false)}
+        onConfirm={handleDeleteWorkRequest}
+        itemCount={1}
+        itemType="work request"
+        itemIds={[workRequest.requestId]}
+        itemNames={[workRequest.requestId]}
+      />
     </>
   );
 };

@@ -1,7 +1,7 @@
 import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
-import DeleteGroupConfirmationDialog from '../components/DeleteGroupConfirmationDialog';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 import { ExportFile, Upload } from '@/assets/icons';
 import TabHeader from '@/components/TabHeader';
@@ -87,11 +87,12 @@ const MaintainUserGroupPage: React.FC = () => {
         />
 
         {/* Delete Confirmation Dialog */}
-        <DeleteGroupConfirmationDialog
+        <DeleteConfirmationDialog
           isOpen={deleteDialogOpen}
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
-          groupName={groupToDelete?.name ?? ''}
+          itemName={groupToDelete?.name ?? ''}
+          itemType="user group"
         />
       </div>
       

@@ -7,7 +7,7 @@ import TabHeader from '@/components/TabHeader';
 import { ExportFile, Upload } from '@/assets/icons';
 import { useMaintainUser } from '../hooks/useMaintainUser';
 import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
-import DeleteUserConfirmationDialog from '../components/DeleteUserConfirmationDialog';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { LocationFormModal } from '@/features/maintain/components/LocationFormModal';
 import { useLocations } from '@/features/maintain/hooks/useLocations';
 import { useDepartments } from '@/features/maintain/hooks/useDepartments';
@@ -129,11 +129,12 @@ const MaintainUserPage: React.FC = () => {
         departments={departments}
       />
 
-      <DeleteUserConfirmationDialog
+      <DeleteConfirmationDialog
         isOpen={deleteDialogOpen}
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
-        userName={userToDelete?.name ?? ''}
+        itemName={userToDelete?.name ?? ''}
+        itemType="user"
       />
 
       <UserGroupModal

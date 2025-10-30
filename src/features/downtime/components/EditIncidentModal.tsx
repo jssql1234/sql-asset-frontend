@@ -14,6 +14,7 @@ import {
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
@@ -194,10 +195,6 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
   }, []);
 
   if (!incident) return null;
-
-  const incidentAssetSummary = incident.assets
-    .map((asset) => `${asset.name} (${asset.id})`)
-    .join(", ");
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { 
@@ -412,38 +409,21 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           )}
         </DialogFooter>
       </DialogContent>
-      <Dialog open={isDeleteDialogOpen} onOpenChange={(isOpen) => {
-        if (isOpen) {
-          setIsDeleteDialogOpen(true);
-        } else {
-          handleCancelDelete();
-        }
-      }}>
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle className="text-error">Delete incident?</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-onSurfaceVariant text-sm">
-              This will permanently remove the downtime incident for
-              {" "}
-              <span className="font-medium text-onSurface">
-                {incidentAssetSummary || "selected assets"}
-              </span>
-              . This action cannot be undone.
-            </p>
-            <div className="flex items-start gap-3 rounded-lg border border-error bg-errorContainer/40 p-3">
-              <Trash2 className="h-5 w-5 text-error mt-0.5" />
-              <div className="text-sm text-error">Please confirm you want to proceed.</div>
-            </div>
-          </div>
 
-          <DialogFooter className="pt-4">
-            <Button variant="outline" type="button" onClick={handleCancelDelete}>Cancel</Button>
-            <Button variant="destructive" type="button" onClick={() => { void handleConfirmDelete(); }}>Delete Incident</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={() => { void handleConfirmDelete(); }}
+        isLoading={deleteMutation.isPending}
+        title="Delete incident?"
+        description="This will permanently remove the downtime incident for the following assets. This action cannot be undone."
+        itemType="incident"
+        confirmButtonText="Delete Incident"
+        itemIds={incident.assets.map((asset) => asset.id)}
+        itemNames={incident.assets.map((asset) => `${asset.name} (${asset.id})`)}
+        itemCount={incident.assets.length}
+      />
     </Dialog>
   );
 };

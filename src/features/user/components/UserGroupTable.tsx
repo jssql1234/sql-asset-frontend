@@ -35,6 +35,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
 
   const columns: ColumnDef<UserGroup>[] = [
     {
+      id: 'id',
       accessorKey: 'id',
       header: 'ID',
       cell: ({ getValue }) => (
@@ -43,6 +44,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
       enableColumnFilter: false,
     },
     {
+      id: 'name',
       accessorKey: 'name',
       header: 'Name',
       cell: ({ getValue }) => (
@@ -51,6 +53,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
       enableColumnFilter: false,
     },
     {
+      id: 'description',
       accessorKey: 'description',
       header: 'Description',
       cell: ({ getValue }) => (

@@ -49,7 +49,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         !searchLower ||
         workOrder.assetName.toLowerCase().includes(searchLower) ||
         workOrder.jobTitle.toLowerCase().includes(searchLower) ||
-        workOrder.workOrderNumber.toLowerCase().includes(searchLower);
+        workOrder.id.toLowerCase().includes(searchLower);
 
       const matchesAsset = !filters.assetId || workOrder.assetId === filters.assetId;
       const matchesType = !filters.type || workOrder.type === filters.type;
@@ -76,8 +76,8 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         accessorKey: "id",
         header: "ID",
         cell: ({ getValue }) => {
-          const woNumber = getValue() as string;
-          return <div className="w-20">{woNumber}</div>;
+          const id = getValue() as string;
+          return <div className="w-30">{id}</div>;
         },
       },
       {

@@ -287,45 +287,13 @@ export function DataTableExtended<TData, TValue>({
   const containerRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(false);
   const [hasMounted, setHasMounted] = useState(false);
-  const pendingRowSelectionRef = useRef<Record<string, boolean> | null>(null);
-  const latestOnRowSelectionChangeRef = useRef<typeof onRowSelectionChange>(onRowSelectionChange);
-  useEffect(() => { latestOnRowSelectionChangeRef.current = onRowSelectionChange; }, [onRowSelectionChange]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
-  const [internalGrouping, setInternalGrouping] = useState<GroupingState>([]);
-  const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
-  
-  const currentRowSelection = rowSelection ?? internalRowSelection;
-  const currentGrouping = grouping ?? internalGrouping;
-  const currentExpanded = expanded ?? internalExpanded;
 
-  // Track mount status
-  useEffect(() => {
-    isMountedRef.current = true;
-    setHasMounted(true);
-    // Flush any pending selection captured before mount
-    if (pendingRowSelectionRef.current) {
-      const pending = pendingRowSelectionRef.current;
-      if (!rowSelection) {
-        setInternalRowSelection(pending);
-      }
-      const cb = latestOnRowSelectionChangeRef.current;
-      if (cb) {
-        const selectedRowIds = Object.keys(pending).filter((key) => pending[key]);
-        const selectedRows = selectedRowIds
-          .map((id) => table.getRow(id))
-          .map((row) => row.original);
-        try { cb(selectedRows, selectedRowIds); } catch { /* no-op */ }
-      }
-      pendingRowSelectionRef.current = null;
-    }
-    return () => {
-      isMountedRef.current = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  
+  const currentRowSelection = rowSelection ?? {};
+  const currentGrouping = grouping ?? [];
+  const currentExpanded = expanded ?? {};
+
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
     if (showCheckbox) {
@@ -335,54 +303,15 @@ export function DataTableExtended<TData, TValue>({
       const customSelectionColumn: ColumnDef<TData, TValue> = {
         id: "select",
         meta: { order: 0 }, // Ensure selection column is always first
-        header: ({ table }) => {
-          if (isGroupingEnabled) {
-            // Custom logic for grouping mode - only consider group rows
-            const allGroupRows = table.getRowModel().rows.filter(row => row.getIsGrouped());
-            const allSelected = allGroupRows.length > 0 && allGroupRows.every(row => row.getIsSelected());
-            const someSelected = allGroupRows.some(row => row.getIsSelected());
-            
-            const handleToggleAll = () => {
-              // Use table.setRowSelection to update all group rows at once
-              if (allSelected) {
-                // Deselect all group rows
-                const deselectedState: Record<string, boolean> = {};
-                allGroupRows.forEach(row => {
-                  deselectedState[row.id] = false;
-                });
-                table.setRowSelection(deselectedState);
-              } else {
-                // Select all group rows
-                const selectedState: Record<string, boolean> = {};
-                allGroupRows.forEach(row => {
-                  selectedState[row.id] = true;
-                });
-                table.setRowSelection(selectedState);
-              }
-            };
-            
-            return (
-              <div className="flex items-center gap-4">
-                <Option
-                  checked={allSelected}
-                  indeterminate={someSelected && !allSelected}
-                  onChange={handleToggleAll}
-                />
-              </div>
-            );
-          } else {
-            // Use standard TanStack Table behavior for non-grouping mode
-            return (
-              <div className="flex items-center gap-4">
-                <Option
-                  checked={table.getIsAllRowsSelected()}
-                  indeterminate={table.getIsSomeRowsSelected()}
-                  onChange={table.getToggleAllRowsSelectedHandler()}
-                />
-              </div>
-            );
-          }
-        },
+        header: ({ table }) => (
+          <div className="flex items-center gap-4">
+            <Option
+              checked={table.getIsAllRowsSelected()}
+              indeterminate={table.getIsSomeRowsSelected()}
+              onChange={table.getToggleAllRowsSelectedHandler()}
+            />
+          </div>
+        ),
         cell: ({ row }) => {
           // In grouping mode, disable selection for leaf rows
           const canSelect = isGroupingEnabled ? row.getIsGrouped() : row.getCanSelect();
@@ -417,7 +346,7 @@ export function DataTableExtended<TData, TValue>({
     }
     return columns;
   }, [columns, showCheckbox, enableGrouping, currentGrouping]);
-  
+
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
     const columnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
     // Ensure selection column is first in initial order
@@ -428,7 +357,7 @@ export function DataTableExtended<TData, TValue>({
     }
     return columnIds;
   });
-  
+
   // DnD state
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);  // Add back for drop indicator
@@ -506,16 +435,16 @@ export function DataTableExtended<TData, TValue>({
     data,
     columns: effectiveColumns,  // Use effective columns here
     enableRowSelection: showCheckbox || enableRowClickSelection,
-    onColumnOrderChange: hasMounted ? ((updaterOrValue) => {
-      if (isMountedRef.current) {
-        setColumnOrder(
-          typeof updaterOrValue === 'function'
-            ? (updaterOrValue as (prev: string[]) => string[])(columnOrder)
-            : updaterOrValue
-        );
-      }
-      // Ignore pre-mount updates from table init
-    }) : undefined,
+    autoResetPageIndex: hasMounted,
+    onColumnOrderChange: ((updaterOrValue) => {
+      // Always define callback but guard execution
+      if (!isMountedRef.current) return;
+      setColumnOrder(
+        typeof updaterOrValue === 'function'
+          ? (updaterOrValue as (prev: string[]) => string[])(columnOrder)
+          : updaterOrValue
+      );
+    }),
     filterFromLeafRows: true,
     getCoreRowModel: getCoreRowModel(),
     
@@ -536,7 +465,7 @@ export function DataTableExtended<TData, TValue>({
       getExpandedRowModel: getExpandedRowModel(),
     }),
     
-    onSortingChange: hasMounted ? ((updaterOrValue) => {
+    onSortingChange: ((updaterOrValue) => {
       if (isMountedRef.current) {
         setSorting(
           typeof updaterOrValue === 'function' 
@@ -544,8 +473,9 @@ export function DataTableExtended<TData, TValue>({
             : updaterOrValue
         );
       }
-    }) : undefined,
-    onColumnFiltersChange: hasMounted ? ((updaterOrValue) => {
+    }),
+
+    onColumnFiltersChange: ((updaterOrValue) => {
       if (isMountedRef.current) {
         setColumnFilters(
           typeof updaterOrValue === 'function' 
@@ -553,79 +483,38 @@ export function DataTableExtended<TData, TValue>({
             : updaterOrValue
         );
       }
-    }) : undefined,
-    onRowSelectionChange: hasMounted ? ((updaterOrValue) => {
+    }),
+
+    onRowSelectionChange: ((updaterOrValue) => {
       const newSelection =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentRowSelection) : updaterOrValue;
 
-      // In grouping mode, filter out leaf rows from the selection state as a safety measure
-      const isGroupingEnabled = enableGrouping && currentGrouping.length > 0;
-      let filteredSelection = newSelection;
-      
-      if (isGroupingEnabled) {
-        // Only keep group rows in the selection state
-        filteredSelection = Object.keys(newSelection).reduce<Record<string, boolean>>((acc, key) => {
-          try {
-            const row = table.getRow(key);
-            // Only include group rows in the selection state
-            if (row.getIsGrouped() && newSelection[key]) {
-              acc[key] = true;
-            }
-          } catch {
-            // Row not found, skip it
-          }
-          return acc;
-        }, {});
-      }
+      if (JSON.stringify(newSelection) === JSON.stringify(currentRowSelection)) return;
 
-      if (!rowSelection) {
-        if (isMountedRef.current) {
-          setInternalRowSelection(filteredSelection);
-        } else {
-          pendingRowSelectionRef.current = filteredSelection;
-        }
+      if (onRowSelectionChange && isMountedRef.current) {
+        const selectedRowIds = Object.keys(newSelection).filter((key) => newSelection[key]);
+        const selectedRows = selectedRowIds.map((id) => table.getRow(id).original);
+        onRowSelectionChange(selectedRows, selectedRowIds);
       }
+    }),
 
-      if (onRowSelectionChange) {
-        if (isMountedRef.current) {
-          const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
-          const selectedRows = selectedRowIds
-            .map((id) => table.getRow(id))
-            .map((row) => row.original);
-          onRowSelectionChange(selectedRows, selectedRowIds);
-        } else {
-          pendingRowSelectionRef.current = filteredSelection;
-        }
-      }
-    }) : undefined,
-    onGroupingChange: hasMounted ? ((updaterOrValue) => {
+    onGroupingChange: ((updaterOrValue) => {
       const newGrouping =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentGrouping) : updaterOrValue;
 
-      if (!grouping) {
-        if (isMountedRef.current) {
-          setInternalGrouping(newGrouping);
-        }
-      }
-
-      if (onGroupingChange) {
+      if (onGroupingChange && isMountedRef.current) {
         onGroupingChange(newGrouping);
       }
-    }) : undefined,
-    onExpandedChange: hasMounted ? ((updaterOrValue) => {
+    }),
+
+    onExpandedChange: ((updaterOrValue) => {
       const newExpanded =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
 
-      if (!expanded) {
-        if (isMountedRef.current) {
-          setInternalExpanded(newExpanded);
-        }
-      }
-
-      if (onExpandedChange) {
+      if (onExpandedChange && isMountedRef.current) {
         onExpandedChange(newExpanded);
       }
-    }) : undefined,
+    }),
     filterFns: {
       multiSelect: multiSelectFilterFn,
       fuzzyArrayIncludes: fuzzyArrayIncludesFilterFn,
@@ -652,6 +541,15 @@ export function DataTableExtended<TData, TValue>({
       },
     },
   });
+
+  // Track mount status and flush pending
+  useEffect(() => {
+    isMountedRef.current = true;
+    setHasMounted(true);
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []); // Fixed: Should only run once on mount, not when table changes
 
   useEffect(() => {
     const effectiveColumnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));

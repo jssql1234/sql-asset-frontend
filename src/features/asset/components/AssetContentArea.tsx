@@ -189,6 +189,32 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
   return columns;
 };
 
+const areRowSelectionsEqual = (
+  a: Record<string, boolean>,
+  b: Record<string, boolean>,
+): boolean => {
+  const aKeys = Object.keys(a);
+  const bKeys = Object.keys(b);
+  if (aKeys.length !== bKeys.length) {
+    return false;
+  }
+  for (const key of aKeys) {
+    if (a[key] !== b[key]) {
+      return false;
+    }
+  }
+  return true;
+};
+
+const haveSameMembers = (a: string[], b: string[]): boolean => {
+  if (a.length !== b.length) {
+    return false;
+  }
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((value, index) => value === sortedB[index]);
+};
+
 interface UserAssetContentAreaProps {
   selectedTaxYear?: string;
   onTaxYearChange?: (year: string) => void;
@@ -196,6 +222,9 @@ interface UserAssetContentAreaProps {
 
 export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxYear, onTaxYearChange }: UserAssetContentAreaProps) {
   const isMountedRef = useRef(false);
+  const processingTimeoutRef = useRef<number | null>(null);
+  const pendingSelectionRef = useRef<{ rows: Asset[]; selectedRowIds: string[] } | null>(null);
+  const selectionFrameRef = useRef<number | null>(null);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
@@ -216,19 +245,31 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (processingTimeoutRef.current) {
+        window.clearTimeout(processingTimeoutRef.current);
+        processingTimeoutRef.current = null;
+      }
+      if (selectionFrameRef.current !== null) {
+        window.cancelAnimationFrame(selectionFrameRef.current);
+        selectionFrameRef.current = null;
+      }
+      pendingSelectionRef.current = null;
     };
   }, []);
 
   // Use external tax year if provided, otherwise use internal state
-  const selectedTaxYear = externalSelectedTaxYear ?? internalSelectedTaxYear;
-  const setSelectedTaxYear = (year: string) => {
+  const selectedTaxYear: string = externalSelectedTaxYear ?? internalSelectedTaxYear;
+  const handleSelectTaxYear = useCallback((year: string) => {
+    if (!isMountedRef.current) {
+      return;
+    }
     if (onTaxYearChange) {
       onTaxYearChange(year);
     } else {
       setInternalSelectedTaxYear(year);
       sessionStorage.setItem('selectedTaxYear', year);
     }
-  };
+  }, [onTaxYearChange]);
 
   // Initialize from sessionStorage if using internal state
   useEffect(() => {
@@ -246,12 +287,18 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const { addToast } = useToast();
   const { data: assets, isLoading: assetsLoading } = useGetAsset();
   const createAssetMutation = useCreateAsset(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
     setView('list');
     setEditingAsset(null);
     void navigate('/asset');
   });
 
   const updateAssetMutation = useUpdateAsset(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
     setView('list');
     setEditingAsset(null);
     void navigate('/asset');
@@ -331,10 +378,23 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   }, [tableColumns]);
 
   // Clear selection when switching between batch and asset modes
+  const previousGroupByBatch = useRef(groupByBatch);
   useEffect(() => {
-    setSelectedAssetIds([]);
-    setSelectedBatchIds([]);
-    setRowSelection({});
+    if (previousGroupByBatch.current !== groupByBatch) {
+      setSelectedAssetIds([]);
+      setSelectedBatchIds([]);
+      setRowSelection({});
+    }
+    previousGroupByBatch.current = groupByBatch;
+  }, [groupByBatch]);
+
+  // Memoize grouping and expanded state to prevent unnecessary re-renders
+  const groupingState = useMemo<string[]>(() => {
+    return groupByBatch ? ['batchId'] : [];
+  }, [groupByBatch]);
+
+  const expandedState = useMemo(() => {
+    return groupByBatch ? {} : undefined;
   }, [groupByBatch]);
 
   // Filter assets based on search value and tax year (for tax agents)
@@ -368,36 +428,57 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     return filtered;
   }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
 
-  // Handle row selection and maintain asset ID mapping
-  const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
-    if (!isMountedRef.current) return;
-    
-    if (!assets || rows.length === 0) {
-      setSelectedAssetIds([]);
-      setSelectedBatchIds([]);
-      setRowSelection({});
+  const flushSelection = useCallback(() => {
+    if (!pendingSelectionRef.current) {
       return;
     }
 
-    // Update rowSelection state
-    const newRowSelection: Record<string, boolean> = {};
-    selectedRowIds.forEach(id => {
-      newRowSelection[id] = true;
-    });
-    setRowSelection(newRowSelection);
+    if (!isMountedRef.current) {
+      pendingSelectionRef.current = null;
+      return;
+    }
+
+    const { rows, selectedRowIds } = pendingSelectionRef.current;
+    pendingSelectionRef.current = null;
+
+    if (!assets || rows.length === 0) {
+      if (selectedAssetIds.length > 0) {
+        setSelectedAssetIds([]);
+      }
+      if (selectedBatchIds.length > 0) {
+        setSelectedBatchIds([]);
+      }
+      if (!areRowSelectionsEqual(rowSelection, {})) {
+        setRowSelection({});
+      }
+      return;
+    }
+
+    const nextRowSelection = selectedRowIds.reduce<Record<string, boolean>>((acc, id) => {
+      acc[id] = true;
+      return acc;
+    }, {});
+    if (!areRowSelectionsEqual(rowSelection, nextRowSelection)) {
+      setRowSelection(nextRowSelection);
+    }
 
     if (!groupByBatch) {
-      setSelectedAssetIds(rows.map((r) => r.id));
-      setSelectedBatchIds([]);
+      const nextAssetIds = rows.map((r) => r.id);
+      if (!haveSameMembers(selectedAssetIds, nextAssetIds)) {
+        setSelectedAssetIds(nextAssetIds);
+      }
+      if (selectedBatchIds.length > 0) {
+        setSelectedBatchIds([]);
+      }
       return;
     }
 
-    // Batch mode: track selected batch IDs and map to all assets in those batches
-    const batchIds = Array.from(new Set(rows.map((r) => r.batchId || '').filter(Boolean)));
-    setSelectedBatchIds(batchIds);
-    
+    const nextBatchIds = Array.from(new Set(rows.map((r) => r.batchId || '').filter(Boolean)));
+    if (!haveSameMembers(selectedBatchIds, nextBatchIds)) {
+      setSelectedBatchIds(nextBatchIds);
+    }
+
     const assetsToInclude = new Set<string>();
-    // Use current filteredAssets if available, otherwise fall back to all assets
     const source = filteredAssets ?? assets;
     for (const r of rows) {
       const batch = r.batchId || '';
@@ -405,8 +486,96 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         .filter((a) => (a.batchId || '') === batch)
         .forEach((a) => assetsToInclude.add(a.id));
     }
-    setSelectedAssetIds(Array.from(assetsToInclude));
-  }, [assets, groupByBatch, filteredAssets]);
+    const nextAssetIds = Array.from(assetsToInclude);
+    if (!haveSameMembers(selectedAssetIds, nextAssetIds)) {
+      setSelectedAssetIds(nextAssetIds);
+    }
+  }, [assets, filteredAssets, groupByBatch, rowSelection, selectedAssetIds, selectedBatchIds]);
+
+  const scheduleSelectionFlush = useCallback(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
+    if (selectionFrameRef.current !== null) {
+      window.cancelAnimationFrame(selectionFrameRef.current);
+    }
+    selectionFrameRef.current = window.requestAnimationFrame(() => {
+      selectionFrameRef.current = null;
+      flushSelection();
+    });
+  }, [flushSelection]);
+
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      return;
+    }
+    if (pendingSelectionRef.current) {
+      scheduleSelectionFlush();
+    }
+  }, [assets, filteredAssets, groupByBatch, scheduleSelectionFlush]);
+
+  // Handle row selection and maintain asset ID mapping
+  const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
+    pendingSelectionRef.current = { rows, selectedRowIds };
+    scheduleSelectionFlush();
+  }, [scheduleSelectionFlush]);
+
+  const handleProcessCapitalAllowance = useCallback(() => {
+    const currentSelection = selectedTaxYear;
+
+    addToast({
+      variant: "info",
+      title: "Processing Capital Allowance",
+      description: `Starting Capital Allowance processing for YA ${currentSelection}...`,
+      duration: 2000,
+    });
+
+    if (processingTimeoutRef.current) {
+      window.clearTimeout(processingTimeoutRef.current);
+      processingTimeoutRef.current = null;
+    }
+addToast({
+      variant: "info",
+      title: "Processing Capital Allowance",
+      description: `Starting Capital Allowance processing for YA ${currentSelection}...`,
+      duration: 2000,
+    });
+
+
+    processingTimeoutRef.current = window.setTimeout(() => {
+      if (!isMountedRef.current) {
+        processingTimeoutRef.current = null;
+        return;
+      }
+
+      const parsedCurrentYear = parseInt(currentSelection, 10);
+      const safeCurrentYear = Number.isNaN(parsedCurrentYear) ? new Date().getFullYear() : parsedCurrentYear;
+      const nextTaxYear = (safeCurrentYear + 1).toString();
+
+      const newTaxYearOption = {
+        value: nextTaxYear,
+        label: `YA ${nextTaxYear}`,
+      };
+
+      setAvailableTaxYears(prev => {
+        const exists = prev.some(option => option.value === nextTaxYear);
+        if (!exists) {
+          return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value, 10) - parseInt(a.value, 10));
+        }
+        return prev;
+      });
+
+      addToast({
+        variant: "success",
+        title: "Capital Allowance Processed",
+        description: `Successfully processed Capital Allowance for YA ${currentSelection}. New tax year YA ${nextTaxYear} is now available.`,
+        duration: 5000,
+      });
+
+      handleSelectTaxYear(nextTaxYear);
+      processingTimeoutRef.current = null;
+    }, 3000);
+  }, [addToast, handleSelectTaxYear, selectedTaxYear]);
 
   const handleDeleteSelected = () => {
     if (selectedAssetIds.length === 0) return;
@@ -489,53 +658,13 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                         value={selectedTaxYear}
                         placeholder="Select Tax Year"
                         options={taxYearOptions}
-                        onChange={setSelectedTaxYear}
+                        onChange={handleSelectTaxYear}
                       />
 
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          // Process Capital Allowance for the selected tax year
-                          addToast({
-                            variant: "info",
-                            title: "Processing Capital Allowance",
-                            description: `Starting Capital Allowance processing for YA ${selectedTaxYear}...`,
-                            duration: 2000,
-                          });
-
-                          // Simulate CA processing
-                          setTimeout(() => {
-                            // Calculate next tax year
-                            const currentYear = parseInt(selectedTaxYear);
-                            const nextTaxYear = (currentYear + 1).toString();
-
-                            // Add new tax year to available options
-                            const newTaxYearOption = {
-                              value: nextTaxYear,
-                              label: `YA ${nextTaxYear}`
-                            };
-
-                            setAvailableTaxYears(prev => {
-                              // Check if the year already exists
-                              const exists = prev.some(option => option.value === nextTaxYear);
-                              if (!exists) {
-                                return [...prev, newTaxYearOption].sort((a, b) => parseInt(b.value) - parseInt(a.value));
-                              }
-                              return prev;
-                            });
-
-                            addToast({
-                              variant: "success",
-                              title: "Capital Allowance Processed",
-                              description: `Successfully processed Capital Allowance for YA ${selectedTaxYear}. New tax year YA ${nextTaxYear} is now available.`,
-                              duration: 5000,
-                            });
-
-                            // Auto-select the new tax year
-                            setSelectedTaxYear(nextTaxYear);
-                          }, 3000);
-                        }}
+                        onClick={handleProcessCapitalAllowance}
                       >
                         Confirm Process Done
                       </Button>
@@ -657,12 +786,12 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             onRowSelectionChange={handleRowSelectionChange}
             rowSelection={rowSelection}
             selectedCount={groupByBatch ? selectedBatchIds.length : selectedAssetIds.length}
-            totalCount={groupByBatch 
+            totalCount={groupByBatch
               ? (filteredAssets ? new Set(filteredAssets.map(a => a.batchId)).size : 0)
               : filteredAssets?.length ?? 0}
             enableGrouping={true}
-            grouping={groupByBatch ? ['batchId'] : []}
-            expanded={groupByBatch ? {} : undefined}
+            grouping={groupingState}
+            expanded={expandedState}
           />
         </Card>
         </div>

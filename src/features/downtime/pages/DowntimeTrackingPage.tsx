@@ -11,15 +11,9 @@ import { useGetDowntimeIncidents, useGetDowntimeSummary } from "@/features/downt
 
 const DowntimeTrackingPage: React.FC = () => {
   // Fetch data using hooks
-  const { data: allIncidents = [], isLoading: isLoadingIncidents } = useGetDowntimeIncidents();
-  const { data: summary, isLoading: isLoadingSummary } = useGetDowntimeSummary();
-  
-  const [modals, setModals] = useState<ModalState>({
-    logDowntime: false,
-    editIncident: false,
-    resolvedIncidents: false,
-  });
-  
+  const { data: allIncidents = [] } = useGetDowntimeIncidents();
+  const { data: summary } = useGetDowntimeSummary();
+  const [modals, setModals] = useState<ModalState>({ logDowntime: false, editIncident: false, resolvedIncidents: false });
   const [selectedIncident, setSelectedIncident] = useState<DowntimeIncident | null>(null);
 
   const handleEditIncident = (incident: DowntimeIncident) => {
@@ -48,47 +42,16 @@ const DowntimeTrackingPage: React.FC = () => {
           }}
         />
 
-        {isLoadingSummary ? (
-          <div className="flex items-center justify-center p-8">
-            <span className="text-onSurfaceVariant">Loading summary...</span>
-          </div>
-        ) : summary ? (
+        {summary ? (
           <DowntimeSummaryCard summary={summary} />
         ) : null}
 
-        {isLoadingIncidents ? (
-          <div className="flex items-center justify-center p-8">
-            <span className="text-onSurfaceVariant">Loading incidents...</span>
-          </div>
-        ) : (
-          <DowntimeTable
-            incidents={allIncidents}
-            onEditIncident={handleEditIncident}
-          />
-        )}
+        <DowntimeTable incidents={allIncidents} onEditIncident={handleEditIncident}/>
       </div>
 
-      <LogDowntimeModal
-        open={modals.logDowntime}
-        onClose={() => {
-          handleModalClose("logDowntime");
-        }}
-      />
-      
-      <EditIncidentModal
-        open={modals.editIncident}
-        incident={selectedIncident}
-        onClose={() => {
-          handleModalClose("editIncident");
-        }}
-      />
-      
-      <ResolvedIncidentsModal
-        open={modals.resolvedIncidents}
-        onClose={() => {
-          handleModalClose("resolvedIncidents");
-        }}
-      />
+      <LogDowntimeModal open={modals.logDowntime} onClose={() => { handleModalClose("logDowntime") }}/>
+      <EditIncidentModal open={modals.editIncident} incident={selectedIncident} onClose={() => { handleModalClose("editIncident") }}/>
+      <ResolvedIncidentsModal open={modals.resolvedIncidents} onClose={() => { handleModalClose("resolvedIncidents") }}/>
     </AppLayout>
   );
 };

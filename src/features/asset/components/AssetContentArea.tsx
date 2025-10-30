@@ -301,7 +301,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
          if (asset) {
            setEditingAsset(asset);
            setView('edit');
-           void navigate(`/asset/edit-asset/${asset.id}`);
+
          } else {
            // Asset not found, redirect to list
            void navigate('/asset');
@@ -565,7 +565,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                 <button
                   type="button"
                   className={cn(
-                    "px-3 py-1 body-small",
+                    "px-3 py-1 body-small cursor-pointer",
                     !groupByBatch && "bg-primary text-onPrimary"
                   )}
                 >
@@ -574,7 +574,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                 <button
                   type="button"
                   className={cn(
-                    "px-3 py-1 body-small",
+                    "px-3 py-1 body-small cursor-pointer",
                     groupByBatch && "bg-primary text-onPrimary"
                   )}
                 >

@@ -593,7 +593,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
               <Button size="sm" onClick={() => {
                 setView('create');
-                void navigate('/asset/create-asset');
+                void navigate('/asset/create-asset', { state: { initialMode: groupByBatch ? 'batch' : 'normal' } });
               }}>
                 <Plus className="h-4 w-4" />
                 Add

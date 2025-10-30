@@ -18,6 +18,12 @@ import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDr
 import { usePermissions } from "@/hooks/usePermissions";
 import BatchDetachModal from "./BatchDetachModal";
 import { useGetBatchAssets, useGetBatchQuantity, useBulkUpdateAssets, useCreateMultipleAssets, useBulkUpdateAssetBatchId, useGetAsset } from "../hooks/useAssetService";
+import { useLocation } from "react-router-dom";
+
+// Add interface for navigation state
+interface LocationState {
+  initialMode?: 'normal' | 'batch';
+}
 
 interface SerialNumberData {
   serial: string;
@@ -379,6 +385,10 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
 };
 
 const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<AssetFormRef | null> }) => {
+  const location = useLocation();
+  // Read initialModeFromState immediately - location.state should be available synchronously
+  const initialModeFromState = (location.state as LocationState | undefined)?.initialMode;
+
   const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const [showDetachModal, setShowDetachModal] = useState(false);
@@ -396,12 +406,24 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Consolidate batch hooks after currentMode state
   // Remove duplicate batchAssets and originalQuantity declarations
 
-  // In the component, after [currentMode, setCurrentMode]
-  const [currentMode, setCurrentMode] = useState<'normal' | 'batch'>('normal');
+  // CRITICAL: Compute mode synchronously BEFORE any hooks that depend on it
+  // This must be computed immediately, not in useMemo/useState, to prevent flicker
+  // For edit mode: use editingAsset.batchId (available immediately as prop)
+  // For creation mode: use initialModeFromState from location.state
+  const computedMode: 'normal' | 'batch' = editingAsset 
+    ? (editingAsset.batchId ? 'batch' : 'normal')
+    : (initialModeFromState ?? 'normal');
 
-  // Batch hooks here
-  const { data: batchAssets } = useGetBatchAssets(currentMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
-  const { data: originalQuantity } = useGetBatchQuantity(currentMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
+  // Use state for manual mode switching (toggle button), but initialize from computedMode
+  const [currentMode, setCurrentMode] = useState<'normal' | 'batch'>(computedMode);
+  
+  // Use computedMode directly for rendering in creation mode (no state dependency)
+  // In edit mode, use currentMode (synced in effect)
+  const effectiveMode = editingAsset ? currentMode : computedMode;
+
+  // Batch hooks here - use effectiveMode for correct behavior
+  const { data: batchAssets } = useGetBatchAssets(effectiveMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
+  const { data: originalQuantity } = useGetBatchQuantity(effectiveMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
 
   // Remove the duplicate in the second edit
 
@@ -413,7 +435,18 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     return "hire-purchase";
   }, [effectiveUserRole]);
 
-  const [activeTab, setActiveTab] = useState(getDefaultActiveTab);
+  // Compute initial active tab synchronously for first render
+  const getInitialActiveTab = useCallback(() => {
+    if (editingAsset) {
+      const isBatchEdit = !!editingAsset.batchId;
+      return isBatchEdit ? 'allocation' : getDefaultActiveTab();
+    } else {
+      // Creation mode
+      return initialModeFromState === 'batch' ? 'allocation' : getDefaultActiveTab();
+    }
+  }, [editingAsset, initialModeFromState, getDefaultActiveTab]);
+
+  const [activeTab, setActiveTab] = useState<'allowance' | 'hire-purchase' | 'depreciation' | 'allocation' | 'serial-no' | 'warranty'>(() => getInitialActiveTab());
 
   // Mode-specific default values
   const normalDefaultValues: CreateAssetFormData = useMemo(() => ({
@@ -464,7 +497,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     rentedApportionPercentage: "0",
   }), []);
 
-  // Separate form instances
+  // Initialize forms - both needed for edit mode, but only one is used in creation mode
   const normalForm = useForm<CreateAssetFormData>({
     resolver: zodResolver(createAssetFormSchema),
     defaultValues: normalDefaultValues,
@@ -475,8 +508,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     defaultValues: batchDefaultValues,
   });
 
-  // Active form reference
-  const activeForm = currentMode === 'normal' ? normalForm : batchForm;
+  // CRITICAL: Select activeForm using computedMode directly (computed synchronously above)
+  // In creation mode, computedMode is the source of truth and doesn't depend on state
+  // This ensures the correct form is selected BEFORE any renders, preventing flicker
+  const activeForm = editingAsset 
+    ? (currentMode === 'normal' ? normalForm : batchForm)
+    : (computedMode === 'normal' ? normalForm : batchForm);
   // Ensure mutations are declared early, after permissions
   const bulkUpdateAssetsMutation = useBulkUpdateAssets();
   const createMultipleMutation = useCreateMultipleAssets();
@@ -486,6 +523,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const { register: activeRegister, handleSubmit: activeHandleSubmit, watch: activeWatch, setValue: activeSetValue, control: activeControl, formState: { errors: activeErrors } } = activeForm;
 
   // Determine initial mode and populate forms
+  // This effect runs on mount and when editingAsset or initialModeFromState changes
   useEffect(() => {
     if (editingAsset) {
       const isBatchEdit = !!editingAsset.batchId;
@@ -525,20 +563,35 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       const otherForm = targetMode === 'normal' ? batchForm : normalForm;
       otherForm.reset(targetMode === 'normal' ? batchDefaultValues : normalDefaultValues);
     } else {
-      // Creation mode: default to normal, prefill IDs in both (for when switching)
-      setCurrentMode('normal');
-      normalForm.reset(normalDefaultValues);
-      batchForm.reset(batchDefaultValues);
+      // Creation mode: use computedMode (already computed synchronously above)
+      // CRITICAL: Only reset the form for computedMode - NEVER touch the other form
+      // This prevents normal form from being initialized/reset when batch mode is needed
+      if (computedMode === 'normal') {
+        normalForm.reset(normalDefaultValues);
+      } else {
+        batchForm.reset(batchDefaultValues);
+      }
+      // DO NOT reset the other form - this prevents flicker and removes dependency
+
+      // Sync state (for manual toggle later)
+      if (computedMode !== currentMode) {
+        setCurrentMode(computedMode);
+      }
+
+      // Set activeTab for creation mode
+      const targetTab = computedMode === 'batch' ? 'allocation' : getDefaultActiveTab();
+      setActiveTab(targetTab);
+
       // Prefill logic will be in separate effect
     }
-  }, [editingAsset, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab]);
+  }, [editingAsset, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab, computedMode, currentMode]);
 
   // Set initial quantity for batch edit
   useEffect(() => {
-    if (originalQuantity !== undefined && editingAsset && currentMode === 'batch' && editingAsset.batchId) {
+    if (originalQuantity !== undefined && editingAsset && effectiveMode === 'batch' && editingAsset.batchId) {
       activeSetValue("quantity", originalQuantity);
     }
-  }, [originalQuantity, editingAsset, currentMode, activeSetValue]);
+  }, [originalQuantity, editingAsset, effectiveMode, activeSetValue]);
 
   // Determine if we're in edit mode
   const isEditMode = Boolean(editingAsset);
@@ -576,7 +629,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [isEditMode, currentMode]); // Trigger on edit mode entry or mode switch
+  }, [isEditMode, effectiveMode]); // Trigger on edit mode entry or mode switch
 
   // Also trigger recalculation when activeTab changes (matches tab switch behavior)
   useEffect(() => {
@@ -639,7 +692,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Ensure detachModalContext is defined once, before return
   const detachModalContext = useMemo(() => {
     if (
-      currentMode === 'batch' &&
+      effectiveMode === 'batch' &&
       editingAsset?.batchId &&
       Array.isArray(batchAssets) &&
       typeof originalQuantity === "number" &&
@@ -652,7 +705,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       };
     }
     return null;
-  }, [currentMode, editingAsset, batchAssets, originalQuantity, pendingData]);
+  }, [effectiveMode, editingAsset, batchAssets, originalQuantity, pendingData]);
 
   // In return, use {detachModalContext && <BatchDetachModal ... />}
 
@@ -680,8 +733,8 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Define tabs based on batch mode and user permissions
   const commonTabProps: TabProps = { register: activeRegister, setValue: activeSetValue, watch: activeWatch, control: activeControl, errors: activeErrors, selectedTaxYear, taxYearOptions };
 
-  // Update tabs definition to use currentMode
-  const tabs: TabItem[] = currentMode === 'batch'
+  // Update tabs definition to use effectiveMode
+  const tabs: TabItem[] = effectiveMode === 'batch'
     ? [
         {
           label: "Allocation",
@@ -813,21 +866,21 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
   // Update TabHeader actions: conditional mode toggle
   const modeToggleAction = !editingAsset ? {
-    label: currentMode === 'batch' ? "Exit Batch" : "Batch",
+    label: effectiveMode === 'batch' ? "Exit Batch" : "Batch",
     onAction: () => {
-      handleModeSwitch(currentMode === 'batch' ? 'normal' : 'batch');
+      handleModeSwitch(effectiveMode === 'batch' ? 'normal' : 'batch');
     },
-    variant: currentMode === 'batch' ? "destructive" : "default",
+    variant: effectiveMode === 'batch' ? "destructive" : "default",
     size: "sm" as const,
     position: "inline" as const,
-    tooltip: currentMode === 'batch' ? "Exit batch mode" : "Enter batch mode",
+    tooltip: effectiveMode === 'batch' ? "Exit batch mode" : "Enter batch mode",
   } : null;
 
   // For onSubmit, ensure it's a block
   const onSubmit = (data: CreateAssetFormData): void => {
     setIsSubmitting(true);
-    const isBatchCreate = currentMode === 'batch' && !editingAsset;
-    const isBatchEdit = currentMode === 'batch' && editingAsset?.batchId;
+    const isBatchCreate = effectiveMode === 'batch' && !editingAsset;
+    const isBatchEdit = effectiveMode === 'batch' && editingAsset?.batchId;
 
     if (isBatchCreate) {
       const batchId = data.code;
@@ -955,7 +1008,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     const message = `Switching to ${newMode === 'batch' ? 'batch' : 'normal'} mode will clear the current form data, including tabs. Continue?`;
     if (confirm(message)) {
       // Reset current form
-      if (currentMode === 'normal') {
+      if (effectiveMode === 'normal') {
         normalForm.reset(normalDefaultValues);
       } else {
         batchForm.reset(batchDefaultValues);
@@ -973,7 +1026,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         activeSetValue('acquireDate', '');
       }
     }
-  }, [editingAsset, currentMode, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab, activeSetValue]);
+  }, [editingAsset, effectiveMode, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab, activeSetValue]);
 
   // Determine when the detach modal should render
   // let detachModalContext: {
@@ -1082,7 +1135,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {/* Batch ID or Asset ID */}
-                  {currentMode === 'batch' ? (
+                  {effectiveMode === 'batch' ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Batch ID <span className="text-error">*</span>
@@ -1110,7 +1163,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                   {/* Asset Name / Batch Name */}
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
-                      {currentMode === 'batch' ? 'Batch Name' : 'Asset Name'} <span className="text-error">*</span>
+                      {effectiveMode === 'batch' ? 'Batch Name' : 'Asset Name'} <span className="text-error">*</span>
                     </label>
                     <Input {...activeRegister("assetName")} placeholder="e.g., Dell Laptop, HP Printer" />
                     {activeErrors.assetName && (
@@ -1141,7 +1194,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  {currentMode === 'batch' && !isEditMode ? (
+                  {effectiveMode === 'batch' && !isEditMode ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Assets in Batch <span className="text-error">*</span>
@@ -1156,7 +1209,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                       <span className="body-small text-error mt-1 block">{activeErrors.quantity.message}</span>
                     )}
                   </div>
-                  ) : currentMode === 'batch' && isEditMode ? (
+                  ) : effectiveMode === 'batch' && isEditMode ? (
                   <div>
                     <label className="block text-sm font-medium text-onSurface">
                       Assets in Batch <span className="text-error">*</span>
@@ -1212,7 +1265,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                 </div>
 
                 {/* Dates - hidden in batch mode */}
-                {currentMode !== 'batch' && (
+                {effectiveMode !== 'batch' && (
                   <div className={`grid grid-cols-1 gap-4 ${activeTab === "depreciation" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
                     <div>
                       <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
@@ -1284,18 +1337,20 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
               {/* Tabs */}
               <Tabs
-                key={`tabs-${currentMode}-${String(layoutKey)}`}
+                key={`tabs-${effectiveMode}-${String(layoutKey)}`}
                 defaultValue={activeTab}
                 tabs={tabs}
                 variant={"underline"}
                 className="m-0"
-                onValueChange={setActiveTab}
+                onValueChange={(val) => {
+                  setActiveTab(val as typeof activeTab);
+                }}
               />
             </form>
           </div>
 
           {/* Right: Depreciation Schedule */}
-          {activeTab === "depreciation" && currentMode === 'normal' && ( // Only in normal mode
+          {activeTab === "depreciation" && effectiveMode === 'normal' && ( // Only in normal mode
             <div className="flex-1 max-w-md">
               <DepreciationSchedulePanel view={depreciationScheduleView} />
             </div>

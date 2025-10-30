@@ -2,7 +2,9 @@ import { useState, useCallback, useRef } from 'react';
 import { useUserContext } from '@/context/UserContext';
 import type { UserGroup } from '@/types/user-group';
 import { useToast } from '@/components/ui/components/Toast/useToast';
-import { exportToCSV, importFromCSV, type CSVConfig, type CSVRow } from '@/utils/csvUtils';
+import { importFromCSV, type CSVConfig, type CSVRow } from '@/utils/csvUtils';
+import type { ExportColumn } from '@/utils/exportUtils';
+import { exportTableData } from '@/utils/exportUtils';
 
 // User Group CSV configuration
 const userGroupCSVConfig: CSVConfig<UserGroup> = {
@@ -33,6 +35,28 @@ const userGroupCSVConfig: CSVConfig<UserGroup> = {
     return { data, errors };
   }
 }
+
+// User Group export columns for exportUtils
+export const userGroupExportColumns: ExportColumn<UserGroup>[] = [
+  {
+    id: 'id',
+    header: 'ID',
+    key: 'id',
+    getValue: (group: UserGroup) => group.id,
+  },
+  {
+    id: 'name',
+    header: 'Name',
+    key: 'name',
+    getValue: (group: UserGroup) => group.name,
+  },
+  {
+    id: 'description',
+    header: 'Description',
+    key: 'description',
+    getValue: (group: UserGroup) => group.description || '',
+  },
+];
 
 export const useMaintainUserGroup = () => {
   const { groups, addGroup, updateGroup, deleteGroup } = useUserContext();
@@ -217,19 +241,27 @@ export const useMaintainUserGroup = () => {
     fileInputRef.current?.click();
   };
   
-  const handleExportCSV = () => {
+  const handleExportData = (format: string) => {
     try {
-      exportToCSV(groups, userGroupCSVConfig);
+      exportTableData(
+        groups,
+        userGroupExportColumns,
+        userGroupExportColumns.map(c => c.id),
+        format,
+        'user-groups',
+        undefined,
+        { htmlTitle: 'User Groups Export' }
+      );
       addToast({
         variant: 'success',
         title: 'Export Successful',
-        description: 'User groups exported to CSV',
+        description: `User groups exported to ${format.toUpperCase()}`,
       });
     } catch {
       addToast({
         variant: 'error',
         title: 'Export Failed',
-        description: 'Failed to export user groups',
+        description: `Failed to export user groups to ${format.toUpperCase()}`,
       });
     }
   };
@@ -249,7 +281,7 @@ export const useMaintainUserGroup = () => {
     handleDeleteClick,
     handleConfirmDelete,
     handleCancelDelete,
-    handleExportCSV,
+    handleExportData,
     handleImportCSV,
     handleFileChange
   };

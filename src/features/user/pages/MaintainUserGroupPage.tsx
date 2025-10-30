@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { UserGroupTable } from '../components/UserGroupTable';
 import { UserGroupModal } from '../components/UserGroupModal';
@@ -5,8 +6,21 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
 import { ExportFile, Upload } from '@/assets/icons';
 import TabHeader from '@/components/TabHeader';
+import SelectDropdown from '@/components/SelectDropdown';
+import type { SelectDropdownOption } from '@/components/SelectDropdown';
 
 const MaintainUserGroupPage: React.FC = () => {
+  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('csv');
+
+  const exportOptions: SelectDropdownOption[] = [
+    { value: 'csv', label: 'CSV' },
+    { value: 'xlsx', label: 'XLSX' },
+    { value: 'json', label: 'JSON' },
+    { value: 'xml', label: 'XML' },
+    { value: 'html', label: 'HTML' },
+    { value: 'txt', label: 'TXT' },
+    { value: 'pdf', label: 'PDF' },
+  ];
 
   const {
     groups,
@@ -22,7 +36,7 @@ const MaintainUserGroupPage: React.FC = () => {
     handleDeleteClick,
     handleConfirmDelete,
     handleCancelDelete,
-    handleExportCSV,
+    handleExportData,
     handleImportCSV,
     handleFileChange
   } = useMaintainUserGroup();
@@ -37,26 +51,44 @@ const MaintainUserGroupPage: React.FC = () => {
 
       <TabHeader
         title="Maintain User Group"
-        // subtitle="Maintain User Groups"
-        actions={[
-          {
-            icon: <ExportFile className="h-4 w-4" />,
-            label: "Export CSV",
-            variant: 'outline',
-            className: 'h-9 px-4 py-2',
-            onAction: handleExportCSV
-          } , {
-            icon: <Upload className="h-4 w-4" />,
-            label: "Import CSV",
-            variant: 'outline',
-            className: 'h-9 px-4 py-2',
-            onAction: handleImportCSV
-          } , {
-            label: "Add Group",
-            className: 'h-9 px-4 py-2',
-            onAction: handleAddGroup
-          }
-        ]}
+        customActions={
+          <div className="flex items-center gap-2">
+            <SelectDropdown
+              value={selectedFormat}
+              onChange={(value) => { setSelectedFormat(value as 'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'); }}
+              options={exportOptions}
+              placeholder="Select format"
+              buttonVariant="outline"
+              buttonSize="sm"
+              className="min-w-[100px]"
+            />
+            <button
+              type="button"
+              onClick={() => { handleExportData(selectedFormat); }}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+              title={`Export as ${selectedFormat.toUpperCase()}`}
+            >
+              <ExportFile className="w-4 h-4" />
+              Export Data
+            </button>
+            <button
+              type="button"
+              onClick={handleImportCSV}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+              title="Import CSV"
+            >
+              <Upload className="w-4 h-4" />
+              Import CSV
+            </button>
+            <button
+              type="button"
+              onClick={handleAddGroup}
+              className="px-3 py-2 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover"
+            >
+              Add Group
+            </button>
+          </div>
+        }
       />
 
       <div className="flex flex-col h-full">

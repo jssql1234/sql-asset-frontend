@@ -893,52 +893,33 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     }
   }, [allAssets, editingAsset, normalForm, batchForm, generateNextAssetId, generateNextBatchId]);
 
-  // Confirmation modal states
-  const [showModeConfirm, setShowModeConfirm] = useState(false);
-  const [pendingMode, setPendingMode] = useState<'normal' | 'batch' | null>(null);
-
-  // Mode switch handler
+  // Update handleModeSwitch to use confirm
   const handleModeSwitch = useCallback((newMode: 'normal' | 'batch') => {
     if (editingAsset) {
-      // Disabled in edit mode
-      return;
+      return; // Disabled in edit mode
     }
-    setPendingMode(newMode);
-    setShowModeConfirm(true);
-  }, [editingAsset]);
+    const message = `Switching to ${newMode === 'batch' ? 'batch' : 'normal'} mode will clear the current form data, including tabs. Continue?`;
+    if (confirm(message)) {
+      // Reset current form
+      if (currentMode === 'normal') {
+        normalForm.reset(normalDefaultValues);
+      } else {
+        batchForm.reset(batchDefaultValues);
+      }
 
-  // Confirm switch
-  const confirmModeSwitch = useCallback(() => {
-    if (!pendingMode) return;
+      setCurrentMode(newMode);
 
-    // Reset current form
-    if (currentMode === 'normal') {
-      normalForm.reset(normalDefaultValues);
-    } else {
-      batchForm.reset(batchDefaultValues);
+      // Adjust active tab
+      const defaultTab = newMode === 'batch' ? 'allocation' : getDefaultActiveTab();
+      setActiveTab(defaultTab);
+
+      // Clear mode-specific fields if switching to batch
+      if (newMode === 'batch') {
+        activeSetValue('purchaseDate', '');
+        activeSetValue('acquireDate', '');
+      }
     }
-
-    setCurrentMode(pendingMode);
-
-    // Adjust active tab
-    const defaultTab = pendingMode === 'batch' ? 'allocation' : getDefaultActiveTab();
-    setActiveTab(defaultTab);
-
-    // Clear mode-specific fields if switching to batch
-    if (pendingMode === 'batch') {
-      activeSetValue('purchaseDate', '');
-      activeSetValue('acquireDate', '');
-    }
-
-    setShowModeConfirm(false);
-    setPendingMode(null);
-  }, [pendingMode, currentMode, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab, activeSetValue]);
-
-  // Cancel switch
-  const cancelModeSwitch = useCallback(() => {
-    setShowModeConfirm(false);
-    setPendingMode(null);
-  }, []);
+  }, [editingAsset, currentMode, normalForm, batchForm, normalDefaultValues, batchDefaultValues, getDefaultActiveTab, activeSetValue]);
 
   // Determine when the detach modal should render
   // let detachModalContext: {
@@ -1279,24 +1260,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         )}
 
         {/* Mode Confirmation Modal */}
-        {showModeConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <Card className="p-6 max-w-md w-full mx-4">
-              <h3 className="title-small text-onSurface mb-2">Confirm Mode Switch</h3>
-              <p className="body-medium text-onSurfaceVariant mb-4">
-                Switching to {pendingMode === 'batch' ? 'batch' : 'normal'} mode will clear the current form data, including tabs. Continue?
-              </p>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={cancelModeSwitch}>
-                  Cancel
-                </Button>
-                <Button onClick={confirmModeSwitch}>
-                  Continue
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+        {/* This block is removed as per the edit hint */}
       </div>
       {/* Footer */}
       <div className="flex justify-end items-center gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">

@@ -24,7 +24,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
 }) => {
   const { addToast } = useToast();
   const [formData, setFormData] = useState<WorkOrderFormData>({
-    workOrderNumber: "",
     assetId: "",
     assetName: "",
     jobTitle: "",
@@ -109,7 +108,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
   useEffect(() => {
     if (workOrder) {
       setFormData({
-        workOrderNumber: workOrder.workOrderNumber,
         assetId: workOrder.assetId,
         assetName: workOrder.assetName,
         jobTitle: workOrder.jobTitle,
@@ -274,7 +272,7 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
     // Show success toast
     addToast({
       title: "Work Order Updated",
-      description: `Work order ${formData.workOrderNumber} has been updated successfully.`,
+      description: `Work order has been updated successfully.`,
       variant: "success",
       duration: 3000,
     });
@@ -311,10 +309,10 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
               <div className="space-y-4">
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
-                    Work Order Number
+                    Work Order ID
                   </label>
                   <Input
-                    value={formData.workOrderNumber}
+                    value={workOrder.id}
                     disabled
                     className="w-full"
                   />

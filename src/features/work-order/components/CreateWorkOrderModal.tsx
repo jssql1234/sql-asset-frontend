@@ -46,7 +46,6 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
 }) => {
   const { addToast } = useToast();
   const [formData, setFormData] = useState<WorkOrderFormData>({
-    workOrderNumber: "",
     assetId: "",
     assetName: "",
     jobTitle: "",
@@ -127,22 +126,6 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     { id: "material", label: "Material Handling", sublabel: "Forklifts" },
     { id: "tools", label: "Tools & Machinery", sublabel: "Welding Machines" },
   ];
-
-  // Generate work order number on mount
-  useEffect(() => {
-    if (isOpen && !formData.workOrderNumber) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, "0");
-      setFormData((prev) => ({
-        ...prev,
-        workOrderNumber: `WO-${year}${month}-${random}`,
-      }));
-    }
-  }, [isOpen, formData.workOrderNumber]);
 
   // Update scheduled dates if prefilledDates changes
   useEffect(() => {
@@ -325,7 +308,7 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
     // Show success toast
     addToast({
       title: "Work Order Created",
-      description: `Work order ${formData.workOrderNumber} has been created successfully.`,
+      description: "Work order has been created successfully.",
       variant: "success",
       duration: 3000,
     });
@@ -336,7 +319,6 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
   const handleClose = () => {
     // Reset form
     setFormData({
-      workOrderNumber: "",
       assetId: "",
       assetName: "",
       jobTitle: "",
@@ -378,16 +360,6 @@ export const CreateWorkOrderModal: React.FC<CreateWorkOrderModalProps> = ({
                 Basic Information
               </h3>
               <div className="space-y-4">
-                <div>
-                  <label className="label-large block mb-2 text-onSurface">
-                    Work Order Number <span className="text-error">*</span>
-                  </label>
-                  <Input
-                    value={formData.workOrderNumber}
-                    disabled
-                    className="w-full"
-                  />
-                </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Search Assets <span className="text-error">*</span>

@@ -41,6 +41,22 @@ export const downtimeAssetGroups: DowntimeAssetGroup[] = [
       { id: "CS-006", name: "Cooling System F6", location: "Thermal Control" },
     ],
   },
+  {
+    id: "quality-control",
+    label: "Quality Control",
+    assets: [
+      { id: "QC-007", name: "Quality Scanner G7", location: "Inspection Station" },
+      { id: "TM-008", name: "Testing Machine H8", location: "Quality Lab" },
+    ],
+  },
+  {
+    id: "maintenance-tools",
+    label: "Maintenance Tools",
+    assets: [
+      { id: "WR-009", name: "Welding Robot I9", location: "Maintenance Bay" },
+      { id: "DM-010", name: "Diagnostic Machine J10", location: "Service Center" },
+    ],
+  },
 ];
 
 export const downtimeAssets: DowntimeAsset[] = downtimeAssetGroups.flatMap((group) =>

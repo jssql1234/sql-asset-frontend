@@ -115,8 +115,9 @@ export const createDowntimeIncident = (input: CreateDowntimeInput): DowntimeInci
     status: input.status,
     startTime: input.startTime,
     endTime: input.endTime,
-    description: input.description,
+    description: input.description ?? "",
     reportedBy: input.reportedBy ?? "Current User",
+    resolutionNotes: input.resolutionNotes,
     downtimeDuration: input.endTime ? calculateDuration(input.startTime, input.endTime) : undefined,
   };
 
@@ -146,7 +147,7 @@ export const updateDowntimeIncident = (input: EditDowntimeInput): DowntimeIncide
     assets,
     priority: input.priority,
     status: input.status,
-    description: input.description,
+    description: input.description ?? "",
     startTime: input.startTime,
     endTime: input.endTime,
     reportedBy: input.reportedBy,

@@ -9,19 +9,10 @@ import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntime
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { downtimeAssetGroups, downtimeAssets } from "@/features/downtime/mockData";
 
-interface LogDowntimeModalProps {
-  open: boolean;
-  onClose: () => void;
-}
+interface LogDowntimeModalProps { open: boolean; onClose: () => void }
+interface AssetDropdownItem { id: string; label: string; groupId: string; groupLabel: string }
 
 const DEFAULT_ASSET_CATEGORY = "all" as const;
-
-interface AssetDropdownItem {
-  id: string;
-  label: string;
-  groupId: string;
-  groupLabel: string;
-}
 
 const getDefaultFormData = (): CreateDowntimeInput => ({
   assetIds: [],
@@ -29,6 +20,7 @@ const getDefaultFormData = (): CreateDowntimeInput => ({
   status: "Down",
   description: "",
   startTime: new Date().toISOString(),
+  resolutionNotes: "",
 });
 
 export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
@@ -131,12 +123,27 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
   }, []);
 
   const handleStatusSelect = useCallback((status: CreateDowntimeInput["status"]) => {
-    setFormData((prev) => ({
-      ...prev,
-      status,
-      endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
-    }));
-    setErrors((prev) => ({ ...prev, status: "", endTime: "" }));
+    setFormData((prev) => {
+      const newData: CreateDowntimeInput = {
+        ...prev,
+        status,
+        endTime: status === "Resolved" ? prev.endTime ?? new Date().toISOString() : undefined,
+      };
+      
+      // When switching to Resolved, move description to resolutionNotes if resolutionNotes is empty
+      if (status === "Resolved" && !prev.resolutionNotes && prev.description) {
+        newData.resolutionNotes = prev.description;
+        newData.description = "";
+      }
+      // When switching from Resolved to Down, move resolutionNotes to description if description is empty
+      else if (status === "Down" && !prev.description && prev.resolutionNotes) {
+        newData.description = prev.resolutionNotes;
+        newData.resolutionNotes = "";
+      }
+      
+      return newData;
+    });
+    setErrors((prev) => ({ ...prev, status: "", endTime: "", description: "", resolutionNotes: "" }));
   }, []);
 
   const handleDateTimeChange = useCallback((field: "startTime" | "endTime") => (
@@ -158,19 +165,24 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
     setErrors((prev) => ({ ...prev, description: "" }));
   }, []);
 
+  const handleResolutionNotesChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData((prev) => ({ ...prev, resolutionNotes: e.target.value }));
+    setErrors((prev) => ({ ...prev, resolutionNotes: "" }));
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { 
       if (!isOpen) handleClose(); 
     }}>
-      <DialogContent className="w-[600px] max-w-[90vw] max-h-[90vh] flex flex-col">
+      <DialogContent className="w-[600px] max-w-[90vw] h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto min-h-0">
+        <div className="flex-1 min-h-0">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 pr-1">
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Assets*</label>
+              <label className="label-medium text-onSurface">Assets<span className="text-error">*</span></label>
               <SearchWithDropdown
                 categories={assetCategories}
                 selectedCategoryId={selectedCategoryId}
@@ -188,81 +200,103 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
               )}
             </div>
 
-            <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Priority*</label>
-              <DropdownMenu className="w-full">
-                <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
-                <DropdownMenuContent matchTriggerWidth>
-                  {PRIORITY_OPTIONS.map((option) => (
-                    <DropdownMenuItem key={option.value} onClick={() => { handlePrioritySelect(option.value); }}>
-                      {option.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Status*</label>
-              <DropdownMenu className="w-full">
-                <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
-                <DropdownMenuContent matchTriggerWidth>
-                  {STATUS_OPTIONS.map((option) => (
-                    <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>
-                      {option.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Start Time*</label>
-              <SemiDatePicker
-                value={formData.startTime ? new Date(formData.startTime) : null}
-                onChange={handleDateTimeChange("startTime")}
-                inputType="dateTime"
-                className="w-full"
-              />
-              {errors.startTime && (
-                <span className="text-sm text-error">{errors.startTime}</span>
-              )}
-            </div>
-
-            {formData.status === "Resolved" && (
+            <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
-                <label className="label-medium text-onSurface">End Time*</label>
+                <label className="label-medium text-onSurface">Priority<span className="text-error">*</span></label>
+                <DropdownMenu className="w-full">
+                  <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
+                  <DropdownMenuContent matchTriggerWidth>
+                    {PRIORITY_OPTIONS.map((option) => (
+                      <DropdownMenuItem key={option.value} onClick={() => { handlePrioritySelect(option.value); }}>{option.label}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <label className="label-medium text-onSurface">Status<span className="text-error">*</span></label>
+                <DropdownMenu className="w-full">
+                  <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
+                  <DropdownMenuContent matchTriggerWidth>
+                    {STATUS_OPTIONS.map((option) => (
+                      <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>
+                        {option.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            {formData.status === "Resolved" ? (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2">
+                  <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
+                  <SemiDatePicker
+                    value={formData.startTime ? new Date(formData.startTime) : null}
+                    onChange={handleDateTimeChange("startTime")}
+                    inputType="dateTime"
+                    className="w-full"
+                  />
+                  {errors.startTime && (
+                    <span className="text-sm text-error">{errors.startTime}</span>
+                  )}
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="label-medium text-onSurface">End Time<span className="text-error">*</span></label>
+                  <SemiDatePicker
+                    value={formData.endTime ? new Date(formData.endTime) : null}
+                    onChange={handleDateTimeChange("endTime")}
+                    inputType="dateTime"
+                    className="w-full"
+                  />
+                  {errors.endTime && (
+                    <span className="text-sm text-error">{errors.endTime}</span>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
                 <SemiDatePicker
-                  value={formData.endTime ? new Date(formData.endTime) : null}
-                  onChange={handleDateTimeChange("endTime")}
+                  value={formData.startTime ? new Date(formData.startTime) : null}
+                  onChange={handleDateTimeChange("startTime")}
                   inputType="dateTime"
                   className="w-full"
                 />
-                {errors.endTime && (
-                  <span className="text-sm text-error">{errors.endTime}</span>
+                {errors.startTime && (
+                  <span className="text-sm text-error">{errors.startTime}</span>
                 )}
               </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Description*</label>
+              <label className="label-medium text-onSurface">
+                {formData.status === "Resolved" ? "Resolution Notes" : "Description"}
+                <span className="text-error">*</span>
+              </label>
               <TextArea
-                value={formData.description}
-                onChange={handleDescriptionChange}
-                placeholder="Describe the issue... (minimum 10 characters)"
-                className="min-h-[100px]"
+                value={formData.status === "Resolved" ? (formData.resolutionNotes ?? "") : (formData.description ?? "")}
+                onChange={formData.status === "Resolved" ? handleResolutionNotesChange : handleDescriptionChange}
+                placeholder={formData.status === "Resolved" ? "Describe the resolution..." : "Describe the issue..."}
+                className="min-h-[90px]"
               />
-              {errors.description && (
-                <span className="text-sm text-error">{errors.description}</span>
+              {formData.status === "Resolved" ? (
+                errors.resolutionNotes && (
+                  <span className="text-sm text-error">{errors.resolutionNotes}</span>
+                )
+              ) : (
+                errors.description && (
+                  <span className="text-sm text-error">{errors.description}</span>
+                )
               )}
             </div>
           </form>
         </div>
 
         <DialogFooter className="flex-shrink-0">
-          <Button variant="outline" type="button" onClick={handleClose}>
-            Cancel
-          </Button>
+          <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
           <Button variant="default" type="submit" disabled={createMutation.isPending} onClick={handleSubmit}>
             {createMutation.isPending ? "Logging..." : "Log Incident"}
           </Button>

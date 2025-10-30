@@ -5,11 +5,24 @@ export const createDowntimeSchema = z.object({
   assetIds: z.array(z.string().min(1, "Asset is required")).min(1, "Select at least one asset"),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  description: z.string().optional(),
   startTime: z.iso.datetime({ message: "Invalid date format" }),
   endTime: z.iso.datetime({ message: "Invalid date format" }).optional(),
   reportedBy: z.string().optional(),
+  resolutionNotes: z.string().optional(),
 }).refine(
+  (data) => {
+    // Description is required when status is not Resolved
+    if (data.status !== "Resolved" && (!data.description || data.description.trim() === "")) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Description is required when status is not Resolved",
+    path: ["description"],
+  }
+).refine(
   (data) => {
     if (data.status === "Resolved" && !data.endTime) {
       return false;
@@ -19,6 +32,18 @@ export const createDowntimeSchema = z.object({
   {
     message: "End time is required when status is Resolved",
     path: ["endTime"],
+  }
+).refine(
+  (data) => {
+    // Resolution notes are required when status is Resolved
+    if (data.status === "Resolved" && (!data.resolutionNotes || data.resolutionNotes.trim() === "")) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Resolution notes are required when status is Resolved",
+    path: ["resolutionNotes"],
   }
 ).refine(
   (data) => {
@@ -39,13 +64,25 @@ export const editDowntimeSchema = z.object({
   assetIds: z.array(z.string().min(1, "Asset is required")).min(1, "Select at least one asset"),
   priority: z.enum(["Low", "Medium", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
-  description: z.string().min(10, "Description must be at least 10 characters"),
+  description: z.string().optional(),
   startTime: z.iso.datetime({ message: "Invalid date format" }),
   endTime: z.iso.datetime({ message: "Invalid date format" }).optional(),
   reportedBy: z.string().optional(),
   resolvedBy: z.string().optional(),
   resolutionNotes: z.string().optional(),
 }).refine(
+  (data) => {
+    // Description is required when status is not Resolved
+    if (data.status !== "Resolved" && (!data.description || data.description.trim() === "")) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "Description is required when status is not Resolved",
+    path: ["description"],
+  }
+).refine(
   (data) => {
     if (data.status === "Resolved" && !data.endTime) {
       return false;
@@ -58,7 +95,7 @@ export const editDowntimeSchema = z.object({
   }
 ).refine(
   (data) => {
-    if (data.status === "Resolved" && !data.resolutionNotes) {
+    if (data.status === "Resolved" && (!data.resolutionNotes || data.resolutionNotes.trim() === "")) {
       return false;
     }
     return true;

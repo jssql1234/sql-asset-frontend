@@ -623,6 +623,9 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   //   };
   // }
 
+  // Define tabs based on batch mode and user permissions
+  const commonTabProps: TabProps = { register: activeRegister, setValue: activeSetValue, watch: activeWatch, control: activeControl, errors: activeErrors, selectedTaxYear, taxYearOptions };
+
   // Update tabs definition to use currentMode
   const tabs: TabItem[] = currentMode === 'batch'
     ? [
@@ -757,7 +760,9 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Update TabHeader actions: conditional mode toggle
   const modeToggleAction = !editingAsset ? {
     label: currentMode === 'batch' ? "Exit Batch" : "Batch",
-    onAction: () => handleModeSwitch(currentMode === 'batch' ? 'normal' : 'batch'),
+    onAction: () => {
+      handleModeSwitch(currentMode === 'batch' ? 'normal' : 'batch');
+    },
     variant: currentMode === 'batch' ? "destructive" : "default",
     size: "sm" as const,
     position: "inline" as const,
@@ -844,9 +849,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   ];
 
   const assetGroupValue = activeWatch("assetGroup", "");
-
-  // Define tabs based on batch mode and user permissions
-  const commonTabProps: TabProps = { register: activeRegister, setValue: activeSetValue, watch: activeWatch, control: activeControl, errors: activeErrors, selectedTaxYear, taxYearOptions };
 
   // Get assets for ID prefill
   const { data: allAssets } = useGetAsset();

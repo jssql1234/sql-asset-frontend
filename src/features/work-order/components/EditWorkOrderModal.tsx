@@ -5,8 +5,8 @@ import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import SelectDropdown from "@/components/SelectDropdown";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { useToast } from "@/components/ui/components/Toast/useToast";
-import type { WorkOrder, WorkOrderFormData, MaintenanceType, MaintenancePriority, MaintenanceStatus, ServiceBy, AssetCostAllocation } from "../types";
-import { MOCK_ASSETS, MOCK_TECHNICIANS, MOCK_VENDORS, MAINTENANCE_TYPES, PRIORITY_LEVELS, STATUS_OPTIONS } from "../mockData";
+import type { WorkOrder, WorkOrderFormData, MaintenanceType, MaintenanceStatus, ServiceBy, AssetCostAllocation } from "../types";
+import { MOCK_ASSETS, MOCK_TECHNICIANS, MOCK_VENDORS, MAINTENANCE_TYPES, STATUS_OPTIONS } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 
 interface EditWorkOrderModalProps {
@@ -30,7 +30,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
     jobTitle: "",
     description: "",
     type: "Preventive",
-    priority: "Normal",
     scheduledDate: "",
     scheduledStartDateTime: "",
     scheduledEndDateTime: "",
@@ -116,7 +115,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
         jobTitle: workOrder.jobTitle,
         description: workOrder.description,
         type: workOrder.type,
-        priority: workOrder.priority,
         scheduledDate: workOrder.scheduledDate || "",
         scheduledStartDateTime: workOrder.scheduledStartDateTime || "",
         scheduledEndDateTime: workOrder.scheduledEndDateTime || "",
@@ -396,7 +394,7 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     className="w-full"
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="label-large block mb-2 text-onSurface">
                       Maintenance Type <span className="text-error">*</span>
@@ -414,26 +412,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                         label: type,
                       }))}
                       placeholder="Select maintenance type"
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="label-large block mb-2 text-onSurface">
-                      Priority <span className="text-error">*</span>
-                    </label>
-                    <SelectDropdown
-                      value={formData.priority}
-                      onChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          priority: value as MaintenancePriority,
-                        }))
-                      }
-                      options={PRIORITY_LEVELS.map((priority) => ({
-                        value: priority,
-                        label: priority,
-                      }))}
-                      placeholder="Select priority"
                       className="w-full"
                     />
                   </div>

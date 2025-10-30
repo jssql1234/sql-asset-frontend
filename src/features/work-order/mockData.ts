@@ -50,7 +50,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     jobTitle: "Track Alignment & Tension Adjustment",
     description: "Adjust track tension and alignment due to uneven wear",
     type: "Corrective",
-    priority: "Critical",
     status: "In Progress",
     serviceBy: "In-House",
     assignedTo: "John Smith",
@@ -92,7 +91,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     jobTitle: "Air Filter Replacement",
     description: "Routine air filter replacement as per maintenance schedule",
     type: "Preventive",
-    priority: "Normal",
     status: "Completed",
     serviceBy: "In-House",
     assignedTo: "Mike Johnson",
@@ -122,8 +120,7 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     assetCode: "CRN-003",
     jobTitle: "Hydraulic Hose Replacement - Emergency",
     description: "Emergency replacement of burst hydraulic hose",
-    type: "Corrective",
-    priority: "Emergency",
+    type: "Emergency",
     status: "Completed",
     serviceBy: "Outsourced",
     assignedTo: "ABC Crane Services",
@@ -145,7 +142,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     jobTitle: "Calibration Service",
     description: "Annual calibration and certification",
     type: "Upgrade/Modify",
-    priority: "Normal",
     status: "Pending",
     serviceBy: "Outsourced",
     assignedTo: "Precision Calibration Inc",
@@ -164,7 +160,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     jobTitle: "Control Panel Repair",
     description: "Repair faulty control panel under warranty",
     type: "Corrective",
-    priority: "Critical",
     status: "Pending",
     serviceBy: "Outsourced",
     assignedTo: "Cummins Service Center",
@@ -244,10 +239,8 @@ export const MAINTENANCE_TYPES = [
   "Preventive",
   "Corrective",
   "Upgrade/Modify",
+  "Emergency",
 ];
-
-// Priority Levels
-export const PRIORITY_LEVELS = ["Normal", "Critical", "Emergency"];
 
 // Status Options
 export const STATUS_OPTIONS = [

@@ -3,9 +3,8 @@
 export type MaintenanceType = 
   | "Preventive" 
   | "Corrective" 
-  | "Upgrade/Modify";
-
-export type MaintenancePriority = "Normal" | "Critical" | "Emergency";
+  | "Upgrade/Modify"
+  | "Emergency";
 
 export type MaintenanceStatus = 
   | "Pending"
@@ -33,7 +32,6 @@ export interface WorkOrder {
   jobTitle: string;
   description: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   status: MaintenanceStatus;
   serviceBy: ServiceBy;
   assignedTo?: string;
@@ -99,7 +97,6 @@ export interface MaintenanceFilters {
   search: string;
   assetId: string;
   type: string;
-  priority: string;
   status: string;
   serviceBy: string;
   dateFrom: string;
@@ -110,7 +107,6 @@ export interface WorkOrderFilters {
   search: string;
   assetId: string;
   type: string;
-  priority: string;
   status: string;
   serviceBy: string;
   assignedTo: string;
@@ -121,7 +117,6 @@ export interface CalendarEvent {
   title: string;
   date: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   assetName: string;
   status: MaintenanceStatus;
 }
@@ -143,7 +138,6 @@ export interface WorkOrderFormData {
   jobTitle: string;
   description: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   status: MaintenanceStatus;
   scheduledDate: string;
   scheduledStartDateTime?: string;
@@ -166,7 +160,6 @@ export interface ScheduleFormData {
   assetName: string;
   taskDescription: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   scheduledDate: string;
   frequency?: string;
   serviceBy: ServiceBy;
@@ -179,7 +172,6 @@ export const DEFAULT_MAINTENANCE_FILTERS: MaintenanceFilters = {
   search: "",
   assetId: "",
   type: "",
-  priority: "",
   status: "",
   serviceBy: "",
   dateFrom: "",
@@ -190,7 +182,6 @@ export const DEFAULT_WORK_ORDER_FILTERS: WorkOrderFilters = {
   search: "",
   assetId: "",
   type: "",
-  priority: "",
   status: "",
   serviceBy: "",
   assignedTo: "",

@@ -6,15 +6,6 @@ import type { WorkOrder, WorkOrderFilters } from "../types";
 import { useSidebar } from "@/layout/sidebar/SidebarContext";
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "@/layout/sidebar/SidebarConstant";
 
-const PRIORITY_BADGE_VARIANT: Record<
-  WorkOrder["priority"],
-  "primary" | "red" | "green" | "yellow" | "blue" | "grey"
-> = {
-  Normal: "primary",
-  Emergency: "red",
-  Critical: "yellow",
-};
-
 const STATUS_BADGE_VARIANT: Record<
   WorkOrder["status"],
   "primary" | "red" | "green" | "yellow" | "blue" | "grey"
@@ -62,7 +53,6 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
 
       const matchesAsset = !filters.assetId || workOrder.assetId === filters.assetId;
       const matchesType = !filters.type || workOrder.type === filters.type;
-      const matchesPriority = !filters.priority || workOrder.priority === filters.priority;
       const matchesStatus = !filters.status || workOrder.status === filters.status;
       const matchesServiceBy = !filters.serviceBy || workOrder.serviceBy === filters.serviceBy;
       const matchesAssignedTo =
@@ -72,7 +62,6 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         matchesSearch &&
         matchesAsset &&
         matchesType &&
-        matchesPriority &&
         matchesStatus &&
         matchesServiceBy &&
         matchesAssignedTo
@@ -126,17 +115,6 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const type = getValue() as string;
           return <span className="label-medium text-onSurface">{type}</span>;
-        },
-      },
-      {
-        accessorKey: "priority",
-        header: "Priority",
-        cell: ({ getValue }) => {
-          const priority = getValue() as WorkOrder["priority"];
-          const variant = PRIORITY_BADGE_VARIANT[priority] ?? "grey";
-          return (
-            <Badge text={priority} variant={variant} className="h-6 px-3" />
-          );
         },
       },
       {

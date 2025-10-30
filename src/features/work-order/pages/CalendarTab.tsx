@@ -19,9 +19,10 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
   onEventChange,
 }) => {
   const legendItems = [
-    { label: "Normal", color: "#2196f3", textColor: "#ffffff" },
-    { label: "Critical", color: "#ffc107", textColor: "#000000" },
+    { label: "Preventive", color: "#2196f3", textColor: "#ffffff" },
+    { label: "Corrective", color: "#ffc107", textColor: "#000000" },
     { label: "Emergency", color: "#f44336", textColor: "#ffffff" },
+    { label: "Upgrade/Modify", color: "#9c27b0", textColor: "#ffffff" },
   ];
 
   return (
@@ -35,7 +36,7 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
       {/* Color Legend */}
       <div className="flex flex-wrap items-center gap-4 p-4 bg-surfaceContainer rounded-lg border border-outline">
-        <span className="text-sm font-medium text-onSurface">Priority Legend:</span>
+        <span className="text-sm font-medium text-onSurface">Maintenance Type:</span>
         {legendItems.map((item) => (
           <div key={item.label} className="flex items-center gap-2">
             <div

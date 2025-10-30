@@ -105,7 +105,6 @@ const WorkOrdersPage: React.FC = () => {
       jobTitle: formData.jobTitle,
       description: formData.description,
       type: formData.type,
-      priority: formData.priority,
       status: formData.status,
       serviceBy: formData.serviceBy,
       assignedTo: formData.assignedTo,

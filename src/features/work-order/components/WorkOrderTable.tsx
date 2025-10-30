@@ -73,21 +73,21 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   const columns: ColumnDef<WorkOrder>[] = useMemo(
     () => [
       {
-        accessorKey: "workOrderNumber",
+        accessorKey: "id",
         header: "ID",
         cell: ({ getValue }) => {
           const woNumber = getValue() as string;
-          return <div className="w-30">{ woNumber }</div>;
+          return <div className="w-20">{woNumber}</div>;
         },
-        className: "w-24",
       },
       {
         accessorKey: "assetName",
         header: "Asset",
         cell: ({ row }) => (
           <div>
-            <div className="text-sm text-onSurfaceVariant">
-              {row.original.assetCode}
+            <div className="text-sm w-40 truncate font-medium " title={row.original.assetName}>
+              {row.original.assetName}
+              {/* <p>ja1212321321oi3j3oi21j3oi12j3oi21jo3i213jo21ij31o2ij32oi13j3oij132oi12oi3jio23</p> */}
             </div>
           </div>
         ),
@@ -98,9 +98,9 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const title = getValue() as string;
           return (
-            <div className="max-w-xs w-50">
+            <div className="max-w-xs w-80">
               <div
-                className="line-clamp-3 text-onSurface leading-relaxed"
+                className="line-clamp-2 text-onSurface leading-relaxed"
                 title={title}
               >
                 {title}
@@ -139,7 +139,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const serviceBy = getValue() as string;
           return (
-            <span className="label-medium text-onSurface">{serviceBy}</span>
+            <div className="label-medium text-onSurface w-30">{serviceBy}</div>
           );
         },
       },
@@ -149,28 +149,28 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         cell: ({ getValue }) => {
           const assignedTo = getValue() as string | undefined;
           return (
-            <span className="label-medium text-onSurface">
+            <div className="label-medium text-onSurface w-35">
               {assignedTo || "-"}
-            </span>
+            </div>
           );
         },
       },
-      {
-        accessorKey: "estimatedCost",
-        header: "Est. Cost",
-        cell: ({ getValue }) => {
-          const cost = getValue() as number;
-          return (
-            <span className="label-medium text-onSurface">
-              RM{" "}
-              {cost.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          );
-        },
-      },
+      // {
+      //   accessorKey: "estimatedCost",
+      //   header: "Est. Cost",
+      //   cell: ({ getValue }) => {
+      //     const cost = getValue() as number;
+      //     return (
+      //       <span className="label-medium text-onSurface">
+      //         RM{" "}
+      //         {cost.toLocaleString("en-US", {
+      //           minimumFractionDigits: 2,
+      //           maximumFractionDigits: 2,
+      //         })}
+      //       </span>
+      //     );
+      //   },
+      // },
       {
         accessorKey: "status",
         header: "Status",

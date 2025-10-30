@@ -91,8 +91,17 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
                         className="text-xs text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer underline decoration-dotted underline-offset-2"
                         onClick={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
+                          const popoverHeight = 240; // max-h-60 = 240px
+                          const spaceBelow = window.innerHeight - rect.bottom;
+                          const spaceAbove = rect.top;
+                          
+                          // Position above if not enough space below and there's more space above
+                          const shouldPositionAbove = spaceBelow < popoverHeight + 10 && spaceAbove > spaceBelow;
+                          
                           setPopoverPosition({
-                            top: rect.bottom + window.scrollY + 4,
+                            top: shouldPositionAbove 
+                              ? rect.top + window.scrollY - popoverHeight - 4 
+                              : rect.bottom + window.scrollY + 4,
                             left: rect.left + window.scrollX
                           });
                           setOpenAssetPopover(rowId);

@@ -98,8 +98,17 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                       type="button"
                       onClick={(e) => {
                         const rect = e.currentTarget.getBoundingClientRect();
+                        const popoverHeight = 240; // max-h-60 = 240px
+                        const spaceBelow = window.innerHeight - rect.bottom;
+                        const spaceAbove = rect.top;
+                        
+                        // Position above if not enough space below and there's more space above
+                        const shouldPositionAbove = spaceBelow < popoverHeight + 10 && spaceAbove > spaceBelow;
+                        
                         setPopoverPosition({
-                          top: rect.bottom + window.scrollY + 2,
+                          top: shouldPositionAbove 
+                            ? rect.top + window.scrollY - popoverHeight - 4 
+                            : rect.bottom + window.scrollY + 2,
                           left: rect.left + window.scrollX + 10,
                         });
                         setOpenAssetPopover(rowId);

@@ -55,6 +55,12 @@ export const downtimeAssetGroups: DowntimeAssetGroup[] = [
     assets: [
       { id: "WR-009", name: "Welding Robot I9", location: "Maintenance Bay" },
       { id: "DM-010", name: "Diagnostic Machine J10", location: "Service Center" },
+      { id: "WR-011", name: "Welding Robot K11", location: "Maintenance Bay" },
+      { id: "DM-012", name: "Diagnostic Machine L12", location: "Service Center" },
+      { id: "CR-013", name: "Calibration Robot M13", location: "Calibration Lab" },
+      { id: "TM-014", name: "Tooling Machine N14", location: "Tool Room" },
+      { id: "SM-015", name: "Soldering Machine O15", location: "Assembly Bay" },
+      { id: "PM-016", name: "Precision Machine P16", location: "Precision Workshop" },
     ],
   },
 ];

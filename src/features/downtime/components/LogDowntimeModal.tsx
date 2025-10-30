@@ -16,7 +16,7 @@ const DEFAULT_ASSET_CATEGORY = "all" as const;
 
 const getDefaultFormData = (): CreateDowntimeInput => ({
   assetIds: [],
-  priority: "Medium",
+  priority: "Low",
   status: "Down",
   description: "",
   startTime: new Date().toISOString(),

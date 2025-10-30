@@ -26,7 +26,7 @@ const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, valueClassName, ch
 
 const DEFAULT_ASSET_CATEGORY = "all" as const;
 
-const getDefaultFormData = (): EditDowntimeInput => ({ id: "", assetIds: [], priority: "Medium", status: "Down", description: "", 
+const getDefaultFormData = (): EditDowntimeInput => ({ id: "", assetIds: [], priority: "Low", status: "Down", description: "", 
                                                        startTime: new Date().toISOString(), endTime: undefined, resolutionNotes: "" });
 
 export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({

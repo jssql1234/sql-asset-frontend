@@ -3,7 +3,7 @@ import { z } from "zod";
 // Schema for creating a new downtime incident
 export const createDowntimeSchema = z.object({
   assetIds: z.array(z.string().min(1, "Asset is required")).min(1, "Select at least one asset"),
-  priority: z.enum(["Low", "Medium", "High", "Critical"]),
+  priority: z.enum(["Low", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
   description: z.string().optional(),
   startTime: z.iso.datetime({ message: "Invalid date format" }),
@@ -62,7 +62,7 @@ export const createDowntimeSchema = z.object({
 export const editDowntimeSchema = z.object({
   id: z.string().min(1, "Incident ID is required"),
   assetIds: z.array(z.string().min(1, "Asset is required")).min(1, "Select at least one asset"),
-  priority: z.enum(["Low", "Medium", "High", "Critical"]),
+  priority: z.enum(["Low", "High", "Critical"]),
   status: z.enum(["Down", "Resolved"]),
   description: z.string().optional(),
   startTime: z.iso.datetime({ message: "Invalid date format" }),

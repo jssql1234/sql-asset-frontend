@@ -9,7 +9,7 @@ export interface DowntimeAssetInfo {
 export interface DowntimeIncident {
   id: string;
   assets: DowntimeAssetInfo[];
-  priority: "Low" | "Medium" | "High" | "Critical";
+  priority: "Low" | "High" | "Critical";
   status: "Down" | "Resolved";
   startTime: string; // ISO date string
   endTime?: string; // ISO date string, optional for down incidents
@@ -20,12 +20,7 @@ export interface DowntimeIncident {
   resolutionNotes?: string;
 }
 
-export interface DowntimeSummary {
-  activeIncidents: number;
-  totalIncidents: number;
-  totalResolved: number;
-  totalDowntime: string; // Total downtime duration formatted string
-}
+export interface DowntimeSummary { activeIncidents: number; totalIncidents: number; totalResolved: number; totalDowntime: string }
 
 export interface ModalState {
   logDowntime: boolean;

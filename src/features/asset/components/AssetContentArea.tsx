@@ -201,12 +201,17 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
-  const [groupByBatch, setGroupByBatch] = useState(false);
+
+  // Initialize groupByBatch directly from sessionStorage to avoid flickering
+  const [groupByBatch, setGroupByBatch] = useState(() => {
+    const savedMode = sessionStorage.getItem('assetListMode');
+    return savedMode === 'batch';
+  });
+
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
   const [availableTaxYears, setAvailableTaxYears] = useState<SelectDropdownOption[]>([]);
 
-  // Track mount status
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -301,7 +306,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
          if (asset) {
            setEditingAsset(asset);
            setView('edit');
-           void navigate(`/asset/edit-asset/${asset.id}`);
+
          } else {
            // Asset not found, redirect to list
            void navigate('/asset');
@@ -558,25 +563,30 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               {/* Asset/Batch Toggle */}
-              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
-              onClick={() => {
-                setGroupByBatch(!groupByBatch);
-              }}>
+              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden">
                 <button
                   type="button"
                   className={cn(
-                    "px-3 py-1 body-small",
+                    "px-3 py-1 body-small cursor-pointer",
                     !groupByBatch && "bg-primary text-onPrimary"
                   )}
+                  onClick={() => {
+                    setGroupByBatch(false);
+                    sessionStorage.setItem('assetListMode', 'asset');
+                  }}
                 >
                   Asset
                 </button>
                 <button
                   type="button"
                   className={cn(
-                    "px-3 py-1 body-small",
+                    "px-3 py-1 body-small cursor-pointer",
                     groupByBatch && "bg-primary text-onPrimary"
                   )}
+                  onClick={() => {
+                    setGroupByBatch(true);
+                    sessionStorage.setItem('assetListMode', 'batch');
+                  }}
                 >
                   Batch
                 </button>
@@ -592,8 +602,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
               <PermissionGuard feature="maintainItem" action="entryNew">
 
               <Button size="sm" onClick={() => {
-                setView('create');
-                void navigate('/asset/create-asset');
+                sessionStorage.setItem('assetListMode', groupByBatch ? 'batch' : 'asset');
+                void navigate('/asset/create-asset', { state: { initialMode: groupByBatch ? 'batch' : 'normal' } });
               }}>
                 <Plus className="h-4 w-4" />
                 Add
@@ -613,9 +623,10 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                          const asset = assets.find(a => a.id === selectedAssetIds[0]);
 
                          if (asset) {
+                           sessionStorage.setItem('assetListMode', groupByBatch ? 'batch' : 'asset');
                            setEditingAsset(asset);
                            setView('edit');
-                           void navigate(`/asset/edit-asset/${asset.id}`);
+                           void navigate(`/asset/edit-asset/${asset.id}`, { state: { listMode: groupByBatch ? 'batch' : 'normal' } });
                          }
                        }
                      }}
@@ -661,7 +672,9 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}
           userRole={effectiveUserRole}
-          onBack={() => {
+          onBack={(mode) => {
+            sessionStorage.setItem('assetListMode', mode === 'batch' ? 'batch' : 'asset');
+            setGroupByBatch(mode === 'batch');
             setView('list');
             setEditingAsset(null);
             void navigate(`/asset`);
@@ -688,7 +701,9 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}
           userRole={effectiveUserRole}
-          onBack={() => {
+          onBack={(mode) => {
+            sessionStorage.setItem('assetListMode', mode === 'batch' ? 'batch' : 'asset');
+            setGroupByBatch(mode === 'batch');
             setView('list');
             setEditingAsset(null);
             void navigate(`/asset`);

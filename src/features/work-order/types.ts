@@ -3,9 +3,8 @@
 export type MaintenanceType = 
   | "Preventive" 
   | "Corrective" 
-  | "Upgrade/Modify";
-
-export type MaintenancePriority = "Normal" | "Critical" | "Emergency";
+  | "Upgrade/Modify"
+  | "Emergency";
 
 export type MaintenanceStatus = 
   | "Pending"
@@ -14,6 +13,8 @@ export type MaintenanceStatus =
   | "Overdue";
 
 export type ServiceBy = "In-House" | "Outsourced";
+
+export type WarrantyStatus = "No Warranty" | "Claimable" | "Claimed";
 
 export interface AssetCostAllocation {
   assetId: string;
@@ -31,7 +32,6 @@ export interface WorkOrder {
   jobTitle: string;
   description: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   status: MaintenanceStatus;
   serviceBy: ServiceBy;
   assignedTo?: string;
@@ -51,6 +51,7 @@ export interface WorkOrder {
   partsUsed?: PartUsed[];
   logs?: MaintenanceLog[];
   warrantyId?: string;
+  warrantyStatus?: WarrantyStatus;
 }
 
 export interface PartUsed {
@@ -66,6 +67,13 @@ export interface MaintenanceLog {
   timestamp: string;
   technician: string;
   notes: string;
+}
+
+export interface Warranty {
+  id: string;
+  assetIds: string[]; // Assets covered by this warranty
+  startDate: string;
+  endDate: string;
 }
 
 export interface MaintenanceSummary {
@@ -89,7 +97,6 @@ export interface MaintenanceFilters {
   search: string;
   assetId: string;
   type: string;
-  priority: string;
   status: string;
   serviceBy: string;
   dateFrom: string;
@@ -100,7 +107,6 @@ export interface WorkOrderFilters {
   search: string;
   assetId: string;
   type: string;
-  priority: string;
   status: string;
   serviceBy: string;
   assignedTo: string;
@@ -111,7 +117,6 @@ export interface CalendarEvent {
   title: string;
   date: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   assetName: string;
   status: MaintenanceStatus;
 }
@@ -133,7 +138,6 @@ export interface WorkOrderFormData {
   jobTitle: string;
   description: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   status: MaintenanceStatus;
   scheduledDate: string;
   scheduledStartDateTime?: string;
@@ -146,7 +150,9 @@ export interface WorkOrderFormData {
   actualCost?: number;
   costAllocations?: AssetCostAllocation[];
   notes?: string;
+  partsUsed?: PartUsed[];
   warrantyId?: string;
+  warrantyStatus?: WarrantyStatus;
 }
 
 export interface ScheduleFormData {
@@ -154,7 +160,6 @@ export interface ScheduleFormData {
   assetName: string;
   taskDescription: string;
   type: MaintenanceType;
-  priority: MaintenancePriority;
   scheduledDate: string;
   frequency?: string;
   serviceBy: ServiceBy;
@@ -167,7 +172,6 @@ export const DEFAULT_MAINTENANCE_FILTERS: MaintenanceFilters = {
   search: "",
   assetId: "",
   type: "",
-  priority: "",
   status: "",
   serviceBy: "",
   dateFrom: "",
@@ -178,7 +182,6 @@ export const DEFAULT_WORK_ORDER_FILTERS: WorkOrderFilters = {
   search: "",
   assetId: "",
   type: "",
-  priority: "",
   status: "",
   serviceBy: "",
   assignedTo: "",

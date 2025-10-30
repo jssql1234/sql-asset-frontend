@@ -5,8 +5,8 @@ import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import SelectDropdown from "@/components/SelectDropdown";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { useToast } from "@/components/ui/components/Toast/useToast";
-import type { WorkOrder, WorkOrderFormData, MaintenanceType, MaintenancePriority, MaintenanceStatus, ServiceBy, AssetCostAllocation } from "../types";
-import { MOCK_ASSETS, MOCK_TECHNICIANS, MOCK_VENDORS, MAINTENANCE_TYPES, PRIORITY_LEVELS, STATUS_OPTIONS } from "../mockData";
+import type { WorkOrder, WorkOrderFormData, MaintenanceType, MaintenanceStatus, ServiceBy, AssetCostAllocation } from "../types";
+import { MOCK_ASSETS, MOCK_TECHNICIANS, MOCK_VENDORS, MAINTENANCE_TYPES, STATUS_OPTIONS } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 
 interface EditWorkOrderModalProps {
@@ -30,7 +30,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
     jobTitle: "",
     description: "",
     type: "Preventive",
-    priority: "Normal",
     scheduledDate: "",
     scheduledStartDateTime: "",
     scheduledEndDateTime: "",
@@ -116,7 +115,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
         jobTitle: workOrder.jobTitle,
         description: workOrder.description,
         type: workOrder.type,
-        priority: workOrder.priority,
         scheduledDate: workOrder.scheduledDate || "",
         scheduledStartDateTime: workOrder.scheduledStartDateTime || "",
         scheduledEndDateTime: workOrder.scheduledEndDateTime || "",
@@ -396,7 +394,7 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     className="w-full"
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="label-large block mb-2 text-onSurface">
                       Maintenance Type <span className="text-error">*</span>
@@ -414,26 +412,6 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                         label: type,
                       }))}
                       placeholder="Select maintenance type"
-                      className="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="label-large block mb-2 text-onSurface">
-                      Priority <span className="text-error">*</span>
-                    </label>
-                    <SelectDropdown
-                      value={formData.priority}
-                      onChange={(value) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          priority: value as MaintenancePriority,
-                        }))
-                      }
-                      options={PRIORITY_LEVELS.map((priority) => ({
-                        value: priority,
-                        label: priority,
-                      }))}
-                      placeholder="Select priority"
                       className="w-full"
                     />
                   </div>
@@ -544,14 +522,22 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                       value={formData.scheduledStartDateTime ? new Date(formData.scheduledStartDateTime) : undefined}
                       onChange={(date) => {
                         if (date instanceof Date) {
+                          // Format date to local datetime string (YYYY-MM-DDTHH:mm)
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const hours = String(date.getHours()).padStart(2, '0');
+                          const minutes = String(date.getMinutes()).padStart(2, '0');
+                          const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                          
                           setFormData((prev) => ({
                             ...prev,
-                            scheduledStartDateTime: date.toISOString().slice(0, 16),
+                            scheduledStartDateTime: formattedDate,
                           }));
                         } else if (typeof date === "string") {
                           setFormData((prev) => ({
                             ...prev,
-                            scheduledStartDateTime: new Date(date).toISOString().slice(0, 16),
+                            scheduledStartDateTime: date.slice(0, 16),
                           }));
                         } else {
                           setFormData((prev) => ({
@@ -582,14 +568,22 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                       value={formData.scheduledEndDateTime ? new Date(formData.scheduledEndDateTime) : undefined}
                       onChange={(date) => {
                         if (date instanceof Date) {
+                          // Format date to local datetime string (YYYY-MM-DDTHH:mm)
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const hours = String(date.getHours()).padStart(2, '0');
+                          const minutes = String(date.getMinutes()).padStart(2, '0');
+                          const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                          
                           setFormData((prev) => ({
                             ...prev,
-                            scheduledEndDateTime: date.toISOString().slice(0, 16),
+                            scheduledEndDateTime: formattedDate,
                           }));
                         } else if (typeof date === "string") {
                           setFormData((prev) => ({
                             ...prev,
-                            scheduledEndDateTime: new Date(date).toISOString().slice(0, 16),
+                            scheduledEndDateTime: date.slice(0, 16),
                           }));
                         } else {
                           setFormData((prev) => ({
@@ -627,14 +621,22 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                     value={formData.actualStartDateTime ? new Date(formData.actualStartDateTime) : undefined}
                     onChange={(date) => {
                       if (date instanceof Date) {
+                        // Format date to local datetime string (YYYY-MM-DDTHH:mm)
+                        const year = date.getFullYear();
+                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                        const day = String(date.getDate()).padStart(2, '0');
+                        const hours = String(date.getHours()).padStart(2, '0');
+                        const minutes = String(date.getMinutes()).padStart(2, '0');
+                        const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                        
                         setFormData((prev) => ({
                           ...prev,
-                          actualStartDateTime: date.toISOString().slice(0, 16),
+                          actualStartDateTime: formattedDate,
                         }));
                       } else if (typeof date === "string") {
                         setFormData((prev) => ({
                           ...prev,
-                          actualStartDateTime: new Date(date).toISOString().slice(0, 16),
+                          actualStartDateTime: date.slice(0, 16),
                         }));
                       } else {
                         setFormData((prev) => ({
@@ -655,14 +657,22 @@ export const EditWorkOrderModal: React.FC<EditWorkOrderModalProps> = ({
                       value={formData.actualEndDateTime ? new Date(formData.actualEndDateTime) : undefined}
                       onChange={(date) => {
                         if (date instanceof Date) {
+                          // Format date to local datetime string (YYYY-MM-DDTHH:mm)
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, '0');
+                          const day = String(date.getDate()).padStart(2, '0');
+                          const hours = String(date.getHours()).padStart(2, '0');
+                          const minutes = String(date.getMinutes()).padStart(2, '0');
+                          const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+                          
                           setFormData((prev) => ({
                             ...prev,
-                            actualEndDateTime: date.toISOString().slice(0, 16),
+                            actualEndDateTime: formattedDate,
                           }));
                         } else if (typeof date === "string") {
                           setFormData((prev) => ({
                             ...prev,
-                            actualEndDateTime: new Date(date).toISOString().slice(0, 16),
+                            actualEndDateTime: date.slice(0, 16),
                           }));
                         } else {
                           setFormData((prev) => ({

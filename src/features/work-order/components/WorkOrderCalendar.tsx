@@ -19,14 +19,16 @@ export interface WorkOrderCalendarProps {
   editable?: boolean;
 }
 
-const getPriorityColor = (priority: WorkOrder["priority"]): { bg: string; text: string } => {
-  switch (priority) {
-    case "Normal":
+const getMaintenanceTypeColor = (type: string): { bg: string; text: string } => {
+  switch (type) {
+    case "Preventive":
       return { bg: "#2196f3", text: "#ffffff" };
-    case "Critical":
+    case "Corrective":
       return { bg: "#ffc107", text: "#000000" };
     case "Emergency":
       return { bg: "#f44336", text: "#ffffff" };
+    case "Upgrade/Modify":
+      return { bg: "#9c27b0", text: "#ffffff" };
     default:
       return { bg: "#9e9e9e", text: "#ffffff" };
   }
@@ -43,7 +45,7 @@ export const WorkOrderCalendar = ({
 }: WorkOrderCalendarProps) => {
   const calendarEvents: CalendarEvent[] = useMemo(() => {
     return workOrders.map((workOrder) => {
-      const priorityColor = getPriorityColor(workOrder.priority);
+      const typeColor = getMaintenanceTypeColor(workOrder.type);
       let startDate: string;
       let endDate: string | undefined;
       let isAllDay = false;
@@ -72,12 +74,11 @@ export const WorkOrderCalendar = ({
         start: startDate,
         end: endDate,
         allDay: isAllDay,
-        backgroundColor: priorityColor.bg,
+        backgroundColor: typeColor.bg,
         borderColor: "transparent",
-        textColor: priorityColor.text,
+        textColor: typeColor.text,
         extendedProps: {
           workOrder,
-          priority: workOrder.priority,
           status: workOrder.status,
           type: workOrder.type,
           progress: workOrder.progress,

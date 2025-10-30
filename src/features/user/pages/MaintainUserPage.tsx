@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { UserTable } from '../components/UserTable';
 import { UserModal } from '../components/UserModal';
 import { UserGroupModal } from '../components/UserGroupModal';
 import TabHeader from '@/components/TabHeader';
+import SelectDropdown from '@/components/SelectDropdown';
+import type { SelectDropdownOption } from '@/components/SelectDropdown';
 import { ExportFile, Upload } from '@/assets/icons';
 import { useMaintainUser } from '../hooks/useMaintainUser';
 import { useMaintainUserGroup } from '../hooks/useMaintainUserGroup';
@@ -14,7 +16,18 @@ import { useDepartments } from '@/features/maintain/hooks/useDepartments';
 import { DepartmentFormModal } from '@/features/maintain/components/DepartmentFormModal';
 
 const MaintainUserPage: React.FC = () => {
-  
+  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('csv');
+
+  const exportOptions: SelectDropdownOption[] = [
+    { value: 'csv', label: 'CSV' },
+    { value: 'xlsx', label: 'XLSX' },
+    { value: 'json', label: 'JSON' },
+    { value: 'xml', label: 'XML' },
+    { value: 'html', label: 'HTML' },
+    { value: 'txt', label: 'TXT' },
+    { value: 'pdf', label: 'PDF' },
+  ];
+
   const {
     users,
     groups,
@@ -30,7 +43,7 @@ const MaintainUserPage: React.FC = () => {
     handleDeleteClick,
     handleConfirmDelete,
     handleCancelDelete,
-    handleExportCSV,
+    handleExportData,
     handleImportCSV,
     handleFileChange,
   } = useMaintainUser();
@@ -72,27 +85,44 @@ const MaintainUserPage: React.FC = () => {
     >
       <TabHeader
         title="Maintain User"
-        actions={[
-          {
-            icon: <ExportFile className="h-4 w-4" />,
-            label: "Export CSV",
-            variant: 'outline',
-            className: 'h-9 px-4 py-2',
-            onAction: handleExportCSV
-          },
-          {
-            icon: <Upload className="h-4 w-4" />,
-            label: "Import CSV",
-            variant: 'outline',
-            className: 'h-9 px-4 py-2',
-            onAction: handleImportCSV
-          },
-          {
-            label: "Add User",
-            className: 'h-9 px-4 py-2',
-            onAction: handleAddUser
-          }
-        ]}
+        customActions={
+          <div className="flex items-center gap-2">
+            <SelectDropdown
+              value={selectedFormat}
+              onChange={(value) => { setSelectedFormat(value as 'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'); }}
+              options={exportOptions}
+              placeholder="Select format"
+              buttonVariant="outline"
+              buttonSize="sm"
+              className="min-w-[100px]"
+            />
+            <button
+              type="button"
+              onClick={() => { handleExportData(selectedFormat); }}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+              title={`Export as ${selectedFormat.toUpperCase()}`}
+            >
+              <ExportFile className="w-4 h-4" />
+              Export Data
+            </button>
+            <button
+              type="button"
+              onClick={handleImportCSV}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+              title="Import CSV"
+            >
+              <Upload className="w-4 h-4" />
+              Import CSV
+            </button>
+            <button
+              type="button"
+              onClick={handleAddUser}
+              className="px-3 py-2 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover"
+            >
+              Add User
+            </button>
+          </div>
+        }
       />
 
       <div className="flex flex-col h-full">

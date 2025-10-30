@@ -1,12 +1,14 @@
-import { useEffect, useMemo, useState, useCallback} from 'react';
+import { useMemo, useCallback } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableColumnVisibility } from '@/components/ui/components/Table';
+import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
 import { Button, Card } from '@/components/ui/components';
 import { Badge } from '@/components/ui/components/Badge';
 import { Plus, Edit, Delete } from '@/assets/icons';
 import type { AssetGroup } from '../types/assetGroups';
 import type { ColumnDef } from '@tanstack/react-table';
 import { formatAssetGroupDate } from '../utils/assetGroupUtils';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableSelectionSync } from '@/components/DataTableExtended/hooks/useTableSelectionSync';
 
 interface AssetGroupsTableProps {
   assetGroups: AssetGroup[];
@@ -103,74 +105,35 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
     }
   ]), [assetCounts]);
 
-  const selectionColumn = useMemo(
-    () => columnDefs.find(column => column.id === 'select'),
-    [columnDefs],
-  );
+  const {
+    toggleableColumns,
+    visibleColumns,
+    setVisibleColumns,
+    displayedColumns,
+    handleColumnOrderChange,
+  } = useTableColumns<AssetGroup, unknown>({
+    columns: columnDefs,
+    lockedColumnIds: ['select'],
+    onVisibleColumnsChange,
+  });
 
-  const visibilityColumns = useMemo(
-    () => columnDefs.filter(column => column.id !== 'select'),
-    [columnDefs],
-  );
+  const getAssetGroupId = useCallback((group: AssetGroup) => group.id, []);
 
-  const [visibleColumns, setVisibleColumns] = useState(visibilityColumns);
+  const {
+    rowSelection,
+    handleRowSelectionChange,
+    selectedCount,
+    hasSelection,
+    singleSelectedItem,
+    clearSelection,
+  } = useTableSelectionSync({
+    data: assetGroups,
+    selectedIds,
+    getRowId: getAssetGroupId,
+    onToggleSelection: onSelectAssetGroup,
+  });
 
-  const handleSetVisibleColumns = useCallback((newVisible: React.SetStateAction<ColumnDef<AssetGroup>[]>) => {
-    setVisibleColumns(prev => {
-      const updated = typeof newVisible === 'function' ? newVisible(prev) : newVisible;
-      onVisibleColumnsChange?.(updated);
-      return updated;
-    });
-  }, [onVisibleColumnsChange]);
-
-  useEffect(() => {
-    const initialVisible = visibilityColumns;
-    setVisibleColumns(initialVisible);
-    onVisibleColumnsChange?.(initialVisible);
-  }, [visibilityColumns, onVisibleColumnsChange]);
-
-  const displayedColumns = useMemo(() => {
-    const cols: ColumnDef<AssetGroup>[] = [];
-    if (selectionColumn) {
-      cols.push(selectionColumn);
-    }
-    cols.push(...visibleColumns);
-    return cols;
-  }, [selectionColumn, visibleColumns]);
-
-  const handleRowSelectionChange = (selectedRows: AssetGroup[]) => {
-    const selectedIdsSet = new Set(selectedRows.map(assetGroup => assetGroup.id));
-
-    selectedIdsSet.forEach(id => {
-      if (!selectedIds.includes(id)) {
-        onSelectAssetGroup(id);
-      }
-    });
-
-    selectedIds.forEach(id => {
-      if (!selectedIdsSet.has(id)) {
-        onSelectAssetGroup(id);
-      }
-    });
-  };
-
-  const selectedCount = selectedIds.length;
-  const hasSelection = selectedCount > 0;
-
-  const rowSelection = selectedIds.reduce<Record<string, boolean>>((acc, assetGroupId) => {
-    const index = assetGroups.findIndex(assetGroup => assetGroup.id === assetGroupId);
-    if (index !== -1) {
-      acc[index.toString()] = true;
-    }
-    return acc;
-  }, {});
-
-  const selectedAssetGroupForEdit = useMemo(() => {
-    if (!hasSingleSelection) {
-      return undefined;
-    }
-    return assetGroups.find(group => group.id === selectedIds[0]);
-  }, [assetGroups, hasSingleSelection, selectedIds]);
+  const selectedAssetGroupForEdit = hasSingleSelection ? singleSelectedItem : undefined;
 
   const canDeleteSelected = hasSelection && selectedIds.every(id => (assetCounts[id] ?? 0) === 0);
 
@@ -178,10 +141,10 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableColumnVisibility
-            columns={visibilityColumns}
+          <TableVisibilityControl
+            columns={toggleableColumns}
             visibleColumns={visibleColumns}
-            setVisibleColumns={handleSetVisibleColumns}
+            setVisibleColumns={setVisibleColumns}
           />
         </div>
         <div className="flex items-center gap-2">
@@ -222,9 +185,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  selectedIds.forEach(id => { onSelectAssetGroup(id); });
-                }}
+                onClick={clearSelection}
               >
                 Clear Selection
               </Button>
@@ -243,6 +204,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
         enableRowClickSelection
         onRowSelectionChange={handleRowSelectionChange}
         rowSelection={rowSelection}
+        onColumnOrderChange={handleColumnOrderChange}
       />
     </Card>
   );

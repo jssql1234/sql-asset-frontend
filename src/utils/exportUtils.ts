@@ -29,9 +29,20 @@ export function exportTableData<T>(
   }
 
   const includedKeys = [...selectedColumnIds];
+  const seenKeys = new Set<string>();
+  const orderedIds = includedKeys.filter(id => {
+    if (seenKeys.has(id)) {
+      return false;
+    }
+    seenKeys.add(id);
+    return true;
+  });
   // Note: Specific logic for adding extra columns like description should be handled by the caller
 
-  const selectedColumns = columns.filter(c => includedKeys.includes(c.id));
+  const columnById = new Map(columns.map(column => [column.id, column]));
+  const selectedColumns = orderedIds
+    .map(id => columnById.get(id))
+    .filter((column): column is ExportColumn<T> => Boolean(column));
 
   if (selectedColumns.length === 0) {
     return;

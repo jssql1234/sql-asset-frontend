@@ -2,7 +2,7 @@
  * DataTableExtended - Extended wrapper for DataTable with additional features
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { 
   useReactTable,
   getCoreRowModel,
@@ -92,6 +92,7 @@ interface DataTableExtendedProps<TData, TValue> {
   onGroupingChange?: (grouping: GroupingState) => void;
   expanded?: ExpandedState;
   onExpandedChange?: (expanded: ExpandedState) => void;
+  onColumnOrderChange?: (columnOrder: string[]) => void;
 }
 
 type ColumnDefWithHeaderAlign<TData, TValue> = ColumnDef<TData, TValue> & {
@@ -104,7 +105,22 @@ function hasHeaderAlign<TData, TValue>(
   return 'headerAlign' in columnDef;
 }
 
-// Draggable header component (moved to top-level)
+function resolveColumnId<TData, TValue>(
+  column: ColumnDef<TData, TValue> | CustomColumnDef<TData, TValue>,
+  index: number
+): string {
+  if (column.id) {
+    return column.id;
+  }
+
+  if ('accessorKey' in column && column.accessorKey) {
+    return String(column.accessorKey);
+  }
+
+  return `col-${index.toString()}`;
+}
+
+// Draggable header component
 function DraggableHeader<TData, TValue>({
   header,
   index,
@@ -118,6 +134,8 @@ function DraggableHeader<TData, TValue>({
   activeId: string | null;
   overId: string | null;
 }) {
+  const isSelectionColumn = header.column.id === 'select';
+  
   const {
     attributes,
     listeners,
@@ -147,10 +165,10 @@ function DraggableHeader<TData, TValue>({
     <div className="flex items-center gap-2">
       <div
         onClick={(e) => {
-          e.stopPropagation();  // Prevent DnD interference
+          e.stopPropagation();
           header.column.getToggleSortingHandler()?.(e);
         }}
-        className={cn('flex items-center gap-2 w-full justify-between select-none', {  // Ensure select-none
+        className={cn('flex items-center gap-2 w-full justify-between select-none', {
           'cursor-pointer': header.column.getCanSort(),
           'justify-end': hasHeaderAlign(header.column.columnDef) && header.column.columnDef.headerAlign === 'right',
         })}
@@ -182,6 +200,19 @@ function DraggableHeader<TData, TValue>({
 
   const isActive = header.column.id === activeId;
   const isOver = header.column.id === overId && !isActive;
+
+  if (isSelectionColumn) {
+    return (
+      <TableHead
+        className={cn('relative', {
+          'rounded-tl-md': index === 0,
+          'rounded-tr-md': index === totalHeaders - 1,
+        })}
+      >
+        {headerContent}
+      </TableHead>
+    );
+  }
 
   return (
     <TableHead
@@ -251,6 +282,7 @@ export function DataTableExtended<TData, TValue>({
   onGroupingChange,
   expanded,
   onExpandedChange,
+  onColumnOrderChange,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -259,16 +291,16 @@ export function DataTableExtended<TData, TValue>({
   const [internalGrouping, setInternalGrouping] = useState<GroupingState>([]);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
   
-  // Column ordering state - safer initialization
+  // Compute effective columns first (including selection column if enabled)
+  const effectiveColumns = useMemo(() => {
+    if (showCheckbox) {
+      return [createSelectionColumn<TData, TValue>(), ...columns];
+    }
+    return columns;
+  }, [columns, showCheckbox]);
+  
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
-    return columns.map((col, index) => {
-      if (col.id) return col.id;
-      // Check if accessorKey exists as a property
-      if ('accessorKey' in col && col.accessorKey) {
-        return String(col.accessorKey);
-      }
-      return `col-${index.toString()}`;
-    });
+    return effectiveColumns.map((col, index) => resolveColumnId(col, index));
   });
   
   // DnD state
@@ -309,16 +341,20 @@ export function DataTableExtended<TData, TValue>({
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (active.id !== over?.id && over?.id) {
-      const oldIndex = columnOrder.indexOf(active.id as string);
-      const newIndex = columnOrder.indexOf(over.id as string);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        setColumnOrder(arrayMove(columnOrder, oldIndex, newIndex));
-      }
+      setColumnOrder((previousOrder) => {
+        const oldIndex = previousOrder.indexOf(active.id as string);
+        const newIndex = previousOrder.indexOf(over.id as string);
+
+        if (oldIndex === -1 || newIndex === -1) {
+          return previousOrder;
+        }
+
+        return arrayMove(previousOrder, oldIndex, newIndex);
+      });
     }
-    
+
     setActiveId(null);
     setOverId(null);
   };
@@ -326,7 +362,7 @@ export function DataTableExtended<TData, TValue>({
   // Create table instance with faceted filtering support
   const table = useReactTable({
     data,
-    columns: showCheckbox ? [createSelectionColumn<TData, TValue>(), ...columns] : columns,
+    columns: effectiveColumns,  // Use effective columns here
     enableRowSelection: showCheckbox || enableRowClickSelection,
     onColumnOrderChange: setColumnOrder,
     filterFromLeafRows: true,
@@ -417,6 +453,29 @@ export function DataTableExtended<TData, TValue>({
     },
   });
 
+  useEffect(() => {
+    const effectiveColumnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
+
+    setColumnOrder((previousOrder) => {
+      const filtered = previousOrder.filter((id) => effectiveColumnIds.includes(id));
+      const additions = effectiveColumnIds.filter((id) => !filtered.includes(id));
+      const nextOrder = [...filtered, ...additions];
+
+      const sameLength = nextOrder.length === previousOrder.length;
+      if (sameLength && nextOrder.every((id, idx) => id === previousOrder[idx])) {
+        return previousOrder;
+      }
+
+      return nextOrder;
+    });
+  }, [effectiveColumns]);
+
+  useEffect(() => {
+    if (onColumnOrderChange) {
+      onColumnOrderChange(columnOrder);
+    }
+  }, [columnOrder, onColumnOrderChange]);
+
   // Double-click handler
   useEffect(() => {
     if (!onRowDoubleClick) return;
@@ -456,14 +515,14 @@ export function DataTableExtended<TData, TValue>({
 
   return (
     <div ref={containerRef} className="flex flex-col h-full">
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
+      <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
           <Table style={{ width: '100%', height: '100%' }}>
             <TableHeader>
               <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
@@ -500,9 +559,9 @@ export function DataTableExtended<TData, TValue>({
               )}
             </TableBody>
           </Table>
-        </div>
-        <ActiveHeaderOverlay headerId={activeId} table={table} />
-      </DndContext>
+          <ActiveHeaderOverlay headerId={activeId} table={table} />
+        </DndContext>
+      </div>
       
       {showPagination && (
         <TablePagination

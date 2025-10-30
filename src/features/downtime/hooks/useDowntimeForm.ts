@@ -3,18 +3,9 @@ import { downtimeAssetGroups, downtimeAssets } from "../mockData";
 import type { DowntimeIncident } from "../types";
 
 export const DEFAULT_ASSET_CATEGORY = "all" as const;
+export interface AssetDropdownItem { id: string; label: string; groupId: string; groupLabel: string }
 
-export interface AssetDropdownItem {
-  id: string;
-  label: string;
-  groupId: string;
-  groupLabel: string;
-}
-
-/**
- * Custom hook for managing asset categories and filtering logic
- * Shared between EditIncidentModal and LogDowntimeModal
- */
+//Custom hook for managing asset categories and filtering logic (Shared between EditIncidentModal and LogDowntimeModal)
 export function useAssetCategories(incident?: DowntimeIncident | null) {
   const assetCategories = useMemo(
     () => [
@@ -87,9 +78,7 @@ export function useFilteredAssetItems(
   }, [selectedCategoryId, allAssetItemsMap, selectedAssetIds]);
 }
 
-/**
- * Custom hook for managing form validation errors
- */
+//Custom hook for managing form validation errors
 export function useFormErrors() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -114,9 +103,7 @@ export function useFormErrors() {
   return { errors, setErrors, clearError, clearErrors, setFieldErrors };
 }
 
-/**
- * Custom hook for managing date/time input changes
- */
+//Custom hook for managing date/time input changes
 export function useDateTimeChange<T extends Record<string, unknown>>(
   setFormData: React.Dispatch<React.SetStateAction<T>>,
   clearError: (field: string) => void

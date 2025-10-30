@@ -76,7 +76,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
                       <div
                         key={asset.id}
                         className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm transition hover:border-primary/60"
-                        title={`${asset.name} (${asset.id})${asset.location ? ` · ${asset.location}` : ""}`}
+                        title={`${asset.name} (${asset.id})`}
                       >
                         <div className="text-sm font-medium text-onSurface truncate" title={asset.name}>
                           {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>

@@ -11,71 +11,73 @@ const baseDowntimeFields = {
   resolutionNotes: z.string().optional(),
 } as const;
 
+interface DowntimeConsistencyFields {
+  status: "Down" | "Resolved";
+  description?: string | null;
+  resolutionNotes?: string | null;
+  startTime: string;
+  endTime?: string | null;
+}
+
+const validateDowntimeConsistency = <T extends z.ZodType>(schema: T) =>
+  schema.superRefine((rawData, ctx) => {
+    const data = rawData as DowntimeConsistencyFields;
+    const isResolved = data.status === "Resolved";
+    const trimmedDescription = data.description?.trim();
+    const trimmedResolution = data.resolutionNotes?.trim();
+
+    if (!isResolved && !trimmedDescription) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Description is required when status is Down",
+        path: ["description"],
+      });
+    }
+
+    if (isResolved) {
+      if (!data.endTime) {
+        ctx.addIssue({
+          code: "custom",
+          message: "End time is required when status is Resolved",
+          path: ["endTime"],
+        });
+      }
+
+      if (!trimmedResolution) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Resolution notes are required when status is Resolved",
+          path: ["resolutionNotes"],
+        });
+      }
+    }
+
+    if (data.endTime && new Date(data.endTime) <= new Date(data.startTime)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "End time must be after start time",
+        path: ["endTime"],
+      });
+    }
+  });
+
 // Schema for creating a new downtime incident
-export const createDowntimeSchema = z
-  .object({
+export const createDowntimeSchema = validateDowntimeConsistency(
+  z.object({
     ...baseDowntimeFields,
     reportedBy: z.string().optional(),
   })
-  .refine(
-    (data) => data.status !== "Resolved" || Boolean(data.description?.trim()),
-    {
-      message: "Description is required when status is not Resolved",
-      path: ["description"],
-    }
-  )
-  .refine((data) => data.status !== "Resolved" || Boolean(data.endTime), {
-    message: "End time is required when status is Resolved",
-    path: ["endTime"],
-  })
-  .refine(
-    (data) => data.status !== "Resolved" || Boolean(data.resolutionNotes?.trim()),
-    {
-      message: "Resolution notes are required when status is Resolved",
-      path: ["resolutionNotes"],
-    }
-  )
-  .refine(
-    (data) => !data.endTime || new Date(data.endTime) > new Date(data.startTime),
-    {
-      message: "End time must be after start time",
-      path: ["endTime"],
-    }
-  );
+);
 
 // Schema for editing an existing downtime incident
-export const editDowntimeSchema = z
-  .object({
+export const editDowntimeSchema = validateDowntimeConsistency(
+  z.object({
     id: z.string().min(1, "Incident ID is required"),
     ...baseDowntimeFields,
     reportedBy: z.string().optional(),
     resolvedBy: z.string().optional(),
   })
-  .refine(
-    (data) => data.status !== "Resolved" || Boolean(data.description?.trim()),
-    {
-      message: "Description is required when status is not Resolved",
-      path: ["description"],
-    }
-  )
-  .refine((data) => data.status !== "Resolved" || Boolean(data.endTime), {
-    message: "End time is required when status is Resolved",
-    path: ["endTime"],
-  })
-  .refine(
-    (data) => data.status !== "Resolved" || Boolean(data.resolutionNotes?.trim()),
-    {
-      message: "Resolution notes are required when status is Resolved",
-      path: ["resolutionNotes"],
-    }
-  )
-  .refine(
-    (data) => !data.endTime || new Date(data.endTime) > new Date(data.startTime),
-    {
-      message: "End time must be after start time",
-      path: ["endTime"],
-    }
-  );
+);
 
 // Schema for resolving a downtime incident
 export const resolveDowntimeSchema = z.object({

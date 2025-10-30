@@ -68,7 +68,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
           const rowId = row.id;
 
           return (
-            <div className="max-w-xl relative">
+            <div className="w-130 relative">
               {assets.length > 0 ? (
                 <div className="flex flex-col gap-2">
                   <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2">

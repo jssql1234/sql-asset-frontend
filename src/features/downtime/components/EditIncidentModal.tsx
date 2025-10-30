@@ -1,16 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
@@ -18,20 +7,22 @@ import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
-import {
-  useUpdateDowntimeIncident,
-  useDeleteDowntimeIncident,
-} from "@/features/downtime/hooks/useDowntimeService";
+import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { Trash2 } from "lucide-react";
-import { ReadOnlyField } from "./ReadOnlyField";
-import {
-  DEFAULT_ASSET_CATEGORY,
-  useAssetCategories,
-  useFilteredAssetItems,
-  useFormErrors,
-  useDateTimeChange,
-} from "@/features/downtime/hooks/useDowntimeForm";
+import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange } from "@/features/downtime/hooks/useDowntimeForm";
+
+interface ReadOnlyFieldProps { label: React.ReactNode; valueClassName?: string; children: React.ReactNode }
+
+//ReadOnlyField component for displaying non-editable form fields 
+const ReadOnlyField: React.FC<ReadOnlyFieldProps> = ({ label, valueClassName, children }) => (
+  <div className="rounded-lg border border-outlineVariant/80 bg-surfaceContainerLow px-3 py-2">
+    <span className="label-small text-onSurfaceVariant">{label}</span>
+    <div className={`mt-1 text-onSurface body-medium ${valueClassName ?? ""}`}>
+      {children}
+    </div>
+  </div>
+);
 
 interface EditIncidentModalProps {
   open: boolean;
@@ -313,9 +304,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                     )}
                   </>
                 ) : (
-                  <ReadOnlyField label="Start Time">
-                    {new Date(formData.startTime).toLocaleString()}
-                  </ReadOnlyField>
+                  <ReadOnlyField label="Start Time">{new Date(formData.startTime).toLocaleString()}</ReadOnlyField>
                 )}
               </div>
 
@@ -336,9 +325,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                       )}
                     </>
                   ) : (
-                    <ReadOnlyField label="End Time">
-                      {formData.endTime ? new Date(formData.endTime).toLocaleString() : "—"}
-                    </ReadOnlyField>
+                    <ReadOnlyField label="End Time">{formData.endTime ? new Date(formData.endTime).toLocaleString() : "—"}</ReadOnlyField>
                   )}
                 </div>
               )}
@@ -361,9 +348,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                     )}
                   </>
                 ) : (
-                  <ReadOnlyField label="Description" valueClassName="whitespace-pre-wrap">
-                    {formData.description}
-                  </ReadOnlyField>
+                  <ReadOnlyField label="Description" valueClassName="whitespace-pre-wrap">{formData.description}</ReadOnlyField>
                 )}
               </div>
             ) : (
@@ -382,9 +367,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
                     )}
                   </>
                 ) : (
-                  <ReadOnlyField label={<>Resolution Notes<span className="text-error">*</span></>} valueClassName="whitespace-pre-wrap">
-                    {formData.resolutionNotes ?? "—"}
-                  </ReadOnlyField>
+                  <ReadOnlyField label={<>Resolution Notes<span className="text-error">*</span></>} valueClassName="whitespace-pre-wrap">{formData.resolutionNotes ?? "—"}</ReadOnlyField>
                 )}
               </div>
             )}
@@ -410,15 +393,12 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
         </DialogFooter>
       </DialogContent>
 
-      {/* Delete Confirmation Dialog */}
       <DeleteConfirmationDialog
         isOpen={isDeleteDialogOpen}
         onClose={handleCancelDelete}
         onConfirm={() => { void handleConfirmDelete(); }}
-        isLoading={deleteMutation.isPending}
         title="Delete incident?"
         description="This will permanently remove the downtime incident for the following assets. This action cannot be undone."
-        itemType="incident"
         confirmButtonText="Delete Incident"
         itemIds={incident.assets.map((asset) => asset.id)}
         itemNames={incident.assets.map((asset) => `${asset.name} (${asset.id})`)}

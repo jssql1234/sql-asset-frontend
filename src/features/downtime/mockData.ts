@@ -1,20 +1,5 @@
-export interface DowntimeAssetGroup {
-  id: string;
-  label: string;
-  assets: {
-    id: string;
-    name: string;
-    location?: string;
-  }[];
-}
-
-export interface DowntimeAsset {
-  id: string;
-  name: string;
-  groupId: string;
-  groupLabel: string;
-  location?: string;
-}
+export interface DowntimeAssetGroup { id: string; label: string;assets: { id: string; name: string; location?: string }[] }
+export interface DowntimeAsset { id: string; name: string; groupId: string; groupLabel: string; location?: string }
 
 export const downtimeAssetGroups: DowntimeAssetGroup[] = [
   {
@@ -95,13 +80,7 @@ export const mockActiveIncidents: DowntimeIncident[] = [
   {
     id: "1",
     assets: [
-      {
-        id: "TM-014",
-        name: "Tooling Machine N14",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Tool Room",
-      },
+      { id: "TM-014", name: "Tooling Machine N14", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Tool Room" },
     ],
     priority: "Low",
     status: "Down",
@@ -112,27 +91,9 @@ export const mockActiveIncidents: DowntimeIncident[] = [
   {
     id: "2",
     assets: [
-      {
-        id: "WR-011",
-        name: "Welding Robot K11",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Maintenance Bay",
-      },
-      {
-        id: "DM-012",
-        name: "Diagnostic Machine L12",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Service Center",
-      },
-      {
-        id: "CR-013",
-        name: "Calibration Robot M13",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Calibration Lab",
-      },
+      { id: "WR-011", name: "Welding Robot K11", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Maintenance Bay" },
+      { id: "DM-012", name: "Diagnostic Machine L12", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Service Center" },
+      { id: "CR-013", name: "Calibration Robot M13", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Calibration Lab" },
     ],
     priority: "High",
     status: "Down",
@@ -143,76 +104,16 @@ export const mockActiveIncidents: DowntimeIncident[] = [
   {
    id: "3",
     assets: [
-      {
-        id: "CBT-001",
-        name: "Conveyor Belt A1",
-        groupId: "assembly-line",
-        groupLabel: "Assembly Line",
-        location: "Zone A - Conveyor",
-      },
-      {
-        id: "PMP-002",
-        name: "Pump System B2",
-        groupId: "assembly-line",
-        groupLabel: "Assembly Line",
-        location: "Zone B - Fluids",
-      },
-      {
-        id: "GEN-003",
-        name: "Generator C3",
-        groupId: "power-systems",
-        groupLabel: "Power Systems",
-        location: "Backup Power Wing",
-      },
-      {
-        id: "AC-004",
-        name: "Air Compressor D4",
-        groupId: "power-systems",
-        groupLabel: "Power Systems",
-        location: "Compressor Room",
-      },
-      {
-        id: "HP-005",
-        name: "Hydraulic Press E5",
-        groupId: "support-equipment",
-        groupLabel: "Support Equipment",
-        location: "Fabrication Area",
-      },
-      {
-        id: "CS-006",
-        name: "Cooling System F6",
-        groupId: "support-equipment",
-        groupLabel: "Support Equipment",
-        location: "Thermal Control",
-      },
-      {
-        id: "QC-007",
-        name: "Quality Scanner G7",
-        groupId: "quality-control",
-        groupLabel: "Quality Control",
-        location: "Inspection Station",
-      },
-      {
-        id: "TM-008",
-        name: "Testing Machine H8",
-        groupId: "quality-control",
-        groupLabel: "Quality Control",
-        location: "Quality Lab",
-      },
-      {
-        id: "WR-009",
-        name: "Welding Robot I9",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Maintenance Bay",
-      },
-      {
-        id: "DM-010",
-        name: "Diagnostic Machine J10",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Service Center",
-      },
+      { id: "CBT-001", name: "Conveyor Belt A1", groupId: "assembly-line", groupLabel: "Assembly Line", location: "Zone A - Conveyor" },
+      { id: "PMP-002", name: "Pump System B2", groupId: "assembly-line", groupLabel: "Assembly Line", location: "Zone B - Fluids" },
+      { id: "GEN-003", name: "Generator C3", groupId: "power-systems", groupLabel: "Power Systems", location: "Backup Power Wing" },
+      { id: "AC-004", name: "Air Compressor D4", groupId: "power-systems", groupLabel: "Power Systems", location: "Compressor Room" },
+      { id: "HP-005", name: "Hydraulic Press E5", groupId: "support-equipment", groupLabel: "Support Equipment", location: "Fabrication Area" },
+      { id: "CS-006", name: "Cooling System F6", groupId: "support-equipment", groupLabel: "Support Equipment", location: "Thermal Control" },
+      { id: "QC-007", name: "Quality Scanner G7", groupId: "quality-control", groupLabel: "Quality Control", location: "Inspection Station" },
+      { id: "TM-008", name: "Testing Machine H8", groupId: "quality-control", groupLabel: "Quality Control", location: "Quality Lab" },
+      { id: "WR-009", name: "Welding Robot I9", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Maintenance Bay" },
+      { id: "DM-010", name: "Diagnostic Machine J10", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Service Center" },
     ],
     priority: "Critical",
     status: "Down",
@@ -226,62 +127,14 @@ export const mockResolvedIncidents: DowntimeIncident[] = [
   {
     id: "4",
     assets: [
-      {
-        id: "PMP-002",
-        name: "Pump System B2",
-        groupId: "assembly-line",
-        groupLabel: "Assembly Line",
-        location: "Zone B - Fluids",
-      },
-      {
-        id: "GEN-003",
-        name: "Generator C3",
-        groupId: "power-systems",
-        groupLabel: "Power Systems",
-        location: "Backup Power Wing",
-      },
-      {
-        id: "AC-004",
-        name: "Air Compressor D4",
-        groupId: "power-systems",
-        groupLabel: "Power Systems",
-        location: "Compressor Room",
-      },
-      {
-        id: "HP-005",
-        name: "Hydraulic Press E5",
-        groupId: "support-equipment",
-        groupLabel: "Support Equipment",
-        location: "Fabrication Area",
-      },
-      {
-        id: "CS-006",
-        name: "Cooling System F6",
-        groupId: "support-equipment",
-        groupLabel: "Support Equipment",
-        location: "Thermal Control",
-      },
-      {
-        id: "QC-007",
-        name: "Quality Scanner G7",
-        groupId: "quality-control",
-        groupLabel: "Quality Control",
-        location: "Inspection Station",
-      },
-      {
-        id: "TM-008",
-        name: "Testing Machine H8",
-        groupId: "quality-control",
-        groupLabel: "Quality Control",
-        location: "Quality Lab",
-      },
-      {
-        id: "WR-009",
-        name: "Welding Robot I9",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Maintenance Bay",
-      },
+      { id: "PMP-002", name: "Pump System B2", groupId: "assembly-line", groupLabel: "Assembly Line", location: "Zone B - Fluids" },
+      { id: "GEN-003", name: "Generator C3", groupId: "power-systems", groupLabel: "Power Systems", location: "Backup Power Wing" },
+      { id: "AC-004", name: "Air Compressor D4", groupId: "power-systems", groupLabel: "Power Systems", location: "Compressor Room" },
+      { id: "HP-005", name: "Hydraulic Press E5", groupId: "support-equipment", groupLabel: "Support Equipment", location: "Fabrication Area" },
+      { id: "CS-006", name: "Cooling System F6", groupId: "support-equipment", groupLabel: "Support Equipment", location: "Thermal Control" },
+      { id: "QC-007", name: "Quality Scanner G7", groupId: "quality-control", groupLabel: "Quality Control", location: "Inspection Station" },
+      { id: "TM-008", name: "Testing Machine H8", groupId: "quality-control", groupLabel: "Quality Control", location: "Quality Lab" },
+      { id: "WR-009", name: "Welding Robot I9", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Maintenance Bay" },
     ],
     priority: "High",
     status: "Resolved",
@@ -297,41 +150,11 @@ export const mockResolvedIncidents: DowntimeIncident[] = [
   {
     id: "5",
     assets: [
-      {
-        id: "DM-010",
-        name: "Diagnostic Machine J10",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Service Center",
-      },
-      {
-        id: "WR-011",
-        name: "Welding Robot K11",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Maintenance Bay",
-      },
-      {
-        id: "DM-012",
-        name: "Diagnostic Machine L12",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Service Center",
-      },
-      {
-        id: "CR-013",
-        name: "Calibration Robot M13",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Calibration Lab",
-      },
-      {
-        id: "TM-014",
-        name: "Tooling Machine N14",
-        groupId: "maintenance-tools",
-        groupLabel: "Maintenance Tools",
-        location: "Tool Room",
-      },
+      { id: "DM-010", name: "Diagnostic Machine J10", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Service Center" },
+      { id: "WR-011", name: "Welding Robot K11", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Maintenance Bay" },
+      { id: "DM-012", name: "Diagnostic Machine L12", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Service Center" },
+      { id: "CR-013", name: "Calibration Robot M13", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Calibration Lab" },
+      { id: "TM-014", name: "Tooling Machine N14", groupId: "maintenance-tools", groupLabel: "Maintenance Tools", location: "Tool Room" },
     ],
     priority: "Low",
     status: "Resolved",

@@ -197,8 +197,8 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         cell: ({ getValue }) => {
           const description = getValue() as string;
           return (
-            <div className="max-w-xs">
-              <div className="truncate" title={description}>
+            <div>
+              <div className="line-clamp-2 break-words" title={description}>
                 {description}
               </div>
             </div>

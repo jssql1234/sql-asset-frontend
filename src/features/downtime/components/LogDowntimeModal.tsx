@@ -179,7 +179,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4 pr-1">
             <div className="flex flex-col gap-2">
               <label className="label-medium text-onSurface">Assets<span className="text-error">*</span></label>

@@ -246,7 +246,7 @@ export const EditIncidentModal: React.FC<EditIncidentModalProps> = ({
           <DialogTitle>{isEditMode ? "Edit Incident" : "Incident Details"}</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <form onSubmit={(e) => { void handleSubmit(e); }} className="flex flex-col gap-4 pr-1">
             {/* Assets */}
             <div className="flex flex-col gap-2">

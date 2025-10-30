@@ -1,6 +1,6 @@
 import type { DowntimeAssetInfo, DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import { getDowntimeAssetInfo, getDowntimeAssetName } from "../mockData";
+import { getDowntimeAssetInfo, getDowntimeAssetName, mockActiveIncidents, mockResolvedIncidents } from "../mockData";
 
 // Utility functions for date/time formatting and duration calculations
 /**
@@ -50,6 +50,19 @@ let incidentsStore: DowntimeIncident[] = [];
 let resolvedStore: DowntimeIncident[] = [];
 let nextId = 100; // Start IDs from 100 for new incidents
 
+// Initialize mock data
+const initializeMockData = (): void => {
+  if (incidentsStore.length === 0 && resolvedStore.length === 0) {
+    // Create some active incidents
+    incidentsStore = [...mockActiveIncidents];
+
+    // Create some resolved incidents
+    resolvedStore = [...mockResolvedIncidents];
+
+    nextId = 6;
+  }
+};
+
 // Helper to convert asset ID to asset info
 const mapAssetIdToInfo = (assetId: string): DowntimeAssetInfo => {
   const assetInfo = getDowntimeAssetInfo(assetId);
@@ -91,16 +104,19 @@ const calculateSummary = (): DowntimeSummary => {
 
 // Fetch all active downtime incidents
 export const fetchDowntimeIncidents = (): Promise<DowntimeIncident[]> => {
+  initializeMockData();
   return Promise.resolve([...incidentsStore]);
 };
 
 // Fetch resolved downtime incidents
 export const fetchResolvedIncidents = (): Promise<DowntimeIncident[]> => {
+  initializeMockData();
   return Promise.resolve([...resolvedStore]);
 };
 
 // Fetch downtime summary statistics
 export const fetchDowntimeSummary = (): Promise<DowntimeSummary> => {
+  initializeMockData();
   return Promise.resolve(calculateSummary());
 };
 

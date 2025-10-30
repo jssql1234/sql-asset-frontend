@@ -113,7 +113,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                         });
                         setOpenAssetPopover(rowId);
                       }}
-                      className="text-xs text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer underline decoration-dotted underline-offset-2"
+                      className="text-xs text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer underline decoration-dotted underline-offset-2 text-left"
                     >
                       +{remainingCount} more asset{remainingCount !== 1 ? "s" : ""}
                     </button>
@@ -211,7 +211,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           const notes = getValue() as string | undefined;
           return (
             <div className="max-w-xs">
-              <div className="truncate" title={notes}>
+              <div className="line-clamp-2 break-words" title={notes}>
                 {notes ?? "-"}
               </div>
             </div>
@@ -241,7 +241,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           />
         </div>
 
-        <div className="flex-1 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
           <DataTableExtended
             columns={columns}
             data={filteredIncidents}

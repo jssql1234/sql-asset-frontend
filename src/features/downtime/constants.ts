@@ -3,7 +3,7 @@ import type { DowntimeIncident } from "./types";
 export const getPriorityVariant = (priority: DowntimeIncident["priority"]) => {
   const variantMap = {
     Low: "blue",
-    High: "red",
+    High: "orange",
     Critical: "red",
   } as const;
   return variantMap[priority];

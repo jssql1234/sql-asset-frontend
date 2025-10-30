@@ -112,7 +112,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
                           }}
                         >
                           <div className="sticky top-0 bg-surface border-b border-outlineVariant px-3 py-2 flex items-center justify-between">
-                            <div className="text-sm font-medium text-onSurface">All Assets ({assets.length})</div>
+                            <div className="text-sm font-medium text-onSurface">Additional Assets ({remainingCount})</div>
                             <button
                               type="button"
                               onClick={() => {
@@ -126,7 +126,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
                             </button>
                           </div>
                           <div className="p-3 space-y-2">
-                            {assets.map((asset) => (
+                            {assets.slice(maxDisplay).map((asset) => (
                               <div
                                 key={asset.id}
                                 className="flex items-center justify-between p-2 rounded-md bg-surfaceContainerHighest border border-outlineVariant/40"

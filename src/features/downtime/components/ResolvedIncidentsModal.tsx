@@ -122,7 +122,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                     >
                       <div className="sticky top-0 bg-surface border-b border-outlineVariant px-3 py-2 flex items-center justify-between">
                         <div className="text-sm font-medium text-onSurface">
-                          All Assets ({assets.length})
+                          Additional Assets ({remainingCount})
                         </div>
                         <button
                           type="button"
@@ -137,7 +137,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                         </button>
                       </div>
                       <div className="p-3 space-y-2">
-                        {assets.map((asset) => (
+                        {assets.slice(2).map((asset) => (
                           <div
                             key={asset.id}
                             className="flex items-center justify-between p-2 rounded-md bg-surfaceContainerHighest border border-outlineVariant/40"

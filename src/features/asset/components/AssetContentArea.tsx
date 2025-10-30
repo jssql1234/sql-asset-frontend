@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { Button, Card, Switch } from "@/components/ui/components";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Card } from "@/components/ui/components";
 import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
+import { cn } from "@/utils/utils";
 import AssetForm from "./AssetForm";
 import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset, useUpdateAsset, useDeleteAsset } from "../hooks/useAssetService";
@@ -194,14 +195,24 @@ interface UserAssetContentAreaProps {
 }
 
 export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxYear, onTaxYearChange }: UserAssetContentAreaProps) {
+  const isMountedRef = useRef(false);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
   const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
+  const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
   const [groupByBatch, setGroupByBatch] = useState(false);
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
   const [availableTaxYears, setAvailableTaxYears] = useState<SelectDropdownOption[]>([]);
+
+  // Track mount status
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Use external tax year if provided, otherwise use internal state
   const selectedTaxYear = externalSelectedTaxYear ?? internalSelectedTaxYear;
@@ -318,45 +329,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   useEffect(() => {
     setSelectedAssetIds([]);
     setSelectedBatchIds([]);
+    setRowSelection({});
   }, [groupByBatch]);
-
-  // Handle row selection and maintain asset ID mapping
-  const handleRowSelectionChange = (rows: Asset[]) => {
-    if (!assets || rows.length === 0) {
-      setSelectedAssetIds([]);
-      setSelectedBatchIds([]);
-      return;
-    }
-
-    if (!groupByBatch) {
-      setSelectedAssetIds(rows.map((r) => r.id));
-      setSelectedBatchIds([]);
-      return;
-    }
-
-    // Batch mode: track selected batch IDs and map to all assets in those batches
-    const batchIds = Array.from(new Set(rows.map((r) => r.batchId || '').filter(Boolean)));
-    setSelectedBatchIds(batchIds);
-    
-    const assetsToInclude = new Set<string>();
-    const source = filteredAssets ?? assets;
-    for (const r of rows) {
-      const batch = r.batchId || '';
-      source
-        .filter((a) => (a.batchId || '') === batch)
-        .forEach((a) => assetsToInclude.add(a.id));
-    }
-    setSelectedAssetIds(Array.from(assetsToInclude));
-  };
-
-  const handleDeleteSelected = () => {
-    if (selectedAssetIds.length === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedAssetIds.length.toString()} selected asset(s)? This action cannot be undone.`)) return;
-    selectedAssetIds.forEach(id => {
-      deleteAssetMutation.mutate(id);
-    });
-    setSelectedAssetIds([]);
-  };
 
   // Filter assets based on search value and tax year (for tax agents)
   const filteredAssets = useMemo(() => {
@@ -388,6 +362,55 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
     return filtered;
   }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
+
+  // Handle row selection and maintain asset ID mapping
+  const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
+    if (!isMountedRef.current) return;
+    
+    if (!assets || rows.length === 0) {
+      setSelectedAssetIds([]);
+      setSelectedBatchIds([]);
+      setRowSelection({});
+      return;
+    }
+
+    // Update rowSelection state
+    const newRowSelection: Record<string, boolean> = {};
+    selectedRowIds.forEach(id => {
+      newRowSelection[id] = true;
+    });
+    setRowSelection(newRowSelection);
+
+    if (!groupByBatch) {
+      setSelectedAssetIds(rows.map((r) => r.id));
+      setSelectedBatchIds([]);
+      return;
+    }
+
+    // Batch mode: track selected batch IDs and map to all assets in those batches
+    const batchIds = Array.from(new Set(rows.map((r) => r.batchId || '').filter(Boolean)));
+    setSelectedBatchIds(batchIds);
+    
+    const assetsToInclude = new Set<string>();
+    // Use current filteredAssets if available, otherwise fall back to all assets
+    const source = filteredAssets ?? assets;
+    for (const r of rows) {
+      const batch = r.batchId || '';
+      source
+        .filter((a) => (a.batchId || '') === batch)
+        .forEach((a) => assetsToInclude.add(a.id));
+    }
+    setSelectedAssetIds(Array.from(assetsToInclude));
+  }, [assets, groupByBatch, filteredAssets]);
+
+  const handleDeleteSelected = () => {
+    if (selectedAssetIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedAssetIds.length.toString()} selected asset(s)? This action cannot be undone.`)) return;
+    selectedAssetIds.forEach(id => {
+      deleteAssetMutation.mutate(id);
+    });
+    setSelectedAssetIds([]);
+  };
 
   const totalAssetCost = useMemo(() => {
     if (!assets) {
@@ -534,15 +557,29 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           {/* Header actions */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              {/* Batch Mode Toggle */}
-              <div className="flex items-center space-x-2">
-                <Switch
-                  isChecked={groupByBatch}
-                  onChange={setGroupByBatch}
-                />
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Batch Mode
-                </label>
+              {/* Asset/Batch Toggle */}
+              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden"
+              onClick={() => {
+                setGroupByBatch(!groupByBatch);
+              }}>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    !groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Asset
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    "px-3 py-1 body-small",
+                    groupByBatch && "bg-primary text-onPrimary"
+                  )}
+                >
+                  Batch
+                </button>
               </div>
               <TableColumnVisibility
                 columns={tableColumns}
@@ -601,13 +638,13 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           </div>
 
           <DataTableExtended
-            key={`asset-table-${groupByBatch ? 'batch' : 'asset'}`}
             columns={visibleColumns}
             data={filteredAssets ?? []}
             showPagination={true}
             showCheckbox={true}
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
+            rowSelection={rowSelection}
             selectedCount={groupByBatch ? selectedBatchIds.length : selectedAssetIds.length}
             totalCount={groupByBatch 
               ? (filteredAssets ? new Set(filteredAssets.map(a => a.batchId)).size : 0)

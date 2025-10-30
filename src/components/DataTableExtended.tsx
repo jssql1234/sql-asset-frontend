@@ -285,6 +285,11 @@ export function DataTableExtended<TData, TValue>({
   onColumnOrderChange,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMountedRef = useRef(false);
+  const [hasMounted, setHasMounted] = useState(false);
+  const pendingRowSelectionRef = useRef<Record<string, boolean> | null>(null);
+  const latestOnRowSelectionChangeRef = useRef<typeof onRowSelectionChange>(onRowSelectionChange);
+  useEffect(() => { latestOnRowSelectionChangeRef.current = onRowSelectionChange; }, [onRowSelectionChange]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalRowSelection, setInternalRowSelection] = useState<Record<string, boolean>>({});
@@ -294,6 +299,32 @@ export function DataTableExtended<TData, TValue>({
   const currentRowSelection = rowSelection ?? internalRowSelection;
   const currentGrouping = grouping ?? internalGrouping;
   const currentExpanded = expanded ?? internalExpanded;
+
+  // Track mount status
+  useEffect(() => {
+    isMountedRef.current = true;
+    setHasMounted(true);
+    // Flush any pending selection captured before mount
+    if (pendingRowSelectionRef.current) {
+      const pending = pendingRowSelectionRef.current;
+      if (!rowSelection) {
+        setInternalRowSelection(pending);
+      }
+      const cb = latestOnRowSelectionChangeRef.current;
+      if (cb) {
+        const selectedRowIds = Object.keys(pending).filter((key) => pending[key]);
+        const selectedRows = selectedRowIds
+          .map((id) => table.getRow(id))
+          .map((row) => row.original);
+        try { cb(selectedRows, selectedRowIds); } catch { /* no-op */ }
+      }
+      pendingRowSelectionRef.current = null;
+    }
+    return () => {
+      isMountedRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
@@ -402,7 +433,12 @@ export function DataTableExtended<TData, TValue>({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);  // Add back for drop indicator
 
-  const isExternalPagination = totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
+  // Determine if consumer provided external pagination props
+  const consumerExternalPagination =
+    totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
+  // Grouping active implies we want to drive the pagination footer via external props
+  const groupingActive = enableGrouping && currentGrouping.length > 0;
+  const useExternalPagination = consumerExternalPagination || groupingActive;
 
   // DnD sensors
   const sensors = useSensors(
@@ -470,11 +506,22 @@ export function DataTableExtended<TData, TValue>({
     data,
     columns: effectiveColumns,  // Use effective columns here
     enableRowSelection: showCheckbox || enableRowClickSelection,
-    onColumnOrderChange: setColumnOrder,
+    onColumnOrderChange: hasMounted ? ((updaterOrValue) => {
+      if (isMountedRef.current) {
+        setColumnOrder(
+          typeof updaterOrValue === 'function'
+            ? (updaterOrValue as (prev: string[]) => string[])(columnOrder)
+            : updaterOrValue
+        );
+      }
+      // Ignore pre-mount updates from table init
+    }) : undefined,
     filterFromLeafRows: true,
     getCoreRowModel: getCoreRowModel(),
     
-    ...(showPagination && !isExternalPagination && {
+    // Keep internal pagination when consumer did NOT provide external pagination.
+    // For grouping-driven external footer we still rely on internal pagination underneath.
+    ...(showPagination && !consumerExternalPagination && {
       getPaginationRowModel: getPaginationRowModel(),
     }),
 
@@ -489,9 +536,25 @@ export function DataTableExtended<TData, TValue>({
       getExpandedRowModel: getExpandedRowModel(),
     }),
     
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onRowSelectionChange: (updaterOrValue) => {
+    onSortingChange: hasMounted ? ((updaterOrValue) => {
+      if (isMountedRef.current) {
+        setSorting(
+          typeof updaterOrValue === 'function' 
+            ? (updaterOrValue as (prev: SortingState) => SortingState)(sorting) 
+            : updaterOrValue
+        );
+      }
+    }) : undefined,
+    onColumnFiltersChange: hasMounted ? ((updaterOrValue) => {
+      if (isMountedRef.current) {
+        setColumnFilters(
+          typeof updaterOrValue === 'function' 
+            ? (updaterOrValue as (prev: ColumnFiltersState) => ColumnFiltersState)(columnFilters) 
+            : updaterOrValue
+        );
+      }
+    }) : undefined,
+    onRowSelectionChange: hasMounted ? ((updaterOrValue) => {
       const newSelection =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentRowSelection) : updaterOrValue;
 
@@ -502,55 +565,67 @@ export function DataTableExtended<TData, TValue>({
       if (isGroupingEnabled) {
         // Only keep group rows in the selection state
         filteredSelection = Object.keys(newSelection).reduce<Record<string, boolean>>((acc, key) => {
-          const row = table.getRow(key);
-          // Only include group rows in the selection state
-          if (row.getIsGrouped() && newSelection[key]) {
-            acc[key] = true;
+          try {
+            const row = table.getRow(key);
+            // Only include group rows in the selection state
+            if (row.getIsGrouped() && newSelection[key]) {
+              acc[key] = true;
+            }
+          } catch {
+            // Row not found, skip it
           }
           return acc;
         }, {});
       }
 
       if (!rowSelection) {
-        setInternalRowSelection(filteredSelection);
+        if (isMountedRef.current) {
+          setInternalRowSelection(filteredSelection);
+        } else {
+          pendingRowSelectionRef.current = filteredSelection;
+        }
       }
 
       if (onRowSelectionChange) {
-        const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
-        
-        // Map to selected rows (already filtered to group rows only if grouping is enabled)
-        const selectedRows = selectedRowIds
-          .map((id) => table.getRow(id))
-          .map((row) => row.original);
-        
-        // Pass both selected rows and their IDs
-        onRowSelectionChange(selectedRows, selectedRowIds);
+        if (isMountedRef.current) {
+          const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
+          const selectedRows = selectedRowIds
+            .map((id) => table.getRow(id))
+            .map((row) => row.original);
+          onRowSelectionChange(selectedRows, selectedRowIds);
+        } else {
+          pendingRowSelectionRef.current = filteredSelection;
+        }
       }
-    },
-    onGroupingChange: (updaterOrValue) => {
+    }) : undefined,
+    onGroupingChange: hasMounted ? ((updaterOrValue) => {
       const newGrouping =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentGrouping) : updaterOrValue;
 
       if (!grouping) {
-        setInternalGrouping(newGrouping);
+        if (isMountedRef.current) {
+          setInternalGrouping(newGrouping);
+        }
       }
 
       if (onGroupingChange) {
         onGroupingChange(newGrouping);
       }
-    },
-    onExpandedChange: (updaterOrValue) => {
+    }) : undefined,
+    onExpandedChange: hasMounted ? ((updaterOrValue) => {
       const newExpanded =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
 
       if (!expanded) {
-        setInternalExpanded(newExpanded);
+        if (isMountedRef.current) {
+          setInternalExpanded(newExpanded);
+        }
       }
 
       if (onExpandedChange) {
         onExpandedChange(newExpanded);
       }
-    },
+    }) : undefined,
     filterFns: {
       multiSelect: multiSelectFilterFn,
       fuzzyArrayIncludes: fuzzyArrayIncludesFilterFn,
@@ -719,13 +794,51 @@ export function DataTableExtended<TData, TValue>({
       
       {showPagination && (
         <TablePagination
-          table={isExternalPagination ? undefined : table}
-          totalCount={totalCount}
-          currentPage={currentPage}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
-          onPageSizeChange={onPageSizeChange}
-          selectedCount={selectedCount}
+          table={useExternalPagination ? undefined : table}
+          totalCount={
+            consumerExternalPagination
+              ? totalCount
+              : groupingActive
+                ? table.getRowModel().rows.filter((r) => r.getIsGrouped()).length
+                : undefined
+          }
+          currentPage={
+            consumerExternalPagination
+              ? currentPage
+              : groupingActive
+                ? table.getState().pagination.pageIndex
+                : undefined
+          }
+          pageSize={
+            consumerExternalPagination
+              ? pageSize
+              : groupingActive
+                ? table.getState().pagination.pageSize
+                : undefined
+          }
+          onPageChange={
+            consumerExternalPagination
+              ? onPageChange
+              : groupingActive
+                ? (page: number) => { table.setPageIndex(page); }
+                : undefined
+          }
+          onPageSizeChange={
+            consumerExternalPagination
+              ? onPageSizeChange
+              : groupingActive
+                ? (size: number) => { table.setPageSize(size); }
+                : undefined
+          }
+          selectedCount={
+            consumerExternalPagination
+              ? selectedCount
+              : groupingActive
+                ? table
+                    .getRowModel()
+                    .rows.filter((r) => r.getIsGrouped() && r.getIsSelected()).length
+                : undefined
+          }
         />
       )}
     </div>
@@ -795,17 +908,26 @@ function DataTableRow<TData>({
     const isInteractiveElement = target.closest(
       'button, a, input, select, textarea, [role="button"]'
     );
+    const state = table.getState();
+    const groupingActive = Array.isArray(state.grouping) && state.grouping.length > 0;
 
-    // Handle grouped row expansion/collapse
+    // Prioritize selection on row click when enabled
+    if (
+      enableRowClickSelection &&
+      !isInteractiveElement &&
+      row.getCanSelect() &&
+      (!groupingActive || row.getIsGrouped())
+    ) {
+      event.preventDefault();
+      row.toggleSelected();
+      return;
+    }
+
+    // Fallback: expand/collapse grouped rows when clicking non-interactive area
     if (row.getIsGrouped() && !isInteractiveElement) {
       event.preventDefault();
       row.getToggleExpandedHandler()();
       return;
-    }
-
-    if (enableRowClickSelection && !isInteractiveElement && row.getCanSelect()) {
-      event.preventDefault();
-      row.toggleSelected();
     }
   };
 
@@ -830,7 +952,7 @@ function DataTableRow<TData>({
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
-              row.getIsGrouped() && 'font-semibold cursor-pointer'
+              row.getIsGrouped() && 'cursor-pointer'
             )}
           >
             {sortedCells.map((cell, i) => (

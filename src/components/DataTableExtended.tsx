@@ -41,7 +41,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOverlay } from '@dnd-kit/core';
-import { Skeleton } from '@/components/ui/components';
+import { Skeleton, Option } from '@/components/ui/components';
 import {
   Table,
   TableBody,
@@ -54,7 +54,6 @@ import {
 } from '@/components/ui/components/Table';
 import { cn } from '@/utils/utils';
 import { CaretDownFilled, CaretUpDown, CaretUpFilled } from '@/assets/icons';
-import { createSelectionColumn } from '@/components/ui/components/Table/createSelectionColumn';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
 import {
   multiSelectFilterFn,
@@ -145,6 +144,7 @@ function DraggableHeader<TData, TValue>({
     isDragging,
   } = useSortable({
     id: header.column.id,
+    disabled: isSelectionColumn, // Disable sorting for selection column
   });
 
   const style = {
@@ -291,25 +291,117 @@ export function DataTableExtended<TData, TValue>({
   const [internalGrouping, setInternalGrouping] = useState<GroupingState>([]);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
   
+  const currentRowSelection = rowSelection ?? internalRowSelection;
+  const currentGrouping = grouping ?? internalGrouping;
+  const currentExpanded = expanded ?? internalExpanded;
+  
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
     if (showCheckbox) {
-      return [createSelectionColumn<TData, TValue>(), ...columns];
+      const isGroupingEnabled = enableGrouping && currentGrouping.length > 0;
+      
+      // Create custom selection column that respects grouping
+      const customSelectionColumn: ColumnDef<TData, TValue> = {
+        id: "select",
+        meta: { order: 0 }, // Ensure selection column is always first
+        header: ({ table }) => {
+          if (isGroupingEnabled) {
+            // Custom logic for grouping mode - only consider group rows
+            const allGroupRows = table.getRowModel().rows.filter(row => row.getIsGrouped());
+            const allSelected = allGroupRows.length > 0 && allGroupRows.every(row => row.getIsSelected());
+            const someSelected = allGroupRows.some(row => row.getIsSelected());
+            
+            const handleToggleAll = () => {
+              // Use table.setRowSelection to update all group rows at once
+              if (allSelected) {
+                // Deselect all group rows
+                const deselectedState: Record<string, boolean> = {};
+                allGroupRows.forEach(row => {
+                  deselectedState[row.id] = false;
+                });
+                table.setRowSelection(deselectedState);
+              } else {
+                // Select all group rows
+                const selectedState: Record<string, boolean> = {};
+                allGroupRows.forEach(row => {
+                  selectedState[row.id] = true;
+                });
+                table.setRowSelection(selectedState);
+              }
+            };
+            
+            return (
+              <div className="flex items-center gap-4">
+                <Option
+                  checked={allSelected}
+                  indeterminate={someSelected && !allSelected}
+                  onChange={handleToggleAll}
+                />
+              </div>
+            );
+          } else {
+            // Use standard TanStack Table behavior for non-grouping mode
+            return (
+              <div className="flex items-center gap-4">
+                <Option
+                  checked={table.getIsAllRowsSelected()}
+                  indeterminate={table.getIsSomeRowsSelected()}
+                  onChange={table.getToggleAllRowsSelectedHandler()}
+                />
+              </div>
+            );
+          }
+        },
+        cell: ({ row }) => {
+          // In grouping mode, disable selection for leaf rows
+          const canSelect = isGroupingEnabled ? row.getIsGrouped() : row.getCanSelect();
+          
+          const handleToggle = () => {
+            // In grouping mode, only allow toggling group rows
+            if (isGroupingEnabled && !row.getIsGrouped()) {
+              return;
+            }
+            row.toggleSelected();
+          };
+          
+          return (
+            <div 
+              className="flex items-center gap-4"
+              onClick={(e) => { e.stopPropagation(); }}
+            >
+              <Option
+                checked={row.getIsSelected()}
+                disabled={!canSelect}
+                onChange={handleToggle}
+              />
+            </div>
+          );
+        },
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 1,
+      };
+      
+      return [customSelectionColumn, ...columns];
     }
     return columns;
-  }, [columns, showCheckbox]);
+  }, [columns, showCheckbox, enableGrouping, currentGrouping]);
   
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
-    return effectiveColumns.map((col, index) => resolveColumnId(col, index));
+    const columnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
+    // Ensure selection column is first in initial order
+    const selectionIndex = columnIds.indexOf('select');
+    if (selectionIndex > 0) {
+      const [selectionColumn] = columnIds.splice(selectionIndex, 1);
+      return [selectionColumn, ...columnIds];
+    }
+    return columnIds;
   });
   
   // DnD state
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);  // Add back for drop indicator
 
-  const currentRowSelection = rowSelection ?? internalRowSelection;
-  const currentGrouping = grouping ?? internalGrouping;
-  const currentExpanded = expanded ?? internalExpanded;
   const isExternalPagination = totalCount !== undefined && currentPage !== undefined && pageSize !== undefined;
 
   // DnD sensors
@@ -344,6 +436,11 @@ export function DataTableExtended<TData, TValue>({
 
     if (active.id !== over?.id && over?.id) {
       setColumnOrder((previousOrder) => {
+        // Prevent selection column from being moved
+        if (active.id === 'select' || over.id === 'select') {
+          return previousOrder;
+        }
+
         const oldIndex = previousOrder.indexOf(active.id as string);
         const newIndex = previousOrder.indexOf(over.id as string);
 
@@ -351,7 +448,16 @@ export function DataTableExtended<TData, TValue>({
           return previousOrder;
         }
 
-        return arrayMove(previousOrder, oldIndex, newIndex);
+        const newOrder = arrayMove(previousOrder, oldIndex, newIndex);
+        
+        // Ensure selection column stays first
+        const selectionIndex = newOrder.indexOf('select');
+        if (selectionIndex > 0) {
+          const [selectionColumn] = newOrder.splice(selectionIndex, 1);
+          return [selectionColumn, ...newOrder];
+        }
+
+        return newOrder;
       });
     }
 
@@ -389,16 +495,35 @@ export function DataTableExtended<TData, TValue>({
       const newSelection =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentRowSelection) : updaterOrValue;
 
+      // In grouping mode, filter out leaf rows from the selection state as a safety measure
+      const isGroupingEnabled = enableGrouping && currentGrouping.length > 0;
+      let filteredSelection = newSelection;
+      
+      if (isGroupingEnabled) {
+        // Only keep group rows in the selection state
+        filteredSelection = Object.keys(newSelection).reduce<Record<string, boolean>>((acc, key) => {
+          const row = table.getRow(key);
+          // Only include group rows in the selection state
+          if (row.getIsGrouped() && newSelection[key]) {
+            acc[key] = true;
+          }
+          return acc;
+        }, {});
+      }
+
       if (!rowSelection) {
-        setInternalRowSelection(newSelection);
+        setInternalRowSelection(filteredSelection);
       }
 
       if (onRowSelectionChange) {
-        const selectedRowIds = Object.keys(newSelection).filter((key) => newSelection[key]);
-        const selectedRows = selectedRowIds.map((id) => {
-          const row = table.getRow(id);
-          return row.original;
-        });
+        const selectedRowIds = Object.keys(filteredSelection).filter((key) => filteredSelection[key]);
+        
+        // Map to selected rows (already filtered to group rows only if grouping is enabled)
+        const selectedRows = selectedRowIds
+          .map((id) => table.getRow(id))
+          .map((row) => row.original);
+        
+        // Pass both selected rows and their IDs
         onRowSelectionChange(selectedRows, selectedRowIds);
       }
     },
@@ -457,9 +582,31 @@ export function DataTableExtended<TData, TValue>({
     const effectiveColumnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
 
     setColumnOrder((previousOrder) => {
-      const filtered = previousOrder.filter((id) => effectiveColumnIds.includes(id));
-      const additions = effectiveColumnIds.filter((id) => !filtered.includes(id));
-      const nextOrder = [...filtered, ...additions];
+      // Ensure selection column is always first
+      const selectionColumnId = effectiveColumnIds.find(id => id === 'select');
+      const otherColumnIds = effectiveColumnIds.filter(id => id !== 'select');
+      
+      // Check if we have a significant change that warrants a complete reset
+      // (e.g., switching between batch and asset modes)
+      const hasSelectionColumnInPrevious = previousOrder.includes('select');
+      const currentHasSelectionColumn = !!selectionColumnId;
+      const columnCountChanged = effectiveColumnIds.length !== previousOrder.length;
+      
+      // If selection column status changed or column count changed significantly, reset order
+      if ((hasSelectionColumnInPrevious !== currentHasSelectionColumn) || 
+          columnCountChanged) {
+        // Complete reset: selection first, then other columns in their natural order
+        return selectionColumnId 
+          ? [selectionColumnId, ...otherColumnIds]
+          : [...otherColumnIds];
+      }
+      
+      // Otherwise, try to preserve order
+      const filtered = previousOrder.filter((id) => effectiveColumnIds.includes(id) && id !== 'select');
+      const additions = otherColumnIds.filter((id) => !filtered.includes(id));
+      const nextOrder = selectionColumnId 
+        ? [selectionColumnId, ...filtered, ...additions]
+        : [...filtered, ...additions];
 
       const sameLength = nextOrder.length === previousOrder.length;
       if (sameLength && nextOrder.every((id, idx) => id === previousOrder[idx])) {
@@ -468,7 +615,7 @@ export function DataTableExtended<TData, TValue>({
 
       return nextOrder;
     });
-  }, [effectiveColumns]);
+  }, [effectiveColumns, enableGrouping]);
 
   useEffect(() => {
     if (onColumnOrderChange) {
@@ -528,9 +675,15 @@ export function DataTableExtended<TData, TValue>({
               <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
                 {table.getHeaderGroups().map((headerGroup) => {
                   const totalHeaders = headerGroup.headers.length;
+                  // Sort headers according to columnOrder
+                  const sortedHeaders = headerGroup.headers.sort((a, b) => {
+                    const indexA = columnOrder.indexOf(a.column.id);
+                    const indexB = columnOrder.indexOf(b.column.id);
+                    return indexA - indexB;
+                  });
                   return (
                     <TableRow key={headerGroup.id} className="hover:bg-tertiaryContainer/80">
-                      {headerGroup.headers.map((header, index) => (
+                      {sortedHeaders.map((header, index) => (
                         <DraggableHeader 
                           key={header.id} 
                           header={header} 
@@ -553,6 +706,7 @@ export function DataTableExtended<TData, TValue>({
                 <DataTableRow
                   table={table}
                   enableRowClickSelection={enableRowClickSelection}
+                  columnOrder={columnOrder}
                 />
               ) : (
                 <EmptyDataRow columnLength={columns.length} />
@@ -630,9 +784,11 @@ function EmptyDataRow({ columnLength }: { columnLength: number }) {
 function DataTableRow<TData>({
   table,
   enableRowClickSelection = false,
+  columnOrder,
 }: {
   table: TanStackTable<TData>;
   enableRowClickSelection?: boolean;
+  columnOrder: string[];
 }) {
   const handleRowClick = (row: Row<TData>, event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -658,6 +814,13 @@ function DataTableRow<TData>({
       {table.getRowModel().rows.map((row, index) => {
         const isLastRow = index === table.getRowModel().rows.length - 1;
         const cells = row.getVisibleCells();
+        
+        // Sort cells according to columnOrder
+        const sortedCells = cells.sort((a, b) => {
+          const indexA = columnOrder.indexOf(a.column.id);
+          const indexB = columnOrder.indexOf(b.column.id);
+          return indexA - indexB;
+        });
 
         return (
           <TableRow
@@ -667,15 +830,15 @@ function DataTableRow<TData>({
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
-              row.getIsGrouped() && 'bg-surfaceContainerLowest font-semibold cursor-pointer hover:bg-surfaceContainerLowest/80'
+              row.getIsGrouped() && 'font-semibold cursor-pointer'
             )}
           >
-            {cells.map((cell, i) => (
+            {sortedCells.map((cell, i) => (
               <TableCell
                 key={cell.id}
                 className={cn({
                   'rounded-bl-md': isLastRow && i === 0,
-                  'rounded-br-md': isLastRow && i === cells.length - 1,
+                  'rounded-br-md': isLastRow && i === sortedCells.length - 1,
                 })}
               >
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}

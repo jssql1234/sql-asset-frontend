@@ -181,9 +181,9 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
                 onSelect={(typeId) => { handleInputChange('typeId', typeId); }}
                 placeholder="Select a department type"
                 emptyMessage="No department types found."
-                searchInDropdown={false}
                 className={errors.typeId ? 'border-error' : ''}
                 maxHeight="max-h-60"
+                mode="search"
               />
               {errors.typeId && <p className="text-sm text-error mt-1">{errors.typeId}</p>}
             </div>

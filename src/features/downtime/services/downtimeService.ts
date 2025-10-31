@@ -1,18 +1,7 @@
 import type { DowntimeAssetInfo, DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import {
-  getDowntimeAssetInfo,
-  getDowntimeAssetName,
-  mockActiveIncidents,
-  mockResolvedIncidents,
-} from "../mockData";
+import { getDowntimeAssetInfo, getDowntimeAssetName, mockActiveIncidents, mockResolvedIncidents } from "../mockData";
 
-/**
- * Calculate the duration between two timestamps
- * @param startTime - Start timestamp in ISO format
- * @param endTime - End timestamp in ISO format
- * @returns Formatted duration string (e.g., "2h 30m")
- */
 export const calculateDuration = (startTime: string, endTime: string): string => {
   const diffMs = new Date(endTime).getTime() - new Date(startTime).getTime();
 
@@ -24,11 +13,6 @@ export const calculateDuration = (startTime: string, endTime: string): string =>
   return hours === 0 ? `${String(minutes)}m` : `${String(hours)}h ${String(minutes)}m`;
 };
 
-/**
- * Format a date to a human-readable string
- * @param isoDate - ISO format date string
- * @returns Formatted date string
- */
 export const formatDate = (isoDate: string): string => {
   return new Date(isoDate).toLocaleDateString(undefined, {
     year: "numeric",
@@ -37,11 +21,6 @@ export const formatDate = (isoDate: string): string => {
   });
 };
 
-/**
- * Format a time to a human-readable string
- * @param isoDate - ISO format date string
- * @returns Formatted time string
- */
 export const formatTime = (isoDate: string): string => {
   return new Date(isoDate).toLocaleTimeString(undefined, {
     hour: "2-digit",
@@ -54,9 +33,7 @@ let incidentsStore: DowntimeIncident[] = [];
 let resolvedStore: DowntimeIncident[] = [];
 let nextId = 100; // Start IDs from 100 for new incidents
 
-/**
- * Initialize mock data stores
- */
+//Initialize mock data stores
 const initializeMockData = (): void => {
   if (incidentsStore.length === 0 && resolvedStore.length === 0) {
     incidentsStore = [...mockActiveIncidents];
@@ -65,9 +42,7 @@ const initializeMockData = (): void => {
   }
 };
 
-/**
- * Convert asset ID to asset info object
- */
+//Convert asset ID to asset info object
 const mapAssetIdToInfo = (assetId: string): DowntimeAssetInfo => {
   const assetInfo = getDowntimeAssetInfo(assetId);
   return {
@@ -75,13 +50,10 @@ const mapAssetIdToInfo = (assetId: string): DowntimeAssetInfo => {
     name: assetInfo?.name ?? getDowntimeAssetName(assetId),
     groupId: assetInfo?.groupId,
     groupLabel: assetInfo?.groupLabel,
-    location: assetInfo?.location,
   };
 };
 
-/**
- * Calculate summary statistics from incident stores
- */
+//Calculate summary statistics from incident stores
 const calculateSummary = (): DowntimeSummary => {
   const activeIncidents = incidentsStore.filter((i) => i.status === "Down").length;
   const totalIncidents = incidentsStore.length + resolvedStore.length;
@@ -127,7 +99,7 @@ export const fetchDowntimeSummary = (): Promise<DowntimeSummary> => {
 };
 
 // Create a new downtime incident
-export const createDowntimeIncident = (input: CreateDowntimeInput): DowntimeIncident => {
+export const createDowntimeIncident = (input: CreateDowntimeInput): Promise<DowntimeIncident> => {
   const assets: DowntimeAssetInfo[] = input.assetIds.map(mapAssetIdToInfo);
 
   const incident: DowntimeIncident = {
@@ -146,11 +118,11 @@ export const createDowntimeIncident = (input: CreateDowntimeInput): DowntimeInci
   const targetStore = input.status === "Resolved" ? resolvedStore : incidentsStore;
   targetStore.unshift(incident);
 
-  return incident;
+  return Promise.resolve(incident);
 };
 
 // Update an existing downtime incident
-export const updateDowntimeIncident = (input: EditDowntimeInput): DowntimeIncident => {
+export const updateDowntimeIncident = (input: EditDowntimeInput): Promise<DowntimeIncident> => {
   const assets: DowntimeAssetInfo[] = input.assetIds.map(mapAssetIdToInfo);
 
   const existingActiveIndex = incidentsStore.findIndex((incident) => incident.id === input.id);
@@ -190,11 +162,12 @@ export const updateDowntimeIncident = (input: EditDowntimeInput): DowntimeIncide
   const targetStore = input.status === "Resolved" ? resolvedStore : incidentsStore;
   targetStore.unshift(updatedIncident);
 
-  return updatedIncident;
+  return Promise.resolve(updatedIncident);
 };
 
 // Delete a downtime incident
-export const deleteDowntimeIncident = (id: string): void => {
+export const deleteDowntimeIncident = (id: string): Promise<void> => {
   incidentsStore = incidentsStore.filter((i) => i.id !== id);
   resolvedStore = resolvedStore.filter((i) => i.id !== id);
+  return Promise.resolve();
 };

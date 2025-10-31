@@ -1,16 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
@@ -18,13 +7,7 @@ import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchema
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import {
-  DEFAULT_ASSET_CATEGORY,
-  useAssetCategories,
-  useFilteredAssetItems,
-  useFormErrors,
-  useDateTimeChange,
-} from "@/features/downtime/hooks/useDowntimeForm";
+import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
 
 interface LogDowntimeModalProps {
   open: boolean;
@@ -40,8 +23,8 @@ const getDefaultFormData = (): CreateDowntimeInput => ({
   resolutionNotes: "",
 });
 
-export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClose }) => {
-  const [formData, setFormData] = useState<CreateDowntimeInput>(getDefaultFormData);
+export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
+  const [formData, setFormData] = useState<CreateDowntimeInput>(() => getDefaultFormData());
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
 
   const { errors, setFieldErrors, clearErrors } = useFormErrors();
@@ -50,6 +33,9 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
   const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
     clearErrors(field);
   });
+  const handleAssetSelectionChange = useAssetSelectionHandler(setFormData, clearErrors);
+  const handlePrioritySelect = usePriorityHandler(setFormData);
+  const handleInputChange = useInputChangeHandler(setFormData, clearErrors);
 
   const resetForm = useCallback(() => {
     setFormData(getDefaultFormData());
@@ -69,17 +55,9 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
     if (open) resetForm();
   }, [open, resetForm]);
 
-  const handleAssetSelectionChange = useCallback(
-    (selectedIds: string[]) => {
-      setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
-      clearErrors(selectedIds.length === 0 ? "" : "assetIds");
-    },
-    [clearErrors]
-  );
-
   const handleSubmit = useCallback(
-    (e?: React.FormEvent) => {
-      e?.preventDefault();
+    (event?: FormEvent<HTMLFormElement>) => {
+      event?.preventDefault();
 
       const validation = createDowntimeSchema.safeParse(formData);
 
@@ -97,10 +75,6 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
     },
     [formData, createMutation, setFieldErrors]
   );
-
-  const handlePrioritySelect = useCallback((priority: CreateDowntimeInput["priority"]) => {
-    setFormData((prev) => ({ ...prev, priority }));
-  }, []);
 
   const handleStatusSelect = useCallback(
     (status: CreateDowntimeInput["status"]) => {
@@ -129,21 +103,8 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
     [clearErrors]
   );
 
-  const handleDescriptionChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setFormData((prev) => ({ ...prev, description: e.target.value }));
-      clearErrors("description");
-    },
-    [clearErrors]
-  );
-
-  const handleResolutionNotesChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      setFormData((prev) => ({ ...prev, resolutionNotes: e.target.value }));
-      clearErrors("resolutionNotes");
-    },
-    [clearErrors]
-  );
+  const handleDescriptionChange = handleInputChange("description");
+  const handleResolutionNotesChange = handleInputChange("resolutionNotes");
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { 
@@ -159,15 +120,9 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
             <div className="flex flex-col gap-2">
               <label className="label-medium text-onSurface">Assets<span className="text-error">*</span></label>
               <SearchWithDropdown
-                categories={assetCategories}
-                selectedCategoryId={selectedCategoryId}
-                onCategoryChange={setSelectedCategoryId}
-                items={assetItems}
-                selectedIds={formData.assetIds}
-                onSelectionChange={handleAssetSelectionChange}
-                placeholder="Search assets..."
-                emptyMessage="No assets found"
-                className="w-full"
+                categories={assetCategories} selectedCategoryId={selectedCategoryId} onCategoryChange={setSelectedCategoryId}
+                items={assetItems} selectedIds={formData.assetIds} onSelectionChange={handleAssetSelectionChange}
+                placeholder="Search assets..." emptyMessage="No assets found" className="w-full"
                 hideSelectedField={formData.assetIds.length === 0}
               />
               {errors.assetIds && (
@@ -194,9 +149,7 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
                   <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
                   <DropdownMenuContent matchTriggerWidth>
                     {STATUS_OPTIONS.map((option) => (
-                      <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>
-                        {option.label}
-                      </DropdownMenuItem>
+                      <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>{option.label}</DropdownMenuItem>
                     ))}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -208,10 +161,8 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
                 <div className="flex flex-col gap-2">
                   <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
                   <SemiDatePicker
-                    value={formData.startTime ? new Date(formData.startTime) : null}
-                    onChange={handleDateTimeChange("startTime")}
-                    inputType="dateTime"
-                    className="w-full"
+                    value={formData.startTime ? new Date(formData.startTime) : null} onChange={handleDateTimeChange("startTime")}
+                    inputType="dateTime" className="w-full"
                   />
                   {errors.startTime && (
                     <span className="text-sm text-error">{errors.startTime}</span>
@@ -221,10 +172,8 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
                 <div className="flex flex-col gap-2">
                   <label className="label-medium text-onSurface">End Time<span className="text-error">*</span></label>
                   <SemiDatePicker
-                    value={formData.endTime ? new Date(formData.endTime) : null}
-                    onChange={handleDateTimeChange("endTime")}
-                    inputType="dateTime"
-                    className="w-full"
+                    value={formData.endTime ? new Date(formData.endTime) : null} onChange={handleDateTimeChange("endTime")}
+                    inputType="dateTime" className="w-full"
                   />
                   {errors.endTime && (
                     <span className="text-sm text-error">{errors.endTime}</span>
@@ -235,10 +184,8 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
               <div className="flex flex-col gap-2">
                 <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
                 <SemiDatePicker
-                  value={formData.startTime ? new Date(formData.startTime) : null}
-                  onChange={handleDateTimeChange("startTime")}
-                  inputType="dateTime"
-                  className="w-full"
+                  value={formData.startTime ? new Date(formData.startTime) : null} onChange={handleDateTimeChange("startTime")}
+                  inputType="dateTime" className="w-full"
                 />
                 {errors.startTime && (
                   <span className="text-sm text-error">{errors.startTime}</span>
@@ -272,11 +219,11 @@ export const LogDowntimeModal: React.FC<LogDowntimeModalProps> = ({ open, onClos
 
         <DialogFooter className="flex-shrink-0">
           <Button variant="outline" type="button" onClick={handleClose}>Cancel</Button>
-          <Button variant="default" type="submit" disabled={createMutation.isPending} onClick={handleSubmit}>
+          <Button variant="default" type="submit" disabled={createMutation.isPending} onClick={() => { handleSubmit(); }}>
             {createMutation.isPending ? "Logging..." : "Log Incident"}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
-};
+}

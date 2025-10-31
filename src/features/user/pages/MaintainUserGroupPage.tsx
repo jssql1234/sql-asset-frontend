@@ -124,7 +124,6 @@ const MaintainUserGroupPage: React.FC = () => {
           onClose={handleCancelDelete}
           onConfirm={handleConfirmDelete}
           itemName={groupToDelete?.name ?? ''}
-          itemType="user group"
         />
       </div>
       

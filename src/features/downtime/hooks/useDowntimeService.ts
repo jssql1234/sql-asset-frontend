@@ -1,16 +1,9 @@
 import { useDataQuery, type QueryOptions } from "@/hooks/useDataQuery";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
 import type { DowntimeIncident, DowntimeSummary } from "../types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "../zod/downtimeSchemas";
-import {
-  fetchDowntimeIncidents,
-  fetchResolvedIncidents,
-  fetchDowntimeSummary,
-  createDowntimeIncident,
-  updateDowntimeIncident,
-  deleteDowntimeIncident,
-} from "../services/downtimeService";
+import { fetchDowntimeIncidents, fetchResolvedIncidents, fetchDowntimeSummary, createDowntimeIncident, updateDowntimeIncident, deleteDowntimeIncident } from "../services/downtimeService";
 
 // Query keys for React Query cache management
 export const DOWNTIME_QUERY_KEYS = {
@@ -52,10 +45,8 @@ export function useGetDowntimeSummary() {
   });
 }
 
-/**
- * Shared utility to invalidate all downtime-related queries
- */
-const invalidateDowntimeQueries = async (queryClient: ReturnType<typeof useQueryClient>) => {
+//Shared utility to invalidate all downtime-related queries
+const invalidateDowntimeQueries = async (queryClient: QueryClient) => {
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.incidents }),
     queryClient.invalidateQueries({ queryKey: DOWNTIME_QUERY_KEYS.resolved }),
@@ -68,8 +59,8 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation({
-    mutationFn: (input: CreateDowntimeInput) => Promise.resolve(createDowntimeIncident(input)),
+  return useMutation<DowntimeIncident, Error, CreateDowntimeInput>({
+    mutationFn: createDowntimeIncident,
     onSuccess: async (_data, variables) => {
       await invalidateDowntimeQueries(queryClient);
 
@@ -77,9 +68,7 @@ export function useCreateDowntimeIncident(onSuccess?: () => void) {
         variant: "success",
         title: "Downtime Incident Created",
         description:
-          variables.assetIds.length > 1
-            ? `Downtime logged for ${String(variables.assetIds.length)} assets.`
-            : "The incident has been logged successfully",
+          variables.assetIds.length > 1 ? `Downtime logged for ${String(variables.assetIds.length)} assets.` : "The incident has been logged successfully",
         duration: 5000,
       });
 
@@ -100,8 +89,8 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation({
-    mutationFn: (input: EditDowntimeInput) => Promise.resolve(updateDowntimeIncident(input)),
+  return useMutation<DowntimeIncident, Error, EditDowntimeInput>({
+    mutationFn: updateDowntimeIncident,
     onSuccess: async (_data, variables) => {
       await invalidateDowntimeQueries(queryClient);
 
@@ -109,9 +98,7 @@ export function useUpdateDowntimeIncident(onSuccess?: () => void) {
         variant: "success",
         title: "Incident Updated",
         description:
-          variables.assetIds.length > 1
-            ? `The incident has been updated for ${String(variables.assetIds.length)} assets.`
-            : "The incident has been updated successfully",
+          variables.assetIds.length > 1 ? `The incident has been updated for ${String(variables.assetIds.length)} assets.` : "The incident has been updated successfully",
         duration: 5000,
       });
 
@@ -132,11 +119,8 @@ export function useDeleteDowntimeIncident(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation({
-    mutationFn: (id: string) => {
-      deleteDowntimeIncident(id);
-      return Promise.resolve();
-    },
+  return useMutation<unknown, Error, string>({
+    mutationFn: deleteDowntimeIncident,
     onSuccess: async () => {
       await invalidateDowntimeQueries(queryClient);
 

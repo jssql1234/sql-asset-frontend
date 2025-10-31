@@ -164,7 +164,6 @@ const MaintainUserPage: React.FC = () => {
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         itemName={userToDelete?.name ?? ''}
-        itemType="user"
       />
 
       <UserGroupModal

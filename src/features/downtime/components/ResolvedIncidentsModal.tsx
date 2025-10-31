@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
-import ReactDOM from "react-dom";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -11,10 +11,7 @@ import { X } from "lucide-react";
 
 interface ResolvedIncidentsModalProps { open: boolean; onClose: () => void }
 
-export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
-  open,
-  onClose,
-}) => {
+export function ResolvedIncidentsModal({ open, onClose }: ResolvedIncidentsModalProps) {
   const [searchValue, setSearchValue] = useState("");
   const [openAssetPopover, setOpenAssetPopover] = useState<string | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(null);
@@ -85,7 +82,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                       <div
                         key={asset.id}
                         className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm"
-                        title={`${asset.name} (${asset.id})${asset.location ? ` · ${asset.location}` : ""}`}
+                        title={`${asset.name} (${asset.id})`}
                       >
                         <div className="text-sm font-medium text-onSurface truncate" title={asset.name}>
                           {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>
@@ -120,7 +117,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                   )}
 
                   {/* Popover showing all assets - rendered via portal */}
-                  {openAssetPopover === rowId && popoverPosition && ReactDOM.createPortal(
+                  {openAssetPopover === rowId && popoverPosition && createPortal(
                     <div
                       ref={popoverRef}
                       className="fixed z-[9999] w-80 max-h-60 overflow-y-auto bg-surface border border-outlineVariant rounded-lg shadow-lg"
@@ -130,9 +127,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
                       }}
                     >
                       <div className="sticky top-0 bg-surface border-b border-outlineVariant px-3 py-2 flex items-center justify-between">
-                        <div className="text-sm font-medium text-onSurface">
-                          Additional Assets ({remainingCount})
-                        </div>
+                        <div className="text-sm font-medium text-onSurface">Additional Assets ({remainingCount})</div>
                         <button
                           type="button"
                           onClick={() => {
@@ -211,9 +206,7 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           const notes = getValue() as string | undefined;
           return (
             <div className="max-w-xs">
-              <div className="line-clamp-2 break-words" title={notes}>
-                {notes ?? "-"}
-              </div>
+              <div className="line-clamp-2 break-words" title={notes}>{notes ?? "-"}</div>
             </div>
           );
         },
@@ -231,24 +224,12 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
           <DialogTitle>Resolved Incidents</DialogTitle>
         </DialogHeader>
         <div className="flex-shrink-0 mb-4">
-          <Search
-            searchValue={searchValue}
-            onSearch={setSearchValue}
-            searchPlaceholder="Search resolved incidents..."
-            live
-            className="gap-0"
-            inputClassName="rounded"
-          />
+          <Search searchValue={searchValue} onSearch={setSearchValue} searchPlaceholder="Search resolved incidents..."
+                  live className="gap-0" inputClassName="rounded"/>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <DataTableExtended
-            columns={columns}
-            data={filteredIncidents}
-            showPagination
-            isLoading={isLoading}
-            className="h-full"
-          />
+          <DataTableExtended columns={columns} data={filteredIncidents} showPagination isLoading={isLoading} className="h-full"/>
         </div>
 
         <div className="flex-shrink-0 mt-4 text-center">
@@ -259,4 +240,4 @@ export const ResolvedIncidentsModal: React.FC<ResolvedIncidentsModalProps> = ({
       </DialogContent>
     </Dialog>
   );
-};
+}

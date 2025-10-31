@@ -3,7 +3,6 @@ export interface DowntimeAssetInfo {
   name: string;
   groupId?: string;
   groupLabel?: string;
-  location?: string;
 }
 
 export interface DowntimeIncident {
@@ -11,9 +10,9 @@ export interface DowntimeIncident {
   assets: DowntimeAssetInfo[];
   priority: "Low" | "High" | "Critical";
   status: "Down" | "Resolved";
-  startTime: string; // ISO date string
-  endTime?: string; // ISO date string, optional for down incidents
-  downtimeDuration?: string; // Calculated duration string
+  startTime: string; 
+  endTime?: string; 
+  downtimeDuration?: string; 
   description: string;
   reportedBy?: string;
   resolvedBy?: string;
@@ -31,7 +30,6 @@ export interface ModalState {
 export interface AssetOption {
   id: string;
   name: string;
-  location?: string;
   type?: string;
 }
 

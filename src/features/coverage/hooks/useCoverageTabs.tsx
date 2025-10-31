@@ -28,7 +28,7 @@ export const useCoverageTabs = ({
             insurances={coverageInsurances}
             summary={insuranceSummary}
             onAddPolicy={() => {
-              setModals((prev) => ({ ...prev, policyForm: true }));
+              setModals((prev) => ({ ...prev, insuranceForm: true }));
             }}
             onViewInsurance={handleViewInsurance}
           />

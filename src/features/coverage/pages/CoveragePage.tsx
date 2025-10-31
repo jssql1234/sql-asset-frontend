@@ -2,10 +2,8 @@ import React from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
-import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
-import { InsuranceDetailsModal } from "@/features/coverage/components/modal/InsuranceDetailsModal";
+import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { InsuranceFormModal } from "@/features/coverage/components/modal/InsuranceFormModal";
-import { WarrantyDetailsModal } from "@/features/coverage/components/modal/WarrantyDetailsModal";
 import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
 import { coverageInsurances, insuranceProviders, warrantyProviders, coverageWarranties } from "@/features/coverage/mockData";
@@ -36,10 +34,11 @@ const CoveragePage: React.FC = () => {
         providers={insuranceProviders}
       />
 
-      <InsuranceDetailsModal
+      <CoverageDetailsModal
+        variant="insurance"
         open={Boolean(modals.insuranceDetails)}
-        insurance={modals.insuranceDetails}
-        onOpenChange={(open) => {
+        data={modals.insuranceDetails}
+        onOpenChange={(open: boolean) => {
           if (!open) {
             handleCloseInsuranceDetails();
           }
@@ -54,10 +53,11 @@ const CoveragePage: React.FC = () => {
         providers={warrantyProviders}
       />
 
-      <WarrantyDetailsModal
+      <CoverageDetailsModal
+        variant="warranty"
         open={Boolean(modals.warrantyDetails)}
-        warranty={modals.warrantyDetails}
-        onOpenChange={(open) => {
+        data={modals.warrantyDetails}
+        onOpenChange={(open: boolean) => {
           if (!open) {
             handleCloseWarrantyDetails();
           }
@@ -73,10 +73,11 @@ const CoveragePage: React.FC = () => {
         warranties={coverageWarranties}
       />
 
-      <ClaimDetailsModal
+      <CoverageDetailsModal
+        variant="claim"
         open={Boolean(modals.claimDetails)}
-        claim={modals.claimDetails}
-        onOpenChange={(open) => {
+        data={modals.claimDetails}
+        onOpenChange={(open: boolean) => {
           if (!open) {
             handleCloseClaimDetails();
           }

@@ -1,10 +1,8 @@
 import React from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
-import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
+import { CoverageFormModal } from "@/features/coverage/components/modal/CoverageFormModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
-import { InsuranceFormModal } from "@/features/coverage/components/modal/InsuranceFormModal";
-import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
 import { coverageInsurances, insuranceProviders, warrantyProviders, coverageWarranties } from "@/features/coverage/mockData";
 import { useCoverageTabs } from "@/features/coverage/hooks/useCoverageTabs";
@@ -26,9 +24,10 @@ const CoveragePage: React.FC = () => {
         <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />
       </div>
 
-      <InsuranceFormModal
+      <CoverageFormModal
+        variant="insurance"
         open={modals.insuranceForm}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, insuranceForm: open }));
         }}
         providers={insuranceProviders}
@@ -45,9 +44,10 @@ const CoveragePage: React.FC = () => {
         }}
       />
 
-      <WarrantyFormModal
+      <CoverageFormModal
+        variant="warranty"
         open={modals.warrantyForm}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, warrantyForm: open }));
         }}
         providers={warrantyProviders}
@@ -64,9 +64,10 @@ const CoveragePage: React.FC = () => {
         }}
       />
 
-      <ClaimFormModal
+      <CoverageFormModal
+        variant="claim"
         open={modals.claimForm}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, claimForm: open }));
         }}
         policies={coverageInsurances}

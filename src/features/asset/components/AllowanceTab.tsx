@@ -164,6 +164,21 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
     }
   }, [caAssetGroupValue, allowanceClassValue, hasSubclasses, setValue]);
 
+  // Auto-uncheck remaining checkboxes when Motor Vehicle is deselected
+  useEffect(() => {
+    if (!isMotorVehicle) {
+      setValue("extraCommercial", false);
+      setValue("extraNewVehicle", false);
+    }
+  }, [isMotorVehicle, setValue]);
+
+  // Auto-uncheck New Vehicle when Commercial Use is selected
+  useEffect(() => {
+    if (isCommercial && isNewVehicle) {
+      setValue("extraNewVehicle", false);
+    }
+  }, [isCommercial, isNewVehicle, setValue]);
+
   // Calculate qualify amount (QE) based on motor vehicle rules
   useEffect(() => {
     const totalCost = cost && cost.trim() !== "" ? parseFloat(cost) : 0;
@@ -252,8 +267,8 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
       </div>
 
       {watch("caAssetGroup") === "E" && watch("allowanceClass") === "1" && watch("subClass") === "a" && (
-        <div className="space-y-3 mt-6">
-          <div className="flex items-center gap-2">
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-3">
             <Option type="checkbox" {...register("extraCheckbox")} checked={watch("extraCheckbox")} disabled={isReadonly} />
             <label
               className="body-small text-onSurfaceVariant cursor-pointer"
@@ -266,38 +281,37 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
               Motor Vehicle
             </label>
           </div>
-          {isMotorVehicle && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} disabled={isReadonly} />
-                <label
-                  className="body-small text-onSurfaceVariant cursor-pointer"
-                  onClick={() => {
-                    if (!isReadonly) {
-                      setValue("extraCommercial", !watch("extraCommercial"));
-                    }
-                  }}
-                >
-                  Commercial Use
-                </label>
-              </div>
-              {!isCommercial && costPerUnit <= 150000 && (
-                <div className="flex items-center gap-2">
-                  <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly} />
-                  <label
-                    className="body-small text-onSurfaceVariant cursor-pointer"
-                    onClick={() => {
-                      if (!isReadonly) {
-                        setValue("extraNewVehicle", !watch("extraNewVehicle"));
-                      }
-                    }}
-                  >
-                    New Vehicle
-                  </label>
-                </div>
-              )}
+          <div className="flex flex-col">
+          
+            <div className="flex items-center gap-2 mb-3">
+              <Option type="checkbox" {...register("extraCommercial")} checked={watch("extraCommercial")} disabled={isReadonly || !isMotorVehicle}/>
+              <label
+                className="body-small text-onSurfaceVariant cursor-pointer"
+                onClick={() => {
+                  if (!(isReadonly || !isMotorVehicle)) {
+                    setValue("extraCommercial", !watch("extraCommercial"));
+                  }
+                }}
+              >
+                Commercial Use
+              </label>
             </div>
-          )}
+
+            <div className="flex items-center gap-2">
+              <Option type="checkbox" {...register("extraNewVehicle")} checked={watch("extraNewVehicle")} disabled={isReadonly || !isMotorVehicle || (isCommercial || costPerUnit > 150000)} />
+              <label
+                className="body-small text-onSurfaceVariant cursor-pointer"
+                onClick={() => {
+                  if (!(isReadonly || !isMotorVehicle || (isCommercial || costPerUnit > 150000)) ) {
+                    setValue("extraNewVehicle", !watch("extraNewVehicle"));
+                  }
+                }}
+              >
+                New Vehicle
+              </label>
+            </div>
+
+          </div>
         </div>
       )}
 

@@ -9,7 +9,6 @@ import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas"
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import { Trash2 } from "lucide-react";
 import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
 
 interface EditIncidentModalProps {
@@ -78,10 +77,6 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
       setSelectedCategoryId(incident.assets[0]?.groupId ?? DEFAULT_ASSET_CATEGORY);
     }
   }, [incident, open, setFieldErrors]);
-
-  const handleDeleteClick = useCallback(() => {
-    if (incident) setIsDeleteDialogOpen(true);
-  }, [incident]);
 
   const handleConfirmDelete = useCallback(async () => {
     if (incident) {
@@ -241,9 +236,6 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
         </div>
           
         <DialogFooter className="flex-shrink-0 flex justify-between items-center">
-          <Button variant="ghost" type="button" onClick={handleDeleteClick} className="text-error hover:text-error hover:bg-errorContainer">
-            <Trash2 className="h-4 w-4 mr-2" />Delete
-          </Button>
           <Button variant="default" type="submit" onClick={() => { void handleSubmit(); }}>Update Incident</Button>
         </DialogFooter>
       </DialogContent>

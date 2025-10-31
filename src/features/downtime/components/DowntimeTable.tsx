@@ -167,7 +167,6 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         columns={visibleColumns} 
         data={filteredIncidents} 
         showPagination={true} 
-        onRowDoubleClick={onEditIncident}
         rowActions={rowActions}
       />
     </div>

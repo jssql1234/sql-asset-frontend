@@ -132,7 +132,6 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
           columns={visibleColumns.concat(actionCol)}
           data={filteredGroups}
           showPagination={true}
-          onRowDoubleClick={onEdit}
           className="w-full"
         />
       </Card>

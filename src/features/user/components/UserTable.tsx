@@ -147,7 +147,6 @@ export const UserTable: React.FC<UserTableProps> = ({
           columns={visibleColumns.concat(actionCol)}
           data={filteredUsers}
           showPagination={true}
-          onRowDoubleClick={onEdit}
           className="w-full"
         />
       </Card>

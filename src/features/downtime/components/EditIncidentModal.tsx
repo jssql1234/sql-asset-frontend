@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useState, useEffect, useMemo, useCallback, type FormEvent, type ReactNode } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
@@ -10,7 +10,7 @@ import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { Trash2 } from "lucide-react";
-import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange } from "@/features/downtime/hooks/useDowntimeForm";
+import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
 
 interface ReadOnlyFieldProps { label: ReactNode; valueClassName?: string; children: ReactNode }
 
@@ -53,6 +53,9 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
   const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
     clearErrors(field);
   });
+  const handleAssetSelectionChange = useAssetSelectionHandler(setFormData, clearErrors);
+  const handlePrioritySelect = usePriorityHandler(setFormData);
+  const handleInputChange = useInputChangeHandler(setFormData, clearErrors);
 
   const resetForm = useCallback(() => {
     setFormData(getDefaultFormData());
@@ -104,14 +107,6 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
     [formData.assetIds, allAssetItemsMap]
   );
 
-  const handleAssetSelectionChange = useCallback(
-    (selectedIds: string[]) => {
-      setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
-      clearErrors(selectedIds.length === 0 ? "" : "assetIds");
-    },
-    [clearErrors]
-  );
-
   const handleDeleteClick = useCallback(() => {
     if (incident) setIsDeleteDialogOpen(true);
   }, [incident]);
@@ -147,18 +142,6 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
     },
     [formData, updateMutation, setFieldErrors]
   );
-
-  const handleInputChange = useCallback(
-    (field: keyof EditDowntimeInput) => (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: event.target.value }));
-      clearErrors(field);
-    },
-    [clearErrors]
-  );
-
-  const handlePrioritySelect = useCallback((priority: EditDowntimeInput["priority"]) => {
-    setFormData((prev) => ({ ...prev, priority }));
-  }, []);
 
   const handleStatusSelect = useCallback(
     (status: EditDowntimeInput["status"]) => {

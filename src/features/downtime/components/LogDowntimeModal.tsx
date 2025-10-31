@@ -1,16 +1,5 @@
-import { useState, useEffect, useCallback, type ChangeEvent, type FormEvent } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
@@ -18,13 +7,7 @@ import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchema
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import {
-  DEFAULT_ASSET_CATEGORY,
-  useAssetCategories,
-  useFilteredAssetItems,
-  useFormErrors,
-  useDateTimeChange,
-} from "@/features/downtime/hooks/useDowntimeForm";
+import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
 
 interface LogDowntimeModalProps {
   open: boolean;
@@ -50,6 +33,9 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
   const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
     clearErrors(field);
   });
+  const handleAssetSelectionChange = useAssetSelectionHandler(setFormData, clearErrors);
+  const handlePrioritySelect = usePriorityHandler(setFormData);
+  const handleInputChange = useInputChangeHandler(setFormData, clearErrors);
 
   const resetForm = useCallback(() => {
     setFormData(getDefaultFormData());
@@ -68,14 +54,6 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
   useEffect(() => {
     if (open) resetForm();
   }, [open, resetForm]);
-
-  const handleAssetSelectionChange = useCallback(
-    (selectedIds: string[]) => {
-      setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
-      clearErrors(selectedIds.length === 0 ? "" : "assetIds");
-    },
-    [clearErrors]
-  );
 
   const handleSubmit = useCallback(
     (event?: FormEvent<HTMLFormElement>) => {
@@ -97,10 +75,6 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
     },
     [formData, createMutation, setFieldErrors]
   );
-
-  const handlePrioritySelect = useCallback((priority: CreateDowntimeInput["priority"]) => {
-    setFormData((prev) => ({ ...prev, priority }));
-  }, []);
 
   const handleStatusSelect = useCallback(
     (status: CreateDowntimeInput["status"]) => {
@@ -129,21 +103,8 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
     [clearErrors]
   );
 
-  const handleDescriptionChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setFormData((prev) => ({ ...prev, description: event.target.value }));
-      clearErrors("description");
-    },
-    [clearErrors]
-  );
-
-  const handleResolutionNotesChange = useCallback(
-    (event: ChangeEvent<HTMLTextAreaElement>) => {
-      setFormData((prev) => ({ ...prev, resolutionNotes: event.target.value }));
-      clearErrors("resolutionNotes");
-    },
-    [clearErrors]
-  );
+  const handleDescriptionChange = handleInputChange("description");
+  const handleResolutionNotesChange = handleInputChange("resolutionNotes");
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => { 

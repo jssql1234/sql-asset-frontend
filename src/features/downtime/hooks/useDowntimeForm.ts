@@ -59,9 +59,7 @@ export function useFilteredAssetItems(
   return useMemo(() => {
     const allItems = Array.from(allAssetItemsMap.values());
     const filteredItems =
-      selectedCategoryId === DEFAULT_ASSET_CATEGORY
-        ? allItems
-        : allItems.filter((item) => item.groupId === selectedCategoryId);
+      selectedCategoryId === DEFAULT_ASSET_CATEGORY ? allItems : allItems.filter((item) => item.groupId === selectedCategoryId);
 
     const itemMap = new Map<string, AssetDropdownItem>();
     filteredItems.forEach((item) => itemMap.set(item.id, item));
@@ -124,5 +122,45 @@ export function useDateTimeChange<T extends Record<string, unknown>>(
       clearError(String(field));
     },
     [setFormData, clearError]
+  );
+}
+
+// Custom hook for handling asset selection changes
+export function useAssetSelectionHandler<T extends { assetIds: string[] }>(
+  setFormData: React.Dispatch<React.SetStateAction<T>>,
+  clearErrors: (...fields: string[]) => void
+) {
+  return useCallback(
+    (selectedIds: string[]) => {
+      setFormData((prev) => ({ ...prev, assetIds: selectedIds }));
+      clearErrors(selectedIds.length === 0 ? "" : "assetIds");
+    },
+    [setFormData, clearErrors]
+  );
+}
+
+// Custom hook for handling priority selection
+export function usePriorityHandler<T extends { priority: string }>(
+  setFormData: React.Dispatch<React.SetStateAction<T>>
+) {
+  return useCallback(
+    (priority: T["priority"]) => {
+      setFormData((prev) => ({ ...prev, priority }));
+    },
+    [setFormData]
+  );
+}
+
+// Custom hook for handling input changes with error clearing
+export function useInputChangeHandler<T extends Record<string, unknown>>(
+  setFormData: React.Dispatch<React.SetStateAction<T>>,
+  clearErrors: (...fields: string[]) => void
+) {
+  return useCallback(
+    (field: keyof T) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: event.target.value }));
+      clearErrors(String(field));
+    },
+    [setFormData, clearErrors]
   );
 }

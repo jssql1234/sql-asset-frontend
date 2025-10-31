@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, type FormEvent, type ReactNode } from "react";
+import { useState, useEffect, useCallback, type FormEvent } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { TextArea } from "@/components/ui/components/Input";
@@ -11,18 +11,6 @@ import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { Trash2 } from "lucide-react";
 import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
-
-interface ReadOnlyFieldProps { label: ReactNode; valueClassName?: string; children: ReactNode }
-
-// ReadOnlyField component for displaying non-editable form fields
-const ReadOnlyField = ({ label, valueClassName, children }: ReadOnlyFieldProps) => (
-  <div className="rounded-lg border border-outlineVariant/80 bg-surfaceContainerLow px-3 py-2">
-    <span className="label-small text-onSurfaceVariant">{label}</span>
-    <div className={`mt-1 text-onSurface body-medium ${valueClassName ?? ""}`}>
-      {children}
-    </div>
-  </div>
-);
 
 interface EditIncidentModalProps {
   open: boolean;
@@ -44,7 +32,6 @@ const getDefaultFormData = (): EditDowntimeInput => ({
 export function EditIncidentModal({ open, incident, onClose }: EditIncidentModalProps) {
   const [formData, setFormData] = useState<EditDowntimeInput>(() => getDefaultFormData());
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>(DEFAULT_ASSET_CATEGORY);
 
   const { errors, setFieldErrors, clearErrors } = useFormErrors();
@@ -61,7 +48,6 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
     setFormData(getDefaultFormData());
     setFieldErrors({});
     setIsDeleteDialogOpen(false);
-    setIsEditMode(false);
     setSelectedCategoryId(DEFAULT_ASSET_CATEGORY);
   }, [setFieldErrors]);
 
@@ -89,23 +75,9 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
         resolvedBy: incident.resolvedBy,
       });
       setFieldErrors({});
-      setIsEditMode(false);
       setSelectedCategoryId(incident.assets[0]?.groupId ?? DEFAULT_ASSET_CATEGORY);
     }
   }, [incident, open, setFieldErrors]);
-
-  const selectedAssets = useMemo(
-    () =>
-      formData.assetIds.map((id) => {
-        const match = allAssetItemsMap.get(id);
-        return {
-          id,
-          name: match?.label ?? id,
-          groupLabel: match?.groupLabel,
-        };
-      }),
-    [formData.assetIds, allAssetItemsMap]
-  );
 
   const handleDeleteClick = useCallback(() => {
     if (incident) setIsDeleteDialogOpen(true);
@@ -156,14 +128,6 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
     [clearErrors]
   );
 
-  const toggleEditMode = useCallback(() => {
-    setIsEditMode(true);
-  }, []);
-
-  const toggleCancelEdit = useCallback(() => {
-    setIsEditMode(false);
-  }, []);
-
   if (!incident) return null;
 
   return (
@@ -172,45 +136,22 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
     }}>
       <DialogContent className="w-[600px] max-w-[90vw] h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
-          <DialogTitle>{isEditMode ? "Edit Incident" : "Incident Details"}</DialogTitle>
+          <DialogTitle>Edit Incident</DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto">
           <form onSubmit={(e) => { void handleSubmit(e); }} className="flex flex-col gap-4 pr-1">
             {/* Assets */}
             <div className="flex flex-col gap-2">
-              {isEditMode ? (
-                <>
-                  <label className="label-medium text-onSurface">Assets<span className="text-error">*</span></label>
-                  <SearchWithDropdown
-                    categories={assetCategories} selectedCategoryId={selectedCategoryId} onCategoryChange={setSelectedCategoryId}
-                    items={assetItems} selectedIds={formData.assetIds} onSelectionChange={handleAssetSelectionChange}
-                    placeholder="Search assets..." emptyMessage="No assets found" className="w-full"
-                    hideSelectedField={formData.assetIds.length === 0}
-                  />
-                  {errors.assetIds && (
-                    <span className="text-sm text-error">{errors.assetIds}</span>
-                  )}
-                </>
-              ) : (
-                <ReadOnlyField label="Assets">
-                  {selectedAssets.length > 0 ? (
-                    <div className="max-h-70 overflow-y-auto">
-                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                        {selectedAssets.map((asset) => (
-                          <div
-                            key={asset.id}
-                            className="flex flex-col gap-1 rounded-md border border-outlineVariant/60 bg-surfaceContainerHighest px-3 py-2"
-                          >
-                            <span className="body-small text-onSurface">{asset.name}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <span className="text-onSurfaceVariant">—</span>
-                  )}
-                </ReadOnlyField>
+              <label className="label-medium text-onSurface">Assets<span className="text-error">*</span></label>
+              <SearchWithDropdown
+                categories={assetCategories} selectedCategoryId={selectedCategoryId} onCategoryChange={setSelectedCategoryId}
+                items={assetItems} selectedIds={formData.assetIds} onSelectionChange={handleAssetSelectionChange}
+                placeholder="Search assets..." emptyMessage="No assets found" className="w-full"
+                hideSelectedField={formData.assetIds.length === 0}
+              />
+              {errors.assetIds && (
+                <span className="text-sm text-error">{errors.assetIds}</span>
               )}
             </div>
 
@@ -218,40 +159,28 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
             <div className="grid grid-cols-2 gap-4">
               {/* Priority Selection */}
               <div className="flex flex-col gap-2">
-                {isEditMode ? (
-                  <>
-                    <label className="label-medium text-onSurface">Priority<span className="text-error">*</span></label>
-                    <DropdownMenu className="w-full">
-                      <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
-                      <DropdownMenuContent>
-                        {PRIORITY_OPTIONS.map((option) => (
-                          <DropdownMenuItem key={option.value} onClick={() => { handlePrioritySelect(option.value); }}>{option.label}</DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                ) : (
-                  <ReadOnlyField label="Priority">{formData.priority}</ReadOnlyField>
-                )}
+                <label className="label-medium text-onSurface">Priority<span className="text-error">*</span></label>
+                <DropdownMenu className="w-full">
+                  <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
+                  <DropdownMenuContent>
+                    {PRIORITY_OPTIONS.map((option) => (
+                      <DropdownMenuItem key={option.value} onClick={() => { handlePrioritySelect(option.value); }}>{option.label}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Status Selection */}
               <div className="flex flex-col gap-2">
-                {isEditMode ? (
-                  <>
-                    <label className="label-medium text-onSurface">Status<span className="text-error">*</span></label>
-                    <DropdownMenu className="w-full">
-                      <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
-                      <DropdownMenuContent>
-                        {STATUS_OPTIONS.map((option) => (
-                          <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>{option.label}</DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </>
-                ) : (
-                  <ReadOnlyField label="Status">{formData.status}</ReadOnlyField>
-                )}
+                <label className="label-medium text-onSurface">Status<span className="text-error">*</span></label>
+                <DropdownMenu className="w-full">
+                  <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
+                  <DropdownMenuContent>
+                    {STATUS_OPTIONS.map((option) => (
+                      <DropdownMenuItem key={option.value} onClick={() => { handleStatusSelect(option.value); }}>{option.label}</DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
@@ -259,38 +188,26 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
             <div className={`grid gap-4 ${formData.status === "Resolved" ? "grid-cols-2" : "grid-cols-1"}`}>
               {/* Start Time */}
               <div className="flex flex-col gap-2">
-                {isEditMode ? (
-                  <>
-                    <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
-                    <SemiDatePicker
-                      value={formData.startTime ? new Date(formData.startTime) : null} onChange={handleDateTimeChange("startTime")}
-                      inputType="dateTime" className="w-full"
-                    />
-                    {errors.startTime && (
-                      <span className="text-sm text-error">{errors.startTime}</span>
-                    )}
-                  </>
-                ) : (
-                  <ReadOnlyField label="Start Time">{new Date(formData.startTime).toLocaleString()}</ReadOnlyField>
+                <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
+                <SemiDatePicker
+                  value={formData.startTime ? new Date(formData.startTime) : null} onChange={handleDateTimeChange("startTime")}
+                  inputType="dateTime" className="w-full"
+                />
+                {errors.startTime && (
+                  <span className="text-sm text-error">{errors.startTime}</span>
                 )}
               </div>
 
               {/* End Time (show if resolved) */}
               {formData.status === "Resolved" && (
                 <div className="flex flex-col gap-2">
-                  {isEditMode ? (
-                    <>
-                      <label className="label-medium text-onSurface">End Time<span className="text-error">*</span></label>
-                      <SemiDatePicker
-                        value={formData.endTime ? new Date(formData.endTime) : null} onChange={handleDateTimeChange("endTime")}
-                        inputType="dateTime" className="w-full"
-                      />
-                      {errors.endTime && (
-                        <span className="text-sm text-error">{errors.endTime}</span>
-                      )}
-                    </>
-                  ) : (
-                    <ReadOnlyField label="End Time">{formData.endTime ? new Date(formData.endTime).toLocaleString() : "—"}</ReadOnlyField>
+                  <label className="label-medium text-onSurface">End Time<span className="text-error">*</span></label>
+                  <SemiDatePicker
+                    value={formData.endTime ? new Date(formData.endTime) : null} onChange={handleDateTimeChange("endTime")}
+                    inputType="dateTime" className="w-full"
+                  />
+                  {errors.endTime && (
+                    <span className="text-sm text-error">{errors.endTime}</span>
                   )}
                 </div>
               )}
@@ -299,36 +216,24 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
             {/* Description or Resolution Notes (mutually exclusive based on status) */}
             {formData.status !== "Resolved" ? (
               <div className="flex flex-col gap-2">
-                {isEditMode ? (
-                  <>
-                    <label className="label-medium text-onSurface">Description<span className="text-error">*</span></label>
-                    <TextArea
-                      value={formData.description} onChange={handleInputChange("description")}
-                      placeholder="Describe the issue... (minimum 10 characters)" className="min-h-[90px]"
-                    />
-                    {errors.description && (
-                      <span className="text-sm text-error">{errors.description}</span>
-                    )}
-                  </>
-                ) : (
-                  <ReadOnlyField label="Description" valueClassName="whitespace-pre-wrap">{formData.description}</ReadOnlyField>
+                <label className="label-medium text-onSurface">Description<span className="text-error">*</span></label>
+                <TextArea
+                  value={formData.description} onChange={handleInputChange("description")}
+                  placeholder="Describe the issue... (minimum 10 characters)" className="min-h-[90px]"
+                />
+                {errors.description && (
+                  <span className="text-sm text-error">{errors.description}</span>
                 )}
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                {isEditMode ? (
-                  <>
-                    <label className="label-medium text-onSurface">Resolution Notes<span className="text-error">*</span></label>
-                    <TextArea
-                      value={formData.resolutionNotes ?? ""} onChange={handleInputChange("resolutionNotes")}
-                      placeholder="Describe how the issue was resolved..." className="min-h-[90px]"
-                    />
-                    {errors.resolutionNotes && (
-                      <span className="text-sm text-error">{errors.resolutionNotes}</span>
-                    )}
-                  </>
-                ) : (
-                  <ReadOnlyField label={<>Resolution Notes<span className="text-error">*</span></>} valueClassName="whitespace-pre-wrap">{formData.resolutionNotes ?? "—"}</ReadOnlyField>
+                <label className="label-medium text-onSurface">Resolution Notes<span className="text-error">*</span></label>
+                <TextArea
+                  value={formData.resolutionNotes ?? ""} onChange={handleInputChange("resolutionNotes")}
+                  placeholder="Describe how the issue was resolved..." className="min-h-[90px]"
+                />
+                {errors.resolutionNotes && (
+                  <span className="text-sm text-error">{errors.resolutionNotes}</span>
                 )}
               </div>
             )}
@@ -336,21 +241,10 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
         </div>
           
         <DialogFooter className="flex-shrink-0 flex justify-between items-center">
-          {isEditMode ? (
-            <>
-              <div className="flex gap-2">
-                <Button variant="outline" type="button" onClick={toggleCancelEdit}>Cancel</Button>
-                <Button variant="default" type="submit" onClick={() => { void handleSubmit(); }}>Update Incident</Button>
-              </div>
-            </>
-          ) : (
-            <div className="flex gap-2">
-              <Button variant="ghost" type="button" onClick={handleDeleteClick} className="text-error hover:text-error hover:bg-errorContainer">
-                <Trash2 className="h-4 w-4 mr-2" />Delete
-              </Button>
-              <Button variant="default" type="button" onClick={toggleEditMode}>Edit</Button>              
-            </div>
-          )}
+          <Button variant="ghost" type="button" onClick={handleDeleteClick} className="text-error hover:text-error hover:bg-errorContainer">
+            <Trash2 className="h-4 w-4 mr-2" />Delete
+          </Button>
+          <Button variant="default" type="submit" onClick={() => { void handleSubmit(); }}>Update Incident</Button>
         </DialogFooter>
       </DialogContent>
 

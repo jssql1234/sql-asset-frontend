@@ -159,6 +159,7 @@ const UserAccessRightsPage: React.FC = () => {
             }}
             placeholder="Select a group..."
             className="min-w-[250px]"
+            mode="search"
           />
         </Card>
 

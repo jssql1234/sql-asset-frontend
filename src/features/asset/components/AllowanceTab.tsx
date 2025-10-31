@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo } from "react";
 import { Option, Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
-import { SearchableInputDropdown, type DropdownOption } from "@/components/SearchableInputDropdown";
+import { SearchableDropdown } from "@/components/SearchableDropdown";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
@@ -51,7 +51,7 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
   const isNewVehicle = watch("extraNewVehicle");
 
   // Percentage options for dropdowns
-  const percentageOptions: DropdownOption[] = [
+  const percentageOptions = [
     { id: "0", label: "0" },
     { id: "25", label: "25" },
     { id: "33", label: "33" },
@@ -313,32 +313,32 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
         {caAssetGroupValue === "E" && (
           <div>
             <label className="block text-sm font-medium text-onSurface">Self Use %</label>
-            <SearchableInputDropdown
+            <SearchableDropdown
+              items={percentageOptions}
               value={watch("selfUsePercentage")}
               onChange={(value) => {
                 setValue("selfUsePercentage", value);
               }}
-              options={percentageOptions}
               disabled={isReadonly}
               position='top'
-              defaultValue="100"
               hideEmptyMessage
+              mode='freeInput'
             />
           </div>
         )}
         {caAssetGroupValue === "D" && (
           <div>
             <label className="block text-sm font-medium text-onSurface">Rented Apportion %</label>
-            <SearchableInputDropdown
+            <SearchableDropdown
+              items={percentageOptions}
               value={watch("rentedApportionPercentage")}
               onChange={(value) => {
                 setValue("rentedApportionPercentage", value);
               }}
-              options={percentageOptions}
               disabled={isReadonly}
               position='top'
-              defaultValue="0"
               hideEmptyMessage
+              mode='freeInput'
             />
           </div>
         )}

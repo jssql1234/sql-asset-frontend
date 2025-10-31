@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/components";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control } from "react-hook-form";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
-import { SearchableInputDropdown, type DropdownOption } from "@/components/SearchableInputDropdown";
+import { SearchableDropdown } from "@/components/SearchableDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ManageHPPaymentModal } from "./ManageHPPaymentModal";
 
@@ -42,7 +42,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
   );
 
   // Options for instalment dropdown (excluding "Other")
-  const instalmentOptions: DropdownOption[] = [
+  const instalmentOptions = [
     { id: "12", label: "12" },
     { id: "24", label: "24" },
     { id: "36", label: "36" },
@@ -74,15 +74,17 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">No. Instalment (months)</label>
-          <SearchableInputDropdown
+          <SearchableDropdown
+            items={instalmentOptions}
             value={hpInstalmentValue}
             onChange={(value) => {
               setValue("hpInstalment", value);
             }}
-            options={instalmentOptions}
             disabled={isReadonly || !isHpEnabled}
             placeholder="Select Instalment"
-            position= "top"
+            position="top"
+            hideEmptyMessage
+            mode="freeInput"
           />
         </div>
         <div>

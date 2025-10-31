@@ -2,7 +2,7 @@
  * DataTableExtended - Extended wrapper for DataTable with additional features
  */
 
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { 
   useReactTable,
   getCoreRowModel,
@@ -293,21 +293,26 @@ export function DataTableExtended<TData, TValue>({
   const currentRowSelection = useMemo(() => rowSelection ?? {}, [rowSelection]);
   const currentGrouping = useMemo(() => grouping ?? [], [grouping]);
   const currentExpanded = useMemo(() => expanded ?? {}, [expanded]);
+  const isGroupingActive = useMemo(() => enableGrouping && currentGrouping.length > 0, [enableGrouping, currentGrouping]);
+  const isSelectionEnabled = showCheckbox || enableRowClickSelection;
+
+  const canSelectRow = useCallback((row: Row<TData>) => {
+    if (!isSelectionEnabled) {
+      return false;
+    }
+    return isGroupingActive ? row.getIsGrouped() : true;
+  }, [isSelectionEnabled, isGroupingActive]);
 
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
     if (showCheckbox) {
-      const isGroupingEnabled = enableGrouping && currentGrouping.length > 0;
-      
       // Create custom selection column that respects grouping
       const customSelectionColumn: ColumnDef<TData, TValue> = {
         id: "select",
         meta: { order: 0 }, // Ensure selection column is always first
         header: ({ table }) => {
           const rowModel = table.getRowModel();
-          const selectableRows = isGroupingEnabled
-            ? rowModel.rows.filter((row) => row.getIsGrouped())
-            : rowModel.rows;
+          const selectableRows = rowModel.rows.filter((row) => row.getCanSelect());
 
           const selectableCount = selectableRows.length;
           const selectedCount = selectableRows.filter((row) => row.getIsSelected()).length;
@@ -315,14 +320,8 @@ export function DataTableExtended<TData, TValue>({
           const partiallySelected = selectedCount > 0 && !allSelected;
 
           const handleHeaderToggle = (event: ChangeEvent<HTMLInputElement>) => {
-            event.preventDefault();
             event.stopPropagation();
-            const nextState = !allSelected;
-            selectableRows.forEach((row) => {
-              if (row.getIsSelected() !== nextState) {
-                row.toggleSelected(nextState);
-              }
-            });
+            table.toggleAllPageRowsSelected(event.target.checked);
           };
 
           return (
@@ -338,16 +337,12 @@ export function DataTableExtended<TData, TValue>({
         },
         cell: ({ row }) => {
           // In grouping mode, disable selection for leaf rows
-          const canSelect = isGroupingEnabled ? row.getIsGrouped() : row.getCanSelect();
-          
           const handleToggle = (event: ChangeEvent<HTMLInputElement>) => {
-            event.preventDefault();
             event.stopPropagation();
-            // In grouping mode, only allow toggling group rows
-            if (isGroupingEnabled && !row.getIsGrouped()) {
+            if (!row.getCanSelect()) {
               return;
             }
-            row.toggleSelected(!row.getIsSelected());
+            row.toggleSelected(event.target.checked);
           };
           
           return (
@@ -357,7 +352,7 @@ export function DataTableExtended<TData, TValue>({
             >
               <Option
                 checked={row.getIsSelected()}
-                disabled={!canSelect}
+                disabled={!canSelectRow}
                 onChange={handleToggle}
               />
             </div>
@@ -371,7 +366,7 @@ export function DataTableExtended<TData, TValue>({
       return [customSelectionColumn, ...columns];
     }
     return columns;
-  }, [columns, showCheckbox, enableGrouping, currentGrouping]);
+  }, [columns, showCheckbox, canSelectRow]);
 
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
     const columnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
@@ -460,7 +455,7 @@ export function DataTableExtended<TData, TValue>({
   const table = useReactTable({
     data,
     columns: effectiveColumns,  // Use effective columns here
-    enableRowSelection: showCheckbox || enableRowClickSelection,
+    enableRowSelection: canSelectRow,
     autoResetPageIndex: hasMounted,
     onColumnOrderChange: ((updaterOrValue) => {
       if (!isMountedRef.current) return;
@@ -829,18 +824,14 @@ function DataTableRow<TData>({
     const isInteractiveElement = target.closest(
       'button, a, input, select, textarea, [role="button"]'
     );
-    const state = table.getState();
-    const groupingActive = Array.isArray(state.grouping) && state.grouping.length > 0;
-
     // Prioritize selection on row click when enabled
     if (
       enableRowClickSelection &&
       !isInteractiveElement &&
-      row.getCanSelect() &&
-      (!groupingActive || row.getIsGrouped())
+      row.getCanSelect()
     ) {
       event.preventDefault();
-      row.toggleSelected();
+      row.toggleSelected(!row.getIsSelected());
       return;
     }
 

@@ -316,13 +316,13 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
             <SearchableDropdown
               items={percentageOptions}
               value={watch("selfUsePercentage")}
-              onChange={(value: string) => {
+              onChange={(value) => {
                 setValue("selfUsePercentage", value);
               }}
-              allowFreeInput
               disabled={isReadonly}
               position='top'
               hideEmptyMessage
+              mode='freeInput'
             />
           </div>
         )}
@@ -332,13 +332,13 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
             <SearchableDropdown
               items={percentageOptions}
               value={watch("rentedApportionPercentage")}
-              onChange={(value: string) => {
+              onChange={(value) => {
                 setValue("rentedApportionPercentage", value);
               }}
-              allowFreeInput
               disabled={isReadonly}
               position='top'
               hideEmptyMessage
+              mode='freeInput'
             />
           </div>
         )}

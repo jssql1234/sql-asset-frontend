@@ -77,14 +77,14 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
           <SearchableDropdown
             items={instalmentOptions}
             value={hpInstalmentValue}
-            onChange={(value: string) => {
+            onChange={(value) => {
               setValue("hpInstalment", value);
             }}
-            allowFreeInput
             disabled={isReadonly || !isHpEnabled}
             placeholder="Select Instalment"
             position="top"
             hideEmptyMessage
+            mode="freeInput"
           />
         </div>
         <div>

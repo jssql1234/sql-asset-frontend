@@ -9,7 +9,13 @@ import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowMode
          type Table as TanStackTable, type Header, type Row } from '@tanstack/react-table';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOverlay } from '@dnd-kit/core';
 import { 
@@ -34,7 +40,10 @@ import { cn } from '@/utils/utils';
 import { CaretDownFilled, CaretUpDown, CaretUpFilled } from '@/assets/icons';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
-import { multiSelectFilterFn, fuzzyArrayIncludesFilterFn } from '@/components/ui/utils/tableFilter';
+import {
+  multiSelectFilterFn,
+  fuzzyArrayIncludesFilterFn,
+} from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
 
 // Row action types

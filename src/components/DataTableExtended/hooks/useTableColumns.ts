@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SetStateAction } from 'react';
-import type { DataTableColumn } from '../types';
+import type { ColumnDef } from '@tanstack/react-table';
+import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
+
+export type DataTableColumn<TData, TValue> =
+  | ColumnDef<TData, TValue>
+  | CustomColumnDef<TData, TValue>;
 
 interface UseTableColumnsOptions<TData, TValue> {
   columns: DataTableColumn<TData, TValue>[];

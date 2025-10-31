@@ -28,7 +28,7 @@ const AssetMainPage: React.FC = () => {
     <AppLayout
       breadcrumbs={getBreadcrumbs()}
     >
-      <div className="flex flex-col gap-6 p-1">
+      <div className="flex flex-col gap-6 p-1 size-full">
         <AssetContentArea />
       </div>
     </AppLayout>

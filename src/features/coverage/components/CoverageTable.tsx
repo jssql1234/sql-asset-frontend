@@ -115,7 +115,6 @@ const InsurancesVariantTable = ({
       columns={columns}
       data={policies}
       showPagination
-      onRowDoubleClick={onViewInsurance}
     />
   );
 };
@@ -174,7 +173,6 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
       columns={columns}
       data={warranties}
       showPagination
-      onRowDoubleClick={onViewWarranty}
     />
   );
 };
@@ -290,7 +288,6 @@ const ClaimsVariantTable = ({
       columns={columns}
       data={claims}
       showPagination
-      onRowDoubleClick={onViewClaim}
     />
   );
 };

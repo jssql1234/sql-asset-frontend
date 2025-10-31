@@ -118,7 +118,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
         columns={columns}
         data={workRequests}
         showPagination={true}
-        onRowDoubleClick={onEditWorkRequest}
       />
     </div>
   );

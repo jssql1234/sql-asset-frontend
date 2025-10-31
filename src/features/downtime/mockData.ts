@@ -10,39 +10,26 @@ export const downtimeAssetGroups: DowntimeAssetGroup[] = [
   {
     id: "power-systems",
     label: "Power Systems",
-    assets: [
-      { id: "GEN-003", name: "Generator C3" },
-      { id: "AC-004", name: "Air Compressor D4" },
-    ],
+    assets: [ { id: "GEN-003", name: "Generator C3" }, { id: "AC-004", name: "Air Compressor D4" } ],
   },
   {
     id: "support-equipment",
     label: "Support Equipment",
-    assets: [
-      { id: "HP-005", name: "Hydraulic Press E5" },
-      { id: "CS-006", name: "Cooling System F6" },
-    ],
+    assets: [ { id: "HP-005", name: "Hydraulic Press E5" }, { id: "CS-006", name: "Cooling System F6" } ],
   },
   {
     id: "quality-control",
     label: "Quality Control",
-    assets: [
-      { id: "QC-007", name: "Quality Scanner G7" },
-      { id: "TM-008", name: "Testing Machine H8" },
-    ],
+    assets: [ { id: "QC-007", name: "Quality Scanner G7" }, { id: "TM-008", name: "Testing Machine H8" } ],
   },
   {
     id: "maintenance-tools",
     label: "Maintenance Tools",
     assets: [
-      { id: "WR-009", name: "Welding Robot I9" },
-      { id: "DM-010", name: "Diagnostic Machine J10" },
-      { id: "WR-011", name: "Welding Robot K11" },
-      { id: "DM-012", name: "Diagnostic Machine L12" },
-      { id: "CR-013", name: "Calibration Robot M13" },
-      { id: "TM-014", name: "Tooling Machine N14" },
-      { id: "SM-015", name: "Soldering Machine O15" },
-      { id: "PM-016", name: "Precision Machine P16" },
+      { id: "WR-009", name: "Welding Robot I9" }, { id: "DM-010", name: "Diagnostic Machine J10" },
+      { id: "WR-011", name: "Welding Robot K11" }, { id: "DM-012", name: "Diagnostic Machine L12" },
+      { id: "CR-013", name: "Calibration Robot M13" }, { id: "TM-014", name: "Tooling Machine N14" },
+      { id: "SM-015", name: "Soldering Machine O15" }, { id: "PM-016", name: "Precision Machine P16" },
     ],
   },
 ];

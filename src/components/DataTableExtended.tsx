@@ -41,7 +41,14 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOverlay } from '@dnd-kit/core';
-import { Skeleton, Option } from '@/components/ui/components';
+import { 
+  Skeleton, 
+  Option,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/components';
 import {
   Table,
   TableBody,
@@ -54,12 +61,38 @@ import {
 } from '@/components/ui/components/Table';
 import { cn } from '@/utils/utils';
 import { CaretDownFilled, CaretUpDown, CaretUpFilled } from '@/assets/icons';
+import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
 import {
   multiSelectFilterFn,
   fuzzyArrayIncludesFilterFn,
 } from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
+
+// Row action types
+export type RowActionType = 'view' | 'edit' | 'delete' | 'custom';
+
+// Row action configuration
+export interface RowAction<TData> {
+  type: RowActionType;
+  label?: string;
+  onClick: (row: TData) => void;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+// Default configuration for standard action types
+const getActionConfig = (type: RowActionType): { icon: React.ComponentType<{ className?: string }>; label: string; variant?: 'default' | 'destructive' } => {
+  switch (type) {
+    case 'view':
+      return { icon: Eye, label: 'View' };
+    case 'edit':
+      return { icon: Edit, label: 'Edit' };
+    case 'delete':
+      return { icon: Trash2, label: 'Delete', variant: 'destructive' };
+    default:
+      return { icon: MoreHorizontal, label: 'Action' };
+  }
+};
 
 // Extend the original DataTableProps with onRowDoubleClick
 interface DataTableExtendedProps<TData, TValue> {
@@ -76,6 +109,9 @@ interface DataTableExtendedProps<TData, TValue> {
   rowSelection?: Record<string, boolean>;
   className?: string;
   onRowDoubleClick?: (row: TData) => void;
+
+  // Row actions dropdown
+  rowActions?: RowAction<TData>[];
 
   // External pagination props
   totalCount?: number;
@@ -283,6 +319,7 @@ export function DataTableExtended<TData, TValue>({
   expanded,
   onExpandedChange,
   onColumnOrderChange,
+  rowActions,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(false);
@@ -328,6 +365,9 @@ export function DataTableExtended<TData, TValue>({
   
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
+    let cols = [...columns];
+    
+    // Add selection column if enabled
     if (showCheckbox) {
       const isGroupingEnabled = enableGrouping && currentGrouping.length > 0;
       
@@ -413,10 +453,63 @@ export function DataTableExtended<TData, TValue>({
         size: 1,
       };
       
-      return [customSelectionColumn, ...columns];
+      cols = [customSelectionColumn, ...cols];
     }
-    return columns;
-  }, [columns, showCheckbox, enableGrouping, currentGrouping]);
+    
+    // Add row actions column if enabled
+    if (rowActions && rowActions.length > 0) {
+      const rowActionsColumn: ColumnDef<TData, TValue> = {
+        id: "row-actions",
+        header: "",
+        cell: ({ row }) => (
+          <div 
+            className="flex items-center justify-center"
+            onClick={(e) => { e.stopPropagation(); }}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <button
+                  type="button"
+                  className="h-8 w-8 p-0 hover:bg-surfaceContainerHighest rounded-full flex items-center justify-center transition-colors focus:outline-none"
+                  onClick={(e) => { e.stopPropagation(); }}
+                >
+                  <MoreHorizontal className="h-4 w-4 text-onSurfaceVariant" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {rowActions.map((action) => {
+                  const config = getActionConfig(action.type);
+                  const ActionIcon = action.icon ?? config.icon;
+                  const label = action.label ?? config.label;
+                  const variant = action.type === 'delete' ? 'destructive' : 'default';
+                  
+                  return (
+                    <DropdownMenuItem
+                      key={action.type}
+                      onClick={() => {
+                        action.onClick(row.original);
+                      }}
+                      className={`flex items-center ${variant === 'destructive' ? 'text-error focus:text-error' : ''}`}
+                    >
+                      <ActionIcon className="h-4 w-4 mr-2" />
+                      {label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 60,
+      };
+      
+      cols = [...cols, rowActionsColumn];
+    }
+    
+    return cols;
+  }, [columns, showCheckbox, enableGrouping, currentGrouping, rowActions]);
   
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
     const columnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));

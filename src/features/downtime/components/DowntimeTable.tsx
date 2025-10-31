@@ -1,6 +1,6 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/components";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import Search from "@/components/Search";
@@ -11,12 +11,14 @@ import TableColumnVisibility from "@/components/ui/components/Table/TableColumnV
 interface DowntimeTableProps {
   incidents: DowntimeIncident[];
   onEditIncident: (incident: DowntimeIncident) => void;
+  onDeleteIncident?: (incident: DowntimeIncident) => void;
   onVisibleColumnsChange?: (columns: ColumnDef<DowntimeIncident>[]) => void;
 }
 
 export const DowntimeTable: React.FC<DowntimeTableProps> = ({
   incidents,
   onEditIncident,
+  onDeleteIncident,
   onVisibleColumnsChange,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -123,6 +125,18 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
     []
   );
 
+  // Row actions configuration
+  const rowActions: RowAction<DowntimeIncident>[] = useMemo(() => {
+    const actions: RowAction<DowntimeIncident>[] = [
+      { type: "edit", onClick: onEditIncident },
+    ];
+
+    if (onDeleteIncident) {
+      actions.push({ type: "delete", onClick: onDeleteIncident });
+    }
+    return actions;
+  }, [onEditIncident, onDeleteIncident]);
+
   // Initialize visible columns with all columns on first render
   useEffect(() => {
     if (visibleColumns.length === 0 && columns.length > 0) {
@@ -149,7 +163,13 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         </div>
       </div>
       
-      <DataTableExtended columns={visibleColumns} data={filteredIncidents} showPagination={true} onRowDoubleClick={onEditIncident} />
+      <DataTableExtended 
+        columns={visibleColumns} 
+        data={filteredIncidents} 
+        showPagination={true} 
+        onRowDoubleClick={onEditIncident}
+        rowActions={rowActions}
+      />
     </div>
   );
 };

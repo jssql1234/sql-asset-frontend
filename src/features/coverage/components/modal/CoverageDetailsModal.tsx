@@ -1,13 +1,5 @@
 import type { ReactNode } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { DetailModalSection } from "@/features/coverage/components/DetailModal";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty, CoverageStatus } from "@/features/coverage/types";
@@ -36,6 +28,7 @@ export interface DetailSection {
   assetGrid?: {
     assets: CoverageItem[];
   };
+  gridSections?: DetailSection[];
 }
 
 type CoverageVariant = "insurance" | "warranty" | "claim";
@@ -67,36 +60,41 @@ const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
   subtitle: `${data.provider} • ${data.policyNumber}`,
   sections: [
     {
-      title: "Coverage Overview",
-      items: [
+      title: "Coverage & Dates",
+      gridSections: [
         {
-          label: "Coverage Amount",
-          value: formatCurrency(data.coverageAmount),
+          title: "Coverage Overview",
+          items: [
+            {
+              label: "Coverage Amount",
+              value: formatCurrency(data.coverageAmount),
+            },
+            {
+              label: "Remaining Coverage",
+              value: formatCurrency(data.remainingCoverage),
+            },
+            {
+              label: "Total Claimed",
+              value: formatCurrency(data.totalClaimed),
+            },
+            {
+              label: "Annual Premium",
+              value: formatCurrency(data.annualPremium),
+            },
+          ],
         },
         {
-          label: "Remaining Coverage",
-          value: formatCurrency(data.remainingCoverage),
-        },
-        {
-          label: "Total Claimed",
-          value: formatCurrency(data.totalClaimed),
-        },
-        {
-          label: "Annual Premium",
-          value: formatCurrency(data.annualPremium),
-        },
-      ],
-    },
-    {
-      title: "Key Dates",
-      items: [
-        {
-          label: "Start Date",
-          value: formatDate(data.startDate),
-        },
-        {
-          label: "Expiry Date",
-          value: formatDate(data.expiryDate),
+          title: "Key Dates",
+          items: [
+            {
+              label: "Start Date",
+              value: formatDate(data.startDate),
+            },
+            {
+              label: "Expiry Date",
+              value: formatDate(data.expiryDate),
+            },
+          ],
         },
       ],
     },
@@ -269,6 +267,20 @@ export function CoverageDetailsModal({
 
         <div className="flex flex-col gap-6 overflow-y-auto">
           {config.sections.map((section) => {
+            if (section.gridSections) {
+              return (
+                <div key={section.title} className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  {section.gridSections.map((gridSection) => (
+                    <DetailModalSection
+                      key={gridSection.title}
+                      title={gridSection.title}
+                      items={gridSection.items}
+                    />
+                  ))}
+                </div>
+              );
+            }
+
             if (section.children) {
               return (
                 <DetailModalSection key={section.title} title={section.title}>

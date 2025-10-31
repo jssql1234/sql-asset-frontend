@@ -683,7 +683,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                         size="sm"
                         onClick={handleProcessCapitalAllowance}
                       >
-                        Confirm Process Done
+                        Process CA
                       </Button>
                     </div>
                   )

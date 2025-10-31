@@ -342,7 +342,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
                   if (typeof date === 'string') {
                     formatted = date;
                   } else if (date instanceof Date) {
-                    formatted = date.toISOString().split('T')[0];
+                    formatted = date.toLocaleDateString('en-CA');
                   }
                   field.onChange(formatted);
                 }}
@@ -365,7 +365,7 @@ const WarrantyTab: React.FC<TabProps> = ({ register, control }) => {
                   if (typeof date === 'string') {
                     formatted = date;
                   } else if (date instanceof Date) {
-                    formatted = date.toISOString().split('T')[0];
+                    formatted = date.toLocaleDateString('en-CA');
                   }
                   field.onChange(formatted);
                 }}
@@ -669,7 +669,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
   useEffect(() => {
     if (inactive) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('en-CA');
       activeSetValue("inactiveStart", today);
     } else {
       activeSetValue("inactiveStart", "");
@@ -1056,10 +1056,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // }
 
   return (
-    <div ref={containerRef} className="bg-surface min-h-screen">
-      <div className="mx-auto max-w-[1600px]">
+    <div ref={containerRef} className="bg-surface min-h-full flex flex-col justify-between">
+      <div className="pb-4">
         {/* Header/Title */}
-        <div className="flex h-full flex-col gap-6 p-2 md:p-6">
+        <div className="flex flex-col gap-6 p-2 md:p-6">
           <TabHeader 
             title={title}
             subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}
@@ -1076,7 +1076,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         </div>
 
         {/* Split into left and right */}
-        <div className="flex flex-row gap-6 items-stretch px-6 pb-10">
+        <div className="flex flex-row gap-6 items-stretch">
           {/* Left: Existing create asset forms */}
           <div className="flex-1 min-w-0">
              <form
@@ -1109,7 +1109,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toISOString().split('T')[0];
+                              formatted = date.toLocaleDateString('en-CA');
                             }
                             activeSetValue("inactiveStart", formatted);
                           }}
@@ -1126,7 +1126,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                             if (typeof date === 'string') {
                               formatted = date;
                             } else if (date instanceof Date) {
-                              formatted = date.toISOString().split('T')[0];
+                              formatted = date.toLocaleDateString('en-CA');
                             }
                             activeSetValue("inactiveEnd", formatted);
                           }}
@@ -1294,7 +1294,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                               if (typeof date === 'string') {
                                 formatted = date;
                               } else if (date instanceof Date) {
-                                formatted = date.toISOString().split('T')[0];
+                                formatted = date.toLocaleDateString('en-CA');
                               }
                               field.onChange(formatted);
                             }}
@@ -1326,7 +1326,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                               if (typeof date === 'string') {
                                 formatted = date;
                               } else if (date instanceof Date) {
-                                formatted = date.toISOString().split('T')[0];
+                                formatted = date.toLocaleDateString('en-CA');
                               }
                               field.onChange(formatted);
                             }}
@@ -1378,7 +1378,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {/* This block is removed as per the edit hint */}
       </div>
       {/* Footer */}
-      <div className="flex justify-end items-center gap-4 sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg -mb-5 -mx-5 mt-0 w-auto">
+      <div className="sticky bottom-0 bg-surface px-6 py-4 border-t border-outline shadow-lg flex justify-end items-center gap-4 w-auto -mx-5 -mb-5">
         <div className="flex gap-4">
           <Button
             variant="outline"

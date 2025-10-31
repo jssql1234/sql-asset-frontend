@@ -24,12 +24,6 @@ interface CommonProps {
 
   /** Force dropdown to open upward/downwards */
   position?: 'top' | 'bottom';
-
-  // Old props, can delete when finish migration
-  /** Show search input inside dropdown instead of button */
-  searchInDropdown?: boolean;
-  /** Allow free text input instead of only selecting from options */
-  allowFreeInput?: boolean;   
 }
 
 interface SearchProps extends CommonProps {
@@ -78,10 +72,6 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     hideEmptyMessage,
     position,
 
-    // Old props, can delete when finish migration
-    searchInDropdown,
-    allowFreeInput,
-
     ...rest
   } = {
     placeholder : "Select an option...",
@@ -92,19 +82,10 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     disabled : false,
     hideEmptyMessage : false,
 
-    // Old props, can delete when finish migration
-    searchInDropdown : false,
-    allowFreeInput : false,
-
     ...props
   };
 
-  // Old props, can delete when finish migration, and move this to declaration above
-  const mode = 'mode' in rest ? rest.mode : (
-    (searchInDropdown) ? 'searchInDropdown' :
-    (allowFreeInput)   ? 'freeInput' :
-    'search'
-  );
+  const mode = rest.mode ?? 'search';
 
   const selectedId = (mode === 'search' || mode === 'searchInDropdown') && 'selectedId' in rest ? rest.selectedId : undefined;
   const onSelect = (mode === 'search' || mode === 'searchInDropdown') && 'onSelect' in rest ? rest.onSelect : undefined;

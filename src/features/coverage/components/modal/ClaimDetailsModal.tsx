@@ -78,11 +78,6 @@ export const ClaimDetailsModal: React.FC<ClaimDetailsModalProps> = ({
                 subtitle={`${claim.assets.length.toString()} assets`}
                 assetGrid={{
                   assets: claim.assets,
-                  action: (asset) => (
-                    <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
-                      View Asset
-                    </Button>
-                  ),
                 }}
               />
             </div>

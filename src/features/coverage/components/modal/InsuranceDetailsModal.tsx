@@ -85,19 +85,11 @@ export const InsuranceDetailsModal: React.FC<InsuranceDetailsModalProps> = ({
                 subtitle={`${insurance.assetsCovered.length.toString()} assets`}
                 assetGrid={{
                   assets: insurance.assetsCovered,
-                  action: (asset) => (
-                    <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
-                      View Asset
-                    </Button>
-                  ),
                 }}
               />
             </div>
 
             <DialogFooter className="flex justify-end gap-3">
-              <Button variant="secondary" onClick={() => { onOpenChange(false); }}>
-                Close
-              </Button>
               <Button>Edit Policy</Button>
             </DialogFooter>
           </>

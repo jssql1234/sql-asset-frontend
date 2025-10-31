@@ -9,37 +9,117 @@ interface SearchableDropdownItem {
   sublabel?: string;
 }
 
-interface SearchableDropdownProps {
+// Common props
+interface CommonProps {
+  /** List of options */
   items: SearchableDropdownItem[];
-  selectedId?: string;
-  onSelect: (id: string) => void;
+
   placeholder?: string;
   className?: string;
   maxHeight?: string;
+  disabled?: boolean;
+
   emptyMessage?: string;
+  hideEmptyMessage?: boolean;
+
+  /** Force dropdown to open upward/downwards */
+  position?: 'top' | 'bottom';
+
+  // Old props, can delete when finish migration
   /** Show search input inside dropdown instead of button */
   searchInDropdown?: boolean;
-  /** Force dropdown to open upward */
-  position?: 'top' | 'bottom';
+  /** Allow free text input instead of only selecting from options */
+  allowFreeInput?: boolean;   
 }
 
-export const SearchableDropdown = ({
-  items,
-  selectedId,
-  onSelect,
-  placeholder = "Select an option...",
-  className,
-  maxHeight = "max-h-60",
-  emptyMessage = "No options found",
-  searchInDropdown = false,
-  position = 'bottom',
-}: SearchableDropdownProps) => {
+interface SearchProps extends CommonProps {
+
+  /** Value for dropdown mode */
+  selectedId?: string;
+  /** Callback for dropdown selections */
+  onSelect?: (id: string) => void;
+
+  /** Mode selection, undefined for migrating */
+  mode?: 'search';
+}
+
+interface SearchInDropdownProps extends CommonProps {
+
+  /** Value for dropdown mode */
+  selectedId?: string;
+  /** Callback for dropdown selections */
+  onSelect?: (id: string) => void;
+
+  /** Mode selection, undefined for migrating */
+  mode?: 'searchInDropdown';
+}
+
+interface FreeInputProps extends CommonProps {
+
+  /** Value for free input mode */
+  value?: string;
+  /** Callback for free input changes */
+  onChange?: (value: string) => void;
+
+  /** Mode selection, undefined for migrating */
+  mode?: 'freeInput';
+}
+
+type SearchableDropdownProps = SearchProps | SearchInDropdownProps | FreeInputProps;
+
+export const SearchableDropdown = (props: SearchableDropdownProps) => {
+  const {
+    items,
+    placeholder,
+    className,
+    maxHeight,
+    disabled,
+    emptyMessage,
+    hideEmptyMessage,
+    position,
+
+    // Old props, can delete when finish migration
+    searchInDropdown,
+    allowFreeInput,
+
+    ...rest
+  } = {
+    placeholder : "Select an option...",
+    maxHeight : "max-h-60",
+    emptyMessage : "No options found",
+    position : 'bottom',
+    value : "",
+    disabled : false,
+    hideEmptyMessage : false,
+
+    // Old props, can delete when finish migration
+    searchInDropdown : false,
+    allowFreeInput : false,
+
+    ...props
+  };
+
+  // Old props, can delete when finish migration, and move this to declaration above
+  const mode = 'mode' in rest ? rest.mode : (
+    (searchInDropdown) ? 'searchInDropdown' :
+    (allowFreeInput)   ? 'freeInput' :
+    'search'
+  );
+
+  const selectedId = (mode === 'search' || mode === 'searchInDropdown') && 'selectedId' in rest ? rest.selectedId : undefined;
+  const onSelect = (mode === 'search' || mode === 'searchInDropdown') && 'onSelect' in rest ? rest.onSelect : undefined;
+  const value = mode === 'freeInput' && 'value' in rest ? rest.value : undefined;
+  const onChange = mode === 'freeInput' && 'onChange' in rest ? rest.onChange : undefined;
+
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState(value ?? '');
 
-  const selectedItem = items.find((item) => item.id === selectedId);
+  const selectedItem = selectedId ? items.find((item) => item.id === selectedId) : undefined;
 
   const filteredItems = items.filter(
     (item) =>
@@ -63,6 +143,12 @@ export const SearchableDropdown = ({
   }, []);
 
   useEffect(() => {
+    if (mode === 'freeInput' && value !== inputValue) {
+      setInputValue(value ?? '');
+    }
+  }, [inputValue, value, mode]);
+
+  useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
@@ -76,9 +162,16 @@ export const SearchableDropdown = ({
   };
 
   const handleSelect = (id: string) => {
-    onSelect(id);
+    onSelect?.(id);
     setIsOpen(false);
     setSearchTerm("");
+    if (mode === 'freeInput') {
+      const selectedItem = items.find(item => item.id === id);
+      if (selectedItem) {
+        setInputValue(selectedItem.label);
+        onChange?.(selectedItem.label);
+      }
+    }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -90,8 +183,8 @@ export const SearchableDropdown = ({
     }
   };
 
-  if (searchInDropdown) {
-    // Search input mode - always shows input field
+  if (mode === 'searchInDropdown' || mode === 'freeInput') {
+    // Search input mode or free input mode - always shows input field
     return (
       <div ref={dropdownRef} className={cn("relative", className)}>
         {/* Search Input Field */}
@@ -99,21 +192,54 @@ export const SearchableDropdown = ({
           ref={inputRef}
           type="text"
           placeholder={placeholder}
-          value={searchTerm}
+          value={mode === 'freeInput' ? inputValue : searchTerm}
           onChange={(e) => {
-            setSearchTerm(e.target.value);
-            if (!isOpen) setIsOpen(true);
+            const newValue = e.target.value;
+            if (mode === 'freeInput') {
+              setInputValue(newValue);
+              setSearchTerm(newValue);
+              onChange?.(newValue);
+            } else {
+              setSearchTerm(newValue);
+            }
+            if (!isOpen && items.length > 0) setIsOpen(true);
           }}
-          onFocus={() => { setIsOpen(true); }}
+          onFocus={() => {
+            if (items.length > 0) {
+              setIsOpen(true);
+              if (mode !== 'freeInput') {
+                setSearchTerm("");
+              }
+            }
+          }}
           onKeyDown={handleKeyDown}
-          className="w-full"
+          className="w-full pr-10"
+          disabled={disabled}
         />
 
+        {/* Dropdown Arrow */}
+        {items.length > 0 && (
+          <button
+            type="button"
+            onClick={() => { setIsOpen(!isOpen); }}
+            disabled={disabled}
+            className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-onSurfaceVariant transition-transform hover:text-onSurface disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 transition-transform",
+                isOpen && "rotate-180"
+              )}
+            />
+          </button>
+        )}
+
         {/* Dropdown Content */}
-        {isOpen && (
+        {isOpen && items.length > 0 && (
           <div className={cn(
             "absolute z-50 w-full rounded-md border border-outlineVariant bg-surface shadow-lg",
-            position === 'top' ? "bottom-full mb-1" : "top-full mt-1"
+            position === 'top' ? "bottom-full mb-1" : "top-full mt-1",
+            filteredItems.length <= 0 && hideEmptyMessage ? "hidden" : ""
           )}>
             {/* Options List */}
             <div className={cn("overflow-y-auto", maxHeight)}>
@@ -137,11 +263,11 @@ export const SearchableDropdown = ({
                     )}
                   </button>
                 ))
-              ) : (
+              ) : !hideEmptyMessage ? (
                 <div className="px-3 py-2 text-sm text-onSurfaceVariant">
                   {emptyMessage}
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         )}
@@ -156,8 +282,9 @@ export const SearchableDropdown = ({
       <button
         type="button"
         onClick={handleToggle}
+        disabled={disabled}
         className={cn(
-          "flex w-full items-center justify-between rounded-md border border-outlineVariant bg-surface px-3 py-2 text-left text-sm hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary",
+          "flex w-full items-center justify-between rounded-md border border-outlineVariant bg-surface px-3 py-2 text-left text-sm hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-outlineVariant",
           isOpen && "border-primary ring-1 ring-primary"
         )}
       >

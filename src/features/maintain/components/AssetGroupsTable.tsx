@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
+import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { Button, Card } from '@/components/ui/components';
 import { Badge } from '@/components/ui/components/Badge';
 import { Plus, Edit, Delete } from '@/assets/icons';
@@ -141,7 +141,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableVisibilityControl
+          <TableColumnVisibility
             columns={toggleableColumns}
             visibleColumns={visibleColumns}
             setVisibleColumns={setVisibleColumns}

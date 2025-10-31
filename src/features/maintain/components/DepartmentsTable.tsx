@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from 'react';
 import { Button, Card } from '@/components/ui/components';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
+import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
@@ -172,7 +172,7 @@ export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({
     <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableVisibilityControl
+          <TableColumnVisibility
             columns={toggleableColumns}
             visibleColumns={visibleColumns}
             setVisibleColumns={setVisibleColumns}

@@ -130,9 +130,9 @@ export const UserModal: React.FC<UserModalProps> = ({
                     }}
                     placeholder="Select a department"
                     emptyMessage="No department found."
-                    searchInDropdown={false}
                     className="w-full"
                     maxHeight="max-h-60"
+                    mode="search"
                   />
                 </div>
                 <Button
@@ -167,9 +167,9 @@ export const UserModal: React.FC<UserModalProps> = ({
                     }}
                     placeholder="Select a location"
                     emptyMessage="No location found."
-                    searchInDropdown={false}
                     className="w-full"
                     maxHeight="max-h-60"
+                    mode="search"
                   />
                 </div>
                 <Button
@@ -204,10 +204,10 @@ export const UserModal: React.FC<UserModalProps> = ({
                     }}
                     placeholder="Select a user group"
                     emptyMessage="No groups found."
-                    searchInDropdown={false}
                     className="w-full"
                     maxHeight="max-h-60"
                     position="top"
+                    mode="search"
                   />
                 </div>
                 <Button

@@ -9,15 +9,33 @@ import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowMode
          type Table as TanStackTable, type Header, type Row } from '@tanstack/react-table';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy } from '@dnd-kit/sortable';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOverlay } from '@dnd-kit/core';
 import { Skeleton, Option } from '@/components/ui/components';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, MemoizedTableFilter, TablePagination } from '@/components/ui/components/Table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  MemoizedTableFilter,
+  TablePagination,
+} from '@/components/ui/components/Table';
 import { cn } from '@/utils/utils';
 import { CaretDownFilled, CaretUpDown, CaretUpFilled } from '@/assets/icons';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
-import { multiSelectFilterFn, fuzzyArrayIncludesFilterFn } from '@/components/ui/utils/tableFilter';
+import {
+  multiSelectFilterFn,
+  fuzzyArrayIncludesFilterFn,
+} from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
 
 // Extend the original DataTableProps with onRowDoubleClick

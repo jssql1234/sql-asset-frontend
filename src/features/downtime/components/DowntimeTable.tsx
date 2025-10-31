@@ -12,11 +12,13 @@ import TableColumnVisibility from "@/components/ui/components/Table/TableColumnV
 interface DowntimeTableProps {
   incidents: DowntimeIncident[];
   onEditIncident: (incident: DowntimeIncident) => void;
+  onVisibleColumnsChange?: (columns: ColumnDef<DowntimeIncident>[]) => void;
 }
 
 export const DowntimeTable: React.FC<DowntimeTableProps> = ({
   incidents,
   onEditIncident,
+  onVisibleColumnsChange,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [openAssetPopover, setOpenAssetPopover] = useState<string | null>(null);
@@ -224,18 +226,19 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
     }
   }, [columns, visibleColumns.length]);
 
+  // Notify parent when visible columns change
+  useEffect(() => {
+    if (onVisibleColumnsChange && visibleColumns.length > 0) {
+      onVisibleColumnsChange(visibleColumns);
+    }
+  }, [onVisibleColumnsChange, visibleColumns]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="title-medium font-medium text-onSurface">
-          Current Incidents ({filteredIncidents.length})
-        </h2>
+        <h2 className="title-medium font-medium text-onSurface">Current Incidents ({filteredIncidents.length})</h2>
         <div className="flex items-center gap-2">
-          <TableColumnVisibility
-            columns={columns}
-            visibleColumns={visibleColumns}
-            setVisibleColumns={setVisibleColumns}
-          />
+          <TableColumnVisibility columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns}/>
           <div className="flex-shrink-0 w-80">
             <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
           </div>

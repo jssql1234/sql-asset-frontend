@@ -5,6 +5,7 @@ import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
 import { cn } from "@/utils/utils";
 import AssetForm from "./AssetForm";
+import type { CreateAssetFormData } from "../zod/createAssetForm";
 import type { Asset } from "@/types/asset";
 import { useGetAsset, useCreateAsset, useUpdateAsset, useDeleteAsset } from "../hooks/useAssetService";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
@@ -210,10 +211,32 @@ const haveSameMembers = (a: string[], b: string[]): boolean => {
   if (a.length !== b.length) {
     return false;
   }
+  if (a === b) {
+    return true;
+  }
   const sortedA = [...a].sort();
   const sortedB = [...b].sort();
   return sortedA.every((value, index) => value === sortedB[index]);
 };
+
+const buildRowSelectionMap = (ids: string[]): Record<string, boolean> =>
+  ids.reduce<Record<string, boolean>>((acc, id) => {
+    acc[id] = true;
+    return acc;
+  }, {});
+
+const mapFormDataToAsset = (data: CreateAssetFormData): Asset => ({
+  id: data.code,
+  batchId: data.batchID ?? "",
+  name: data.assetName,
+  group: data.assetGroup,
+  description: data.description ?? "",
+  acquireDate: data.acquireDate,
+  purchaseDate: data.purchaseDate ?? "",
+  cost: Number(data.cost ?? "0"),
+  qty: data.quantity,
+  active: !data.inactive,
+});
 
 interface UserAssetContentAreaProps {
   selectedTaxYear?: string;
@@ -306,6 +329,14 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
   const deleteAssetMutation = useDeleteAsset();
 
+  const handleCreateSuccess = useCallback((data: CreateAssetFormData) => {
+    createAssetMutation.mutate(mapFormDataToAsset(data));
+  }, [createAssetMutation]);
+
+  const handleUpdateSuccess = useCallback((data: CreateAssetFormData) => {
+    updateAssetMutation.mutate(mapFormDataToAsset(data));
+  }, [updateAssetMutation]);
+
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 
@@ -377,16 +408,20 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     setVisibleColumns(tableColumns);
   }, [tableColumns]);
 
+  const resetSelectionState = useCallback(() => {
+    setSelectedAssetIds([]);
+    setSelectedBatchIds([]);
+    setRowSelection({});
+  }, []);
+
   // Clear selection when switching between batch and asset modes
   const previousGroupByBatch = useRef(groupByBatch);
   useEffect(() => {
     if (previousGroupByBatch.current !== groupByBatch) {
-      setSelectedAssetIds([]);
-      setSelectedBatchIds([]);
-      setRowSelection({});
+      resetSelectionState();
     }
     previousGroupByBatch.current = groupByBatch;
-  }, [groupByBatch]);
+  }, [groupByBatch, resetSelectionState]);
 
   // Memoize grouping and expanded state to prevent unnecessary re-renders
   const groupingState = useMemo<string[]>(() => {
@@ -442,22 +477,11 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     pendingSelectionRef.current = null;
 
     if (!assets || rows.length === 0) {
-      if (selectedAssetIds.length > 0) {
-        setSelectedAssetIds([]);
-      }
-      if (selectedBatchIds.length > 0) {
-        setSelectedBatchIds([]);
-      }
-      if (!areRowSelectionsEqual(rowSelection, {})) {
-        setRowSelection({});
-      }
+      resetSelectionState();
       return;
     }
 
-    const nextRowSelection = selectedRowIds.reduce<Record<string, boolean>>((acc, id) => {
-      acc[id] = true;
-      return acc;
-    }, {});
+    const nextRowSelection = buildRowSelectionMap(selectedRowIds);
     if (!areRowSelectionsEqual(rowSelection, nextRowSelection)) {
       setRowSelection(nextRowSelection);
     }
@@ -490,7 +514,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     if (!haveSameMembers(selectedAssetIds, nextAssetIds)) {
       setSelectedAssetIds(nextAssetIds);
     }
-  }, [assets, filteredAssets, groupByBatch, rowSelection, selectedAssetIds, selectedBatchIds]);
+  }, [assets, filteredAssets, groupByBatch, resetSelectionState, rowSelection, selectedAssetIds, selectedBatchIds]);
 
   const scheduleSelectionFlush = useCallback(() => {
     if (!isMountedRef.current) {
@@ -534,13 +558,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
       window.clearTimeout(processingTimeoutRef.current);
       processingTimeoutRef.current = null;
     }
-addToast({
-      variant: "info",
-      title: "Processing Capital Allowance",
-      description: `Starting Capital Allowance processing for YA ${currentSelection}...`,
-      duration: 2000,
-    });
-
 
     processingTimeoutRef.current = window.setTimeout(() => {
       if (!isMountedRef.current) {
@@ -808,21 +825,7 @@ addToast({
             setEditingAsset(null);
             void navigate(`/asset`);
           }}
-      onSuccess={(data) => {
-        const asset: Asset = {
-          id: data.code,
-          batchId: data.batchID ?? '',
-          name: data.assetName,
-          group: data.assetGroup,
-          description: data.description ?? '',
-          acquireDate: data.acquireDate,
-          purchaseDate: data.purchaseDate ?? '',
-          cost: Number(data.cost ?? '0'),
-              qty: data.quantity,
-          active: !data.inactive,
-        };
-        createAssetMutation.mutate(asset);
-      }}
+          onSuccess={handleCreateSuccess}
         />
       ) : (
         <AssetForm
@@ -837,21 +840,7 @@ addToast({
             setEditingAsset(null);
             void navigate(`/asset`);
           }}
-      onSuccess={(data) => {
-        const asset: Asset = {
-          id: data.code,
-          batchId: data.batchID ?? '',
-          name: data.assetName,
-          group: data.assetGroup,
-          description: data.description ?? '',
-          acquireDate: data.acquireDate,
-          purchaseDate: data.purchaseDate ?? '',
-          cost: Number(data.cost ?? '0'),
-              qty: data.quantity,
-          active: !data.inactive,
-        };
-        updateAssetMutation.mutate(asset);
-      }}
+          onSuccess={handleUpdateSuccess}
         />
       )}
     </>

@@ -2,7 +2,7 @@
  * DataTableExtended - Extended wrapper for DataTable with additional features
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { 
   useReactTable,
   getCoreRowModel,
@@ -290,9 +290,9 @@ export function DataTableExtended<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  const currentRowSelection = rowSelection ?? {};
-  const currentGrouping = grouping ?? [];
-  const currentExpanded = expanded ?? {};
+  const currentRowSelection = useMemo(() => rowSelection ?? {}, [rowSelection]);
+  const currentGrouping = useMemo(() => grouping ?? [], [grouping]);
+  const currentExpanded = useMemo(() => expanded ?? {}, [expanded]);
 
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
@@ -303,25 +303,51 @@ export function DataTableExtended<TData, TValue>({
       const customSelectionColumn: ColumnDef<TData, TValue> = {
         id: "select",
         meta: { order: 0 }, // Ensure selection column is always first
-        header: ({ table }) => (
-          <div className="flex items-center gap-4">
-            <Option
-              checked={table.getIsAllRowsSelected()}
-              indeterminate={table.getIsSomeRowsSelected()}
-              onChange={table.getToggleAllRowsSelectedHandler()}
-            />
-          </div>
-        ),
+        header: ({ table }) => {
+          const rowModel = table.getRowModel();
+          const selectableRows = isGroupingEnabled
+            ? rowModel.rows.filter((row) => row.getIsGrouped())
+            : rowModel.rows;
+
+          const selectableCount = selectableRows.length;
+          const selectedCount = selectableRows.filter((row) => row.getIsSelected()).length;
+          const allSelected = selectableCount > 0 && selectedCount === selectableCount;
+          const partiallySelected = selectedCount > 0 && !allSelected;
+
+          const handleHeaderToggle = (event: ChangeEvent<HTMLInputElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
+            const nextState = !allSelected;
+            selectableRows.forEach((row) => {
+              if (row.getIsSelected() !== nextState) {
+                row.toggleSelected(nextState);
+              }
+            });
+          };
+
+          return (
+            <div className="flex items-center gap-4">
+              <Option
+                checked={allSelected}
+                indeterminate={partiallySelected}
+                disabled={selectableCount === 0}
+                onChange={handleHeaderToggle}
+              />
+            </div>
+          );
+        },
         cell: ({ row }) => {
           // In grouping mode, disable selection for leaf rows
           const canSelect = isGroupingEnabled ? row.getIsGrouped() : row.getCanSelect();
           
-          const handleToggle = () => {
+          const handleToggle = (event: ChangeEvent<HTMLInputElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
             // In grouping mode, only allow toggling group rows
             if (isGroupingEnabled && !row.getIsGrouped()) {
               return;
             }
-            row.toggleSelected();
+            row.toggleSelected(!row.getIsSelected());
           };
           
           return (
@@ -437,11 +463,10 @@ export function DataTableExtended<TData, TValue>({
     enableRowSelection: showCheckbox || enableRowClickSelection,
     autoResetPageIndex: hasMounted,
     onColumnOrderChange: ((updaterOrValue) => {
-      // Always define callback but guard execution
       if (!isMountedRef.current) return;
-      setColumnOrder(
+      setColumnOrder((previous) =>
         typeof updaterOrValue === 'function'
-          ? (updaterOrValue as (prev: string[]) => string[])(columnOrder)
+          ? (updaterOrValue as (prev: string[]) => string[])(previous)
           : updaterOrValue
       );
     }),
@@ -466,23 +491,21 @@ export function DataTableExtended<TData, TValue>({
     }),
     
     onSortingChange: ((updaterOrValue) => {
-      if (isMountedRef.current) {
-        setSorting(
-          typeof updaterOrValue === 'function' 
-            ? (updaterOrValue as (prev: SortingState) => SortingState)(sorting) 
-            : updaterOrValue
-        );
-      }
+      if (!isMountedRef.current) return;
+      setSorting((previous) =>
+        typeof updaterOrValue === 'function'
+          ? (updaterOrValue as (prev: SortingState) => SortingState)(previous)
+          : updaterOrValue
+      );
     }),
 
     onColumnFiltersChange: ((updaterOrValue) => {
-      if (isMountedRef.current) {
-        setColumnFilters(
-          typeof updaterOrValue === 'function' 
-            ? (updaterOrValue as (prev: ColumnFiltersState) => ColumnFiltersState)(columnFilters) 
-            : updaterOrValue
-        );
-      }
+      if (!isMountedRef.current) return;
+      setColumnFilters((previous) =>
+        typeof updaterOrValue === 'function'
+          ? (updaterOrValue as (prev: ColumnFiltersState) => ColumnFiltersState)(previous)
+          : updaterOrValue
+      );
     }),
 
     onRowSelectionChange: ((updaterOrValue) => {

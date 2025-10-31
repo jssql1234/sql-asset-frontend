@@ -280,7 +280,7 @@ const SelectDropdown: React.FC<SelectDropdownProps> = ({
     position: "absolute" as const,
     top: `${String(forcedAdjustedTop)}px`,
     left: `${String(adjustedLeft)}px`,
-    maxHeight: `${String(calculatedMaxHeight)}px`,
+    maxHeight: isOpen ? `${String(calculatedMaxHeight)}px` : "0px", 
     transformOrigin: getTransformOrigin(alignment, false), // Always downward
     zIndex: 9999,
   };

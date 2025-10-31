@@ -61,11 +61,6 @@ export const WarrantyDetailsModal: React.FC<WarrantyDetailsModalProps> = ({
                 subtitle={`${warranty.assetsCovered.length.toString()} assets`}
                 assetGrid={{
                   assets: warranty.assetsCovered,
-                  action: (asset) => (
-                    <Button variant="link" size="sm" aria-label={`View ${asset.name}`}>
-                      View Asset
-                    </Button>
-                  ),
                 }}
               />
             </div>

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
@@ -110,11 +110,22 @@ const InsurancesVariantTable = ({
     []
   );
 
+  const rowActions: RowAction<CoverageInsurance>[] = useMemo(
+    () => [
+      {
+        type: "view",
+        onClick: onViewInsurance,
+      },
+    ],
+    [onViewInsurance]
+  );
+
   return (
     <DataTableExtended<CoverageInsurance, unknown>
       columns={columns}
       data={policies}
       showPagination
+      rowActions={rowActions}
     />
   );
 };
@@ -168,11 +179,22 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
     []
   );
 
+  const rowActions: RowAction<CoverageWarranty>[] = useMemo(
+    () => [
+      {
+        type: "view",
+        onClick: onViewWarranty,
+      },
+    ],
+    [onViewWarranty]
+  );
+
   return (
     <DataTableExtended<CoverageWarranty, unknown>
       columns={columns}
       data={warranties}
       showPagination
+      rowActions={rowActions}
     />
   );
 };
@@ -283,11 +305,22 @@ const ClaimsVariantTable = ({
     []
   );
 
+  const rowActions: RowAction<CoverageClaim>[] = useMemo(
+    () => [
+      {
+        type: "view",
+        onClick: onViewClaim,
+      },
+    ],
+    [onViewClaim]
+  );
+
   return (
     <DataTableExtended<CoverageClaim, unknown>
       columns={columns}
       data={claims}
       showPagination
+      rowActions={rowActions}
     />
   );
 };

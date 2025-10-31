@@ -893,7 +893,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       const numAssets = data.quantity;
       const newAssets: Asset[] = [];
       for (let i = 0; i < numAssets; i++) {
-        const newId = `ASSET-${batchId}-${String(i + 1).padStart(3, '0')}`;
+        const newId = `AS-${batchId}-${String(i + 1).padStart(4, '0')}`;
         newAssets.push({
           id: newId,
           batchId,
@@ -931,7 +931,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         const numToAdd = newQty - originalQuantity;
         const newAssets: Asset[] = [];
         for (let i = 0; i < numToAdd; i++) {
-          const newId = `ASSET-${batchId}-${(originalQuantity + i + 1).toString().padStart(3, '0')}`;
+          const newId = `AS-${batchId}-${(originalQuantity + i + 1).toString().padStart(4, '0')}`;
           newAssets.push({
             id: newId,
             batchId,
@@ -969,31 +969,31 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Functions to generate next IDs
   const generateNextAssetId = useCallback(() => {
     if (!allAssets || allAssets.length === 0) {
-      return 'ASSET-001';
+      return 'AS-00001';
     }
     const maxNum = allAssets
       .map(asset => {
-        const match = /^ASSET-(\d{3})$/.exec(asset.id);
+        const match = /^AS-(\d{4})$/.exec(asset.id);
         return match ? parseInt(match[1], 10) : 0;
       })
       .reduce((max, num) => Math.max(max, num), 0);
     const nextNum = maxNum + 1;
-    return `ASSET-${nextNum.toString().padStart(3, '0')}`;
+    return `AS-${nextNum.toString().padStart(4, '0')}`;
   }, [allAssets]);
 
   const generateNextBatchId = useCallback(() => {
     if (!allAssets || allAssets.length === 0) {
-      return 'B001';
+      return 'BT-0001';
     }
     const batchIds = [...new Set(allAssets.map(a => a.batchId).filter(Boolean))];
     const maxNum = batchIds
       .map(batchId => {
-        const match = /^B(\d{3})$/.exec(batchId);
+        const match = /^BT-(\d{4})$/.exec(batchId);
         return match ? parseInt(match[1], 10) : 0;
       })
       .reduce((max, num) => Math.max(max, num), 0);
     const nextNum = maxNum + 1;
-    return `B${nextNum.toString().padStart(3, '0')}`;
+    return `BT-${nextNum.toString().padStart(4, '0')}`;
   }, [allAssets]);
 
   // Prefill IDs on creation

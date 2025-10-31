@@ -7,6 +7,7 @@ import Search from "@/components/Search";
 import { formatDate, formatTime } from "@/features/downtime/services/downtimeService";
 import { getPriorityVariant } from "@/features/downtime/constants";
 import { X } from "lucide-react";
+import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 
 interface DowntimeTableProps {
   incidents: DowntimeIncident[];
@@ -20,6 +21,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [openAssetPopover, setOpenAssetPopover] = useState<string | null>(null);
   const [popoverPosition, setPopoverPosition] = useState<{ top: number; left: number } | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<DowntimeIncident>[]>([]);
   const popoverRef = useRef<HTMLDivElement>(null);
 
   // Close popover when clicking outside
@@ -58,6 +60,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
+        id: "assets",
         accessorKey: "assets",
         header: "Assets",
         cell: ({ row }) => {
@@ -164,6 +167,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "priority",
         accessorKey: "priority",
         header: "Priority",
         cell: ({ getValue }) => {
@@ -177,6 +181,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         enableSorting: true,
       },
       {
+        id: "startTime",
         accessorKey: "startTime",
         header: "Start Time",
         cell: ({ getValue }) => {
@@ -192,6 +197,7 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "description",
         accessorKey: "description",
         header: "Description",
         cell: ({ getValue }) => {
@@ -211,18 +217,32 @@ export const DowntimeTable: React.FC<DowntimeTableProps> = ({
     [openAssetPopover, popoverPosition]
   );
 
+  // Initialize visible columns with all columns on first render
+  useEffect(() => {
+    if (visibleColumns.length === 0 && columns.length > 0) {
+      setVisibleColumns(columns);
+    }
+  }, [columns, visibleColumns.length]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <h2 className="title-medium font-medium text-onSurface">
           Current Incidents ({filteredIncidents.length})
         </h2>
-        <div className="flex-shrink-0 w-80">
-          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
+        <div className="flex items-center gap-2">
+          <TableColumnVisibility
+            columns={columns}
+            visibleColumns={visibleColumns}
+            setVisibleColumns={setVisibleColumns}
+          />
+          <div className="flex-shrink-0 w-80">
+            <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
+          </div>
         </div>
       </div>
       
-      <DataTableExtended columns={columns} data={filteredIncidents} showPagination={true} onRowDoubleClick={onEditIncident} />
+      <DataTableExtended columns={visibleColumns} data={filteredIncidents} showPagination={true} onRowDoubleClick={onEditIncident} />
     </div>
   );
 };

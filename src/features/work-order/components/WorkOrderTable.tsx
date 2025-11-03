@@ -30,6 +30,7 @@ interface WorkOrderTableProps {
   filters: WorkOrderFilters;
   onEditWorkOrder?: (workOrder: WorkOrder) => void;
   onViewDetails?: (workOrder: WorkOrder) => void;
+  onDeleteWorkOrder?: (workOrder: WorkOrder) => void;
 }
 
 export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
@@ -37,6 +38,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   filters,
   onEditWorkOrder,
   onViewDetails,
+  onDeleteWorkOrder,
 }) => {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
@@ -198,8 +200,36 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
     ],
-    [onViewDetails]
+    []
   );
+
+  // Row actions configuration
+  const rowActions = useMemo(() => {
+    const actions = [];
+    
+    if (onViewDetails) {
+      actions.push({
+        type: 'view' as const,
+        onClick: (row: WorkOrder) => onViewDetails(row),
+      });
+    }
+    
+    if (onEditWorkOrder) {
+      actions.push({
+        type: 'edit' as const,
+        onClick: (row: WorkOrder) => onEditWorkOrder(row),
+      });
+    }
+    
+    if (onDeleteWorkOrder) {
+      actions.push({
+        type: 'delete' as const,
+        onClick: (row: WorkOrder) => onDeleteWorkOrder(row),
+      });
+    }
+    
+    return actions;
+  }, [onViewDetails, onEditWorkOrder, onDeleteWorkOrder]);
 
   return (
       <div
@@ -212,6 +242,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
           columns={columns}
           data={filteredWorkOrders}
           showPagination={true}
+          rowActions={rowActions}
         />
       </div>
   );

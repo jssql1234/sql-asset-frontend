@@ -4,6 +4,7 @@ import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
 import CalendarTab from "./CalendarTab";
 import WorkOrderForm from "../components/WorkOrderForm";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { MOCK_WORK_ORDERS, MOCK_WORK_ORDER_SUMMARY } from "../mockData";
 import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
 import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
@@ -17,6 +18,7 @@ const WorkOrdersPage: React.FC = () => {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState<"view" | "edit" | "create">("create");
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(
     null
   );
@@ -25,6 +27,10 @@ const WorkOrdersPage: React.FC = () => {
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
   }>({});
+
+  // Delete confirmation state
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [workOrderToDelete, setWorkOrderToDelete] = useState<WorkOrder | null>(null);
 
   // Handlers
   const handleWorkOrderFilterChange = (filters: WorkOrderFilters) => {
@@ -38,6 +44,7 @@ const WorkOrdersPage: React.FC = () => {
   // Modal handlers
   const handleCreateWorkOrder = () => {
     console.log("handleCreateWorkOrder called");
+    setModalMode("create");
     setSelectedWorkOrder(null); // null = create mode
     setPrefilledDates({});
     setIsModalOpen(true);
@@ -45,13 +52,36 @@ const WorkOrdersPage: React.FC = () => {
 
   const handleEditWorkOrder = (workOrder: WorkOrder) => {
     console.log("handleEditWorkOrder called with:", workOrder);
+    setModalMode("edit");
     setSelectedWorkOrder(workOrder); // workOrder provided = edit mode
     setIsModalOpen(true);
   };
 
   const handleViewWorkOrderDetails = (workOrder: WorkOrder) => {
-    // For now, open edit modal to view/edit details
-    handleEditWorkOrder(workOrder);
+    console.log("handleViewWorkOrderDetails called with:", workOrder);
+    setModalMode("view");
+    setSelectedWorkOrder(workOrder);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteWorkOrder = (workOrder: WorkOrder) => {
+    // Show confirmation dialog
+    setWorkOrderToDelete(workOrder);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (workOrderToDelete) {
+      // Remove work order from list
+      setWorkOrders((prev) => prev.filter((wo) => wo.id !== workOrderToDelete.id));
+      setIsDeleteDialogOpen(false);
+      setWorkOrderToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteDialogOpen(false);
+    setWorkOrderToDelete(null);
   };
 
   const handleCalendarEventClick = (workOrder: WorkOrder) => {
@@ -157,6 +187,7 @@ const WorkOrdersPage: React.FC = () => {
           onCreateWorkOrder={handleCreateWorkOrder}
           onEditWorkOrder={handleEditWorkOrder}
           onViewDetails={handleViewWorkOrderDetails}
+          onDeleteWorkOrder={handleDeleteWorkOrder}
         />
       ),
     },
@@ -198,6 +229,23 @@ const WorkOrdersPage: React.FC = () => {
         }}
         workOrder={selectedWorkOrder}
         prefilledDates={prefilledDates}
+        mode={modalMode}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Work Order"
+        description={
+          workOrderToDelete
+            ? `Are you sure you want to delete work order "${workOrderToDelete.id} - ${workOrderToDelete.jobTitle}"? This action cannot be undone.`
+            : undefined
+        }
+        itemCount={1}
+        itemName={workOrderToDelete ? `${workOrderToDelete.id} - ${workOrderToDelete.jobTitle}` : undefined}
+        confirmButtonText="Delete Work Order"
       />
     </AppLayout>
   );

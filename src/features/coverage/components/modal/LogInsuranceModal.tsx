@@ -53,10 +53,10 @@ export const LogInsuranceModal = ({
       name: insurance?.name ?? "",
       provider: insurance?.provider ?? "",
       policyNumber: insurance?.policyNumber ?? "",
-      annualPremium: insurance?.annualPremium,
+      annualPremium: insurance?.annualPremium ?? 0,
       limitType: insurance?.limitType ?? "Aggregate" as InsuranceLimitType,
-      coverageAmount: insurance?.coverageAmount,
-      remainingCoverage: insurance?.remainingCoverage,
+      coverageAmount: insurance?.coverageAmount ?? 0,
+      remainingCoverage: insurance?.remainingCoverage ?? 0,
       startDate: insurance?.startDate ?? today.toISOString(),
       expiryDate: insurance?.expiryDate ?? expiryDate.toISOString(),
       description: insurance?.description ?? "",
@@ -77,7 +77,7 @@ export const LogInsuranceModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="w-[800px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Insurance Policy" : "Add Insurance Policy"}</DialogTitle>
           <DialogDescription>Capture policy coverage details, premiums, and associated assets.</DialogDescription>
@@ -128,9 +128,9 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.annualPremium ?? ""}
+                      value={insuranceData.annualPremium}
                       onChange={(e) => {
-                        const value = e.target.value === "" ? undefined : parseFloat(e.target.value) || 0;
+                        const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
                         setInsuranceData({
                           ...insuranceData,
                           annualPremium: value,
@@ -145,9 +145,9 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.coverageAmount ?? ""}
+                      value={insuranceData.coverageAmount}
                       onChange={(e) => {
-                        const value = e.target.value === "" ? undefined : parseFloat(e.target.value) || 0;
+                        const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
                         setInsuranceData({
                           ...insuranceData,
                           coverageAmount: value,
@@ -163,9 +163,9 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.remainingCoverage ?? ""}
+                      value={insuranceData.remainingCoverage}
                       onChange={(e) => {
-                        const value = e.target.value === "" ? undefined : parseFloat(e.target.value) || 0;
+                        const value = e.target.value === "" ? 0 : parseFloat(e.target.value) || 0;
                         setInsuranceData({
                           ...insuranceData,
                           remainingCoverage: value,

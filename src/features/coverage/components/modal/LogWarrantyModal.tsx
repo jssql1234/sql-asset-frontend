@@ -82,7 +82,7 @@ export const LogWarrantyModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[600px] max-w-[90vw] max-h-[90vh]   "> 
+      <DialogContent className="w-[800px] max-w-[90vw] max-h-[90vh]"> 
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Warranty" : "Add Warranty"}</DialogTitle>
           <DialogDescription>Register manufacturer warranty coverage for assets.</DialogDescription>
@@ -96,7 +96,7 @@ export const LogWarrantyModal = ({
                 <h3 className="title-small font-semibold text-onSurface">Warranty Details</h3>
               </div>
               <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Warranty Name *</label>
                     <Input
@@ -127,6 +127,8 @@ export const LogWarrantyModal = ({
                       placeholder="e.g. OMNI-PR-2201"
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Coverage Type *</label>
                     <Input
@@ -211,18 +213,9 @@ export const LogWarrantyModal = ({
           </form>
         </div>
 
-        <DialogFooter className="flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => {
-              onOpenChange(false);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            Save
-          </Button>
+        <DialogFooter className="flex justify-end">
+          <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
+          <Button type="submit" onClick={handleSubmit}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

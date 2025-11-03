@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
+import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
 import type {
@@ -66,11 +67,15 @@ export const LogClaimModal = ({
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>(claim?.status ?? "Filed");
   const [referenceId, setReferenceId] = useState<string>(claim?.referenceId ?? "");
 
-  const [claimData, setClaimData] = useState({
-    claimNumber: claim?.claimNumber ?? "",
-    amount: claim?.amount ?? 0,
-    dateFiled: claim?.dateFiled ?? "",
-    description: claim?.description ?? "",
+  const [claimData, setClaimData] = useState(() => {
+    const today = new Date();
+    
+    return {
+      claimNumber: claim?.claimNumber ?? "",
+      amount: claim?.amount ?? 0,
+      dateFiled: claim?.dateFiled ?? today.toISOString(),
+      description: claim?.description ?? "",
+    };
   });
 
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
@@ -93,16 +98,13 @@ export const LogClaimModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="w-[800px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Claim" : "Add Claim"}</DialogTitle>
-          <DialogDescription>
-            Record an insurance or warranty claim. Additional workflow automation and
-            validations will be handled by dedicated hooks later on.
-          </DialogDescription>
+          <DialogDescription>Record an insurance or warranty claim.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 overflow-y-auto">
+        <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             {/* Claim Details Section */}
             <div className="space-y-4 bg-surfaceContainer">
@@ -110,11 +112,11 @@ export const LogClaimModal = ({
                 <h3 className="title-small font-semibold text-onSurface">Claim Details</h3>
               </div>
               <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Claim Type *</label>
                     <DropdownMenu>
-                      <DropdownMenuTrigger label={claimType} className="justify-between" />
+                      <DropdownMenuTrigger label={claimType} className="w-full justify-between" />
                       <DropdownMenuContent>
                         {(["Insurance", "Warranty"] as ClaimType[]).map((type) => (
                           <DropdownMenuItem
@@ -140,7 +142,7 @@ export const LogClaimModal = ({
                               "Select reference"
                             : "Select reference"
                         }
-                        className="justify-between"
+                        className="w-full justify-between"
                       />
                       <DropdownMenuContent className="max-h-64 min-w-[260px] overflow-y-auto">
                         {references.map((item) => (
@@ -169,14 +171,18 @@ export const LogClaimModal = ({
                       placeholder="e.g. CLM-2025-118"
                     />
                   </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Incident Date *</label>
-                    <Input
-                      type="date"
-                      value={claimData.dateFiled}
-                      onChange={(e) => {
-                        setClaimData({ ...claimData, dateFiled: e.target.value });
+                    <SemiDatePicker
+                      value={claimData.dateFiled ? new Date(claimData.dateFiled) : null}
+                      onChange={(date) => {
+                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        setClaimData({ ...claimData, dateFiled: isoDate });
                       }}
+                      inputType="date"
+                      className="w-full"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -195,7 +201,7 @@ export const LogClaimModal = ({
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Claim Status *</label>
                     <DropdownMenu>
-                      <DropdownMenuTrigger label={claimStatus} className="justify-between" />
+                      <DropdownMenuTrigger label={claimStatus} className="w-full justify-between" />
                       <DropdownMenuContent>
                         {(["Filed", "Approved", "Settled", "Rejected"] as ClaimStatus[]).map(
                           (status) => (
@@ -255,18 +261,9 @@ export const LogClaimModal = ({
           </form>
         </div>
 
-        <DialogFooter className="flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => {
-              onOpenChange(false);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            Save
-          </Button>
+        <DialogFooter className="flex justify-end">
+          <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
+          <Button type="submit" onClick={handleSubmit}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

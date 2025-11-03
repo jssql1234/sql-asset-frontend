@@ -130,6 +130,7 @@ export const useCoverageState = () => {
 
   return {
     modals,
+    tabs,
     setModals,
     handleViewInsurance,
     handleCloseInsuranceDetails,
@@ -137,7 +138,6 @@ export const useCoverageState = () => {
     handleCloseWorkOrder,
     handleViewWarranty,
     handleViewClaim,
-    handleCloseClaimDetails,
-    tabs,
+    handleCloseClaimDetails,    
   };
 };

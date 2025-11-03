@@ -81,6 +81,10 @@ const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
               label: "Annual Premium",
               value: formatCurrency(data.annualPremium),
             },
+            {
+              label: "Limit Type",
+              value: data.limitType,
+            },
           ],
         },
         {

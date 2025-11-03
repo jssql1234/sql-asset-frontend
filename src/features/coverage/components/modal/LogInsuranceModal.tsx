@@ -7,12 +7,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
+import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
-import type { CoverageInsurance } from "@/features/coverage/types";
+import type { CoverageInsurance, InsuranceLimitType } from "@/features/coverage/types";
 
 const EMPTY_ARRAY: readonly string[] = [];
 
@@ -55,6 +60,7 @@ export const LogInsuranceModal = ({
     provider: insurance?.provider ?? "",
     policyNumber: insurance?.policyNumber ?? "",
     annualPremium: insurance?.annualPremium ?? 0,
+    limitType: insurance?.limitType ?? "Aggregate" as InsuranceLimitType,
     coverageAmount: insurance?.coverageAmount ?? 0,
     remainingCoverage: insurance?.remainingCoverage ?? 0,
     startDate: insurance?.startDate ?? "",
@@ -87,7 +93,7 @@ export const LogInsuranceModal = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 overflow-y-auto">
+        <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             {/* Policy Details Section */}
             <div className="space-y-4 bg-surfaceContainer">
@@ -95,7 +101,7 @@ export const LogInsuranceModal = ({
                 <h3 className="title-small font-semibold text-onSurface">Policy Details</h3>
               </div>
               <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Policy Name *</label>
                     <Input
@@ -142,7 +148,7 @@ export const LogInsuranceModal = ({
                       }}
                       placeholder="Enter annual premium"
                     />
-                  </div>
+                  </div>                 
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Coverage Amount *</label>
                     <Input
@@ -175,24 +181,52 @@ export const LogInsuranceModal = ({
                       placeholder="Auto calculated"
                     />
                   </div>
+                   <div className="flex flex-col gap-2">
+                    <label className="body-small text-onSurface">Limit Type *</label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger label={insuranceData.limitType} className="w-full justify-between" />
+                      <DropdownMenuContent>
+                        {(["Aggregate", "Per Occurrence"] as InsuranceLimitType[]).map((type) => (
+                          <DropdownMenuItem
+                            key={type}
+                            onClick={() => {
+                              setInsuranceData({ ...insuranceData, limitType: type });
+                            }}
+                          >
+                            {type}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Start Date *</label>
-                    <Input
-                      type="date"
-                      value={insuranceData.startDate}
-                      onChange={(e) => {
-                        setInsuranceData({ ...insuranceData, startDate: e.target.value });
+                    <SemiDatePicker
+                      value={insuranceData.startDate ? new Date(insuranceData.startDate) : null}
+                      onChange={(date) => {
+                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        setInsuranceData({ 
+                          ...insuranceData, 
+                          startDate: isoDate
+                        });
                       }}
+                      inputType="date"
+                      className="w-full"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Expiry Date *</label>
-                    <Input
-                      type="date"
-                      value={insuranceData.expiryDate}
-                      onChange={(e) => {
-                        setInsuranceData({ ...insuranceData, expiryDate: e.target.value });
+                    <SemiDatePicker
+                      value={insuranceData.expiryDate ? new Date(insuranceData.expiryDate) : null}
+                      onChange={(date) => {
+                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        setInsuranceData({ 
+                          ...insuranceData, 
+                          expiryDate: isoDate
+                        });
                       }}
+                      inputType="date"
+                      className="w-full"
                     />
                   </div>
                 </div>

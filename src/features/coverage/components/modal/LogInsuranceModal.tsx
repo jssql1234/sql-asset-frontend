@@ -1,17 +1,5 @@
 import React, { useState } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
@@ -27,6 +15,13 @@ interface LogInsuranceModalProps {
   providers?: string[];
   insurance?: CoverageInsurance;
 }
+
+// Helper function to calculate expiry date (364 days from start date)
+const calculateExpiryDate = (startDate: Date): Date => {
+  const expiryDate = new Date(startDate);
+  expiryDate.setDate(startDate.getDate() + 364);
+  return expiryDate;
+};
 
 export const LogInsuranceModal = ({
   open,
@@ -55,17 +50,22 @@ export const LogInsuranceModal = ({
     []
   );
 
-  const [insuranceData, setInsuranceData] = useState({
-    name: insurance?.name ?? "",
-    provider: insurance?.provider ?? "",
-    policyNumber: insurance?.policyNumber ?? "",
-    annualPremium: insurance?.annualPremium ?? 0,
-    limitType: insurance?.limitType ?? "Aggregate" as InsuranceLimitType,
-    coverageAmount: insurance?.coverageAmount ?? 0,
-    remainingCoverage: insurance?.remainingCoverage ?? 0,
-    startDate: insurance?.startDate ?? "",
-    expiryDate: insurance?.expiryDate ?? "",
-    description: insurance?.description ?? "",
+  const [insuranceData, setInsuranceData] = useState(() => {
+    const today = new Date();
+    const expiryDate = calculateExpiryDate(today);
+    
+    return {
+      name: insurance?.name ?? "",
+      provider: insurance?.provider ?? "",
+      policyNumber: insurance?.policyNumber ?? "",
+      annualPremium: insurance?.annualPremium,
+      limitType: insurance?.limitType ?? "Aggregate" as InsuranceLimitType,
+      coverageAmount: insurance?.coverageAmount,
+      remainingCoverage: insurance?.remainingCoverage,
+      startDate: insurance?.startDate ?? today.toISOString(),
+      expiryDate: insurance?.expiryDate ?? expiryDate.toISOString(),
+      description: insurance?.description ?? "",
+    };
   });
 
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
@@ -84,13 +84,8 @@ export const LogInsuranceModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
         <DialogHeader>
-          <DialogTitle>
-            {isEditing ? "Edit Insurance Policy" : "Add Insurance Policy"}
-          </DialogTitle>
-          <DialogDescription>
-            Capture policy coverage details, premiums, and associated assets. Workflow
-            orchestration will be added later.
-          </DialogDescription>
+          <DialogTitle>{isEditing ? "Edit Insurance Policy" : "Add Insurance Policy"}</DialogTitle>
+          <DialogDescription>Capture policy coverage details, premiums, and associated assets.</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
@@ -139,11 +134,12 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.annualPremium}
+                      value={insuranceData.annualPremium ?? ""}
                       onChange={(e) => {
+                        const value = e.target.value === "" ? undefined : parseFloat(e.target.value) || 0;
                         setInsuranceData({
                           ...insuranceData,
-                          annualPremium: parseFloat(e.target.value),
+                          annualPremium: value,
                         });
                       }}
                       placeholder="Enter annual premium"
@@ -155,11 +151,13 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.coverageAmount}
+                      value={insuranceData.coverageAmount ?? ""}
                       onChange={(e) => {
+                        const value = e.target.value === "" ? undefined : parseFloat(e.target.value) || 0;
                         setInsuranceData({
                           ...insuranceData,
-                          coverageAmount: parseFloat(e.target.value),
+                          coverageAmount: value,
+                          remainingCoverage: value,
                         });
                       }}
                       placeholder="Enter coverage amount"
@@ -171,14 +169,15 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.remainingCoverage}
+                      value={insuranceData.remainingCoverage ?? ""}
                       onChange={(e) => {
+                        const value = e.target.value === "" ? undefined : parseFloat(e.target.value) || 0;
                         setInsuranceData({
                           ...insuranceData,
-                          remainingCoverage: parseFloat(e.target.value),
+                          remainingCoverage: value,
                         });
                       }}
-                      placeholder="Auto calculated"
+                      placeholder="Enter remaining coverage"
                     />
                   </div>
                    <div className="flex flex-col gap-2">
@@ -205,9 +204,13 @@ export const LogInsuranceModal = ({
                       value={insuranceData.startDate ? new Date(insuranceData.startDate) : null}
                       onChange={(date) => {
                         const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        const startDate = new Date(isoDate);
+                        const expiryDate = calculateExpiryDate(startDate);
+                        
                         setInsuranceData({ 
                           ...insuranceData, 
-                          startDate: isoDate
+                          startDate: isoDate,
+                          expiryDate: expiryDate.toISOString()
                         });
                       }}
                       inputType="date"
@@ -279,18 +282,9 @@ export const LogInsuranceModal = ({
           </form>
         </div>
 
-        <DialogFooter className="flex gap-3 justify-end">
-          <Button
-            variant="outline"
-            onClick={() => {
-              onOpenChange(false);
-            }}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" onClick={handleSubmit}>
-            Save
-          </Button>
+        <DialogFooter className="flex justify-end">
+          <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
+          <Button type="submit" onClick={handleSubmit}>Save</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

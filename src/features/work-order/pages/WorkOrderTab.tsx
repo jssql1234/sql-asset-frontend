@@ -12,6 +12,7 @@ interface WorkOrderTabProps {
   onCreateWorkOrder?: () => void;
   onEditWorkOrder?: (workOrder: WorkOrder) => void;
   onViewDetails?: (workOrder: WorkOrder) => void;
+  onDeleteWorkOrder?: (workOrder: WorkOrder) => void;
 }
 
 export const WorkOrderTab = ({
@@ -22,6 +23,7 @@ export const WorkOrderTab = ({
   onCreateWorkOrder,
   onEditWorkOrder,
   onViewDetails,
+  onDeleteWorkOrder,
 }: WorkOrderTabProps) => {
   const summaryCards = [
     {
@@ -79,6 +81,7 @@ export const WorkOrderTab = ({
         filters={filters}
         onEditWorkOrder={onEditWorkOrder}
         onViewDetails={onViewDetails}
+        onDeleteWorkOrder={onDeleteWorkOrder}
       />
     </div>
   );

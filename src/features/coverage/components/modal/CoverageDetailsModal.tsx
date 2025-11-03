@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { DetailModalSection } from "@/features/coverage/components/DetailModal";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty, CoverageStatus } from "@/features/coverage/types";
@@ -38,14 +38,10 @@ interface CoverageDetailsModalProps {
   data: CoverageInsurance | CoverageWarranty | CoverageClaim | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEdit?: (data: CoverageInsurance | CoverageWarranty | CoverageClaim) => void;
 }
 
 interface ModalConfig {
   contentClassName: string;
-  editButtonLabel: string;
-  showCloseButton: boolean;
-  emptyMessage: string;
   title: string;
   subtitle: string;
   sections: DetailSection[];
@@ -53,9 +49,6 @@ interface ModalConfig {
 
 const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
   contentClassName: "max-w-4xl max-h-[80vh] overflow-hidden",
-  editButtonLabel: "Edit Policy",
-  showCloseButton: false,
-  emptyMessage: "Select a policy to view its details.",
   title: data.name,
   subtitle: `${data.provider} • ${data.policyNumber}`,
   sections: [
@@ -122,9 +115,6 @@ const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
 
 const getWarrantyConfig = (data: CoverageWarranty): ModalConfig => ({
   contentClassName: "max-w-3xl max-h-[80vh] overflow-hidden",
-  editButtonLabel: "Edit Warranty",
-  showCloseButton: true,
-  emptyMessage: "Select a warranty to view its details.",
   title: data.name,
   subtitle: `${data.provider} • ${data.warrantyNumber}`,
   sections: [
@@ -161,9 +151,6 @@ const getWarrantyConfig = (data: CoverageWarranty): ModalConfig => ({
 
 const getClaimConfig = (data: CoverageClaim): ModalConfig => ({
   contentClassName: "max-w-3xl max-h-[80vh] overflow-hidden",
-  editButtonLabel: "Edit Claim",
-  showCloseButton: true,
-  emptyMessage: "Select a claim to view its details.",
   title: data.claimNumber,
   subtitle: `${data.type} claim • ${data.referenceName} (${data.referenceId})`,
   sections: [
@@ -236,22 +223,11 @@ export function CoverageDetailsModal({
   data,
   open,
   onOpenChange,
-  onEdit,
 }: CoverageDetailsModalProps) {
   const config = getModalConfig(variant, data);
 
-  if (!config) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
-          <div className="py-10 text-center body-medium text-onSurfaceVariant">
-            {variant === "insurance" && "Select a policy to view its details."}
-            {variant === "warranty" && "Select a warranty to view its details."}
-            {variant === "claim" && "Select a claim to view its details."}
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
+  if (!config || !data) {
+    return null;
   }
 
   return (
@@ -264,7 +240,7 @@ export function CoverageDetailsModal({
               <DialogDescription>{config.subtitle}</DialogDescription>
             </div>
             <div className="md:mr-11">
-              {data && <StatusBadge status={data.status} />}
+              <StatusBadge status={data.status} />
             </div>
           </div>
         </DialogHeader>
@@ -317,28 +293,6 @@ export function CoverageDetailsModal({
             return null;
           })}
         </div>
-
-        <DialogFooter className="flex justify-end gap-3">
-          {config.showCloseButton && (
-            <Button
-              variant="secondary"
-              onClick={() => {
-                onOpenChange(false);
-              }}
-            >
-              Close
-            </Button>
-          )}
-          <Button
-            onClick={() => {
-              if (onEdit && data) {
-                onEdit(data);
-              }
-            }}
-          >
-            {config.editButtonLabel}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

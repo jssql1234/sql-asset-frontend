@@ -7,7 +7,7 @@ import type { CreateDowntimeInput } from "@/features/downtime/zod/downtimeSchema
 import { createDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
+import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
 
 interface LogDowntimeModalProps {
   open: boolean;
@@ -29,7 +29,7 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
 
   const { errors, setFieldErrors, clearErrors } = useFormErrors();
   const { assetCategories, allAssetItemsMap } = useAssetCategories();
-  const assetItems = useFilteredAssetItems(selectedCategoryId, allAssetItemsMap, formData.assetIds);
+  const assetItems = useAssetItems(allAssetItemsMap, formData.assetIds);
   const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
     clearErrors(field);
   });
@@ -110,7 +110,7 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
     <Dialog open={open} onOpenChange={(isOpen) => { 
       if (!isOpen) handleClose(); 
     }}>
-      <DialogContent className="w-[600px] max-w-[90vw] h-[90vh] flex flex-col">
+      <DialogContent className="w-full max-w-[700px] h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>

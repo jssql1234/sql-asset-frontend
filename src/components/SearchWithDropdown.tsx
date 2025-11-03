@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "@/assets/icons";
 import { cn } from "@/utils/utils";
 import { Input } from "@/components/ui/components/Input";
-import { Badge } from "@/components/ui/components/Badge";
 import Card from "@/components/ui/components/Card";
 
 const EMPTY_SELECTION: readonly string[] = [];
@@ -93,6 +92,14 @@ export const SearchWithDropdown = ({
         return false;
       }
 
+      // Filter by category if a specific category is selected (not "all")
+      if (selectedCategoryId && selectedCategoryId !== "all") {
+        const categoryMatch = item.sublabel === selectedCategory?.label;
+        if (!categoryMatch) {
+          return false;
+        }
+      }
+
       if (!normalizedSearch) {
         return true;
       }
@@ -104,7 +111,7 @@ export const SearchWithDropdown = ({
 
       return labelMatch || Boolean(sublabelMatch);
     });
-  }, [items, normalizedSearch, resolvedSelectedIds]);
+  }, [items, normalizedSearch, resolvedSelectedIds, selectedCategoryId, selectedCategory]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -351,7 +358,7 @@ export const SearchWithDropdown = ({
               Use the search above to add items to this list.
             </div>
           ) : (
-            <div className="max-h-34 overflow-y-auto">
+            <div className="max-h-34 overflow-y-auto pr-2">
               <ul className="grid gap-2 sm:grid-cols-2">
                 {resolvedSelectedIds.map((id) => {
                   const item = itemsById.get(id);

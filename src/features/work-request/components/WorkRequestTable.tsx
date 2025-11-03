@@ -127,11 +127,20 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     return actions;
   }, [onReviewWorkRequest]);
 
+  // Sort work requests by request date (latest first)
+  const sortedWorkRequests = useMemo(() => {
+    return [...workRequests].sort((a, b) => {
+      const dateA = new Date(a.requestDate).getTime();
+      const dateB = new Date(b.requestDate).getTime();
+      return dateB - dateA; // Descending order (latest first)
+    });
+  }, [workRequests]);
+
   return (
     <div className="flex flex-col gap-4">
       <DataTableExtended
         columns={columns}
-        data={workRequests}
+        data={sortedWorkRequests}
         showPagination={true}
         rowActions={rowActions}
       />

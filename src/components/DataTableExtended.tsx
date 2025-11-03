@@ -71,7 +71,7 @@ const getActionConfig = (type: RowActionType): { icon: React.ComponentType<{ cla
   }
 };
 
-// Extend the original DataTableProps with onRowDoubleClick
+// Extend the original DataTableProps
 interface DataTableExtendedProps<TData, TValue> {
   columns: (ColumnDef<TData, TValue> | CustomColumnDef<TData, TValue>)[];
   data: TData[];
@@ -85,7 +85,6 @@ interface DataTableExtendedProps<TData, TValue> {
   ) => void;
   rowSelection?: Record<string, boolean>;
   className?: string;
-  onRowDoubleClick?: (row: TData) => void;
 
   // Row actions dropdown
   rowActions?: RowAction<TData>[];
@@ -274,7 +273,6 @@ function ActiveHeaderOverlay<TData>({
 }
 
 export function DataTableExtended<TData, TValue>({
-  onRowDoubleClick,
   data,
   columns,
   showPagination = true,
@@ -711,46 +709,9 @@ export function DataTableExtended<TData, TValue>({
     }
   }, [columnOrder, onColumnOrderChange]);
 
-  // Double-click handler
-  useEffect(() => {
-    if (!onRowDoubleClick) return;
-    
-    const container = containerRef.current;
-    if (!container) return;
-
-    const handleDoubleClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      
-      const row = target.closest('tbody tr');
-      if (!row) return;
-
-      const isInteractiveElement = target.closest(
-        'button, a, input, select, textarea, [role="button"], [role="checkbox"]'
-      );
-      if (isInteractiveElement) return;
-
-      // Find the row in the table's current row model
-      const tableRows = table.getRowModel().rows;
-      const clickedRow = tableRows.find(r => r.id === row.getAttribute('data-row-id'));
-      
-      if (clickedRow) {
-        onRowDoubleClick(clickedRow.original);
-      }
-    };
-
-    container.addEventListener('dblclick', handleDoubleClick as EventListener);
-    return () => {
-      container.removeEventListener('dblclick', handleDoubleClick as EventListener);
-    };
-  }, [onRowDoubleClick, table]);
-
-  const enhancedClassName = onRowDoubleClick
-    ? `${className ?? ''} [&_tbody_tr]:cursor-pointer`
-    : className;
-
   return (
     <div ref={containerRef} className="flex flex-col h-full">
-      <div className={cn('flex-1 rounded-md border border-outlineVariant', enhancedClassName)}>
+      <div className={cn('flex-1 rounded-md border border-outlineVariant', className)}>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

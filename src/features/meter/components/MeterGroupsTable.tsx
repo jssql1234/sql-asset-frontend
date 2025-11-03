@@ -177,7 +177,6 @@ export const MeterGroupsTable = ({
         columns={columns}
         data={groups}
         showPagination
-        onRowDoubleClick={onViewGroup}
       />
 
       <DeleteConfirmationDialog

@@ -4,13 +4,8 @@ import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-import type {
-  CoverageInsurance,
-  CoverageWarranty,
-  CoverageClaim,
-  ClaimType,
-  ClaimStatus,
-} from "@/features/coverage/types";
+import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
+import type { CoverageInsurance, CoverageWarranty, CoverageClaim, ClaimType, ClaimStatus } from "@/features/coverage/types";
 
 type CoverageFormVariant = "insurance" | "warranty" | "claim";
 
@@ -39,8 +34,18 @@ export const CoverageFormModal = ({
 }: CoverageFormModalProps) => {
   const isEditing = Boolean(initialData);
   const effectiveProviders = providers ?? EMPTY_ARRAY;
-  const effectivePolicies = policies ?? EMPTY_POLICIES;
-  const effectiveWarranties = warranties ?? EMPTY_WARRANTIES;
+
+  // Asset data transformations
+  const assetCategories = useMemo(() => [
+    { id: "all", label: "All Assets" },
+    ...coverageAssetGroups.map(group => ({ id: group.id, label: group.label })),
+  ], []);
+
+  const mockAssets = useMemo(() => coverageAssets.map(asset => ({
+    id: asset.id,
+    label: `${asset.name} (${asset.id})`,
+    sublabel: asset.groupLabel,
+  })), []);
 
   // Insurance state
   const [insuranceData, setInsuranceData] = useState({
@@ -93,28 +98,9 @@ export const CoverageFormModal = ({
       : []
   );
 
-  // Mock assets - in real app, these would come from props or API
-  const mockAssets = useMemo(
-    () => [
-      { id: "A001", label: "Robotic Arm Unit (A001)", sublabel: "Production Line 1" },
-      { id: "A002", label: "CNC Machine (A002)", sublabel: "Workshop A" },
-      { id: "A003", label: "Hydraulic Press (A003)", sublabel: "Assembly Floor" },
-    ],
-    []
-  );
-
-  const assetCategories = useMemo(
-    () => [
-      { id: "all", label: "All Assets" },
-      { id: "production", label: "Production Equipment" },
-      { id: "facility", label: "Facility Assets" },
-    ],
-    []
-  );
-
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
 
-  const references = useMemo(() => {
+  const references = useMemo((): readonly (CoverageInsurance | CoverageWarranty)[] => {
     return claimType === "Insurance" ? (policies ?? EMPTY_POLICIES) : (warranties ?? EMPTY_WARRANTIES);
   }, [claimType, policies, warranties]);
 
@@ -151,9 +137,9 @@ export const CoverageFormModal = ({
                       <label className="body-small text-onSurface">Insurance Provider *</label>
                       <Input
                         value={insuranceData.provider}
-                        onChange={(e) =>
-                          setInsuranceData({ ...insuranceData, provider: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setInsuranceData({ ...insuranceData, provider: e.target.value });
+                        }}
                         placeholder="Enter provider name"
                         list="policy-provider-suggestions"
                       />
@@ -162,9 +148,9 @@ export const CoverageFormModal = ({
                       <label className="body-small text-onSurface">Policy Number *</label>
                       <Input
                         value={insuranceData.policyNumber}
-                        onChange={(e) =>
-                          setInsuranceData({ ...insuranceData, policyNumber: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setInsuranceData({ ...insuranceData, policyNumber: e.target.value });
+                        }}
                         placeholder="e.g. AIB-CEQ-2025-01"
                       />
                     </div>
@@ -175,12 +161,12 @@ export const CoverageFormModal = ({
                         min={0}
                         step="0.01"
                         value={insuranceData.annualPremium}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setInsuranceData({
                             ...insuranceData,
                             annualPremium: parseFloat(e.target.value),
-                          })
-                        }
+                          });
+                        }}
                         placeholder="Enter annual premium"
                       />
                     </div>
@@ -191,12 +177,12 @@ export const CoverageFormModal = ({
                         min={0}
                         step="0.01"
                         value={insuranceData.coverageAmount}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setInsuranceData({
                             ...insuranceData,
                             coverageAmount: parseFloat(e.target.value),
-                          })
-                        }
+                          });
+                        }}
                         placeholder="Enter coverage amount"
                       />
                     </div>
@@ -207,12 +193,12 @@ export const CoverageFormModal = ({
                         min={0}
                         step="0.01"
                         value={insuranceData.remainingCoverage}
-                        onChange={(e) =>
+                        onChange={(e) => {
                           setInsuranceData({
                             ...insuranceData,
                             remainingCoverage: parseFloat(e.target.value),
-                          })
-                        }
+                          });
+                        }}
                         placeholder="Auto calculated"
                       />
                     </div>
@@ -221,9 +207,9 @@ export const CoverageFormModal = ({
                       <Input
                         type="date"
                         value={insuranceData.startDate}
-                        onChange={(e) =>
-                          setInsuranceData({ ...insuranceData, startDate: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setInsuranceData({ ...insuranceData, startDate: e.target.value });
+                        }}
                       />
                     </div>
                     <div className="flex flex-col gap-2">
@@ -231,9 +217,9 @@ export const CoverageFormModal = ({
                       <Input
                         type="date"
                         value={insuranceData.expiryDate}
-                        onChange={(e) =>
-                          setInsuranceData({ ...insuranceData, expiryDate: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setInsuranceData({ ...insuranceData, expiryDate: e.target.value });
+                        }}
                       />
                     </div>
                   </div>
@@ -259,6 +245,7 @@ export const CoverageFormModal = ({
                   onSelectionChange={setSelectedAssetIds}
                   placeholder="Search assets by name or ID"
                   emptyMessage="No assets found"
+                  hideSelectedField={selectedAssetIds.length === 0}
                 />
               ),
             },
@@ -268,9 +255,9 @@ export const CoverageFormModal = ({
                 <TextArea
                   rows={3}
                   value={insuranceData.description}
-                  onChange={(e) =>
-                    setInsuranceData({ ...insuranceData, description: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setInsuranceData({ ...insuranceData, description: e.target.value });
+                  }}
                   placeholder="Provide additional coverage notes, deductibles, or asset-specific clauses"
                 />
               ),
@@ -293,9 +280,9 @@ export const CoverageFormModal = ({
                       <label className="body-small text-onSurface">Warranty Name *</label>
                       <Input
                         value={warrantyData.name}
-                        onChange={(e) =>
-                          setWarrantyData({ ...warrantyData, name: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setWarrantyData({ ...warrantyData, name: e.target.value });
+                        }}
                         placeholder="e.g. Robotics Extended Care"
                       />
                     </div>
@@ -303,9 +290,9 @@ export const CoverageFormModal = ({
                       <label className="body-small text-onSurface">Provider *</label>
                       <Input
                         value={warrantyData.provider}
-                        onChange={(e) =>
-                          setWarrantyData({ ...warrantyData, provider: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setWarrantyData({ ...warrantyData, provider: e.target.value });
+                        }}
                         list="warranty-provider-suggestions"
                       />
                     </div>
@@ -313,9 +300,9 @@ export const CoverageFormModal = ({
                       <label className="body-small text-onSurface">Warranty Number *</label>
                       <Input
                         value={warrantyData.warrantyNumber}
-                        onChange={(e) =>
-                          setWarrantyData({ ...warrantyData, warrantyNumber: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setWarrantyData({ ...warrantyData, warrantyNumber: e.target.value });
+                        }}
                         placeholder="e.g. OMNI-PR-2201"
                       />
                     </div>
@@ -323,9 +310,9 @@ export const CoverageFormModal = ({
                       <label className="body-small text-onSurface">Coverage Type *</label>
                       <Input
                         value={warrantyData.coverage}
-                        onChange={(e) =>
-                          setWarrantyData({ ...warrantyData, coverage: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setWarrantyData({ ...warrantyData, coverage: e.target.value });
+                        }}
                         placeholder="Parts, Labour, or Full Coverage"
                       />
                     </div>
@@ -338,9 +325,9 @@ export const CoverageFormModal = ({
                       <Input
                         type="date"
                         value={warrantyData.expiryDate}
-                        onChange={(e) =>
-                          setWarrantyData({ ...warrantyData, expiryDate: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setWarrantyData({ ...warrantyData, expiryDate: e.target.value });
+                        }}
                       />
                     </div>
                   </div>
@@ -366,6 +353,7 @@ export const CoverageFormModal = ({
                   onSelectionChange={setSelectedAssetIds}
                   placeholder="Search assets by name or ID"
                   emptyMessage="No assets found"
+                  hideSelectedField={selectedAssetIds.length === 0}
                 />
               ),
             },
@@ -375,9 +363,9 @@ export const CoverageFormModal = ({
                 <TextArea
                   rows={3}
                   value={warrantyData.description}
-                  onChange={(e) =>
-                    setWarrantyData({ ...warrantyData, description: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setWarrantyData({ ...warrantyData, description: e.target.value });
+                  }}
                   placeholder="Important clauses, limitations, service windows, etc."
                 />
               ),
@@ -447,9 +435,9 @@ export const CoverageFormModal = ({
                     <label className="body-small text-onSurface">Claim Number *</label>
                     <Input
                       value={claimData.claimNumber}
-                      onChange={(e) =>
-                        setClaimData({ ...claimData, claimNumber: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setClaimData({ ...claimData, claimNumber: e.target.value });
+                      }}
                       placeholder="e.g. CLM-2025-118"
                     />
                   </div>
@@ -458,9 +446,9 @@ export const CoverageFormModal = ({
                     <Input
                       type="date"
                       value={claimData.dateFiled}
-                      onChange={(e) =>
-                        setClaimData({ ...claimData, dateFiled: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setClaimData({ ...claimData, dateFiled: e.target.value });
+                      }}
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -470,9 +458,9 @@ export const CoverageFormModal = ({
                       min={0}
                       step="0.01"
                       value={claimData.amount}
-                      onChange={(e) =>
-                        setClaimData({ ...claimData, amount: parseFloat(e.target.value) })
-                      }
+                      onChange={(e) => {
+                        setClaimData({ ...claimData, amount: parseFloat(e.target.value) });
+                      }}
                       placeholder="Enter claim amount"
                     />
                   </div>
@@ -511,6 +499,7 @@ export const CoverageFormModal = ({
                   onSelectionChange={setSelectedAssetIds}
                   placeholder="Search assets by name or ID"
                   emptyMessage="No assets found"
+                  hideSelectedField={selectedAssetIds.length === 0}
                 />
               ),
             },
@@ -520,7 +509,9 @@ export const CoverageFormModal = ({
                 <TextArea
                   rows={4}
                   value={claimData.description}
-                  onChange={(e) => setClaimData({ ...claimData, description: e.target.value })}
+                  onChange={(e) => {
+                    setClaimData({ ...claimData, description: e.target.value });
+                  }}
                   placeholder="Provide summary of incident, damages, or supporting notes"
                 />
               ),

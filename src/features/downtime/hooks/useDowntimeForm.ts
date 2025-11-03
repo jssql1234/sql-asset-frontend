@@ -3,7 +3,7 @@ import { downtimeAssetGroups, downtimeAssets } from "../mockData";
 import type { DowntimeIncident } from "../types";
 
 export const DEFAULT_ASSET_CATEGORY = "all" as const;
-export interface AssetDropdownItem { id: string; label: string; groupId: string; groupLabel: string }
+export interface AssetDropdownItem { id: string; label: string; sublabel: string }
 
 //Custom hook for managing asset categories and filtering logic (Shared between EditIncidentModal and LogDowntimeModal)
 export function useAssetCategories(incident?: DowntimeIncident | null) {
@@ -24,8 +24,7 @@ export function useAssetCategories(incident?: DowntimeIncident | null) {
       map.set(asset.id, {
         id: asset.id,
         label: `${asset.name} (${asset.id})`,
-        groupId: asset.groupId,
-        groupLabel: asset.groupLabel,
+        sublabel: asset.groupLabel,
       });
     });
 
@@ -35,8 +34,7 @@ export function useAssetCategories(incident?: DowntimeIncident | null) {
         map.set(asset.id, {
           id: asset.id,
           label: `${asset.name} (${asset.id})`,
-          groupId: asset.groupId ?? DEFAULT_ASSET_CATEGORY,
-          groupLabel: asset.groupLabel ?? "Other Assets",
+          sublabel: asset.groupLabel ?? "Other Assets",
         });
       }
     });
@@ -48,32 +46,27 @@ export function useAssetCategories(incident?: DowntimeIncident | null) {
 }
 
 /**
- * Custom hook for filtering asset items based on selected category
+ * Custom hook for converting asset map to array
  * Ensures selected assets are always included in the list
  */
-export function useFilteredAssetItems(
-  selectedCategoryId: string,
+export function useAssetItems(
   allAssetItemsMap: Map<string, AssetDropdownItem>,
   selectedAssetIds: string[]
 ) {
   return useMemo(() => {
     const allItems = Array.from(allAssetItemsMap.values());
-    const filteredItems =
-      selectedCategoryId === DEFAULT_ASSET_CATEGORY ? allItems : allItems.filter((item) => item.groupId === selectedCategoryId);
-
+    
+    // Ensure selected assets are always included (in case they're not in the main list)
+    const selectedItems = selectedAssetIds
+      .map(id => allAssetItemsMap.get(id))
+      .filter((item): item is AssetDropdownItem => item !== undefined);
+    
+    // Combine all items with selected items (Set ensures uniqueness by id)
     const itemMap = new Map<string, AssetDropdownItem>();
-    filteredItems.forEach((item) => itemMap.set(item.id, item));
-
-    // Ensure selected assets are always included
-    selectedAssetIds.forEach((id) => {
-      if (!itemMap.has(id)) {
-        const match = allAssetItemsMap.get(id);
-        if (match) itemMap.set(id, match);
-      }
-    });
+    [...allItems, ...selectedItems].forEach((item) => itemMap.set(item.id, item));
 
     return Array.from(itemMap.values());
-  }, [selectedCategoryId, allAssetItemsMap, selectedAssetIds]);
+  }, [allAssetItemsMap, selectedAssetIds]);
 }
 
 //Custom hook for managing form validation errors

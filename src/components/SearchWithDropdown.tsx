@@ -358,7 +358,7 @@ export const SearchWithDropdown = ({
               Use the search above to add items to this list.
             </div>
           ) : (
-            <div className="max-h-34 overflow-y-auto">
+            <div className="max-h-34 overflow-y-auto pr-2">
               <ul className="grid gap-2 sm:grid-cols-2">
                 {resolvedSelectedIds.map((id) => {
                   const item = itemsById.get(id);

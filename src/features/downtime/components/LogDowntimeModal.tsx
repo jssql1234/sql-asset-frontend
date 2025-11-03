@@ -110,7 +110,7 @@ export function LogDowntimeModal({ open, onClose }: LogDowntimeModalProps) {
     <Dialog open={open} onOpenChange={(isOpen) => { 
       if (!isOpen) handleClose(); 
     }}>
-      <DialogContent className="w-[600px] max-w-[90vw] h-[90vh] flex flex-col">
+      <DialogContent className="w-full max-w-[700px] h-[90vh] flex flex-col">
         <DialogHeader className="flex-shrink-0">
           <DialogTitle>Log New Downtime Incident</DialogTitle>
         </DialogHeader>

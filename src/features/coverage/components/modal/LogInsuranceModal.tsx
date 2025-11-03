@@ -6,11 +6,14 @@ import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
 import type { CoverageInsurance, InsuranceLimitType } from "@/features/coverage/types";
+import { createInsuranceSchema, updateInsuranceSchema } from "@/features/coverage/zod/coverageSchemas";
 
 interface LogInsuranceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   insurance?: CoverageInsurance;
+  onCreate?: (data: Omit<CoverageInsurance, 'id' | 'status' | 'totalClaimed'>) => void;
+  onUpdate?: (id: string, data: Omit<CoverageInsurance, 'id' | 'status' | 'totalClaimed'>) => void;
 }
 
 // Helper function to calculate expiry date (364 days from start date)
@@ -24,6 +27,8 @@ export const LogInsuranceModal = ({
   open,
   onOpenChange,
   insurance,
+  onCreate,
+  onUpdate,
 }: LogInsuranceModalProps) => {
   const isEditing = Boolean(insurance);
 
@@ -68,6 +73,7 @@ export const LogInsuranceModal = ({
   );
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   // Reset form when insurance prop changes (for edit mode) or when modal opens/closes
   useEffect(() => {
@@ -95,15 +101,43 @@ export const LogInsuranceModal = ({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // TODO: Implement actual save/update API call
-    if (isEditing) {
-      console.log("Update insurance:", insurance?.id, insuranceData);
-      // In production, call API to update existing insurance
-    } else {
-      console.log("Create new insurance:", insuranceData);
-      // In production, call API to create new insurance
+    
+    // Get selected assets with their names
+    const assetsCovered = selectedAssetIds.map(id => {
+      const asset = mockAssets.find(a => a.id === id);
+      return {
+        id,
+        name: asset?.label.split(' (')[0] ?? id,
+      };
+    });
+    
+    const formData = {
+      ...insuranceData,
+      assetsCovered,
+    };
+    
+    // Validate with Zod
+    const schema = isEditing ? updateInsuranceSchema : createInsuranceSchema;
+    const validation = schema.safeParse(formData);
+    
+    if (!validation.success) {
+      const errors: Record<string, string> = {};
+      validation.error.issues.forEach((issue) => {
+        errors[issue.path.join(".")] = issue.message;
+      });
+      setFieldErrors(errors);
+      return;
     }
-    onOpenChange(false);
+    
+    setFieldErrors({});
+    
+    if (isEditing && insurance && onUpdate) {
+      onUpdate(insurance.id, formData);
+    } else if (!isEditing && onCreate) {
+      onCreate(formData);
+    }
+    
+    // Modal will be closed by the handlers in useCoverageState
   };
 
   return (
@@ -129,9 +163,15 @@ export const LogInsuranceModal = ({
                       value={insuranceData.name}
                       onChange={(e) => {
                         setInsuranceData({ ...insuranceData, name: e.target.value });
+                        if (fieldErrors.name) {
+                          setFieldErrors(prev => ({ ...prev, name: "" }));
+                        }
                       }}
                       placeholder="e.g. Comprehensive Equipment Protection"
                     />
+                    {fieldErrors.name && (
+                      <span className="label-small text-error">{fieldErrors.name}</span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Insurance Provider *</label>
@@ -139,9 +179,15 @@ export const LogInsuranceModal = ({
                       value={insuranceData.provider}
                       onChange={(e) => {
                         setInsuranceData({ ...insuranceData, provider: e.target.value });
+                        if (fieldErrors.provider) {
+                          setFieldErrors(prev => ({ ...prev, provider: "" }));
+                        }
                       }}
                       placeholder="Enter provider name"
                     />
+                    {fieldErrors.provider && (
+                      <span className="label-small text-error">{fieldErrors.provider}</span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Policy Number *</label>
@@ -149,9 +195,15 @@ export const LogInsuranceModal = ({
                       value={insuranceData.policyNumber}
                       onChange={(e) => {
                         setInsuranceData({ ...insuranceData, policyNumber: e.target.value });
+                        if (fieldErrors.policyNumber) {
+                          setFieldErrors(prev => ({ ...prev, policyNumber: "" }));
+                        }
                       }}
                       placeholder="e.g. AIB-CEQ-2025-01"
                     />
+                    {fieldErrors.policyNumber && (
+                      <span className="label-small text-error">{fieldErrors.policyNumber}</span>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Annual Premium *</label>

@@ -34,6 +34,8 @@ interface LogClaimModalProps {
   policies?: CoverageInsurance[];
   warranties?: CoverageWarranty[];
   claim?: CoverageClaim;
+  onCreate?: (data: Omit<CoverageClaim, 'id'>) => void;
+  onUpdate?: (id: string, data: Omit<CoverageClaim, 'id'>) => void;
 }
 
 export const LogClaimModal = ({
@@ -42,27 +44,12 @@ export const LogClaimModal = ({
   policies,
   warranties,
   claim,
+  onCreate,
+  onUpdate,
 }: LogClaimModalProps) => {
   const isEditing = Boolean(claim);
 
-  const assetCategories = React.useMemo(
-    () => [
-      { id: "all", label: "All Assets" },
-      ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
-    ],
-    []
-  );
-
-  const mockAssets = React.useMemo(
-    () =>
-      coverageAssets.map((asset) => ({
-        id: asset.id,
-        label: `${asset.name} (${asset.id})`,
-        sublabel: asset.groupLabel,
-      })),
-    []
-  );
-
+  // State declarations must come before any useMemo that uses them
   const [claimType, setClaimType] = useState<ClaimType>(claim?.type ?? "Insurance");
   const [claimStatus, setClaimStatus] = useState<ClaimStatus>(claim?.status ?? "Filed");
   const [referenceId, setReferenceId] = useState<string>(claim?.referenceId ?? "");
@@ -84,11 +71,43 @@ export const LogClaimModal = ({
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
 
+  // Computed values that depend on state
   const references = useMemo((): readonly (CoverageInsurance | CoverageWarranty)[] => {
     return claimType === "Insurance"
       ? policies ?? EMPTY_POLICIES
       : warranties ?? EMPTY_WARRANTIES;
   }, [claimType, policies, warranties]);
+
+  const assetCategories = React.useMemo(
+    () => [
+      { id: "all", label: "All Assets" },
+      ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
+    ],
+    []
+  );
+
+  const mockAssets = React.useMemo(() => {
+    // Get all assets
+    const allAssets = coverageAssets.map((asset) => ({
+      id: asset.id,
+      label: `${asset.name} (${asset.id})`,
+      sublabel: asset.groupLabel,
+    }));
+
+    // Filter assets based on selected policy/warranty
+    if (!referenceId) {
+      return allAssets;
+    }
+
+    const selectedReference = references.find(ref => ref.id === referenceId);
+    if (!selectedReference?.assetsCovered) {
+      return allAssets;
+    }
+
+    // Only show assets that are covered by the selected policy/warranty
+    const coveredAssetIds = new Set(selectedReference.assetsCovered.map(a => a.id));
+    return allAssets.filter(asset => coveredAssetIds.has(asset.id));
+  }, [referenceId, references]);
 
   // Reset form when claim prop changes (for edit mode) or when modal opens/closes
   useEffect(() => {
@@ -113,15 +132,40 @@ export const LogClaimModal = ({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // TODO: Implement actual save/update API call
-    if (isEditing) {
-      console.log("Update claim:", claim?.id, { ...claimData, type: claimType, status: claimStatus, referenceId });
-      // In production, call API to update existing claim
-    } else {
-      console.log("Create new claim:", { ...claimData, type: claimType, status: claimStatus, referenceId });
-      // In production, call API to create new claim
+    
+    // Get selected assets with their names
+    const assets = selectedAssetIds.map(id => {
+      const asset = mockAssets.find(a => a.id === id);
+      return {
+        id,
+        name: asset?.label.split(' (')[0] ?? id,
+      };
+    });
+    
+    // Find reference name
+    const reference = references.find(ref => ref.id === referenceId);
+    const referenceName = reference?.name ?? "";
+    
+    const formData: Omit<CoverageClaim, 'id'> = {
+      claimNumber: claimData.claimNumber,
+      type: claimType,
+      referenceId,
+      referenceName,
+      assets,
+      amount: claimData.amount,
+      status: claimStatus,
+      dateFiled: claimData.dateFiled,
+      workOrderId: claim?.workOrderId,
+      description: claimData.description,
+    };
+    
+    if (isEditing && claim && onUpdate) {
+      onUpdate(claim.id, formData);
+    } else if (!isEditing && onCreate) {
+      onCreate(formData);
     }
-    onOpenChange(false);
+    
+    // Modal will be closed by the handlers in useCoverageState
   };
 
   return (

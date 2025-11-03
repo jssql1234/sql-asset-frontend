@@ -19,6 +19,8 @@ interface LogWarrantyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   warranty?: CoverageWarranty;
+  onCreate?: (data: Omit<CoverageWarranty, 'id' | 'status'>) => void;
+  onUpdate?: (id: string, data: Omit<CoverageWarranty, 'id' | 'status'>) => void;
 }
 
 // Helper function to calculate expiry date (364 days from start date)
@@ -32,6 +34,8 @@ export const LogWarrantyModal = ({
   open,
   onOpenChange,
   warranty,
+  onCreate,
+  onUpdate,
 }: LogWarrantyModalProps) => {
   const isEditing = Boolean(warranty);
 
@@ -97,15 +101,28 @@ export const LogWarrantyModal = ({
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // TODO: Implement actual save/update API call
-    if (isEditing) {
-      console.log("Update warranty:", warranty?.id, warrantyData);
-      // In production, call API to update existing warranty
-    } else {
-      console.log("Create new warranty:", warrantyData);
-      // In production, call API to create new warranty
+    
+    // Get selected assets with their names
+    const assetsCovered = selectedAssetIds.map(id => {
+      const asset = mockAssets.find(a => a.id === id);
+      return {
+        id,
+        name: asset?.label.split(' (')[0] ?? id,
+      };
+    });
+    
+    const formData = {
+      ...warrantyData,
+      assetsCovered,
+    };
+    
+    if (isEditing && warranty && onUpdate) {
+      onUpdate(warranty.id, formData);
+    } else if (!isEditing && onCreate) {
+      onCreate(formData);
     }
-    onOpenChange(false);
+    
+    // Modal will be closed by the handlers in useCoverageState
   };
 
   return (

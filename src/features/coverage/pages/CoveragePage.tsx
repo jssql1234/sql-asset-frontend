@@ -6,11 +6,26 @@ import { LogWarrantyModal } from "@/features/coverage/components/modal/LogWarran
 import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
-import { coverageInsurances, coverageWarranties } from "@/features/coverage/mockData";
 import { useCoverageState } from "@/features/coverage/hooks/useCoverageState";
 
 const CoveragePage: React.FC = () => {
-  const { modals, setModals, handleCloseInsuranceDetails, handleCloseWarrantyDetails, handleCloseWorkOrder, handleCloseClaimDetails, tabs } = useCoverageState();
+  const { 
+    insurances,
+    warranties,
+    modals, 
+    setModals, 
+    handleCreateInsurance,
+    handleUpdateInsurance,
+    handleCloseInsuranceDetails, 
+    handleCreateWarranty,
+    handleUpdateWarranty,
+    handleCloseWarrantyDetails, 
+    handleCreateClaim,
+    handleUpdateClaim,
+    handleCloseWorkOrder, 
+    handleCloseClaimDetails, 
+    tabs 
+  } = useCoverageState();
 
   return (
     <AppLayout
@@ -29,6 +44,8 @@ const CoveragePage: React.FC = () => {
           setModals((prev) => ({ ...prev, insuranceForm: open, insuranceEdit: open ? prev.insuranceEdit : null }));
         }}
         insurance={modals.insuranceEdit ?? undefined}
+        onCreate={handleCreateInsurance}
+        onUpdate={handleUpdateInsurance}
       />
 
       <CoverageDetailsModal
@@ -48,6 +65,8 @@ const CoveragePage: React.FC = () => {
           setModals((prev) => ({ ...prev, warrantyForm: open, warrantyEdit: open ? prev.warrantyEdit : null }));
         }}
         warranty={modals.warrantyEdit ?? undefined}
+        onCreate={handleCreateWarranty}
+        onUpdate={handleUpdateWarranty}
       />
 
       <CoverageDetailsModal
@@ -66,9 +85,11 @@ const CoveragePage: React.FC = () => {
         onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, claimForm: open, claimEdit: open ? prev.claimEdit : null }));
         }}
-        policies={coverageInsurances}
-        warranties={coverageWarranties}
+        policies={insurances}
+        warranties={warranties}
         claim={modals.claimEdit ?? undefined}
+        onCreate={handleCreateClaim}
+        onUpdate={handleUpdateClaim}
       />
 
       <CoverageDetailsModal

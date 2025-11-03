@@ -1,12 +1,8 @@
 import React from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
-import { ClaimFormModal } from "@/features/coverage/components/modal/ClaimFormModal";
-import { ClaimDetailsModal } from "@/features/coverage/components/modal/ClaimDetailsModal";
-import { InsuranceDetailsModal } from "@/features/coverage/components/modal/InsuranceDetailsModal";
-import { InsuranceFormModal } from "@/features/coverage/components/modal/InsuranceFormModal";
-import { WarrantyDetailsModal } from "@/features/coverage/components/modal/WarrantyDetailsModal";
-import { WarrantyFormModal } from "@/features/coverage/components/modal/WarrantyFormModal";
+import { CoverageFormModal } from "@/features/coverage/components/modal/CoverageFormModal";
+import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
 import { coverageInsurances, insuranceProviders, warrantyProviders, coverageWarranties } from "@/features/coverage/mockData";
 import { useCoverageTabs } from "@/features/coverage/hooks/useCoverageTabs";
@@ -28,55 +24,61 @@ const CoveragePage: React.FC = () => {
         <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />
       </div>
 
-      <InsuranceFormModal
+      <CoverageFormModal
+        variant="insurance"
         open={modals.insuranceForm}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, insuranceForm: open }));
         }}
         providers={insuranceProviders}
       />
 
-      <InsuranceDetailsModal
+      <CoverageDetailsModal
+        variant="insurance"
         open={Boolean(modals.insuranceDetails)}
-        insurance={modals.insuranceDetails}
-        onOpenChange={(open) => {
+        data={modals.insuranceDetails}
+        onOpenChange={(open: boolean) => {
           if (!open) {
             handleCloseInsuranceDetails();
           }
         }}
       />
 
-      <WarrantyFormModal
+      <CoverageFormModal
+        variant="warranty"
         open={modals.warrantyForm}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, warrantyForm: open }));
         }}
         providers={warrantyProviders}
       />
 
-      <WarrantyDetailsModal
+      <CoverageDetailsModal
+        variant="warranty"
         open={Boolean(modals.warrantyDetails)}
-        warranty={modals.warrantyDetails}
-        onOpenChange={(open) => {
+        data={modals.warrantyDetails}
+        onOpenChange={(open: boolean) => {
           if (!open) {
             handleCloseWarrantyDetails();
           }
         }}
       />
 
-      <ClaimFormModal
+      <CoverageFormModal
+        variant="claim"
         open={modals.claimForm}
-        onOpenChange={(open) => {
+        onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, claimForm: open }));
         }}
         policies={coverageInsurances}
         warranties={coverageWarranties}
       />
 
-      <ClaimDetailsModal
+      <CoverageDetailsModal
+        variant="claim"
         open={Boolean(modals.claimDetails)}
-        claim={modals.claimDetails}
-        onOpenChange={(open) => {
+        data={modals.claimDetails}
+        onOpenChange={(open: boolean) => {
           if (!open) {
             handleCloseClaimDetails();
           }

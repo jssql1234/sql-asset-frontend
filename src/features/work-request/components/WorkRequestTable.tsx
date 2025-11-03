@@ -9,7 +9,7 @@ interface WorkRequestTableProps {
   // selectedWorkRequestIds: string[];
   isLoading?: boolean;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
-  onEditWorkRequest?: (workRequest: WorkRequest) => void;
+  onReviewWorkRequest?: (workRequest: WorkRequest) => void;
 }
 
 const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
@@ -17,7 +17,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   // selectedWorkRequestIds: _selectedWorkRequestIds,
   // isLoading = false,
   // onSelectionChange,
-  onEditWorkRequest,
+  onReviewWorkRequest,
 }) => {
   // Table columns configuration
   const columns: ColumnDef<WorkRequest>[] = useMemo(() => [
@@ -112,12 +112,28 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   //   return selectedState;
   // }, [workRequests, _selectedWorkRequestIds]);
 
+  // Row actions configuration
+  const rowActions = useMemo(() => {
+    const actions = [];
+    
+    if (onReviewWorkRequest) {
+      actions.push({
+        type: 'view' as const,
+        label: 'Review',
+        onClick: (row: WorkRequest) => onReviewWorkRequest(row),
+      });
+    }
+    
+    return actions;
+  }, [onReviewWorkRequest]);
+
   return (
     <div className="flex flex-col gap-4">
       <DataTableExtended
         columns={columns}
         data={workRequests}
         showPagination={true}
+        rowActions={rowActions}
       />
     </div>
   );

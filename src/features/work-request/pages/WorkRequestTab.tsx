@@ -1,9 +1,7 @@
-import React, { useState } from "react";
-import { useToast } from "@/components/ui/components/Toast";
+import React from "react";
 import TabHeader from "@/components/TabHeader";
 import Search from "@/components/Search";
 import WorkRequestTable from "../components/WorkRequestTable";
-import DeleteConfirmationDialog from "../components/DeleteConfirmationDialog";
 import type { WorkRequest, WorkRequestFilters } from "@/types/work-request";
 
 interface WorkRequestTabProps {
@@ -14,7 +12,7 @@ interface WorkRequestTabProps {
   onFilterChange: (filters: WorkRequestFilters) => void;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
   onOpenCreateModal?: () => void;
-  onOpenReviewModal?: () => void;
+  onOpenReviewModal?: (workRequest?: WorkRequest) => void;
   onDelete?: (requestId: string) => void;
 }
 
@@ -62,7 +60,7 @@ const WorkRequestTab: React.FC<WorkRequestTabProps> = ({
           // selectedWorkRequestIds={selectedWorkRequestIds}
           isLoading={isLoading}
           onSelectionChange={onSelectionChange}
-          onEditWorkRequest={onOpenReviewModal}
+          onReviewWorkRequest={onOpenReviewModal}
         />
       </div>
       

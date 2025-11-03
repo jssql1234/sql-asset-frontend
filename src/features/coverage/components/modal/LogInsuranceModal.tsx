@@ -7,12 +7,9 @@ import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
 import type { CoverageInsurance, InsuranceLimitType } from "@/features/coverage/types";
 
-const EMPTY_ARRAY: readonly string[] = [];
-
 interface LogInsuranceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  providers?: string[];
   insurance?: CoverageInsurance;
 }
 
@@ -26,11 +23,9 @@ const calculateExpiryDate = (startDate: Date): Date => {
 export const LogInsuranceModal = ({
   open,
   onOpenChange,
-  providers,
   insurance,
 }: LogInsuranceModalProps) => {
   const isEditing = Boolean(insurance);
-  const effectiveProviders = providers ?? EMPTY_ARRAY;
 
   const assetCategories = React.useMemo(
     () => [
@@ -115,7 +110,6 @@ export const LogInsuranceModal = ({
                         setInsuranceData({ ...insuranceData, provider: e.target.value });
                       }}
                       placeholder="Enter provider name"
-                      list="policy-provider-suggestions"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -233,13 +227,6 @@ export const LogInsuranceModal = ({
                     />
                   </div>
                 </div>
-                {effectiveProviders.length > 0 && (
-                  <datalist id="policy-provider-suggestions">
-                    {effectiveProviders.map((provider) => (
-                      <option key={provider} value={provider} />
-                    ))}
-                  </datalist>
-                )}
               </div>
             </div>
 

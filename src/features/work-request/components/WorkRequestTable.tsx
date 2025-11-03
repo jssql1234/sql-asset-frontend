@@ -1,12 +1,12 @@
 import React, { useMemo } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
-import { WorkRequestStatusBadge } from './WorkRequestBadges';
-import type { WorkRequest, WorkRequestAsset } from '@/types/work-request';
+import { Badge } from '@/components/ui/components';
+import type { WorkRequest, WorkRequestAsset } from '../types';
+import { getStatusVariant } from '../constants';
 
 interface WorkRequestTableProps {
   workRequests: WorkRequest[];
-  // selectedWorkRequestIds: string[];
   isLoading?: boolean;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
   onReviewWorkRequest?: (workRequest: WorkRequest) => void;
@@ -14,9 +14,6 @@ interface WorkRequestTableProps {
 
 const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   workRequests,
-  // selectedWorkRequestIds: _selectedWorkRequestIds,
-  // isLoading = false,
-  // onSelectionChange,
   onReviewWorkRequest,
 }) => {
   // Table columns configuration
@@ -68,9 +65,10 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ getValue }: any) => (
-        <WorkRequestStatusBadge status={getValue() as WorkRequest['status']} />
-      ),
+      cell: ({ getValue }: any) => {
+        const status = getValue() as WorkRequest['status'];
+        return <Badge text={status} variant={getStatusVariant(status)}/>;
+      },
     },
     {
       accessorKey: 'requestDate',
@@ -99,19 +97,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     },
   ], []);
 
-  // const handleRowSelectionChange = (selectedRows: WorkRequest[], _selectedRowIds: string[]) => {
-  //   onSelectionChange(selectedRows);
-  // };
-
-  // // Convert selectedWorkRequestIds to selected row state
-  // const selectedRowState = useMemo(() => {
-  //   const selectedState: Record<string, boolean> = {};
-  //   workRequests.forEach((request, index) => {
-  //     selectedState[index] = _selectedWorkRequestIds.includes(request.id);
-  //   });
-  //   return selectedState;
-  // }, [workRequests, _selectedWorkRequestIds]);
-
   // Row actions configuration
   const rowActions = useMemo(() => {
     const actions = [];
@@ -132,7 +117,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     return [...workRequests].sort((a, b) => {
       const dateA = new Date(a.requestDate).getTime();
       const dateB = new Date(b.requestDate).getTime();
-      return dateB - dateA; // Descending order (latest first)
+      return dateB - dateA; 
     });
   }, [workRequests]);
 

@@ -1,93 +1,102 @@
-import type { WorkRequest, WorkOrder, MaintenanceHistory } from '@/types/work-request';
+import type { WorkRequest, MaintenanceHistory } from '../types';
+import type { WorkOrder } from '@/types/work-request';
+import { mockWorkRequests } from '../mockData';
 
-// Work Request Service
-export const workRequestService = {
-  // Get all work requests from localStorage
-  getWorkRequests: (): WorkRequest[] => {
-    try {
-      const saved = localStorage.getItem('workRequestData');
-      return saved ? JSON.parse(saved) : [];
-    } catch (error) {
-      console.error('Error loading work requests:', error);
-      return [];
-    }
-  },
+// Mock database - in a real application, this would be replaced with actual API calls
+let workRequestsStore: WorkRequest[] = [];
+let nextId = 100;
 
-  // Save work requests to localStorage
-  saveWorkRequests: (workRequests: WorkRequest[]) => {
-    try {
-      localStorage.setItem('workRequestData', JSON.stringify(workRequests));
-    } catch (error) {
-      console.error('Error saving work requests:', error);
-      throw error;
-    }
-  },
-
-  // Create a new work request
-  createWorkRequest: (workRequestData: Omit<WorkRequest, 'id' | 'requestId' | 'requestDate'>) => {
-    const workRequests = workRequestService.getWorkRequests();
-    
-    const newWorkRequest: WorkRequest = {
-      ...workRequestData,
-      id: `WR-${Date.now()}`,
-      requestId: `WR-${Date.now()}`,
-      requestDate: new Date().toISOString(),
-    };
-
-    workRequests.push(newWorkRequest);
-    workRequestService.saveWorkRequests(workRequests);
-    
-    return newWorkRequest;
-  },
-
-  // Update work request status
-  updateWorkRequestStatus: (requestId: string, status: WorkRequest['status'], rejectionReason?: string) => {
-    const workRequests = workRequestService.getWorkRequests();
-    const workRequest = workRequests.find(wr => wr.id === requestId);
-    
-    if (workRequest) {
-      workRequest.status = status;
-      
-      if (status === 'Rejected' && rejectionReason) {
-        workRequest.rejectionReason = rejectionReason;
-        workRequest.managementNotes = rejectionReason;
-      } else if (status === 'Approved') {
-        workRequest.rejectionReason = undefined;
-        workRequest.approvedDate = new Date().toISOString();
+// Initialize mock data stores
+const initializeMockData = (): void => {
+  if (workRequestsStore.length === 0) {
+    const savedData = localStorage.getItem('workRequestData');
+    if (savedData) {
+      try {
+        workRequestsStore = JSON.parse(savedData);
+      } catch (error) {
+        console.error('Error loading work requests:', error);
+        workRequestsStore = [...mockWorkRequests];
       }
-      
-      workRequestService.saveWorkRequests(workRequests);
-      return workRequest;
+    } else {
+      workRequestsStore = [...mockWorkRequests];
     }
-    
-    throw new Error('Work request not found');
-  },
-
-  // Update work request with work order reference
-  updateWorkRequestWithWorkOrder: (requestId: string, workOrderId: string) => {
-    const workRequests = workRequestService.getWorkRequests();
-    const workRequest = workRequests.find(wr => wr.id === requestId);
-    
-    if (workRequest) {
-      workRequest.workOrderNumber = workOrderId;
-      workRequest.workOrderCreatedDate = new Date().toISOString();
-      workRequestService.saveWorkRequests(workRequests);
-      return workRequest;
-    }
-    
-    throw new Error('Work request not found');
-  },
-
-  // Delete a work request
-  deleteWorkRequest: (requestId: string) => {
-    const workRequests = workRequestService.getWorkRequests();
-    const filteredRequests = workRequests.filter(wr => wr.id !== requestId);
-    workRequestService.saveWorkRequests(filteredRequests);
-  },
+    nextId = workRequestsStore.length + 1;
+  }
 };
 
-// Work Order Service
-export const workOrderService = {
+// Save work requests to localStorage
+const saveWorkRequests = (workRequests: WorkRequest[]): void => {
+  try {
+    localStorage.setItem('workRequestData', JSON.stringify(workRequests));
+  } catch (error) {
+    console.error('Error saving work requests:', error);
+    throw error;
+  }
+};
+
+// Fetch all work requests
+export const fetchWorkRequests = (): Promise<WorkRequest[]> => {
+  initializeMockData();
+  return Promise.resolve([...workRequestsStore]);
+};
+
+// Create a new work request
+export const createWorkRequest = (
+  workRequestData: Omit<WorkRequest, 'id' | 'requestId' | 'requestDate'>
+): Promise<WorkRequest> => {
+  initializeMockData();
+  
+  const newWorkRequest: WorkRequest = {
+    ...workRequestData,
+    id: `WR-${nextId++}`,
+    requestId: `WR-${Date.now()}`,
+    requestDate: new Date().toISOString(),
+  };
+
+  workRequestsStore.unshift(newWorkRequest);
+  saveWorkRequests(workRequestsStore);
+  
+  return Promise.resolve(newWorkRequest);
+};
+
+// Update work request status (approve/reject)
+export const updateWorkRequestStatus = (
+  requestId: string, 
+  status: WorkRequest['status'], 
+  rejectionReason?: string,
+  managementNotes?: string
+): Promise<WorkRequest> => {
+  initializeMockData();
+  
+  const workRequest = workRequestsStore.find(wr => wr.id === requestId);
+  
+  if (!workRequest) {
+    return Promise.reject(new Error('Work request not found'));
+  }
+  
+  workRequest.status = status;
+  
+  if (status === 'Rejected') {
+    if (rejectionReason) {
+      workRequest.rejectionReason = rejectionReason;
+    }
+    if (managementNotes) {
+      workRequest.managementNotes = managementNotes;
+    }
+  } else if (status === 'Approved') {
+    workRequest.rejectionReason = undefined;
+    workRequest.approvedDate = new Date().toISOString();
+    if (managementNotes) {
+      workRequest.managementNotes = managementNotes;
+    }
+  }
+  
+  saveWorkRequests(workRequestsStore);
+  return Promise.resolve(workRequest);
+};
+
+// Work Order Service (internal helper)
+const workOrderService = {
   // Get all work orders from localStorage
   getWorkOrders: (): WorkOrder[] => {
     try {
@@ -98,33 +107,6 @@ export const workOrderService = {
       console.error('Error loading work orders:', error);
       return [];
     }
-  },
-
-  // Save work orders to localStorage
-  saveWorkOrders: (workOrders: WorkOrder[]) => {
-    try {
-      localStorage.setItem('workOrderData', JSON.stringify({ workOrders }));
-    } catch (error) {
-      console.error('Error saving work orders:', error);
-      throw error;
-    }
-  },
-
-  // Create a new work order
-  createWorkOrder: (workOrderData: Omit<WorkOrder, 'id' | 'workOrderId' | 'createdDate'>) => {
-    const workOrders = workOrderService.getWorkOrders();
-    
-    const newWorkOrder: WorkOrder = {
-      ...workOrderData,
-      id: `WO-${Date.now()}`,
-      workOrderId: `WO-${Date.now()}`,
-      createdDate: new Date().toISOString(),
-    };
-
-    workOrders.push(newWorkOrder);
-    workOrderService.saveWorkOrders(workOrders);
-    
-    return newWorkOrder;
   },
 };
 
@@ -168,23 +150,5 @@ export const maintenanceHistoryService = {
 
     // Sort by date (newest first)
     return history.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  },
-};
-
-// Asset Service
-export const assetService = {
-  // Get asset data from localStorage
-  getAssets: () => {
-    try {
-      const savedAssetData = localStorage.getItem('assetData');
-      if (savedAssetData) {
-        const parsed = JSON.parse(savedAssetData);
-        return parsed.assets || [];
-      }
-      return [];
-    } catch (error) {
-      console.error('Error loading asset data:', error);
-      return [];
-    }
   },
 };

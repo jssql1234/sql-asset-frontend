@@ -31,24 +31,6 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
     }
   };
 
-  // const getWorkTypeVariant = (workType: string) => {
-  //   const normalizedType = workType?.toLowerCase();
-  //   switch (normalizedType) {
-  //     case 'preventive':
-  //     case 'maintenance':
-  //       return 'green';
-  //     case 'corrective':
-  //     case 'repair':
-  //       return 'yellow';
-  //     case 'emergency':
-  //       return 'red';
-  //     case 'inspection':
-  //       return 'blue';
-  //     default:
-  //       return 'primary';
-  //   }
-  // };
-
   const columns = [
     {
       accessorKey: 'assetCode',
@@ -65,10 +47,6 @@ export const MaintenanceHistoryTable: React.FC<MaintenanceHistoryTableProps> = (
       cell: ({ getValue }: any) => {
         const workType = getValue() as string;
         return workType ? (
-          // <Badge 
-          //   text={workType} 
-          //   variant={getWorkTypeVariant(workType)}
-          // />
           <span>{workType}</span>
         ) : (
           <span className="text-onSurfaceVariant">N/A</span>

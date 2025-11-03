@@ -13,7 +13,7 @@ import {
 import { SearchWithDropdown } from '@/components/SearchWithDropdown';
 import { Badge } from '@/components/ui/components/Badge';
 import { MaintenanceHistoryTable } from './MaintenanceHistoryTable';
-import { CreateWorkOrderModal } from '@/features/work-order/components/CreateWorkOrderModal';
+import { WorkOrderForm } from '@/features/work-order/components/WorkOrderForm';
 import { useToast } from '@/components/ui/components/Toast/useToast';
 import { useUpdateWorkRequestStatus } from '../hooks/useWorkRequestService';
 import { maintenanceHistoryService } from '../services/workRequestService';
@@ -46,12 +46,8 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectReasonError, setRejectReasonError] = useState(false);
-  const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] = useState(false);
-  const [prefilledWorkOrderData, setPrefilledWorkOrderData] = useState<{
-    assetIds: string[];
-    description: string;
-    jobTitle: string;
-  } | null>(null);
+  const [isWorkOrderFormOpen, setIsWorkOrderFormOpen] = useState(false);
+  const [prefilledWorkOrder, setPrefilledWorkOrder] = useState<Partial<WorkOrderFormData> | null>(null);
 
   // Asset categories for SearchWithDropdown (disabled in review mode)
   const assetCategories = [
@@ -97,13 +93,21 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
     const assetNames = workRequest.selectedAssets.map((asset) => asset.main.name).join(', ');
     const jobTitle = `${workRequest.requestType} - ${assetNames.length > 50 ? assetNames.substring(0, 50) + '...' : assetNames}`;
 
-    // Set prefilled data and open work order modal
-    setPrefilledWorkOrderData({
-      assetIds,
-      description,
+    // Create prefilled work order form data
+    const prefilledData: Partial<WorkOrderFormData> = {
+      assetId: assetIds.join(','),
+      assetName: assetNames,
       jobTitle,
-    });
-    setIsCreateWorkOrderModalOpen(true);
+      description,
+      type: 'Corrective',
+      status: 'Pending',
+      serviceBy: 'In-House',
+      estimatedCost: 0,
+      actualCost: 0,
+    };
+
+    setPrefilledWorkOrder(prefilledData);
+    setIsWorkOrderFormOpen(true);
   };
 
   const handleWorkOrderCreated = async (_data: WorkOrderFormData) => {
@@ -116,7 +120,7 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
     }, {
       onSuccess: () => {
         // Close both modals
-        setIsCreateWorkOrderModalOpen(false);
+        setIsWorkOrderFormOpen(false);
         onSuccess();
         onClose();
         
@@ -180,8 +184,8 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
     setIsRejectModalOpen(false);
     setRejectReason('');
     setRejectReasonError(false);
-    setIsCreateWorkOrderModalOpen(false);
-    setPrefilledWorkOrderData(null);
+    setIsWorkOrderFormOpen(false);
+    setPrefilledWorkOrder(null);
     onClose();
   };
 
@@ -347,20 +351,17 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Create Work Order Modal */}
-      {prefilledWorkOrderData && workRequest && (
-        <CreateWorkOrderModal
-          isOpen={isCreateWorkOrderModalOpen}
+      {/* Work Order Form */}
+      {prefilledWorkOrder && (
+        <WorkOrderForm
+          isOpen={isWorkOrderFormOpen}
           onClose={() => {
-            setIsCreateWorkOrderModalOpen(false);
-            setPrefilledWorkOrderData(null);
+            setIsWorkOrderFormOpen(false);
+            setPrefilledWorkOrder(null);
           }}
           onSubmit={handleWorkOrderCreated}
-          prefilledData={{
-            assetIds: prefilledWorkOrderData.assetIds,
-            description: prefilledWorkOrderData.description,
-            jobTitle: prefilledWorkOrderData.jobTitle,
-          }}
+          workOrder={prefilledWorkOrder as any}
+          mode="create"
         />
       )}
 

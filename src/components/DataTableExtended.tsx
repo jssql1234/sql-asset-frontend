@@ -3,34 +3,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
-import { 
-  useReactTable,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getExpandedRowModel,
-  getGroupedRowModel,
-  flexRender,
-  type ColumnDef,
-  type SortingState,
-  type ColumnFiltersState,
-  type ExpandedState,
-  type GroupingState,
-  type Table as TanStackTable,
-  type Header,
-  type Row,
-} from '@tanstack/react-table';
-import { 
-  DndContext, 
-  closestCenter, 
-  KeyboardSensor, 
-  PointerSensor, 
-  useSensor, 
-  useSensors,
-} from '@dnd-kit/core';
+import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, 
+         getFacetedRowModel, getFacetedUniqueValues, getExpandedRowModel, getGroupedRowModel, flexRender,
+         type ColumnDef, type SortingState, type ColumnFiltersState, type ExpandedState, type GroupingState,
+         type Table as TanStackTable, type Header, type Row } from '@tanstack/react-table';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -41,7 +18,14 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOverlay } from '@dnd-kit/core';
-import { Skeleton, Option } from '@/components/ui/components';
+import { 
+  Skeleton, 
+  Option,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/components';
 import {
   Table,
   TableBody,
@@ -54,12 +38,38 @@ import {
 } from '@/components/ui/components/Table';
 import { cn } from '@/utils/utils';
 import { CaretDownFilled, CaretUpDown, CaretUpFilled } from '@/assets/icons';
+import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
 import {
   multiSelectFilterFn,
   fuzzyArrayIncludesFilterFn,
 } from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
+
+// Row action types
+export type RowActionType = 'view' | 'edit' | 'delete' | 'custom';
+
+// Row action configuration
+export interface RowAction<TData> {
+  type: RowActionType;
+  label?: string;
+  onClick: (row: TData) => void;
+  icon?: React.ComponentType<{ className?: string }>;
+}
+
+// Default configuration for standard action types
+const getActionConfig = (type: RowActionType): { icon: React.ComponentType<{ className?: string }>; label: string; variant?: 'default' | 'destructive' } => {
+  switch (type) {
+    case 'view':
+      return { icon: Eye, label: 'View' };
+    case 'edit':
+      return { icon: Edit, label: 'Edit' };
+    case 'delete':
+      return { icon: Trash2, label: 'Delete', variant: 'destructive' };
+    default:
+      return { icon: MoreHorizontal, label: 'Action' };
+  }
+};
 
 // Extend the original DataTableProps with onRowDoubleClick
 interface DataTableExtendedProps<TData, TValue> {
@@ -76,6 +86,9 @@ interface DataTableExtendedProps<TData, TValue> {
   rowSelection?: Record<string, boolean>;
   className?: string;
   onRowDoubleClick?: (row: TData) => void;
+
+  // Row actions dropdown
+  rowActions?: RowAction<TData>[];
 
   // External pagination props
   totalCount?: number;
@@ -283,6 +296,7 @@ export function DataTableExtended<TData, TValue>({
   expanded,
   onExpandedChange,
   onColumnOrderChange,
+  rowActions,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(false);
@@ -305,35 +319,63 @@ export function DataTableExtended<TData, TValue>({
 
   // Compute effective columns first (including selection column if enabled)
   const effectiveColumns = useMemo(() => {
+    let cols = [...columns];
+    
+    // Add selection column if enabled
     if (showCheckbox) {
+      const isGroupingEnabled = enableGrouping && currentGrouping.length > 0;
+      
       // Create custom selection column that respects grouping
       const customSelectionColumn: ColumnDef<TData, TValue> = {
         id: "select",
         meta: { order: 0 }, // Ensure selection column is always first
         header: ({ table }) => {
-          const rowModel = table.getRowModel();
-          const selectableRows = rowModel.rows.filter((row) => row.getCanSelect());
-
-          const selectableCount = selectableRows.length;
-          const selectedCount = selectableRows.filter((row) => row.getIsSelected()).length;
-          const allSelected = selectableCount > 0 && selectedCount === selectableCount;
-          const partiallySelected = selectedCount > 0 && !allSelected;
-
-          const handleHeaderToggle = (event: ChangeEvent<HTMLInputElement>) => {
-            event.stopPropagation();
-            table.toggleAllPageRowsSelected(event.target.checked);
-          };
-
-          return (
-            <div className="flex items-center gap-4">
-              <Option
-                checked={allSelected}
-                indeterminate={partiallySelected}
-                disabled={selectableCount === 0}
-                onChange={handleHeaderToggle}
-              />
-            </div>
-          );
+          if (isGroupingEnabled) {
+            // Custom logic for grouping mode - only consider group rows
+            const allGroupRows = table.getRowModel().rows.filter(row => row.getIsGrouped());
+            const allSelected = allGroupRows.length > 0 && allGroupRows.every(row => row.getIsSelected());
+            const someSelected = allGroupRows.some(row => row.getIsSelected());
+            
+            const handleToggleAll = () => {
+              // Use table.setRowSelection to update all group rows at once
+              if (allSelected) {
+                // Deselect all group rows
+                const deselectedState: Record<string, boolean> = {};
+                allGroupRows.forEach(row => {
+                  deselectedState[row.id] = false;
+                });
+                table.setRowSelection(deselectedState);
+              } else {
+                // Select all group rows
+                const selectedState: Record<string, boolean> = {};
+                allGroupRows.forEach(row => {
+                  selectedState[row.id] = true;
+                });
+                table.setRowSelection(selectedState);
+              }
+            };
+            
+            return (
+              <div className="flex items-center gap-4">
+                <Option
+                  checked={allSelected}
+                  indeterminate={someSelected && !allSelected}
+                  onChange={handleToggleAll}
+                />
+              </div>
+            );
+          } else {
+            // Use standard TanStack Table behavior for non-grouping mode
+            return (
+              <div className="flex items-center gap-4">
+                <Option
+                  checked={table.getIsAllRowsSelected()}
+                  indeterminate={table.getIsSomeRowsSelected()}
+                  onChange={table.getToggleAllRowsSelectedHandler()}
+                />
+              </div>
+            );
+          }
         },
         cell: ({ row }) => {
           // In grouping mode, disable selection for leaf rows
@@ -344,11 +386,13 @@ export function DataTableExtended<TData, TValue>({
             }
             row.toggleSelected(event.target.checked);
           };
-          
+
           return (
-            <div 
+            <div
               className="flex items-center gap-4"
-              onClick={(e) => { e.stopPropagation(); }}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
             >
               <Option
                 checked={row.getIsSelected()}
@@ -363,11 +407,64 @@ export function DataTableExtended<TData, TValue>({
         size: 1,
       };
       
-      return [customSelectionColumn, ...columns];
+      cols = [customSelectionColumn, ...cols];
     }
-    return columns;
-  }, [columns, showCheckbox, canSelectRow]);
-
+    
+    // Add row actions column if enabled
+    if (rowActions && rowActions.length > 0) {
+      const rowActionsColumn: ColumnDef<TData, TValue> = {
+        id: "row-actions",
+        header: "",
+        cell: ({ row }) => (
+          <div 
+            className="flex items-center justify-center"
+            onClick={(e) => { e.stopPropagation(); }}
+          >
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <button
+                  type="button"
+                  className="h-8 w-8 p-0 hover:bg-surfaceContainerHighest rounded-full flex items-center justify-center transition-colors focus:outline-none"
+                  onClick={(e) => { e.stopPropagation(); }}
+                >
+                  <MoreHorizontal className="h-4 w-4 text-onSurfaceVariant" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {rowActions.map((action) => {
+                  const config = getActionConfig(action.type);
+                  const ActionIcon = action.icon ?? config.icon;
+                  const label = action.label ?? config.label;
+                  const variant = action.type === 'delete' ? 'destructive' : 'default';
+                  
+                  return (
+                    <DropdownMenuItem
+                      key={action.type}
+                      onClick={() => {
+                        action.onClick(row.original);
+                      }}
+                      className={`flex items-center ${variant === 'destructive' ? 'text-error focus:text-error' : ''}`}
+                    >
+                      <ActionIcon className="h-4 w-4 mr-2" />
+                      {label}
+                    </DropdownMenuItem>
+                  );
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+        enableSorting: false,
+        enableColumnFilter: false,
+        size: 60,
+      };
+      
+      cols = [...cols, rowActionsColumn];
+    }
+    
+    return cols;
+  }, [columns, showCheckbox, enableGrouping, currentGrouping, rowActions]);
+  
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
     const columnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
     // Ensure selection column is first in initial order

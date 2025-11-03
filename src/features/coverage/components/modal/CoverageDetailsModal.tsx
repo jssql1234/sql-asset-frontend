@@ -81,6 +81,10 @@ const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
               label: "Annual Premium",
               value: formatCurrency(data.annualPremium),
             },
+            {
+              label: "Limit Type",
+              value: data.limitType,
+            },
           ],
         },
         {
@@ -265,7 +269,7 @@ export function CoverageDetailsModal({
           </div>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 overflow-y-auto">
+        <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           {config.sections.map((section) => {
             if (section.gridSections) {
               return (

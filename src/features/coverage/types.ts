@@ -3,6 +3,7 @@ export type WarrantyStatus = "Active" | "Expiring Soon" | "Expired";
 export type ClaimStatus = "Filed" | "Rejected" | "Settled" | "Approved";
 export type ClaimType = "Insurance" | "Warranty";
 export type CoverageStatus = InsuranceStatus | WarrantyStatus | ClaimStatus;
+export type InsuranceLimitType = "Aggregate" | "Per Occurrence";
 
 export interface CoverageInsurance {
   id: string;
@@ -12,6 +13,7 @@ export interface CoverageInsurance {
   coverageAmount: number;
   remainingCoverage: number;
   annualPremium: number;
+  limitType: InsuranceLimitType;
   totalClaimed: number;
   startDate: string; // ISO date string
   expiryDate: string; // ISO date string

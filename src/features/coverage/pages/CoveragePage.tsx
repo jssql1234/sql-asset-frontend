@@ -1,17 +1,16 @@
 import React from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
-import { CoverageFormModal } from "@/features/coverage/components/modal/CoverageFormModal";
+import { LogInsuranceModal } from "@/features/coverage/components/modal/LogInsuranceModal";
+import { LogWarrantyModal } from "@/features/coverage/components/modal/LogWarrantyModal";
+import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
-import { coverageInsurances, insuranceProviders, warrantyProviders, coverageWarranties } from "@/features/coverage/mockData";
-import { useCoverageTabs } from "@/features/coverage/hooks/useCoverageTabs";
+import { coverageInsurances, coverageWarranties } from "@/features/coverage/mockData";
 import { useCoverageState } from "@/features/coverage/hooks/useCoverageState";
 
 const CoveragePage: React.FC = () => {
-  const { modals, setModals, handleViewInsurance, handleCloseInsuranceDetails, handleCloseWarrantyDetails, handleCloseWorkOrder, handleViewWarranty, handleViewClaim, handleCloseClaimDetails } = useCoverageState();
-
-  const tabs = useCoverageTabs({ setModals, handleViewInsurance, handleViewWarranty, handleViewClaim });
+  const { modals, setModals, handleCloseInsuranceDetails, handleCloseWarrantyDetails, handleCloseWorkOrder, handleCloseClaimDetails, tabs } = useCoverageState();
 
   return (
     <AppLayout
@@ -24,13 +23,11 @@ const CoveragePage: React.FC = () => {
         <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />
       </div>
 
-      <CoverageFormModal
-        variant="insurance"
+      <LogInsuranceModal
         open={modals.insuranceForm}
         onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, insuranceForm: open }));
         }}
-        providers={insuranceProviders}
       />
 
       <CoverageDetailsModal
@@ -44,13 +41,11 @@ const CoveragePage: React.FC = () => {
         }}
       />
 
-      <CoverageFormModal
-        variant="warranty"
+      <LogWarrantyModal
         open={modals.warrantyForm}
         onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, warrantyForm: open }));
         }}
-        providers={warrantyProviders}
       />
 
       <CoverageDetailsModal
@@ -64,8 +59,7 @@ const CoveragePage: React.FC = () => {
         }}
       />
 
-      <CoverageFormModal
-        variant="claim"
+      <LogClaimModal
         open={modals.claimForm}
         onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, claimForm: open }));

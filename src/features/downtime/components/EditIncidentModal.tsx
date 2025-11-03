@@ -9,7 +9,7 @@ import type { EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas"
 import { editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useUpdateDowntimeIncident, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
-import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useFilteredAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
+import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
 
 interface EditIncidentModalProps {
   open: boolean;
@@ -35,7 +35,7 @@ export function EditIncidentModal({ open, incident, onClose }: EditIncidentModal
 
   const { errors, setFieldErrors, clearErrors } = useFormErrors();
   const { assetCategories, allAssetItemsMap } = useAssetCategories(incident);
-  const assetItems = useFilteredAssetItems(selectedCategoryId, allAssetItemsMap, formData.assetIds);
+  const assetItems = useAssetItems(allAssetItemsMap, formData.assetIds);
   const handleDateTimeChange = useDateTimeChange(setFormData, (field) => {
     clearErrors(field);
   });

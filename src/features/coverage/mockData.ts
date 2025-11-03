@@ -16,6 +16,7 @@ export const coverageInsurances: CoverageInsurance[] = [
     coverageAmount: 1_200_000,
     remainingCoverage: 875_000,
     annualPremium: 68_400,
+    limitType: "Aggregate",
     totalClaimed: 325_000,
     startDate: "2024-01-01",
     expiryDate: "2025-12-31",
@@ -36,6 +37,7 @@ export const coverageInsurances: CoverageInsurance[] = [
     coverageAmount: 850_000,
     remainingCoverage: 265_000,
     annualPremium: 42_600,
+    limitType: "Per Occurrence",
     totalClaimed: 585_000,
     startDate: "2024-04-19",
     expiryDate: "2025-04-18",
@@ -55,6 +57,7 @@ export const coverageInsurances: CoverageInsurance[] = [
     coverageAmount: 430_000,
     remainingCoverage: 0,
     annualPremium: 21_300,
+    limitType: "Aggregate",
     totalClaimed: 430_000,
     startDate: "2023-11-16",
     expiryDate: "2024-11-15",
@@ -197,5 +200,62 @@ export const claimSummary: ClaimSummaryMetrics = {
   rejectedClaims: coverageClaims.filter(claim => claim.status === "Rejected").length,
 };
 
-export const insuranceProviders = Array.from(new Set(coverageInsurances.map(insurance => insurance.provider)));
-export const warrantyProviders = Array.from(new Set(coverageWarranties.map(warranty => warranty.provider)));
+
+
+export interface CoverageAssetGroup { id: string; label: string; assets: { id: string; name: string }[] }
+export interface CoverageAsset { id: string; name: string; groupId: string; groupLabel: string }
+
+export const coverageAssetGroups: CoverageAssetGroup[] = [
+  {
+    id: "assembly-line",
+    label: "Assembly Line",
+    assets: [ { id: "CBT-001", name: "Conveyor Belt A1" }, { id: "PMP-002", name: "Pump System B2" } ],
+  },
+  {
+    id: "power-systems",
+    label: "Power Systems",
+    assets: [ { id: "GEN-003", name: "Generator C3" }, { id: "AC-004", name: "Air Compressor D4" } ],
+  },
+  {
+    id: "support-equipment",
+    label: "Support Equipment",
+    assets: [ { id: "HP-005", name: "Hydraulic Press E5" }, { id: "CS-006", name: "Cooling System F6" } ],
+  },
+  {
+    id: "quality-control",
+    label: "Quality Control",
+    assets: [ { id: "QC-007", name: "Quality Scanner G7" }, { id: "TM-008", name: "Testing Machine H8" } ],
+  },
+  {
+    id: "maintenance-tools",
+    label: "Maintenance Tools",
+    assets: [
+      { id: "WR-009", name: "Welding Robot I9" }, { id: "DM-010", name: "Diagnostic Machine J10" },
+      { id: "WR-011", name: "Welding Robot K11" }, { id: "DM-012", name: "Diagnostic Machine L12" },
+      { id: "CR-013", name: "Calibration Robot M13" }, { id: "TM-014", name: "Tooling Machine N14" },
+      { id: "SM-015", name: "Soldering Machine O15" }, { id: "PM-016", name: "Precision Machine P16" },
+    ],
+  },
+];
+
+export const coverageAssets: CoverageAsset[] = coverageAssetGroups.flatMap((group) =>
+  group.assets.map((asset) => ({
+    id: asset.id,
+    name: asset.name,
+    groupId: group.id,
+    groupLabel: group.label,
+  }))
+);
+
+export const coverageAssetMap: Partial<Record<string, CoverageAsset>> = coverageAssets.reduce<
+  Partial<Record<string, CoverageAsset>>
+>((acc, asset) => {
+  acc[asset.id] = asset;
+  return acc;
+}, {});
+
+export const getCoverageAssetInfo = (assetId: string): CoverageAsset | undefined =>
+  coverageAssetMap[assetId];
+
+export const getCoverageAssetName = (assetId: string): string =>
+  coverageAssetMap[assetId]?.name ?? "Unknown Asset";

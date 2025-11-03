@@ -1,4 +1,8 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo } from "react";
+import { InsurancesTab } from "@/features/coverage/components/tab/InsurancesTab";
+import { WarrantiesTab } from "@/features/coverage/components/tab/WarrantiesTab";
+import { ClaimsTab } from "@/features/coverage/components/tab/ClaimsTab";
+import { coverageClaims, coverageInsurances, coverageWarranties, claimSummary, insuranceSummary, warrantySummary } from "@/features/coverage/mockData";
 import type { CoverageClaim, CoverageModalsState, CoverageWarranty } from "@/features/coverage/types";
 
 export const useCoverageState = () => {
@@ -72,8 +76,61 @@ export const useCoverageState = () => {
     }));
   }, []);
 
+  const tabs = useMemo(
+    () => [
+      {
+        label: "Insurance Policies",
+        value: "insurances",
+        content: (
+          <InsurancesTab
+            insurances={coverageInsurances}
+            summary={insuranceSummary}
+            onAddPolicy={() => {
+              setModals((prev) => ({ ...prev, insuranceForm: true }));
+            }}
+            onViewInsurance={handleViewInsurance}
+          />
+        ),
+      },
+      {
+        label: "Warranties",
+        value: "warranties",
+        content: (
+          <WarrantiesTab
+            warranties={coverageWarranties}
+            summary={warrantySummary}
+            onAddWarranty={() => {
+              setModals((prev) => ({ ...prev, warrantyForm: true }));
+            }}
+            onViewWarranty={handleViewWarranty}
+          />
+        ),
+      },
+      {
+        label: "Claim Management",
+        value: "claims",
+        content: (
+          <ClaimsTab
+            claims={coverageClaims}
+            summary={claimSummary}
+            onAddClaim={() => {
+              setModals((prev) => ({ ...prev, claimForm: true }));
+            }}
+            onViewClaim={handleViewClaim}
+          />
+        ),
+      },
+    ],
+    [
+      handleViewClaim,
+      handleViewInsurance,
+      handleViewWarranty,
+    ]
+  );
+
   return {
     modals,
+    tabs,
     setModals,
     handleViewInsurance,
     handleCloseInsuranceDetails,
@@ -81,6 +138,6 @@ export const useCoverageState = () => {
     handleCloseWorkOrder,
     handleViewWarranty,
     handleViewClaim,
-    handleCloseClaimDetails,
+    handleCloseClaimDetails,    
   };
 };

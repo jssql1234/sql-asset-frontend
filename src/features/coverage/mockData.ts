@@ -200,8 +200,7 @@ export const claimSummary: ClaimSummaryMetrics = {
   rejectedClaims: coverageClaims.filter(claim => claim.status === "Rejected").length,
 };
 
-export const insuranceProviders = Array.from(new Set(coverageInsurances.map(insurance => insurance.provider)));
-export const warrantyProviders = Array.from(new Set(coverageWarranties.map(warranty => warranty.provider)));
+
 
 export interface CoverageAssetGroup { id: string; label: string; assets: { id: string; name: string }[] }
 export interface CoverageAsset { id: string; name: string; groupId: string; groupLabel: string }

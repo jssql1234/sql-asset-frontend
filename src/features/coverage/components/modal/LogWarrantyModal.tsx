@@ -10,27 +10,30 @@ import {
 } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
+import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
 import type { CoverageWarranty } from "@/features/coverage/types";
 
-const EMPTY_ARRAY: readonly string[] = [];
-
 interface LogWarrantyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  providers?: string[];
   warranty?: CoverageWarranty;
 }
+
+// Helper function to calculate expiry date (364 days from start date)
+const calculateExpiryDate = (startDate: Date): Date => {
+  const expiryDate = new Date(startDate);
+  expiryDate.setDate(startDate.getDate() + 364);
+  return expiryDate;
+};
 
 export const LogWarrantyModal = ({
   open,
   onOpenChange,
-  providers,
   warranty,
 }: LogWarrantyModalProps) => {
   const isEditing = Boolean(warranty);
-  const effectiveProviders = providers ?? EMPTY_ARRAY;
 
   const assetCategories = React.useMemo(
     () => [
@@ -50,13 +53,19 @@ export const LogWarrantyModal = ({
     []
   );
 
-  const [warrantyData, setWarrantyData] = useState({
-    name: warranty?.name ?? "",
-    provider: warranty?.provider ?? "",
-    warrantyNumber: warranty?.warrantyNumber ?? "",
-    coverage: warranty?.coverage ?? "",
-    expiryDate: warranty?.expiryDate ?? "",
-    description: warranty?.description ?? "",
+  const [warrantyData, setWarrantyData] = useState(() => {
+    const today = new Date();
+    const expiryDate = calculateExpiryDate(today);
+    
+    return {
+      name: warranty?.name ?? "",
+      provider: warranty?.provider ?? "",
+      warrantyNumber: warranty?.warrantyNumber ?? "",
+      coverage: warranty?.coverage ?? "",
+      startDate: today.toISOString(),
+      expiryDate: warranty?.expiryDate ?? expiryDate.toISOString(),
+      description: warranty?.description ?? "",
+    };
   });
 
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
@@ -73,16 +82,13 @@ export const LogWarrantyModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden">
+      <DialogContent className="w-[600px] max-w-[90vw] max-h-[90vh]   "> 
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Warranty" : "Add Warranty"}</DialogTitle>
-          <DialogDescription>
-            Register manufacturer warranty coverage for critical equipment. Integration hooks
-            for asset assignment will be configured later.
-          </DialogDescription>
+          <DialogDescription>Register manufacturer warranty coverage for assets.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 overflow-y-auto">
+        <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
             {/* Warranty Details Section */}
             <div className="space-y-4 bg-surfaceContainer">
@@ -108,7 +114,7 @@ export const LogWarrantyModal = ({
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, provider: e.target.value });
                       }}
-                      list="warranty-provider-suggestions"
+                      placeholder="Enter provider name"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -133,26 +139,36 @@ export const LogWarrantyModal = ({
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Start Date *</label>
-                    <Input type="date" />
+                    <SemiDatePicker
+                      value={warrantyData.startDate ? new Date(warrantyData.startDate) : null}
+                      onChange={(date) => {
+                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        const startDate = new Date(isoDate);
+                        const expiryDate = calculateExpiryDate(startDate);
+                        
+                        setWarrantyData({ 
+                          ...warrantyData, 
+                          startDate: isoDate,
+                          expiryDate: expiryDate.toISOString()
+                        });
+                      }}
+                      inputType="date"
+                      className="w-full"
+                    />
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Expiry Date *</label>
-                    <Input
-                      type="date"
-                      value={warrantyData.expiryDate}
-                      onChange={(e) => {
-                        setWarrantyData({ ...warrantyData, expiryDate: e.target.value });
+                    <SemiDatePicker
+                      value={warrantyData.expiryDate ? new Date(warrantyData.expiryDate) : null}
+                      onChange={(date) => {
+                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        setWarrantyData({ ...warrantyData, expiryDate: isoDate });
                       }}
+                      inputType="date"
+                      className="w-full"
                     />
                   </div>
                 </div>
-                {effectiveProviders.length > 0 && (
-                  <datalist id="warranty-provider-suggestions">
-                    {effectiveProviders.map((provider) => (
-                      <option key={provider} value={provider} />
-                    ))}
-                  </datalist>
-                )}
               </div>
             </div>
 

@@ -6,7 +6,7 @@ import { LogWarrantyModal } from "@/features/coverage/components/modal/LogWarran
 import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
-import { coverageInsurances, insuranceProviders, warrantyProviders, coverageWarranties } from "@/features/coverage/mockData";
+import { coverageInsurances, coverageWarranties } from "@/features/coverage/mockData";
 import { useCoverageState } from "@/features/coverage/hooks/useCoverageState";
 
 const CoveragePage: React.FC = () => {
@@ -28,7 +28,6 @@ const CoveragePage: React.FC = () => {
         onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, insuranceForm: open }));
         }}
-        providers={insuranceProviders}
       />
 
       <CoverageDetailsModal
@@ -47,7 +46,6 @@ const CoveragePage: React.FC = () => {
         onOpenChange={(open: boolean) => {
           setModals((prev) => ({ ...prev, warrantyForm: open }));
         }}
-        providers={warrantyProviders}
       />
 
       <CoverageDetailsModal

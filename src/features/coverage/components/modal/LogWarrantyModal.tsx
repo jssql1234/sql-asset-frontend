@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -74,15 +74,43 @@ export const LogWarrantyModal = ({
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
 
+  // Reset form when warranty prop changes (for edit mode) or when modal opens/closes
+  useEffect(() => {
+    if (open) {
+      const today = new Date();
+      const expiryDate = calculateExpiryDate(today);
+      
+      setWarrantyData({
+        name: warranty?.name ?? "",
+        provider: warranty?.provider ?? "",
+        warrantyNumber: warranty?.warrantyNumber ?? "",
+        coverage: warranty?.coverage ?? "",
+        startDate: today.toISOString(),
+        expiryDate: warranty?.expiryDate ?? expiryDate.toISOString(),
+        description: warranty?.description ?? "",
+      });
+      
+      setSelectedAssetIds(warranty?.assetsCovered.map((a) => a.id) ?? []);
+      setSelectedAssetCategory("all");
+    }
+  }, [warranty, open]);
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle form submission logic here
+    // TODO: Implement actual save/update API call
+    if (isEditing) {
+      console.log("Update warranty:", warranty?.id, warrantyData);
+      // In production, call API to update existing warranty
+    } else {
+      console.log("Create new warranty:", warrantyData);
+      // In production, call API to create new warranty
+    }
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[800px] max-w-[90vw] max-h-[90vh]"> 
+      <DialogContent className="w-[1000px] max-w-[90vw] max-h-[90vh]"> 
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Warranty" : "Add Warranty"}</DialogTitle>
           <DialogDescription>Register manufacturer warranty coverage for assets.</DialogDescription>

@@ -86,10 +86,13 @@ export interface ClaimSummaryMetrics {
 
 export interface CoverageModalsState {
   insuranceForm: boolean;
+  insuranceEdit: CoverageInsurance | null;
   insuranceDetails: CoverageInsurance | null;
   warrantyForm: boolean;
+  warrantyEdit: CoverageWarranty | null;
   warrantyDetails: CoverageWarranty | null;
   claimForm: boolean;
+  claimEdit: CoverageClaim | null;
   workOrderFromClaim: boolean;
   claimForWorkOrder: CoverageClaim | null;
   claimDetails: CoverageClaim | null;

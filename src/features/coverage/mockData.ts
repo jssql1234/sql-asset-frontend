@@ -1,11 +1,4 @@
-import type {
-  CoverageClaim,
-  CoverageInsurance,
-  CoverageWarranty,
-  ClaimSummaryMetrics,
-  InsuranceSummaryMetrics,
-  WarrantySummaryMetrics,
-} from "./types";
+import type { CoverageClaim, CoverageInsurance, CoverageWarranty, ClaimSummaryMetrics, InsuranceSummaryMetrics, WarrantySummaryMetrics } from "./types";
 
 export const coverageInsurances: CoverageInsurance[] = [
   {
@@ -22,9 +15,9 @@ export const coverageInsurances: CoverageInsurance[] = [
     expiryDate: "2025-12-31",
     status: "Active",
     assetsCovered: [
-      { id: "AST-001", name: "CNC Milling Machine" },
-      { id: "AST-014", name: "Laser Cutting Line" },
-      { id: "AST-027", name: "Automated Storage System" },
+      { id: "WR-009", name: "Welding Robot I9" },
+      { id: "CR-013", name: "Calibration Robot M13" },
+      { id: "PM-016", name: "Precision Machine P16" },
     ],
     description:
       "Enterprise-wide umbrella policy covering manufacturing critical machinery including production lines and automation equipment.",
@@ -43,8 +36,8 @@ export const coverageInsurances: CoverageInsurance[] = [
     expiryDate: "2025-04-18",
     status: "Expiring Soon",
     assetsCovered: [
-      { id: "AST-066", name: "Prime Mover #3" },
-      { id: "AST-068", name: "24ft Refrigerated Trailer" },
+      { id: "CBT-001", name: "Conveyor Belt A1" },
+      { id: "PMP-002", name: "Pump System B2" },
     ],
     description:
       "Specialised coverage for transport vehicles including temperature-controlled distribution trailers.",
@@ -63,9 +56,9 @@ export const coverageInsurances: CoverageInsurance[] = [
     expiryDate: "2024-11-15",
     status: "Expired",
     assetsCovered: [
-      { id: "AST-032", name: "Cooling Tower #2" },
-      { id: "AST-033", name: "Heat Exchanger #4" },
-      { id: "AST-035", name: "Make-up Air Handler" },
+      { id: "GEN-003", name: "Generator C3" },
+      { id: "AC-004", name: "Air Compressor D4" },
+      { id: "CS-006", name: "Cooling System F6" },
     ],
     description:
       "Facility-wide HVAC system coverage including spare parts, labour and on-site commissioning.",
@@ -78,7 +71,7 @@ export const insuranceSummary: InsuranceSummaryMetrics = {
   remainingCoverage: coverageInsurances.reduce((acc, insurance) => acc + insurance.remainingCoverage, 0),
   annualPremiums: coverageInsurances.reduce((acc, insurance) => acc + insurance.annualPremium, 0),
   assetsCovered: coverageInsurances.reduce((acc, insurance) => acc + insurance.assetsCovered.length, 0),
-  assetsNotCovered: 12,
+  assetsNotCovered: 3,
   expiringSoon: coverageInsurances.filter(insurance => insurance.status === "Expiring Soon").length,
   expired: coverageInsurances.filter(insurance => insurance.status === "Expired").length,
 };
@@ -93,8 +86,8 @@ export const coverageWarranties: CoverageWarranty[] = [
     expiryDate: "2026-02-01",
     status: "Active",
     assetsCovered: [
-      { id: "AST-041", name: "Pick & Place Robotic Arm" },
-      { id: "AST-042", name: "Smart Vision Inspection" },
+      { id: "HP-005", name: "Hydraulic Press E5" },
+      { id: "QC-007", name: "Quality Scanner G7" },
     ],
     description:
       "Extended warranty bundle for the new generation packaging robotics cell including calibration services.",
@@ -108,7 +101,7 @@ export const coverageWarranties: CoverageWarranty[] = [
     expiryDate: "2025-10-12",
     status: "Expiring Soon",
     assetsCovered: [
-      { id: "AST-051", name: "Autonomous Forklift" },
+      { id: "TM-008", name: "Testing Machine H8" },
     ],
     description:
       "Comprehensive coverage for automated guided vehicles with preventive maintenance visits.",
@@ -122,8 +115,8 @@ export const coverageWarranties: CoverageWarranty[] = [
     expiryDate: "2024-06-30",
     status: "Expired",
     assetsCovered: [
-      { id: "AST-075", name: "Biometric Turnstile" },
-      { id: "AST-076", name: "RFID Gate" },
+      { id: "DM-010", name: "Diagnostic Machine J10" },
+      { id: "DM-012", name: "Diagnostic Machine L12" },
     ],
     description:
       "Parts-only coverage for security access infrastructure across production blocks.",
@@ -133,7 +126,7 @@ export const coverageWarranties: CoverageWarranty[] = [
 export const warrantySummary: WarrantySummaryMetrics = {
   activeWarranties: coverageWarranties.filter(warranty => warranty.status === "Active").length,
   assetsCovered: coverageWarranties.reduce((acc, warranty) => acc + warranty.assetsCovered.length, 0),
-  assetsNotCovered: 7,
+  assetsNotCovered: 11,
   expiringSoon: coverageWarranties.filter(warranty => warranty.status === "Expiring Soon").length,
   expired: coverageWarranties.filter(warranty => warranty.status === "Expired").length,
 };
@@ -146,7 +139,7 @@ export const coverageClaims: CoverageClaim[] = [
     referenceId: "POL-001",
     referenceName: "Comprehensive Equipment Protection",
     assets: [
-      { id: "AST-014", name: "Laser Cutting Line" },
+      { id: "CR-013", name: "Calibration Robot M13" },
     ],
     amount: 145_800,
     status: "Filed",
@@ -162,8 +155,8 @@ export const coverageClaims: CoverageClaim[] = [
     referenceId: "WAR-001",
     referenceName: "SPC Packaging Robotics Warranty",
     assets: [
-      { id: "AST-041", name: "Pick & Place Robotic Arm" },
-      { id: "AST-042", name: "Smart Vision Inspection" },
+      { id: "HP-005", name: "Hydraulic Press E5" },
+      { id: "QC-007", name: "Quality Scanner G7" },
     ],
     amount: 58_300,
     status: "Settled",
@@ -179,7 +172,7 @@ export const coverageClaims: CoverageClaim[] = [
     referenceId: "POL-002",
     referenceName: "Logistics Fleet Coverage",
     assets: [
-      { id: "AST-066", name: "Prime Mover #3" },
+      { id: "CBT-001", name: "Conveyor Belt A1" },
     ],
     amount: 92_500,
     status: "Rejected",

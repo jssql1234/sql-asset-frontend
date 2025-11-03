@@ -10,6 +10,8 @@ interface ClaimsTabProps {
   summary: ClaimSummaryMetrics;
   onAddClaim: () => void;
   onViewClaim: (claim: CoverageClaim) => void;
+  onEditClaim: (claim: CoverageClaim) => void;
+  onDeleteClaim: (claim: CoverageClaim) => void;
 }
 
 export const ClaimsTab: React.FC<ClaimsTabProps> = ({
@@ -17,6 +19,8 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
   summary,
   onAddClaim,
   onViewClaim,
+  onEditClaim,
+  onDeleteClaim,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -64,6 +68,8 @@ export const ClaimsTab: React.FC<ClaimsTabProps> = ({
         variant="claims"
         claims={filteredClaims}
         onViewClaim={onViewClaim}
+        onEditClaim={onEditClaim}
+        onDeleteClaim={onDeleteClaim}
       />
     </div>
   );

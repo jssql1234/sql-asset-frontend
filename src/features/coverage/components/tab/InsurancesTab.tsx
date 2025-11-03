@@ -10,6 +10,8 @@ interface InsurancesTabProps {
   summary: InsuranceSummaryMetrics;
   onAddPolicy: () => void;
   onViewInsurance: (insurance: CoverageInsurance) => void;
+  onEditInsurance: (insurance: CoverageInsurance) => void;
+  onDeleteInsurance: (insurance: CoverageInsurance) => void;
 }
 
 export const InsurancesTab: React.FC<InsurancesTabProps> = ({
@@ -17,6 +19,8 @@ export const InsurancesTab: React.FC<InsurancesTabProps> = ({
   summary,
   onAddPolicy,
   onViewInsurance,
+  onEditInsurance,
+  onDeleteInsurance,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -62,6 +66,8 @@ export const InsurancesTab: React.FC<InsurancesTabProps> = ({
         variant="insurances"
         policies={filteredPolicies}
         onViewInsurance={onViewInsurance}
+        onEditInsurance={onEditInsurance}
+        onDeleteInsurance={onDeleteInsurance}
       />
     </div>
   );

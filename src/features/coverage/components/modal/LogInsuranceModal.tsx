@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
@@ -69,15 +69,46 @@ export const LogInsuranceModal = ({
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
 
+  // Reset form when insurance prop changes (for edit mode) or when modal opens/closes
+  useEffect(() => {
+    if (open) {
+      const today = new Date();
+      const expiryDate = calculateExpiryDate(today);
+      
+      setInsuranceData({
+        name: insurance?.name ?? "",
+        provider: insurance?.provider ?? "",
+        policyNumber: insurance?.policyNumber ?? "",
+        annualPremium: insurance?.annualPremium ?? 0,
+        limitType: insurance?.limitType ?? "Aggregate" as InsuranceLimitType,
+        coverageAmount: insurance?.coverageAmount ?? 0,
+        remainingCoverage: insurance?.remainingCoverage ?? 0,
+        startDate: insurance?.startDate ?? today.toISOString(),
+        expiryDate: insurance?.expiryDate ?? expiryDate.toISOString(),
+        description: insurance?.description ?? "",
+      });
+      
+      setSelectedAssetIds(insurance?.assetsCovered.map((a) => a.id) ?? []);
+      setSelectedAssetCategory("all");
+    }
+  }, [insurance, open]);
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle form submission logic here
+    // TODO: Implement actual save/update API call
+    if (isEditing) {
+      console.log("Update insurance:", insurance?.id, insuranceData);
+      // In production, call API to update existing insurance
+    } else {
+      console.log("Create new insurance:", insuranceData);
+      // In production, call API to create new insurance
+    }
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[800px] max-h-[90vh] overflow-hidden">
+      <DialogContent className="w-[1000px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Insurance Policy" : "Add Insurance Policy"}</DialogTitle>
           <DialogDescription>Capture policy coverage details, premiums, and associated assets.</DialogDescription>

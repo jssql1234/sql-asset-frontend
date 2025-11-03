@@ -8,10 +8,13 @@ import type { CoverageClaim, CoverageModalsState, CoverageWarranty } from "@/fea
 export const useCoverageState = () => {
   const [modals, setModals] = useState<CoverageModalsState>({
     insuranceForm: false,
+    insuranceEdit: null,
     insuranceDetails: null,
     warrantyForm: false,
+    warrantyEdit: null,
     warrantyDetails: null,
     claimForm: false,
+    claimEdit: null,
     workOrderFromClaim: false,
     claimForWorkOrder: null,
     claimDetails: null,
@@ -23,6 +26,27 @@ export const useCoverageState = () => {
         ...prev,
         insuranceDetails: insurance,
       }));
+    },
+    []
+  );
+
+  const handleEditInsurance = useCallback(
+    (insurance: CoverageModalsState["insuranceEdit"]) => {
+      setModals((prev) => ({
+        ...prev,
+        insuranceForm: true,
+        insuranceEdit: insurance,
+      }));
+    },
+    []
+  );
+
+  const handleDeleteInsurance = useCallback(
+    (insurance: CoverageModalsState["insuranceEdit"]) => {
+      // TODO: Implement actual delete API call
+      console.log("Delete insurance:", insurance?.id);
+      // For now, just log the action
+      // In production, this would call an API endpoint
     },
     []
   );
@@ -59,12 +83,54 @@ export const useCoverageState = () => {
     []
   );
 
+  const handleEditWarranty = useCallback(
+    (warranty: CoverageWarranty) => {
+      setModals((prev) => ({
+        ...prev,
+        warrantyForm: true,
+        warrantyEdit: warranty,
+      }));
+    },
+    []
+  );
+
+  const handleDeleteWarranty = useCallback(
+    (warranty: CoverageWarranty) => {
+      // TODO: Implement actual delete API call
+      console.log("Delete warranty:", warranty.id);
+      // For now, just log the action
+      // In production, this would call an API endpoint
+    },
+    []
+  );
+
   const handleViewClaim = useCallback(
     (claim: CoverageClaim) => {
       setModals((prev) => ({
         ...prev,
         claimDetails: claim,
       }));
+    },
+    []
+  );
+
+  const handleEditClaim = useCallback(
+    (claim: CoverageClaim) => {
+      setModals((prev) => ({
+        ...prev,
+        claimForm: true,
+        claimEdit: claim,
+      }));
+    },
+    []
+  );
+
+  const handleDeleteClaim = useCallback(
+    (claim: CoverageClaim) => {
+      // TODO: Implement actual delete API call
+      console.log("Delete claim:", claim.id);
+      // For now, just log the action
+      // In production, this would call an API endpoint
     },
     []
   );
@@ -89,6 +155,8 @@ export const useCoverageState = () => {
               setModals((prev) => ({ ...prev, insuranceForm: true }));
             }}
             onViewInsurance={handleViewInsurance}
+            onEditInsurance={handleEditInsurance}
+            onDeleteInsurance={handleDeleteInsurance}
           />
         ),
       },
@@ -103,6 +171,8 @@ export const useCoverageState = () => {
               setModals((prev) => ({ ...prev, warrantyForm: true }));
             }}
             onViewWarranty={handleViewWarranty}
+            onEditWarranty={handleEditWarranty}
+            onDeleteWarranty={handleDeleteWarranty}
           />
         ),
       },
@@ -117,6 +187,8 @@ export const useCoverageState = () => {
               setModals((prev) => ({ ...prev, claimForm: true }));
             }}
             onViewClaim={handleViewClaim}
+            onEditClaim={handleEditClaim}
+            onDeleteClaim={handleDeleteClaim}
           />
         ),
       },
@@ -125,6 +197,12 @@ export const useCoverageState = () => {
       handleViewClaim,
       handleViewInsurance,
       handleViewWarranty,
+      handleEditInsurance,
+      handleEditWarranty,
+      handleEditClaim,
+      handleDeleteInsurance,
+      handleDeleteWarranty,
+      handleDeleteClaim,
     ]
   );
 
@@ -133,11 +211,17 @@ export const useCoverageState = () => {
     tabs,
     setModals,
     handleViewInsurance,
+    handleEditInsurance,
+    handleDeleteInsurance,
     handleCloseInsuranceDetails,
     handleCloseWarrantyDetails,
     handleCloseWorkOrder,
     handleViewWarranty,
+    handleEditWarranty,
+    handleDeleteWarranty,
     handleViewClaim,
+    handleEditClaim,
+    handleDeleteClaim,
     handleCloseClaimDetails,    
   };
 };

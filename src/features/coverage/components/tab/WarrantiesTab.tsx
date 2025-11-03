@@ -10,6 +10,8 @@ interface WarrantiesTabProps {
   summary: WarrantySummaryMetrics;
   onAddWarranty: () => void;
   onViewWarranty: (warranty: CoverageWarranty) => void;
+  onEditWarranty: (warranty: CoverageWarranty) => void;
+  onDeleteWarranty: (warranty: CoverageWarranty) => void;
 }
 
 export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
@@ -17,6 +19,8 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
   summary,
   onAddWarranty,
   onViewWarranty,
+  onEditWarranty,
+  onDeleteWarranty,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -59,7 +63,13 @@ export const WarrantiesTab: React.FC<WarrantiesTabProps> = ({
         live
       />
 
-      <CoverageTable variant="warranties" warranties={filteredWarranties} onViewWarranty={onViewWarranty} />
+      <CoverageTable 
+        variant="warranties" 
+        warranties={filteredWarranties} 
+        onViewWarranty={onViewWarranty}
+        onEditWarranty={onEditWarranty}
+        onDeleteWarranty={onDeleteWarranty}
+      />
     </div>
   );
 };

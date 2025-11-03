@@ -26,8 +26,9 @@ const CoveragePage: React.FC = () => {
       <LogInsuranceModal
         open={modals.insuranceForm}
         onOpenChange={(open: boolean) => {
-          setModals((prev) => ({ ...prev, insuranceForm: open }));
+          setModals((prev) => ({ ...prev, insuranceForm: open, insuranceEdit: open ? prev.insuranceEdit : null }));
         }}
+        insurance={modals.insuranceEdit ?? undefined}
       />
 
       <CoverageDetailsModal
@@ -44,8 +45,9 @@ const CoveragePage: React.FC = () => {
       <LogWarrantyModal
         open={modals.warrantyForm}
         onOpenChange={(open: boolean) => {
-          setModals((prev) => ({ ...prev, warrantyForm: open }));
+          setModals((prev) => ({ ...prev, warrantyForm: open, warrantyEdit: open ? prev.warrantyEdit : null }));
         }}
+        warranty={modals.warrantyEdit ?? undefined}
       />
 
       <CoverageDetailsModal
@@ -62,10 +64,11 @@ const CoveragePage: React.FC = () => {
       <LogClaimModal
         open={modals.claimForm}
         onOpenChange={(open: boolean) => {
-          setModals((prev) => ({ ...prev, claimForm: open }));
+          setModals((prev) => ({ ...prev, claimForm: open, claimEdit: open ? prev.claimEdit : null }));
         }}
         policies={coverageInsurances}
         warranties={coverageWarranties}
+        claim={modals.claimEdit ?? undefined}
       />
 
       <CoverageDetailsModal

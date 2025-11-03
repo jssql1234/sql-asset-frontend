@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -90,15 +90,43 @@ export const LogClaimModal = ({
       : warranties ?? EMPTY_WARRANTIES;
   }, [claimType, policies, warranties]);
 
+  // Reset form when claim prop changes (for edit mode) or when modal opens/closes
+  useEffect(() => {
+    if (open) {
+      const today = new Date();
+      
+      setClaimType(claim?.type ?? "Insurance");
+      setClaimStatus(claim?.status ?? "Filed");
+      setReferenceId(claim?.referenceId ?? "");
+      
+      setClaimData({
+        claimNumber: claim?.claimNumber ?? "",
+        amount: claim?.amount ?? 0,
+        dateFiled: claim?.dateFiled ?? today.toISOString(),
+        description: claim?.description ?? "",
+      });
+      
+      setSelectedAssetIds(claim?.assets.map((a) => a.id) ?? []);
+      setSelectedAssetCategory("all");
+    }
+  }, [claim, open]);
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    // Handle form submission logic here
+    // TODO: Implement actual save/update API call
+    if (isEditing) {
+      console.log("Update claim:", claim?.id, { ...claimData, type: claimType, status: claimStatus, referenceId });
+      // In production, call API to update existing claim
+    } else {
+      console.log("Create new claim:", { ...claimData, type: claimType, status: claimStatus, referenceId });
+      // In production, call API to create new claim
+    }
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[800px] max-h-[90vh] overflow-hidden">
+      <DialogContent className="w-[900px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Claim" : "Add Claim"}</DialogTitle>
           <DialogDescription>Record an insurance or warranty claim.</DialogDescription>

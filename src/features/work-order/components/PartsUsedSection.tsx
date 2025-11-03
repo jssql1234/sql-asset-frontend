@@ -9,11 +9,13 @@ import { BinFilled, Edit, Plus } from "@/assets/icons";
 interface PartsUsedSectionProps {
   partsUsed: PartUsed[];
   onPartsChange: (parts: PartUsed[]) => void;
+  disabled?: boolean;
 }
 
 export const PartsUsedSection: React.FC<PartsUsedSectionProps> = ({
   partsUsed,
   onPartsChange,
+  disabled = false,
 }) => {
   const [showAddPartDialog, setShowAddPartDialog] = useState(false);
   const [editingPart, setEditingPart] = useState<PartUsed | null>(null);
@@ -104,10 +106,10 @@ export const PartsUsedSection: React.FC<PartsUsedSectionProps> = ({
       enableColumnFilter: false,
       enableResizing: true,
     },
-    {
+    ...(disabled ? [] : [{
       id: "actions",
       header: "Actions",
-      cell: ({ row }) => (
+      cell: ({ row }: { row: any }) => (
         <div className="flex gap-2">
           <button
             type="button"
@@ -130,7 +132,7 @@ export const PartsUsedSection: React.FC<PartsUsedSectionProps> = ({
       enableSorting: false,
       enableColumnFilter: false,
       enableResizing: true,
-    },
+    }] as ColumnDef<PartUsed>[]),
   ];
 
   return (
@@ -140,18 +142,20 @@ export const PartsUsedSection: React.FC<PartsUsedSectionProps> = ({
           <h3 className="title-medium font-semibold text-onSurface">
             Parts Used
           </h3>
-          <Button
-            type="button"
-            variant="default"
-            onClick={() => {
-              setEditingPart(null);
-              setShowAddPartDialog(true);
-            }}
-            className="flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Add Part
-          </Button>
+          {!disabled && (
+            <Button
+              type="button"
+              variant="default"
+              onClick={() => {
+                setEditingPart(null);
+                setShowAddPartDialog(true);
+              }}
+              className="flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Add Part
+            </Button>
+          )}
         </div>
 
         {partsUsed.length > 0 ? (

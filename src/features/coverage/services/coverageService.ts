@@ -14,12 +14,17 @@ const calculateInsuranceStatus = (startDate: string, expiryDate: string): Covera
   const today = new Date();
   const expiry = new Date(expiryDate);
   const start = new Date(startDate);
-  
-  if (today < start || today > expiry) return "Expired";
-  
+
+  if (Number.isNaN(expiry.getTime()) || Number.isNaN(start.getTime())) {
+    return "Active";
+  }
+
+  if (today < start) return "Upcoming";
+  if (today > expiry) return "Expired";
+
   const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   if (daysUntilExpiry <= 30) return "Expiring Soon";
-  
+
   return "Active";
 };
 
@@ -186,20 +191,22 @@ export const fetchClaims = (): Promise<CoverageClaim[]> => {
 
 export const createClaim = (data: Omit<CoverageClaim, 'id'>): Promise<CoverageClaim> => {
   const id = `CLM-${String(nextClaimId++).padStart(3, '0')}`;
+  const amount = Number.isFinite(data.amount) ? data.amount : 0;
   
   const newClaim: CoverageClaim = {
     ...data,
     id,
+    amount,
   };
   
   claimsStore.unshift(newClaim);
   
   // Update insurance remaining coverage
-  if (data.type === "Insurance") {
-    const insuranceIndex = insurancesStore.findIndex(ins => ins.id === data.referenceId);
+  if (newClaim.type === "Insurance") {
+    const insuranceIndex = insurancesStore.findIndex(ins => ins.id === newClaim.referenceId);
     if (insuranceIndex !== -1) {
       const insurance = insurancesStore[insuranceIndex];
-      const newRemainingCoverage = Math.max(0, insurance.remainingCoverage - data.amount);
+      const newRemainingCoverage = Math.max(0, insurance.remainingCoverage - amount);
       insurancesStore[insuranceIndex] = {
         ...insurance,
         remainingCoverage: newRemainingCoverage,
@@ -216,27 +223,40 @@ export const updateClaim = (id: string, data: Omit<CoverageClaim, 'id'>): Promis
   if (index === -1) throw new Error("Claim not found");
   
   const oldClaim = claimsStore[index];
+  const oldAmount = Number.isFinite(oldClaim.amount) ? oldClaim.amount : 0;
+
+  if (data.type !== oldClaim.type || data.referenceId !== oldClaim.referenceId) {
+    throw new Error("Claim type, reference, or claim number cannot be changed once created.");
+  }
+
+  const safeAmount = Number.isFinite(data.amount) ? data.amount : 0;
   
   const updated: CoverageClaim = {
     ...data,
     id,
+    amount: safeAmount,
   };
   
   claimsStore[index] = updated;
   
   // Adjust insurance coverage if amount changed
-  if (data.type === "Insurance" && oldClaim.type === "Insurance") {
-    const amountDifference = data.amount - oldClaim.amount;
-    const insuranceIndex = insurancesStore.findIndex(ins => ins.id === data.referenceId);
+  if (updated.type === "Insurance") {
+    const amountDifference = safeAmount - oldAmount;
+    if (amountDifference !== 0) {
+      const insuranceIndex = insurancesStore.findIndex(ins => ins.id === updated.referenceId);
     
-    if (insuranceIndex !== -1) {
-      const insurance = insurancesStore[insuranceIndex];
-      const newRemainingCoverage = Math.max(0, insurance.remainingCoverage - amountDifference);
-      insurancesStore[insuranceIndex] = {
-        ...insurance,
-        remainingCoverage: newRemainingCoverage,
-        totalClaimed: insurance.coverageAmount - newRemainingCoverage,
-      };
+      if (insuranceIndex !== -1) {
+        const insurance = insurancesStore[insuranceIndex];
+        const newRemainingCoverage = Math.min(
+          insurance.coverageAmount,
+          Math.max(0, insurance.remainingCoverage - amountDifference)
+        );
+        insurancesStore[insuranceIndex] = {
+          ...insurance,
+          remainingCoverage: newRemainingCoverage,
+          totalClaimed: insurance.coverageAmount - newRemainingCoverage,
+        };
+      }
     }
   }
   
@@ -248,13 +268,17 @@ export const deleteClaim = (id: string): Promise<void> => {
   if (claimIndex === -1) return Promise.resolve();
   
   const claim = claimsStore[claimIndex];
+  const amount = Number.isFinite(claim.amount) ? claim.amount : 0;
   
   // Restore insurance coverage
   if (claim.type === "Insurance") {
     const insuranceIndex = insurancesStore.findIndex(ins => ins.id === claim.referenceId);
     if (insuranceIndex !== -1) {
       const insurance = insurancesStore[insuranceIndex];
-      const newRemainingCoverage = Math.min(insurance.coverageAmount, insurance.remainingCoverage + claim.amount);
+      const newRemainingCoverage = Math.min(
+        insurance.coverageAmount,
+        insurance.remainingCoverage + amount
+      );
       insurancesStore[insuranceIndex] = {
         ...insurance,
         remainingCoverage: newRemainingCoverage,

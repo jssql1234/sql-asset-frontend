@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
+import { coverageAssets, coverageAssetGroups, getCoverageAssetName } from "@/features/coverage/mockData";
 import type {
   CoverageInsurance,
   CoverageWarranty,
@@ -109,15 +109,19 @@ export const LogClaimModal = ({
     return allAssets.filter(asset => coveredAssetIds.has(asset.id));
   }, [referenceId, references]);
 
+  useEffect(() => {
+    setSelectedAssetIds((prev) => prev.filter((id) => mockAssets.some((asset) => asset.id === id)));
+  }, [mockAssets]);
+
   // Reset form when claim prop changes (for edit mode) or when modal opens/closes
   useEffect(() => {
     if (open) {
       const today = new Date();
-      
+
       setClaimType(claim?.type ?? "Insurance");
       setClaimStatus(claim?.status ?? "Filed");
       setReferenceId(claim?.referenceId ?? "");
-      
+
       setClaimData({
         claimNumber: claim?.claimNumber ?? "",
         amount: claim?.amount ?? 0,
@@ -134,11 +138,13 @@ export const LogClaimModal = ({
     event.preventDefault();
     
     // Get selected assets with their names
-    const assets = selectedAssetIds.map(id => {
-      const asset = mockAssets.find(a => a.id === id);
+    const assets = selectedAssetIds.map((id) => {
+      const asset = mockAssets.find((a) => a.id === id);
+      const fallbackName = getCoverageAssetName(id);
+      const label = asset?.label.split(" (")[0] ?? fallbackName;
       return {
         id,
-        name: asset?.label.split(' (')[0] ?? id,
+        name: label,
       };
     });
     
@@ -146,13 +152,15 @@ export const LogClaimModal = ({
     const reference = references.find(ref => ref.id === referenceId);
     const referenceName = reference?.name ?? "";
     
+    const claimAmount = Number.isFinite(claimData.amount) ? claimData.amount : 0;
+
     const formData: Omit<CoverageClaim, 'id'> = {
       claimNumber: claimData.claimNumber,
       type: claimType,
       referenceId,
       referenceName,
       assets,
-      amount: claimData.amount,
+      amount: claimAmount,
       status: claimStatus,
       dateFiled: claimData.dateFiled,
       workOrderId: claim?.workOrderId,
@@ -187,59 +195,74 @@ export const LogClaimModal = ({
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Claim Type *</label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger label={claimType} className="w-full justify-between" />
-                      <DropdownMenuContent>
-                        {(["Insurance", "Warranty"] as ClaimType[]).map((type) => (
-                          <DropdownMenuItem
-                            key={type}
-                            onClick={() => {
-                              setClaimType(type);
-                              setReferenceId("");
-                            }}
-                          >
-                            {type}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {isEditing ? (
+                      <Input value={claimType} disabled />
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger label={claimType} className="w-full justify-between" />
+                        <DropdownMenuContent>
+                          {(["Insurance", "Warranty"] as ClaimType[]).map((type) => (
+                            <DropdownMenuItem
+                              key={type}
+                              onClick={() => {
+                                setClaimType(type);
+                                setReferenceId("");
+                                setSelectedAssetIds([]);
+                              }}
+                            >
+                              {type}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Policy / Warranty *</label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        label={
-                          referenceId
-                            ? references.find((item) => item.id === referenceId)?.name ??
-                              "Select reference"
-                            : "Select reference"
-                        }
-                        className="w-full justify-between"
+                    {isEditing ? (
+                      <Input
+                        value={references.find((item) => item.id === referenceId)?.name ?? claim?.referenceName ?? ""}
+                        disabled
                       />
-                      <DropdownMenuContent className="max-h-64 min-w-[260px] overflow-y-auto">
-                        {references.map((item) => (
-                          <DropdownMenuItem
-                            key={item.id}
-                            onClick={() => {
-                              setReferenceId(item.id);
-                            }}
-                          >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{item.name}</span>
-                              <span className="body-small text-onSurfaceVariant">{item.id}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    ) : (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          label={
+                            referenceId
+                              ? references.find((item) => item.id === referenceId)?.name ??
+                                "Select reference"
+                              : "Select reference"
+                          }
+                          className="w-full justify-between"
+                        />
+                        <DropdownMenuContent className="max-h-64 min-w-[260px] overflow-y-auto">
+                          {references.map((item) => (
+                            <DropdownMenuItem
+                              key={item.id}
+                              onClick={() => {
+                                setReferenceId(item.id);
+                                setSelectedAssetIds([]);
+                              }}
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium">{item.name}</span>
+                                <span className="body-small text-onSurfaceVariant">{item.id}</span>
+                              </div>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Claim Number *</label>
                     <Input
                       value={claimData.claimNumber}
                       onChange={(e) => {
+                        if (isEditing) return;
                         setClaimData({ ...claimData, claimNumber: e.target.value });
                       }}
+                      disabled={isEditing}
                       placeholder="e.g. CLM-2025-118"
                     />
                   </div>
@@ -265,7 +288,8 @@ export const LogClaimModal = ({
                       step="0.01"
                       value={claimData.amount}
                       onChange={(e) => {
-                        setClaimData({ ...claimData, amount: parseFloat(e.target.value) });
+                        const value = parseFloat(e.target.value);
+                        setClaimData({ ...claimData, amount: Number.isNaN(value) ? 0 : value });
                       }}
                       placeholder="Enter claim amount"
                     />

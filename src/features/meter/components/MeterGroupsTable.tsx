@@ -1,16 +1,22 @@
 import { useMemo } from "react";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import { AssetChip } from "@/components/AssetChip";
-import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
+import {
+  DataTableExtended,
+  type RowAction,
+} from "@/components/DataTableExtended";
 import { Badge } from "@/components/ui/components";
-import type { MeterGroup } from "@/types/meter";
-import { Copy } from "lucide-react";
+import type { MeterGroup, Meter } from "@/types/meter";
+import { Copy, ChevronDown, ChevronRight } from "lucide-react";
+import MeterGroupDetails from "./MeterGroupDetails";
 
 type MeterGroupsTableProps = {
   groups: MeterGroup[];
   onViewGroup: (group: MeterGroup) => void;
   onCloneGroup: (groupId: string) => void;
   onDeleteGroup: (groupId: string) => void;
+  onEditMeter: (meter: Meter) => void;
+  onDeleteMeter: (meterId: string) => void;
 };
 
 export const MeterGroupsTable = ({
@@ -18,9 +24,32 @@ export const MeterGroupsTable = ({
   onViewGroup,
   onCloneGroup,
   onDeleteGroup,
+  onEditMeter,
+  onDeleteMeter,
 }: MeterGroupsTableProps) => {
   const columns = useMemo<ColumnDef<MeterGroup>[]>(
     () => [
+      {
+        id: "expander",
+        header: () => null,
+        size: 40,
+        enableSorting: false,
+        enableColumnFilter: false,
+        cell: ({ row }) => {
+          return row.original.meters.length > 0 ? (
+            <button
+              onClick={row.getToggleExpandedHandler()}
+              className="flex items-center justify-center p-1 hover:bg-surfaceContainerHighest rounded transition-colors"
+            >
+              {row.getIsExpanded() ? (
+                <ChevronDown className="h-4 w-4 text-onSurfaceVariant" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-onSurfaceVariant" />
+              )}
+            </button>
+          ) : null;
+        },
+      },
       {
         accessorKey: "name",
         header: "Group Name",
@@ -28,7 +57,7 @@ export const MeterGroupsTable = ({
         cell: ({ row }) => {
           const group = row.original;
           return (
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 ">
               <span className="font-semibold text-onSurface">{group.name}</span>
               {group.description && (
                 <span className="body-small text-onSurfaceVariant">
@@ -111,21 +140,21 @@ export const MeterGroupsTable = ({
   const rowActions: RowAction<MeterGroup>[] = useMemo(
     () => [
       {
-        type: 'view',
+        type: "view",
         onClick: (group) => {
           onViewGroup(group);
         },
       },
       {
-        type: 'custom',
-        label: 'Clone',
+        type: "custom",
+        label: "Clone",
         icon: Copy,
         onClick: (group) => {
           onCloneGroup(group.id);
         },
       },
       {
-        type: 'delete',
+        type: "delete",
         onClick: (group) => {
           onDeleteGroup(group.id);
         },
@@ -134,12 +163,26 @@ export const MeterGroupsTable = ({
     [onViewGroup, onCloneGroup, onDeleteGroup]
   );
 
+  // Render sub-component for expanded rows showing meter details
+  const renderSubComponent = ({ row }: { row: Row<MeterGroup> }) => {
+    return (
+      <MeterGroupDetails
+        group={row.original}
+        onEditMeter={onEditMeter}
+        onDeleteMeter={onDeleteMeter}
+      />
+    );
+  };
+
   return (
-    <DataTableExtended<MeterGroup, unknown>
+    <DataTableExtended
       columns={columns}
       data={groups}
       showPagination
       rowActions={rowActions}
+      enableGrouping={false}
+      getRowCanExpand={(row) => row.original.meters.length > 0}
+      renderSubComponent={renderSubComponent}
     />
   );
 };

@@ -1,18 +1,6 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/components/Table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/components";
-import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { useMemo } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { DataTableExtended } from "@/components/DataTableExtended";
 import type { Meter } from "../../../types/meter";
 
 export type MeterWithConditions = Meter;
@@ -22,6 +10,19 @@ export type MeterTableProps = {
   onEdit: (meterId: string) => void;
   onRemove: (meterId: string) => void;
 };
+
+// Flat row type for the table
+interface MeterRowData {
+  id: string;
+  meterId: string;
+  uom: string;
+  conditionTarget: string;
+  operator: string;
+  value: string | number;
+  triggerAction: string;
+  triggerMode: string;
+  isNoConditions: boolean;
+}
 
 // Mapping functions to convert stored values to display labels
 const getConditionTargetLabel = (value: string): string => {
@@ -64,156 +65,133 @@ const getTriggerModeLabel = (value: string): string => {
 };
 
 const MeterTable = ({ meters, onEdit, onRemove }: MeterTableProps) => {
-  if (meters.length === 0) {
-    return (
-      <div className="rounded border border-dashed border-outlineVariant bg-surfaceContainer p-6 text-center text-sm text-onSurfaceVariant">
-        No meters defined yet. Use "Add meter" to start tracking readings.
-      </div>
-    );
-  }
+  // Flatten the hierarchical meter/condition structure into rows
+  const tableData = useMemo(() => {
+    const rows: MeterRowData[] = [];
+    
+    meters.forEach((meter) => {
+      const conditions = meter.conditions || [];
+      
+      if (conditions.length === 0) {
+        // Add a row indicating no conditions
+        rows.push({
+          id: `${meter.id}-no-conditions`,
+          meterId: meter.id,
+          uom: meter.uom,
+          conditionTarget: "",
+          operator: "",
+          value: "",
+          triggerAction: "",
+          triggerMode: "",
+          isNoConditions: true,
+        });
+      } else {
+        // Add a row for each condition
+        conditions.forEach((condition) => {
+          rows.push({
+            id: `${meter.id}-${condition.id}`,
+            meterId: meter.id,
+            uom: meter.uom,
+            conditionTarget: condition.conditionTarget,
+            operator: condition.operator,
+            value: String(condition.value),
+            triggerAction: condition.triggerAction,
+            triggerMode: condition.triggerMode,
+            isNoConditions: false,
+          });
+        });
+      }
+    });
+    
+    return rows;
+  }, [meters]);
+
+  // Define columns for DataTableExtended
+  const columns = useMemo<ColumnDef<MeterRowData>[]>(() => [
+    {
+      accessorKey: "uom",
+      header: "UOM",
+      size: 120,
+      cell: (info) => (
+        <div className="font-medium text-onSurface">{info.getValue() as string}</div>
+      ),
+    },
+    {
+      accessorKey: "conditionTarget",
+      header: "Target Reading",
+      size: 120,
+      cell: (info) => {
+        const value = info.getValue() as string;
+        return value ? (
+          <div className="text-onSurface">{getConditionTargetLabel(value)}</div>
+        ) : (
+          <div className="text-center text-onSurfaceVariant italic">No conditions set</div>
+        );
+      },
+    },
+    {
+      accessorKey: "operator",
+      header: "Operator",
+      size: 120,
+      cell: (info) => {
+        const value = info.getValue() as string;
+        return value ? (
+          <div className="text-onSurface">{getOperatorLabel(value)}</div>
+        ) : null;
+      },
+    },
+    {
+      accessorKey: "value",
+      header: "Value",
+      size: 100,
+      cell: (info) => {
+        const value = info.getValue() as string;
+        return value ? <div className="text-onSurface">{value}</div> : null;
+      },
+    },
+    {
+      accessorKey: "triggerAction",
+      header: "Trigger Action",
+      size: 200,
+      cell: (info) => {
+        const value = info.getValue() as string;
+        return value ? (
+          <div className="text-onSurface">{getTriggerActionLabel(value)}</div>
+        ) : null;
+      },
+    },
+    {
+      accessorKey: "triggerMode",
+      header: "Trigger Mode",
+      size: 120,
+      cell: (info) => {
+        const value = info.getValue() as string;
+        return value ? (
+          <div className="text-onSurface">{getTriggerModeLabel(value)}</div>
+        ) : null;
+      },
+    },
+  ], []);
+
+  // Row actions for edit and delete
+  const rowActions = useMemo(() => [
+    {
+      type: "edit" as const,
+      onClick: (row: MeterRowData) => onEdit(row.meterId),
+    },
+    {
+      type: "delete" as const,
+      onClick: (row: MeterRowData) => onRemove(row.meterId),
+    },
+  ], [onEdit, onRemove]);
 
   return (
-    <div className="overflow-hidden rounded border border-outlineVariant bg-surface">
-      <Table className="min-w-[1200px]">
-        <TableHeader className="bg-secondaryContainer">
-          <TableRow>
-            <TableHead
-              rowSpan={2}
-              className="w-[120px] border-r border-outlineVariant px-4 py-3 text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant"
-            >
-              UOM
-            </TableHead>
-            <TableHead
-              colSpan={5}
-              className="border-r border-outlineVariant px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-onSurfaceVariant"
-            >
-              Condition
-            </TableHead>
-            <TableHead
-              rowSpan={2}
-              className="w-0 text-right text-xs font-semibold text-onSurfaceVariant"
-            >
-              
-            </TableHead>
-          </TableRow>
-          <TableRow>
-            <TableHead className="w-[15%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
-              Condition Target
-            </TableHead>
-            <TableHead className="w-[12%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
-              Operator
-            </TableHead>
-            <TableHead className="w-[14%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
-              Value
-            </TableHead>
-            <TableHead className="w-[24%] px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
-              Trigger Action
-            </TableHead>
-            <TableHead className="w-[15%] border-r border-outlineVariant px-4 py-3 text-xs font-semibold text-onSurfaceVariant">
-              Trigger Mode
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {meters.map((meter) => {
-            const conditions = meter.conditions || [];
-            const hasConditions = conditions.length > 0;
-
-            if (!hasConditions) {
-              return (
-                <TableRow key={meter.id} className="text-sm">
-                  <TableCell className="border-r border-outlineVariant bg-surfaceContainerLow px-4 py-3 font-medium text-onSurface">
-                    {meter.uom}
-                  </TableCell>
-                  <TableCell
-                    colSpan={5}
-                    className="border-r border-outlineVariant px-4 py-4 text-center text-onSurfaceVariant"
-                  >
-                    No conditions set
-                  </TableCell>
-                  <TableCell className="px-4 py-2">
-                    <div className="flex justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => onEdit(meter.id)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => onRemove(meter.id)}
-                            className="text-error focus:text-error"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            }
-
-            return conditions.map((condition, index) => (
-              <TableRow key={`${meter.id}-${condition.id}`} className="text-sm">
-                {index === 0 && (
-                  <TableCell
-                    rowSpan={conditions.length}
-                    className="border-r border-outlineVariant bg-surfaceContainerLow px-4 py-3 font-medium text-onSurface"
-                  >
-                    {meter.uom}
-                  </TableCell>
-                )}
-                <TableCell className="px-4 py-3 text-onSurface">
-                  {getConditionTargetLabel(condition.conditionTarget)}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-onSurface">
-                  {getOperatorLabel(condition.operator)}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-onSurface">
-                  {condition.value}
-                </TableCell>
-                <TableCell className="px-4 py-3 text-onSurface">
-                  {getTriggerActionLabel(condition.triggerAction)}
-                </TableCell>
-                <TableCell className="border-r border-outlineVariant px-4 py-3 text-onSurface">
-                  {getTriggerModeLabel(condition.triggerMode)}
-                </TableCell>
-                {index === 0 && (
-                  <TableCell
-                    rowSpan={conditions.length}
-                    className="px-4 py-2"
-                  >
-                    <div className="flex justify-end">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger variant="ghost" className="h-8 w-8 p-0">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem onClick={() => onEdit(meter.id)}>
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => onRemove(meter.id)}
-                            className="text-error focus:text-error"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </TableCell>
-                )}
-              </TableRow>
-            ));
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <DataTableExtended
+      columns={columns}
+      data={tableData}
+      showPagination={false}
+      rowActions={rowActions}
+    />
   );
 };
 

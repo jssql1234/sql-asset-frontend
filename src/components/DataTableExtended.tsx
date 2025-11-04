@@ -2,7 +2,7 @@
  * DataTableExtended - Extended wrapper for DataTable with additional features
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, 
          getFacetedRowModel, getFacetedUniqueValues, getExpandedRowModel, getGroupedRowModel, flexRender,
          type ColumnDef, type SortingState, type ColumnFiltersState, type ExpandedState, type GroupingState, type ColumnPinningState,
@@ -108,6 +108,10 @@ interface DataTableExtendedProps<TData, TValue> {
   // Column pinning props
   columnPinning?: ColumnPinningState;
   onColumnPinningChange?: (columnPinning: ColumnPinningState) => void;
+  
+  // Expanding rows props
+  getRowCanExpand?: (row: Row<TData>) => boolean;
+  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
 }
 
 type ColumnDefWithHeaderAlign<TData, TValue> = ColumnDef<TData, TValue> & {
@@ -304,12 +308,15 @@ export function DataTableExtended<TData, TValue>({
   rowActions,
   columnPinning,
   onColumnPinningChange,
+  getRowCanExpand,
+  renderSubComponent,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(false);
   const [hasMounted, setHasMounted] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
   
   // Initialize column pinning with row-actions pinned to right by default
   const [internalColumnPinning, setInternalColumnPinning] = useState<ColumnPinningState>(() => {
@@ -321,7 +328,7 @@ export function DataTableExtended<TData, TValue>({
 
   const currentRowSelection = useMemo(() => rowSelection ?? {}, [rowSelection]);
   const currentGrouping = useMemo(() => grouping ?? [], [grouping]);
-  const currentExpanded = useMemo(() => expanded ?? {}, [expanded]);
+  const currentExpanded = useMemo(() => expanded ?? internalExpanded, [expanded, internalExpanded]);
   const currentColumnPinning = useMemo(() => columnPinning ?? internalColumnPinning, [columnPinning, internalColumnPinning]);
   const isGroupingActive = useMemo(() => enableGrouping && currentGrouping.length > 0, [enableGrouping, currentGrouping]);
   const isSelectionEnabled = showCheckbox || enableRowClickSelection;
@@ -597,6 +604,11 @@ export function DataTableExtended<TData, TValue>({
       getGroupedRowModel: getGroupedRowModel(),
       getExpandedRowModel: getExpandedRowModel(),
     }),
+    // Add expanding rows support
+    ...((getRowCanExpand || renderSubComponent) && {
+      getExpandedRowModel: getExpandedRowModel(),
+      getRowCanExpand: getRowCanExpand,
+    }),
     
     onSortingChange: ((updaterOrValue) => {
       if (!isMountedRef.current) return;
@@ -642,6 +654,11 @@ export function DataTableExtended<TData, TValue>({
       const newExpanded =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
 
+      // Update internal state if no external expanded state provided
+      if (!expanded) {
+        setInternalExpanded(newExpanded);
+      }
+      
       if (onExpandedChange && isMountedRef.current) {
         onExpandedChange(newExpanded);
       }
@@ -674,8 +691,9 @@ export function DataTableExtended<TData, TValue>({
       rowSelection: currentRowSelection,
       ...(enableGrouping && {
         grouping: currentGrouping,
-        expanded: currentExpanded,
       }),
+      // Include expanded state for both grouping and row expansion
+      expanded: currentExpanded,
       columnOrder,
       columnPinning: currentColumnPinning,
     },
@@ -835,6 +853,7 @@ export function DataTableExtended<TData, TValue>({
                   enableRowClickSelection={enableRowClickSelection}
                   columnOrder={columnOrder}
                   columnPinning={currentColumnPinning}
+                  renderSubComponent={renderSubComponent}
                 />
               ) : (
                 <EmptyDataRow columnLength={columns.length} />
@@ -952,11 +971,13 @@ function DataTableRow<TData>({
   enableRowClickSelection = false,
   columnOrder,
   columnPinning,
+  renderSubComponent,
 }: {
   table: TanStackTable<TData>;
   enableRowClickSelection?: boolean;
   columnOrder: string[];
   columnPinning: ColumnPinningState;
+  renderSubComponent?: (props: { row: Row<TData> }) => React.ReactElement;
 }) {
   const handleRowClick = (row: Row<TData>, event: React.MouseEvent) => {
     const target = event.target as HTMLElement;

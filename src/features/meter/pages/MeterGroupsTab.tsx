@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Search from "@/components/Search";
-import type { MeterGroup, MeterGroupInput } from "@/types/meter";
+import type { MeterGroup, MeterGroupInput, Meter } from "@/types/meter";
 import { Plus } from "@/assets/icons";
 import TabHeader from "@/components/TabHeader";
 import CreateGroupModal from "../components/CreateGroupModal";
@@ -13,6 +13,8 @@ type MeterGroupsViewProps = {
   onCreateGroup: (input: MeterGroupInput) => void;
   onDeleteGroup: (groupId: string) => void;
   onCloneGroup: (groupId: string) => void;
+  onEditMeter?: (meter: Meter) => void;
+  onDeleteMeter?: (meterId: string) => void;
 };
 
 export const MeterGroupsView = ({
@@ -20,6 +22,8 @@ export const MeterGroupsView = ({
   onCreateGroup,
   onDeleteGroup,
   onCloneGroup,
+  onEditMeter,
+  onDeleteMeter,
 }: MeterGroupsViewProps) => {
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -96,6 +100,8 @@ export const MeterGroupsView = ({
         onViewGroup={handleViewGroup}
         onCloneGroup={onCloneGroup}
         onDeleteGroup={handleDeleteClick}
+        onEditMeter={onEditMeter || (() => {})}
+        onDeleteMeter={onDeleteMeter || (() => {})}
       />
 
       {/* Create Group Modal */}

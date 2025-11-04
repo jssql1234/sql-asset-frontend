@@ -171,7 +171,7 @@ export const LogInsuranceModal = ({
                         setInsuranceData({ ...insuranceData, name: event.target.value });
                         clearFieldError("name");
                       }}
-                      placeholder="e.g. Comprehensive Equipment Protection"
+                      placeholder="Enter policy name"
                     />
                     {fieldErrors.name ? (
                       <span className="label-small text-error">{fieldErrors.name}</span>
@@ -199,7 +199,7 @@ export const LogInsuranceModal = ({
                         setInsuranceData({ ...insuranceData, policyNumber: event.target.value });
                         clearFieldError("policyNumber");
                       }}
-                      placeholder="e.g. AIB-CEQ-2025-01"
+                      placeholder="Enter policy number"
                     />
                     {fieldErrors.policyNumber ? (
                       <span className="label-small text-error">{fieldErrors.policyNumber}</span>

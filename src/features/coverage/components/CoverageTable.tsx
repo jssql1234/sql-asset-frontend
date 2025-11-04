@@ -38,10 +38,7 @@ interface ClaimsVariantProps {
   onSearchQueryChange?: (query: string) => void;
 }
 
-type CoverageTableProps =
-  | InsurancesVariantProps
-  | WarrantiesVariantProps
-  | ClaimsVariantProps;
+type CoverageTableProps = InsurancesVariantProps | WarrantiesVariantProps | ClaimsVariantProps;
 
 const InsurancesVariantTable = ({
   policies,
@@ -96,11 +93,20 @@ const InsurancesVariantTable = ({
         accessorKey: "remainingCoverage",
         header: "Available Coverage",
         enableColumnFilter: false,
-        cell: ({ row }) => (
-          <span className="font-medium">
-            {formatCurrency(row.original.remainingCoverage)}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const policy = row.original;
+          const limitTypeLabel = policy.limitType === "Aggregate" ? "(remaining)" : "(per claim)";
+          return (
+            <div className="flex flex-col items-end">
+              <span className="font-medium">
+                {formatCurrency(policy.remainingCoverage)}
+              </span>
+              <span className="body-small text-onSurfaceVariant">
+                {limitTypeLabel}
+              </span>
+            </div>
+          );
+        },
         meta: {
           align: "right",
         },
@@ -157,18 +163,9 @@ const InsurancesVariantTable = ({
 
   const rowActions: RowAction<CoverageInsurance>[] = useMemo(
     () => [
-      {
-        type: "view",
-        onClick: onViewInsurance,
-      },
-      {
-        type: "edit",
-        onClick: onEditInsurance,
-      },
-      {
-        type: "delete",
-        onClick: onDeleteInsurance,
-      },
+      { type: "view", onClick: onViewInsurance },
+      { type: "edit", onClick: onEditInsurance },
+      { type: "delete", onClick: onDeleteInsurance },
     ],
     [onViewInsurance, onEditInsurance, onDeleteInsurance]
   );
@@ -273,18 +270,9 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, on
 
   const rowActions: RowAction<CoverageWarranty>[] = useMemo(
     () => [
-      {
-        type: "view",
-        onClick: onViewWarranty,
-      },
-      {
-        type: "edit",
-        onClick: onEditWarranty,
-      },
-      {
-        type: "delete",
-        onClick: onDeleteWarranty,
-      },
+      { type: "view", onClick: onViewWarranty },
+      { type: "edit", onClick: onEditWarranty },
+      { type: "delete", onClick: onDeleteWarranty },
     ],
     [onViewWarranty, onEditWarranty, onDeleteWarranty]
   );
@@ -458,18 +446,9 @@ const ClaimsVariantTable = ({
 
   const rowActions: RowAction<CoverageClaim>[] = useMemo(
     () => [
-      {
-        type: "view",
-        onClick: onViewClaim,
-      },
-      {
-        type: "edit",
-        onClick: onEditClaim,
-      },
-      {
-        type: "delete",
-        onClick: onDeleteClaim,
-      },
+      { type: "view", onClick: onViewClaim },
+      { type: "edit", onClick: onEditClaim },
+      { type: "delete", onClick: onDeleteClaim },
     ],
     [onViewClaim, onEditClaim, onDeleteClaim]
   );

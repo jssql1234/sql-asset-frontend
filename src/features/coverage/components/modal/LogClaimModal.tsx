@@ -225,7 +225,7 @@ export const LogClaimModal = ({
                       setClaimData({ ...claimData, claimNumber: event.target.value });
                     }}
                     disabled={isEditing}
-                    placeholder="e.g. CLM-2025-118"
+                    placeholder="Enter claim number"
                   />
                 </div>
               </div>

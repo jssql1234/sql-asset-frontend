@@ -1,23 +1,14 @@
-import type {
-  CoverageInsurance,
-  CoverageInsurancePayload,
-  CoverageWarranty,
-  CoverageWarrantyPayload,
-  CoverageClaim,
-  CoverageClaimPayload,
-  InsuranceSummaryMetrics,
-  WarrantySummaryMetrics,
-  ClaimSummaryMetrics,
-} from "../types";
+import type { CoverageInsurance, CoverageInsurancePayload, CoverageWarranty, CoverageWarrantyPayload, 
+              CoverageClaim, CoverageClaimPayload, InsuranceSummaryMetrics, WarrantySummaryMetrics, ClaimSummaryMetrics } from "../types";
 import { coverageAssets, mockInsurances, mockWarranties, mockClaims } from "../mockData";
 
 // In-memory data stores (persists during session, not across page refreshes)
 let insurancesStore: CoverageInsurance[] = [...mockInsurances];
 let warrantiesStore: CoverageWarranty[] = [...mockWarranties];
 let claimsStore: CoverageClaim[] = [...mockClaims];
-let nextInsuranceId = 3; // Start from 3 since we have POL-001 and POL-002
-let nextWarrantyId = 3; // Start from 3 since we have WAR-001 and WAR-002
-let nextClaimId = 3; // Start from 3 since we have CLM-001 and CLM-002
+let nextInsuranceId = 3; // Start from 3 due to mockData
+let nextWarrantyId = 3; 
+let nextClaimId = 3; 
 
 // Helper to calculate insurance status
 const calculateInsuranceStatus = (startDate: string, expiryDate: string): CoverageInsurance["status"] => {
@@ -55,7 +46,26 @@ const calculateWarrantyStatus = (expiryDate: string): CoverageWarranty["status"]
 const calculateInsuranceSummary = (): InsuranceSummaryMetrics => {
   const activeInsurances = insurancesStore.filter(ins => ins.status === "Active").length;
   const totalCoverage = insurancesStore.reduce((acc, ins) => acc + ins.coverageAmount, 0);
-  const remainingCoverage = insurancesStore.reduce((acc, ins) => acc + ins.remainingCoverage, 0);
+  
+  // Calculate remaining coverage: only deduct settled claims from aggregate policies
+  let totalRemainingCoverage = 0;
+  for (const insurance of insurancesStore) {
+    if (insurance.limitType === "Aggregate") {
+      // For aggregate, calculate based on settled claims
+      const settledClaimsForPolicy = claimsStore
+        .filter(claim => 
+          claim.type === "Insurance" && 
+          claim.referenceId === insurance.id && 
+          claim.status === "Settled"
+        )
+        .reduce((acc, claim) => acc + claim.amount, 0);
+      totalRemainingCoverage += Math.max(0, insurance.coverageAmount - settledClaimsForPolicy);
+    } else {
+      // For per occurrence, remaining coverage equals coverage amount
+      totalRemainingCoverage += insurance.coverageAmount;
+    }
+  }
+  
   const annualPremiums = insurancesStore.reduce((acc, ins) => acc + ins.annualPremium, 0);
   
   const coveredAssetIds = new Set(insurancesStore.flatMap(ins => ins.assetsCovered.map(a => a.id)));
@@ -65,7 +75,7 @@ const calculateInsuranceSummary = (): InsuranceSummaryMetrics => {
   return {
     activeInsurances,
     totalCoverage,
-    remainingCoverage,
+    remainingCoverage: totalRemainingCoverage,
     annualPremiums,
     assetsCovered,
     assetsNotCovered,
@@ -95,9 +105,9 @@ const calculateWarrantySummary = (): WarrantySummaryMetrics => {
 const calculateClaimSummary = (): ClaimSummaryMetrics => {
   const totalClaims = claimsStore.length;
   const pendingClaims = claimsStore.filter(claim => claim.status === "Filed").length;
-  const settledClaims = claimsStore.filter(claim => claim.status === "Settled" || claim.status === "Approved").length;
+  const settledClaims = claimsStore.filter(claim => claim.status === "Settled").length;
   const totalSettlementAmount = claimsStore
-    .filter(claim => claim.status === "Settled" || claim.status === "Approved")
+    .filter(claim => claim.status === "Settled")
     .reduce((acc, claim) => acc + claim.amount, 0);
   const rejectedClaims = claimsStore.filter(claim => claim.status === "Rejected").length;
   
@@ -118,7 +128,8 @@ export const fetchInsurances = (): Promise<CoverageInsurance[]> => {
 export const createInsurance = (data: CoverageInsurancePayload): Promise<CoverageInsurance> => {
   const id = `POL-${String(nextInsuranceId++).padStart(3, '0')}`;
   const status = calculateInsuranceStatus(data.startDate, data.expiryDate);
-  const totalClaimed = data.coverageAmount - data.remainingCoverage;
+  // totalClaimed will be 0 for new insurance
+  const totalClaimed = 0;
   
   const newInsurance: CoverageInsurance = {
     ...data,
@@ -136,13 +147,21 @@ export const updateInsurance = (id: string, data: CoverageInsurancePayload): Pro
   if (index === -1) throw new Error("Insurance policy not found");
   
   const status = calculateInsuranceStatus(data.startDate, data.expiryDate);
-  const totalClaimed = data.coverageAmount - data.remainingCoverage;
+  
+  // Calculate totalClaimed based on settled claims only
+  const settledClaimsForPolicy = claimsStore
+    .filter(claim => 
+      claim.type === "Insurance" && 
+      claim.referenceId === id && 
+      claim.status === "Settled"
+    )
+    .reduce((acc, claim) => acc + claim.amount, 0);
   
   const updated: CoverageInsurance = {
     ...data,
     id,
     status,
-    totalClaimed,
+    totalClaimed: settledClaimsForPolicy,
   };
   
   insurancesStore[index] = updated;
@@ -211,17 +230,27 @@ export const createClaim = (data: CoverageClaimPayload): Promise<CoverageClaim> 
   
   claimsStore.unshift(newClaim);
   
-  // Update insurance remaining coverage
-  if (newClaim.type === "Insurance") {
+  // Update insurance remaining coverage and totalClaimed - only for Aggregate type and Settled status
+  if (newClaim.type === "Insurance" && newClaim.status === "Settled") {
     const insuranceIndex = insurancesStore.findIndex(ins => ins.id === newClaim.referenceId);
     if (insuranceIndex !== -1) {
       const insurance = insurancesStore[insuranceIndex];
-      const newRemainingCoverage = Math.max(0, insurance.remainingCoverage - amount);
-      insurancesStore[insuranceIndex] = {
-        ...insurance,
-        remainingCoverage: newRemainingCoverage,
-        totalClaimed: insurance.coverageAmount - newRemainingCoverage,
-      };
+      // Only deduct if limit type is Aggregate
+      if (insurance.limitType === "Aggregate") {
+        const newRemainingCoverage = Math.max(0, insurance.remainingCoverage - amount);
+        const settledClaimsTotal = claimsStore
+          .filter(claim => 
+            claim.type === "Insurance" && 
+            claim.referenceId === insurance.id && 
+            claim.status === "Settled"
+          )
+          .reduce((acc, claim) => acc + claim.amount, 0);
+        insurancesStore[insuranceIndex] = {
+          ...insurance,
+          remainingCoverage: newRemainingCoverage,
+          totalClaimed: settledClaimsTotal,
+        };
+      }
     }
   }
   
@@ -249,23 +278,63 @@ export const updateClaim = (id: string, data: CoverageClaimPayload): Promise<Cov
   
   claimsStore[index] = updated;
   
-  // Adjust insurance coverage if amount changed
+  // Adjust insurance coverage if status or amount changed - only for Aggregate type
   if (updated.type === "Insurance") {
-    const amountDifference = safeAmount - oldAmount;
-    if (amountDifference !== 0) {
-      const insuranceIndex = insurancesStore.findIndex(ins => ins.id === updated.referenceId);
+    const insuranceIndex = insurancesStore.findIndex(ins => ins.id === updated.referenceId);
     
-      if (insuranceIndex !== -1) {
-        const insurance = insurancesStore[insuranceIndex];
-        const newRemainingCoverage = Math.min(
-          insurance.coverageAmount,
-          Math.max(0, insurance.remainingCoverage - amountDifference)
-        );
-        insurancesStore[insuranceIndex] = {
-          ...insurance,
-          remainingCoverage: newRemainingCoverage,
-          totalClaimed: insurance.coverageAmount - newRemainingCoverage,
-        };
+    if (insuranceIndex !== -1) {
+      const insurance = insurancesStore[insuranceIndex];
+      // Only adjust if limit type is Aggregate
+      if (insurance.limitType === "Aggregate") {
+        let amountDifference = 0;
+        
+        // Calculate the difference based on status changes
+        const oldWasSettled = oldClaim.status === "Settled";
+        const newIsSettled = updated.status === "Settled";
+        
+        if (!oldWasSettled && newIsSettled) {
+          // Changed to Settled - deduct the full amount
+          amountDifference = safeAmount;
+        } else if (oldWasSettled && !newIsSettled) {
+          // Changed from Settled - restore the full amount
+          amountDifference = -oldAmount;
+        } else if (oldWasSettled && newIsSettled) {
+          // Both settled - adjust for amount change
+          amountDifference = safeAmount - oldAmount;
+        }
+        // If neither old nor new is Settled, no adjustment needed
+        
+        if (amountDifference !== 0) {
+          const newRemainingCoverage = Math.min(
+            insurance.coverageAmount,
+            Math.max(0, insurance.remainingCoverage - amountDifference)
+          );
+          const settledClaimsTotal = claimsStore
+            .filter(claim => 
+              claim.type === "Insurance" && 
+              claim.referenceId === insurance.id && 
+              claim.status === "Settled"
+            )
+            .reduce((acc, claim) => acc + claim.amount, 0);
+          insurancesStore[insuranceIndex] = {
+            ...insurance,
+            remainingCoverage: newRemainingCoverage,
+            totalClaimed: settledClaimsTotal,
+          };
+        } else {
+          // Even if no amount difference, recalculate totalClaimed
+          const settledClaimsTotal = claimsStore
+            .filter(claim => 
+              claim.type === "Insurance" && 
+              claim.referenceId === insurance.id && 
+              claim.status === "Settled"
+            )
+            .reduce((acc, claim) => acc + claim.amount, 0);
+          insurancesStore[insuranceIndex] = {
+            ...insurance,
+            totalClaimed: settledClaimsTotal,
+          };
+        }
       }
     }
   }
@@ -280,20 +349,32 @@ export const deleteClaim = (id: string): Promise<void> => {
   const claim = claimsStore[claimIndex];
   const amount = Number.isFinite(claim.amount) ? claim.amount : 0;
   
-  // Restore insurance coverage
-  if (claim.type === "Insurance") {
+  // Restore insurance coverage - only for Aggregate type and Settled claims
+  if (claim.type === "Insurance" && claim.status === "Settled") {
     const insuranceIndex = insurancesStore.findIndex(ins => ins.id === claim.referenceId);
     if (insuranceIndex !== -1) {
       const insurance = insurancesStore[insuranceIndex];
-      const newRemainingCoverage = Math.min(
-        insurance.coverageAmount,
-        insurance.remainingCoverage + amount
-      );
-      insurancesStore[insuranceIndex] = {
-        ...insurance,
-        remainingCoverage: newRemainingCoverage,
-        totalClaimed: insurance.coverageAmount - newRemainingCoverage,
-      };
+      // Only restore if limit type is Aggregate
+      if (insurance.limitType === "Aggregate") {
+        const newRemainingCoverage = Math.min(
+          insurance.coverageAmount,
+          insurance.remainingCoverage + amount
+        );
+        // Recalculate totalClaimed after removing this claim
+        const settledClaimsTotal = claimsStore
+          .filter(c => 
+            c.id !== id && // Exclude the claim being deleted
+            c.type === "Insurance" && 
+            c.referenceId === insurance.id && 
+            c.status === "Settled"
+          )
+          .reduce((acc, c) => acc + c.amount, 0);
+        insurancesStore[insuranceIndex] = {
+          ...insurance,
+          remainingCoverage: newRemainingCoverage,
+          totalClaimed: settledClaimsTotal,
+        };
+      }
     }
   }
   

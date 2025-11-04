@@ -127,7 +127,7 @@ export const LogWarrantyModal = ({
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, name: e.target.value });
                       }}
-                      placeholder="e.g. Robotics Extended Care"
+                      placeholder="Enter warranty name"
                     />
                   </div>
                   <div className="flex flex-col gap-2">
@@ -147,7 +147,7 @@ export const LogWarrantyModal = ({
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, warrantyNumber: e.target.value });
                       }}
-                      placeholder="e.g. OMNI-PR-2201"
+                      placeholder="Enter warranty number"
                     />
                   </div>
                 </div>

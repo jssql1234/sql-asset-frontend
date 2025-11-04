@@ -10,12 +10,7 @@ import { EMPTY_INSURANCE_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
 import { useCoverageModals } from "@/features/coverage/hooks/useCoverageModals";
 import { useCoverageSearch } from "@/features/coverage/hooks/useCoverageSearch";
-import {
-  useGetInsuranceSummary,
-  useCreateInsurance,
-  useUpdateInsurance,
-  useDeleteInsurance,
-} from "@/features/coverage/hooks/useCoverageService";
+import { useGetInsuranceSummary, useCreateInsurance, useUpdateInsurance, useDeleteInsurance } from "@/features/coverage/hooks/useCoverageService";
 
 const InsurancePage = () => {
   const { insurances } = useCoverageContext();

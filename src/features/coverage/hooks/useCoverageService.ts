@@ -1,17 +1,8 @@
 import { useDataQuery } from "@/hooks/useDataQuery";
 import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
-import type {
-  CoverageInsurance,
-  CoverageInsurancePayload,
-  CoverageWarranty,
-  CoverageWarrantyPayload,
-  CoverageClaim,
-  CoverageClaimPayload,
-  InsuranceSummaryMetrics,
-  WarrantySummaryMetrics,
-  ClaimSummaryMetrics,
-} from "../types";
+import type { CoverageInsurance, CoverageInsurancePayload, CoverageWarranty, CoverageWarrantyPayload, CoverageClaim,
+              CoverageClaimPayload, InsuranceSummaryMetrics, WarrantySummaryMetrics, ClaimSummaryMetrics } from "../types";
 import * as coverageService from "../services/coverageService";
 
 // Query keys for React Query cache management

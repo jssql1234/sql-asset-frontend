@@ -30,32 +30,48 @@ const ClaimPage = () => {
   const updateClaim = useUpdateClaim(closeClaimForm);
   const deleteClaim = useDeleteClaim(hideClaimDetails);
 
-  const matchClaim = useCallback((claim: CoverageClaim, query: string) => (
-    claim.claimNumber.toLowerCase().includes(query) ||
-    claim.referenceName.toLowerCase().includes(query) ||
-    claim.referenceId.toLowerCase().includes(query) ||
-    (claim.description?.toLowerCase().includes(query) ?? false) ||
-    claim.type.toLowerCase().includes(query) ||
-    claim.status.toLowerCase().includes(query) ||
-    claim.assets.some((asset) =>
-      asset.id.toLowerCase().includes(query) ||
-      asset.name.toLowerCase().includes(query)
-    )
-  ), []);
+  const matchClaim = useCallback(
+    (claim: CoverageClaim, query: string) =>
+      claim.claimNumber.toLowerCase().includes(query) ||
+      claim.referenceName.toLowerCase().includes(query) ||
+      claim.referenceId.toLowerCase().includes(query) ||
+      (claim.description?.toLowerCase().includes(query) ?? false) ||
+      claim.type.toLowerCase().includes(query) ||
+      claim.status.toLowerCase().includes(query) ||
+      claim.assets.some(
+        (asset) =>
+          asset.id.toLowerCase().includes(query) ||
+          asset.name.toLowerCase().includes(query)
+      ),
+    []
+  );
 
-  const { query: searchQuery, setQuery: setSearchQuery, filteredItems: filteredClaims } = useCoverageSearch(claims, matchClaim);
+  const {
+    query: searchQuery,
+    setQuery: setSearchQuery,
+    filteredItems: filteredClaims,
+  } = useCoverageSearch(claims, matchClaim);
 
-  const handleCreateClaim = useCallback((data: CoverageClaimPayload) => {
-    createClaim.mutate(data);
-  }, [createClaim]);
+  const handleCreateClaim = useCallback(
+    (data: CoverageClaimPayload) => {
+      createClaim.mutate(data);
+    },
+    [createClaim]
+  );
 
-  const handleUpdateClaim = useCallback((id: string, data: CoverageClaimPayload) => {
-    updateClaim.mutate({ id, data });
-  }, [updateClaim]);
+  const handleUpdateClaim = useCallback(
+    (id: string, data: CoverageClaimPayload) => {
+      updateClaim.mutate({ id, data });
+    },
+    [updateClaim]
+  );
 
-  const handleDeleteClaim = useCallback((claim: CoverageClaim) => {
-    deleteClaim.mutate(claim.id);
-  }, [deleteClaim]);
+  const handleDeleteClaim = useCallback(
+    (claim: CoverageClaim) => {
+      deleteClaim.mutate(claim.id);
+    },
+    [deleteClaim]
+  );
 
   return (
     <>
@@ -75,9 +91,20 @@ const ClaimPage = () => {
 
         <ClaimSummaryCards summary={claimSummary} />
 
-        <Search searchValue={searchQuery} searchPlaceholder="Search by claim number, asset, or policy" onSearch={setSearchQuery} live/>
+        <Search
+          searchValue={searchQuery}
+          searchPlaceholder="Search by claim number, asset, or policy"
+          onSearch={setSearchQuery}
+          live
+        />
 
-        <CoverageTable variant="claims" claims={filteredClaims} onViewClaim={showClaimDetails} onEditClaim={openClaimForm} onDeleteClaim={handleDeleteClaim}/>
+        <CoverageTable
+          variant="claims"
+          claims={filteredClaims}
+          onViewClaim={showClaimDetails}
+          onEditClaim={openClaimForm}
+          onDeleteClaim={handleDeleteClaim}
+        />
       </div>
 
       <LogClaimModal

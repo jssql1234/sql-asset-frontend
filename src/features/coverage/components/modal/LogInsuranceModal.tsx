@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import {
   Button,
   Dialog,
@@ -16,9 +16,10 @@ import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
 import type { CoverageEntityAsset, CoverageInsurance, CoverageInsurancePayload, InsuranceLimitType } from "@/features/coverage/types";
 import { createInsuranceSchema, updateInsuranceSchema } from "@/features/coverage/zod/coverageSchemas";
+import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
+import { CoverageFormSection } from "../LogModal";
 
 interface LogInsuranceModalProps {
   open: boolean;
@@ -68,32 +69,7 @@ export const LogInsuranceModal = ({
 }: LogInsuranceModalProps) => {
   const isEditing = Boolean(insurance);
 
-  const assetCategories = useMemo(
-    () => [
-      { id: "all", label: "All Assets" },
-      ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
-    ],
-    []
-  );
-
-  const assetOptions = useMemo(
-    () =>
-      coverageAssets.map((asset) => ({
-        id: asset.id,
-        label: `${asset.name} (${asset.id})`,
-        sublabel: asset.groupLabel,
-      })),
-    []
-  );
-
-  const assetNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    assetOptions.forEach((option) => {
-      const [name] = option.label.split(" (");
-      map.set(option.id, name);
-    });
-    return map;
-  }, [assetOptions]);
+  const { assetCategories, assetOptions, assetNameById } = useCoverageAssetCatalog();
 
   const [insuranceData, setInsuranceData] = useState<InsuranceFormState>(() => buildInitialFormState(insurance));
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>(
@@ -173,12 +149,8 @@ export const LogInsuranceModal = ({
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Policy Details</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <CoverageFormSection title="Policy Details">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Policy Name *</label>
                     <Input
@@ -348,50 +320,39 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                 </div>
-              </div>
-            </div>
+            </CoverageFormSection>
 
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
-              </div>
-              <div className="space-y-3">
-                <SearchWithDropdown
-                  categories={assetCategories}
-                  selectedCategoryId={selectedAssetCategory}
-                  onCategoryChange={setSelectedAssetCategory}
-                  items={assetOptions}
-                  selectedIds={selectedAssetIds}
-                  onSelectionChange={(ids) => {
-                    setSelectedAssetIds(ids);
-                    clearFieldError("assetsCovered");
-                  }}
-                  placeholder="Search assets by name or ID"
-                  emptyMessage="No assets found"
-                  hideSelectedField={selectedAssetIds.length === 0}
-                />
-                {fieldErrors.assetsCovered ? (
-                  <span className="label-small text-error">{fieldErrors.assetsCovered}</span>
-                ) : null}
-              </div>
-            </div>
+            <CoverageFormSection title="Assets Covered">
+              <SearchWithDropdown
+                categories={assetCategories}
+                selectedCategoryId={selectedAssetCategory}
+                onCategoryChange={setSelectedAssetCategory}
+                items={assetOptions}
+                selectedIds={selectedAssetIds}
+                onSelectionChange={(ids) => {
+                  setSelectedAssetIds(ids);
+                  clearFieldError("assetsCovered");
+                }}
+                placeholder="Search assets by name or ID"
+                emptyMessage="No assets found"
+                hideSelectedField={selectedAssetIds.length === 0}
+              />
+              {fieldErrors.assetsCovered ? (
+                <span className="label-small text-error">{fieldErrors.assetsCovered}</span>
+              ) : null}
+            </CoverageFormSection>
 
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Description</h3>
-              </div>
-              <div className="space-y-3">
-                <TextArea
-                  rows={3}
-                  value={insuranceData.description}
-                  onChange={(event) => {
-                    setInsuranceData({ ...insuranceData, description: event.target.value });
-                    clearFieldError("description");
-                  }}
-                  placeholder="Describe coverage, deductibles, or asset-specific clauses"
-                />
-              </div>
-            </div>
+            <CoverageFormSection title="Description">
+              <TextArea
+                rows={3}
+                value={insuranceData.description}
+                onChange={(event) => {
+                  setInsuranceData({ ...insuranceData, description: event.target.value });
+                  clearFieldError("description");
+                }}
+                placeholder="Describe coverage, deductibles, or asset-specific clauses"
+              />
+            </CoverageFormSection>
 
             <DialogFooter className="flex justify-end">
               <Button

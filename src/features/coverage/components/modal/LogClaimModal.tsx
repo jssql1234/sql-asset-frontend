@@ -4,8 +4,10 @@ import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-import { coverageAssets, coverageAssetGroups, getCoverageAssetName } from "@/features/coverage/mockData";
+import { getCoverageAssetName } from "@/features/coverage/mockData";
 import type { CoverageInsurance, CoverageWarranty, CoverageClaim, CoverageClaimPayload, ClaimType, ClaimStatus } from "@/features/coverage/types";
+import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
+import { CoverageFormSection } from "../LogModal";
 
 const EMPTY_POLICIES: readonly CoverageInsurance[] = [];
 const EMPTY_WARRANTIES: readonly CoverageWarranty[] = [];
@@ -60,40 +62,25 @@ export const LogClaimModal = ({
       : warranties ?? EMPTY_WARRANTIES;
   }, [claimType, policies, warranties]);
 
-  const assetCategories = useMemo(
-    () => [
-      { id: "all", label: "All Assets" },
-      ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
-    ],
-    []
-  );
+  const { assetCategories, assetOptions, assetNameById } = useCoverageAssetCatalog();
 
-  const mockAssets = useMemo(() => {
-    // Get all assets
-    const allAssets = coverageAssets.map((asset) => ({
-      id: asset.id,
-      label: `${asset.name} (${asset.id})`,
-      sublabel: asset.groupLabel,
-    }));
-
-    // Filter assets based on selected policy/warranty
+  const availableAssets = useMemo(() => {
     if (!referenceId) {
-      return allAssets;
+      return assetOptions;
     }
 
-    const selectedReference = references.find(ref => ref.id === referenceId);
+    const selectedReference = references.find((ref) => ref.id === referenceId);
     if (!selectedReference?.assetsCovered) {
-      return allAssets;
+      return assetOptions;
     }
 
-    // Only show assets that are covered by the selected policy/warranty
-    const coveredAssetIds = new Set(selectedReference.assetsCovered.map(a => a.id));
-    return allAssets.filter(asset => coveredAssetIds.has(asset.id));
-  }, [referenceId, references]);
+    const coveredAssetIds = new Set(selectedReference.assetsCovered.map((asset) => asset.id));
+    return assetOptions.filter((asset) => coveredAssetIds.has(asset.id));
+  }, [assetOptions, referenceId, references]);
 
   useEffect(() => {
-    setSelectedAssetIds((prev) => prev.filter((id) => mockAssets.some((asset) => asset.id === id)));
-  }, [mockAssets]);
+    setSelectedAssetIds((prev) => prev.filter((id) => availableAssets.some((asset) => asset.id === id)));
+  }, [availableAssets]);
 
   // Reset form when claim prop changes (for edit mode) or when modal opens/closes
   useEffect(() => {
@@ -120,15 +107,10 @@ export const LogClaimModal = ({
     event.preventDefault();
     
     // Get selected assets with their names
-    const assets = selectedAssetIds.map((id) => {
-      const asset = mockAssets.find((a) => a.id === id);
-      const fallbackName = getCoverageAssetName(id);
-      const label = asset?.label.split(" (")[0] ?? fallbackName;
-      return {
-        id,
-        name: label,
-      };
-    });
+    const assets = selectedAssetIds.map((id) => ({
+      id,
+      name: assetNameById.get(id) ?? getCoverageAssetName(id),
+    }));
     
     // Find reference name
     const reference = references.find(ref => ref.id === referenceId);
@@ -166,174 +148,154 @@ export const LogClaimModal = ({
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-            {/* Claim Details Section */}
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Claim Details</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Claim Type *</label>
-                    {isEditing ? (
-                      <Input value={claimType} disabled />
-                    ) : (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger label={claimType} className="w-full justify-between" />
-                        <DropdownMenuContent>
-                          {(["Insurance", "Warranty"] as ClaimType[]).map((type) => (
-                            <DropdownMenuItem
-                              key={type}
-                              onClick={() => {
-                                setClaimType(type);
-                                setReferenceId("");
-                                setSelectedAssetIds([]);
-                              }}
-                            >
-                              {type}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Policy / Warranty *</label>
-                    {isEditing ? (
-                      <Input
-                        value={references.find((item) => item.id === referenceId)?.name ?? claim?.referenceName ?? ""}
-                        disabled
-                      />
-                    ) : (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger
-                          label={
-                            referenceId
-                              ? references.find((item) => item.id === referenceId)?.name ??
-                                "Select reference"
-                              : "Select reference"
-                          }
-                          className="w-full justify-between"
-                        />
-                        <DropdownMenuContent className="max-h-64 min-w-[260px] overflow-y-auto">
-                          {references.map((item) => (
-                            <DropdownMenuItem
-                              key={item.id}
-                              onClick={() => {
-                                setReferenceId(item.id);
-                                setSelectedAssetIds([]);
-                              }}
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-medium">{item.name}</span>
-                                <span className="body-small text-onSurfaceVariant">{item.id}</span>
-                              </div>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Claim Number *</label>
-                    <Input
-                      value={claimData.claimNumber}
-                      onChange={(e) => {
-                        if (isEditing) return;
-                        setClaimData({ ...claimData, claimNumber: e.target.value });
-                      }}
-                      disabled={isEditing}
-                      placeholder="e.g. CLM-2025-118"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Incident Date *</label>
-                    <SemiDatePicker
-                      value={claimData.dateFiled ? new Date(claimData.dateFiled) : null}
-                      onChange={(date) => {
-                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
-                        setClaimData({ ...claimData, dateFiled: isoDate });
-                      }}
-                      inputType="date"
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Claim Amount *</label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={claimData.amount}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value);
-                        setClaimData({ ...claimData, amount: Number.isNaN(value) ? 0 : value });
-                      }}
-                      placeholder="Enter claim amount"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Claim Status *</label>
+            <CoverageFormSection title="Claim Details">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="flex flex-col gap-2">
+                  <label className="body-small text-onSurface">Claim Type *</label>
+                  {isEditing ? (
+                    <Input value={claimType} disabled />
+                  ) : (
                     <DropdownMenu>
-                      <DropdownMenuTrigger label={claimStatus} className="w-full justify-between" />
+                      <DropdownMenuTrigger label={claimType} className="w-full justify-between" />
                       <DropdownMenuContent>
-                        {(["Filed", "Approved", "Settled", "Rejected"] as ClaimStatus[]).map(
-                          (status) => (
-                            <DropdownMenuItem
-                              key={status}
-                              onClick={() => {
-                                setClaimStatus(status);
-                              }}
-                            >
-                              {status}
-                            </DropdownMenuItem>
-                          )
-                        )}
+                        {(["Insurance", "Warranty"] as ClaimType[]).map((type) => (
+                          <DropdownMenuItem
+                            key={type}
+                            onClick={() => {
+                              setClaimType(type);
+                              setReferenceId("");
+                              setSelectedAssetIds([]);
+                            }}
+                          >
+                            {type}
+                          </DropdownMenuItem>
+                        ))}
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="body-small text-onSurface">Policy / Warranty *</label>
+                  {isEditing ? (
+                    <Input
+                      value={references.find((item) => item.id === referenceId)?.name ?? claim?.referenceName ?? ""}
+                      disabled
+                    />
+                  ) : (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        label={
+                          referenceId
+                            ? references.find((item) => item.id === referenceId)?.name ?? "Select reference"
+                            : "Select reference"
+                        }
+                        className="w-full justify-between"
+                      />
+                      <DropdownMenuContent className="max-h-64 min-w-[260px] overflow-y-auto">
+                        {references.map((item) => (
+                          <DropdownMenuItem
+                            key={item.id}
+                            onClick={() => {
+                              setReferenceId(item.id);
+                              setSelectedAssetIds([]);
+                            }}
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{item.name}</span>
+                              <span className="body-small text-onSurfaceVariant">{item.id}</span>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="body-small text-onSurface">Claim Number *</label>
+                  <Input
+                    value={claimData.claimNumber}
+                    onChange={(event) => {
+                      if (isEditing) return;
+                      setClaimData({ ...claimData, claimNumber: event.target.value });
+                    }}
+                    disabled={isEditing}
+                    placeholder="e.g. CLM-2025-118"
+                  />
                 </div>
               </div>
-            </div>
 
-            {/* Assets Section */}
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Assets</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="flex flex-col gap-2">
+                  <label className="body-small text-onSurface">Incident Date *</label>
+                  <SemiDatePicker
+                    value={claimData.dateFiled ? new Date(claimData.dateFiled) : null}
+                    onChange={(date) => {
+                      const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                      setClaimData({ ...claimData, dateFiled: isoDate });
+                    }}
+                    inputType="date"
+                    className="w-full"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="body-small text-onSurface">Claim Amount *</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={claimData.amount}
+                    onChange={(event) => {
+                      const value = Number.parseFloat(event.target.value);
+                      setClaimData({ ...claimData, amount: Number.isNaN(value) ? 0 : value });
+                    }}
+                    placeholder="Enter claim amount"
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <label className="body-small text-onSurface">Claim Status *</label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger label={claimStatus} className="w-full justify-between" />
+                    <DropdownMenuContent>
+                      {(["Filed", "Approved", "Settled", "Rejected"] as ClaimStatus[]).map((status) => (
+                        <DropdownMenuItem
+                          key={status}
+                          onClick={() => {
+                            setClaimStatus(status);
+                          }}
+                        >
+                          {status}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
-              <div className="space-y-3">
-                <SearchWithDropdown
-                  categories={assetCategories}
-                  selectedCategoryId={selectedAssetCategory}
-                  onCategoryChange={setSelectedAssetCategory}
-                  items={mockAssets}
-                  selectedIds={selectedAssetIds}
-                  onSelectionChange={setSelectedAssetIds}
-                  placeholder="Search assets by name or ID"
-                  emptyMessage="No assets found"
-                  hideSelectedField={selectedAssetIds.length === 0}
-                />
-              </div>
-            </div>
+            </CoverageFormSection>
 
-            {/* Description Section */}
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Description</h3>
-              </div>
-              <div className="space-y-3">
-                <TextArea
-                  rows={4}
-                  value={claimData.description}
-                  onChange={(e) => {
-                    setClaimData({ ...claimData, description: e.target.value });
-                  }}
-                  placeholder="Provide summary of incident, damages, or supporting notes"
-                />
-              </div>
-            </div>
+            <CoverageFormSection title="Assets">
+              <SearchWithDropdown
+                categories={assetCategories}
+                selectedCategoryId={selectedAssetCategory}
+                onCategoryChange={setSelectedAssetCategory}
+                items={availableAssets}
+                selectedIds={selectedAssetIds}
+                onSelectionChange={setSelectedAssetIds}
+                placeholder="Search assets by name or ID"
+                emptyMessage="No assets found"
+                hideSelectedField={selectedAssetIds.length === 0}
+              />
+            </CoverageFormSection>
+
+            <CoverageFormSection title="Description">
+              <TextArea
+                rows={4}
+                value={claimData.description}
+                onChange={(e) => {
+                  setClaimData({ ...claimData, description: e.target.value });
+                }}
+                placeholder="Provide summary of incident, damages, or supporting notes"
+              />
+            </CoverageFormSection>
 
             <DialogFooter className="flex justify-end">
               <Button

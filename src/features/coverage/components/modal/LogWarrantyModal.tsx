@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
 import type { CoverageEntityAsset, CoverageWarranty, CoverageWarrantyPayload } from "@/features/coverage/types";
+import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
+import { CoverageFormSection } from "../LogModal";
 
 interface LogWarrantyModalProps {
   open: boolean;
@@ -35,32 +36,7 @@ export const LogWarrantyModal = ({
 }: LogWarrantyModalProps) => {
   const isEditing = Boolean(warranty);
 
-  const assetCategories = useMemo(
-    () => [
-      { id: "all", label: "All Assets" },
-      ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
-    ],
-    []
-  );
-
-  const assetOptions = useMemo(
-    () =>
-      coverageAssets.map((asset) => ({
-        id: asset.id,
-        label: `${asset.name} (${asset.id})`,
-        sublabel: asset.groupLabel,
-      })),
-    []
-  );
-
-  const assetNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    assetOptions.forEach((option) => {
-      const [name] = option.label.split(" (");
-      map.set(option.id, name);
-    });
-    return map;
-  }, [assetOptions]);
+  const { assetCategories, assetOptions, assetNameById } = useCoverageAssetCatalog();
 
   const [warrantyData, setWarrantyData] = useState<WarrantyFormState>(() => {
     const today = new Date();
@@ -142,13 +118,8 @@ export const LogWarrantyModal = ({
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-            {/* Warranty Details Section */}
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Warranty Details</h3>
-              </div>
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <CoverageFormSection title="Warranty Details">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Warranty Name *</label>
                     <Input
@@ -223,45 +194,32 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                 </div>
-              </div>
-            </div>
+            </CoverageFormSection>
 
-            {/* Assets Covered Section */}
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
-              </div>
-              <div className="space-y-3">
-                <SearchWithDropdown
-                  categories={assetCategories}
-                  selectedCategoryId={selectedAssetCategory}
-                  onCategoryChange={setSelectedAssetCategory}
-                  items={assetOptions}
-                  selectedIds={selectedAssetIds}
-                  onSelectionChange={setSelectedAssetIds}
-                  placeholder="Search assets by name or ID"
-                  emptyMessage="No assets found"
-                  hideSelectedField={selectedAssetIds.length === 0}
-                />
-              </div>
-            </div>
+            <CoverageFormSection title="Assets Covered">
+              <SearchWithDropdown
+                categories={assetCategories}
+                selectedCategoryId={selectedAssetCategory}
+                onCategoryChange={setSelectedAssetCategory}
+                items={assetOptions}
+                selectedIds={selectedAssetIds}
+                onSelectionChange={setSelectedAssetIds}
+                placeholder="Search assets by name or ID"
+                emptyMessage="No assets found"
+                hideSelectedField={selectedAssetIds.length === 0}
+              />
+            </CoverageFormSection>
 
-            {/* Description Section */}
-            <div className="space-y-4 bg-surfaceContainer">
-              <div className="space-y-1">
-                <h3 className="title-small font-semibold text-onSurface">Description</h3>
-              </div>
-              <div className="space-y-3">
-                <TextArea
-                  rows={3}
-                  value={warrantyData.description}
-                  onChange={(e) => {
-                    setWarrantyData({ ...warrantyData, description: e.target.value });
-                  }}
-                  placeholder="Important clauses, limitations, service windows, etc."
-                />
-              </div>
-            </div>
+            <CoverageFormSection title="Description">
+              <TextArea
+                rows={3}
+                value={warrantyData.description}
+                onChange={(e) => {
+                  setWarrantyData({ ...warrantyData, description: e.target.value });
+                }}
+                placeholder="Important clauses, limitations, service windows, etc."
+              />
+            </CoverageFormSection>
 
             <DialogFooter className="flex justify-end">
               <Button

@@ -54,6 +54,11 @@ export const LogClaimModal = ({
   );
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
+  
+  // Track amount as string to allow clearing
+  const [amountInput, setAmountInput] = useState<string>(
+    claim?.amount.toString() ?? ""
+  );
 
   // Computed values that depend on state
   const references = useMemo((): readonly (CoverageInsurance | CoverageWarranty)[] => {
@@ -98,6 +103,7 @@ export const LogClaimModal = ({
         description: claim?.description ?? "",
       });
       
+      setAmountInput(claim?.amount.toString() ?? "");
       setSelectedAssetIds(claim?.assets.map((a) => a.id) ?? []);
       setSelectedAssetCategory("all");
     }
@@ -243,10 +249,12 @@ export const LogClaimModal = ({
                     type="number"
                     min={0}
                     step="0.01"
-                    value={claimData.amount}
+                    value={amountInput}
                     onChange={(event) => {
-                      const value = Number.parseFloat(event.target.value);
-                      setClaimData({ ...claimData, amount: Number.isNaN(value) ? 0 : value });
+                      const inputValue = event.target.value;
+                      setAmountInput(inputValue);
+                      const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
+                      setClaimData({ ...claimData, amount: Number.isNaN(numValue) ? 0 : numValue });
                     }}
                     placeholder="Enter claim amount"
                   />

@@ -31,7 +31,7 @@ export function DowntimeSummaryCard({ summary }: DowntimeSummaryCardProps) {
         label: "Total Downtime",
         value: summary.totalDowntime,
         description: "Cumulative duration",
-        tone: "warning",
+        tone: "default",
       },
     ],
     [summary]

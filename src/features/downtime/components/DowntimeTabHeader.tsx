@@ -1,4 +1,4 @@
-import React from "react";
+
 import { TabHeader } from "@/components/TabHeader";
 
 interface DowntimeTabHeaderProps {
@@ -6,10 +6,10 @@ interface DowntimeTabHeaderProps {
   onLogDowntime: () => void;
 }
 
-export const DowntimeTabHeader: React.FC<DowntimeTabHeaderProps> = ({
+export function DowntimeTabHeader({
   onViewResolved,
   onLogDowntime,
-}) => {
+}: DowntimeTabHeaderProps) {
   return (
     <TabHeader
       title="Downtime Tracking"

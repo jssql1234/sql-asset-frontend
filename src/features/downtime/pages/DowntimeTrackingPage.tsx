@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import type { DowntimeIncident, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
@@ -9,7 +9,7 @@ import { DowntimeTabHeader } from "@/features/downtime/components/DowntimeTabHea
 import { useGetDowntimeIncidents, useGetDowntimeSummary, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 
-const DowntimeTrackingPage: React.FC = () => {
+function DowntimeTrackingPage() {
   // Fetch data using hooks
   const { data: allIncidents = [] } = useGetDowntimeIncidents();
   const { data: summary } = useGetDowntimeSummary();

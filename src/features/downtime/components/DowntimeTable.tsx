@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -15,12 +15,12 @@ interface DowntimeTableProps {
   onVisibleColumnsChange?: (columns: ColumnDef<DowntimeIncident>[]) => void;
 }
 
-export const DowntimeTable: React.FC<DowntimeTableProps> = ({
+export function DowntimeTable({
   incidents,
   onEditIncident,
   onDeleteIncident,
   onVisibleColumnsChange,
-}) => {
+}: DowntimeTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [visibleColumns, setVisibleColumns] = useState<ColumnDef<DowntimeIncident>[]>([]);
 

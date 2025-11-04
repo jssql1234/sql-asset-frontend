@@ -77,6 +77,17 @@ export const LogInsuranceModal = ({
   );
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
   const [fieldErrors, setFieldErrors] = useState<InsuranceFieldErrors>({});
+  
+  // Track empty numeric fields as strings to allow clearing
+  const [annualPremiumInput, setAnnualPremiumInput] = useState<string>(
+    insurance?.annualPremium.toString() ?? ""
+  );
+  const [coverageAmountInput, setCoverageAmountInput] = useState<string>(
+    insurance?.coverageAmount.toString() ?? ""
+  );
+  const [remainingCoverageInput, setRemainingCoverageInput] = useState<string>(
+    insurance?.remainingCoverage.toString() ?? ""
+  );
 
   const clearFieldError = (field: InsuranceField) => {
     setFieldErrors((prev) => {
@@ -98,6 +109,9 @@ export const LogInsuranceModal = ({
     setSelectedAssetIds(insurance?.assetsCovered.map((asset) => asset.id) ?? []);
     setSelectedAssetCategory("all");
     setFieldErrors({});
+    setAnnualPremiumInput(insurance?.annualPremium.toString() ?? "");
+    setCoverageAmountInput(insurance?.coverageAmount.toString() ?? "");
+    setRemainingCoverageInput(insurance?.remainingCoverage.toString() ?? "");
   }, [insurance, open]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -157,7 +171,7 @@ export const LogInsuranceModal = ({
                         setInsuranceData({ ...insuranceData, name: event.target.value });
                         clearFieldError("name");
                       }}
-                      placeholder="e.g. Comprehensive Equipment Protection"
+                      placeholder="Enter policy name"
                     />
                     {fieldErrors.name ? (
                       <span className="label-small text-error">{fieldErrors.name}</span>
@@ -185,7 +199,7 @@ export const LogInsuranceModal = ({
                         setInsuranceData({ ...insuranceData, policyNumber: event.target.value });
                         clearFieldError("policyNumber");
                       }}
-                      placeholder="e.g. AIB-CEQ-2025-01"
+                      placeholder="Enter policy number"
                     />
                     {fieldErrors.policyNumber ? (
                       <span className="label-small text-error">{fieldErrors.policyNumber}</span>
@@ -197,12 +211,14 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.annualPremium}
+                      value={annualPremiumInput}
                       onChange={(event) => {
-                        const value = event.target.value === "" ? 0 : Number.parseFloat(event.target.value) || 0;
+                        const inputValue = event.target.value;
+                        setAnnualPremiumInput(inputValue);
+                        const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
                         setInsuranceData({
                           ...insuranceData,
-                          annualPremium: value,
+                          annualPremium: Number.isNaN(numValue) ? 0 : numValue,
                         });
                         clearFieldError("annualPremium");
                       }}
@@ -218,13 +234,16 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.coverageAmount}
+                      value={coverageAmountInput}
                       onChange={(event) => {
-                        const value = event.target.value === "" ? 0 : Number.parseFloat(event.target.value) || 0;
+                        const inputValue = event.target.value;
+                        setCoverageAmountInput(inputValue);
+                        setRemainingCoverageInput(inputValue);
+                        const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
                         setInsuranceData({
                           ...insuranceData,
-                          coverageAmount: value,
-                          remainingCoverage: value,
+                          coverageAmount: Number.isNaN(numValue) ? 0 : numValue,
+                          remainingCoverage: Number.isNaN(numValue) ? 0 : numValue,
                         });
                         clearFieldError("coverageAmount");
                         clearFieldError("remainingCoverage");
@@ -241,12 +260,14 @@ export const LogInsuranceModal = ({
                       type="number"
                       min={0}
                       step="0.01"
-                      value={insuranceData.remainingCoverage}
+                      value={remainingCoverageInput}
                       onChange={(event) => {
-                        const value = event.target.value === "" ? 0 : Number.parseFloat(event.target.value) || 0;
+                        const inputValue = event.target.value;
+                        setRemainingCoverageInput(inputValue);
+                        const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
                         setInsuranceData({
                           ...insuranceData,
-                          remainingCoverage: value,
+                          remainingCoverage: Number.isNaN(numValue) ? 0 : numValue,
                         });
                         clearFieldError("remainingCoverage");
                       }}

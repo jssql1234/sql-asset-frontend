@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import Search from "@/components/Search";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
@@ -10,7 +9,6 @@ import type { CoverageClaim, CoverageClaimPayload } from "@/features/coverage/ty
 import { EMPTY_CLAIM_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
 import { useCoverageModals } from "@/features/coverage/hooks/useCoverageModals";
-import { useCoverageSearch } from "@/features/coverage/hooks/useCoverageSearch";
 import { useGetClaimSummary, useCreateClaim, useUpdateClaim, useDeleteClaim } from "@/features/coverage/hooks/useCoverageService";
 
 const ClaimPage = () => {
@@ -29,28 +27,6 @@ const ClaimPage = () => {
   const createClaim = useCreateClaim(closeClaimForm);
   const updateClaim = useUpdateClaim(closeClaimForm);
   const deleteClaim = useDeleteClaim(hideClaimDetails);
-
-  const matchClaim = useCallback(
-    (claim: CoverageClaim, query: string) =>
-      claim.claimNumber.toLowerCase().includes(query) ||
-      claim.referenceName.toLowerCase().includes(query) ||
-      claim.referenceId.toLowerCase().includes(query) ||
-      (claim.description?.toLowerCase().includes(query) ?? false) ||
-      claim.type.toLowerCase().includes(query) ||
-      claim.status.toLowerCase().includes(query) ||
-      claim.assets.some(
-        (asset) =>
-          asset.id.toLowerCase().includes(query) ||
-          asset.name.toLowerCase().includes(query)
-      ),
-    []
-  );
-
-  const {
-    query: searchQuery,
-    setQuery: setSearchQuery,
-    filteredItems: filteredClaims,
-  } = useCoverageSearch(claims, matchClaim);
 
   const handleCreateClaim = useCallback(
     (data: CoverageClaimPayload) => {
@@ -91,16 +67,9 @@ const ClaimPage = () => {
 
         <ClaimSummaryCards summary={claimSummary} />
 
-        <Search
-          searchValue={searchQuery}
-          searchPlaceholder="Search by claim number, asset, or policy"
-          onSearch={setSearchQuery}
-          live
-        />
-
         <CoverageTable
           variant="claims"
-          claims={filteredClaims}
+          claims={claims}
           onViewClaim={showClaimDetails}
           onEditClaim={openClaimForm}
           onDeleteClaim={handleDeleteClaim}

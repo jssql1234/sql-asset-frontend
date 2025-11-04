@@ -40,19 +40,19 @@ export const InsuranceSummaryCards: React.FC<InsuranceSummaryCardsProps> = ({ su
         label: "Assets Not Covered",
         value: summary.assetsNotCovered,
         description: "Require insurance",
-        tone: summary.assetsNotCovered > 0 ? "warning" : "success",
+        tone: summary.assetsNotCovered > 0 ? "warning" : "default",
       },
       {
         label: "Expiring Soon (30d)",
         value: summary.expiringSoon,
         description: "Renewal needed",
-        tone: summary.expiringSoon > 0 ? "warning" : "success",
+        tone: summary.expiringSoon > 0 ? "warning" : "default",
       },
       {
         label: "Expired Policies",
         value: summary.expired,
         description: "Coverage lapsed",
-        tone: summary.expired > 0 ? "danger" : "success",
+        tone: summary.expired > 0 ? "danger" : "default",
       },
     ],
     [summary]
@@ -89,13 +89,13 @@ export const WarrantySummaryCards: React.FC<WarrantySummaryCardsProps> = ({ summ
         label: "Expiring Soon (30d)",
         value: summary.expiringSoon,
         description: "Renewal needed",
-        tone: summary.expiringSoon > 0 ? "warning" : "success",
+        tone: summary.expiringSoon > 0 ? "warning" : "default",
       },
       {
         label: "Expired Warranties",
         value: summary.expired,
         description: "Coverage lapsed",
-        tone: summary.expired > 0 ? "danger" : "success",
+        tone: summary.expired > 0 ? "danger" : "default",
       },
     ],
     [summary]
@@ -120,7 +120,7 @@ export const ClaimSummaryCards: React.FC<ClaimSummaryCardsProps> = ({ summary })
         label: "Pending Claims",
         value: summary.pendingClaims,
         description: "Awaiting review",
-        tone: summary.pendingClaims > 0 ? "warning" : "success",
+        tone: summary.pendingClaims > 0 ? "warning" : "default",
       },
       {
         label: "Settled Claims",
@@ -137,7 +137,7 @@ export const ClaimSummaryCards: React.FC<ClaimSummaryCardsProps> = ({ summary })
         label: "Rejected Claims",
         value: summary.rejectedClaims,
         description: "Not approved",
-        tone: summary.rejectedClaims > 0 ? "danger" : "success",
+        tone: summary.rejectedClaims > 0 ? "danger" : "default",
       },
     ],
     [summary]

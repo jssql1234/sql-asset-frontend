@@ -97,7 +97,7 @@ const InsurancesVariantTable = ({
           const policy = row.original;
           const limitTypeLabel = policy.limitType === "Aggregate" ? "(remaining)" : "(per claim)";
           return (
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-start">
               <span className="font-medium">
                 {formatCurrency(policy.remainingCoverage)}
               </span>
@@ -360,12 +360,19 @@ const ClaimsVariantTable = ({
         enableColumnFilter: true,
         filterFn: "multiSelect",
         enableSorting: true,
-        cell: ({ row }) => (
-          <Badge
-            text={row.original.type}
-            variant={row.original.type === "Insurance" ? "blue" : "green"}
-          />
-        ),
+        cell: ({ row }) => {
+          const claim = row.original;
+          const isInsurance = claim.type === "Insurance";
+          return (
+            <span className={`font-medium ${
+              isInsurance 
+                ? "text-blue-600 dark:text-blue-600" 
+                : "text-green-600 dark:text-green-600"
+            }`}>
+              {claim.type}
+            </span>
+          );
+        },
       },
       {
         id: "referenceName",

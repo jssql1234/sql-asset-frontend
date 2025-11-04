@@ -222,15 +222,8 @@ export const LogWarrantyModal = ({
             </CoverageFormSection>
 
             <DialogFooter className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
+              <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
+              <Button type="submit">Add warranty</Button>
             </DialogFooter>
           </form>
         </div>

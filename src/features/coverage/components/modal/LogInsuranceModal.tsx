@@ -142,9 +142,7 @@ export const LogInsuranceModal = ({
       <DialogContent className="w-[1000px] max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Insurance Policy" : "Add Insurance Policy"}</DialogTitle>
-          <DialogDescription>
-            Capture policy coverage details, premiums, and associated assets.
-          </DialogDescription>
+          <DialogDescription>Capture policy coverage details, premiums, and associated assets.</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
@@ -355,15 +353,8 @@ export const LogInsuranceModal = ({
             </CoverageFormSection>
 
             <DialogFooter className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
+              <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
+              <Button type="submit">Add insurance</Button>
             </DialogFooter>
           </form>
         </div>

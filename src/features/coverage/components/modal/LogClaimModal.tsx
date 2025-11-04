@@ -298,15 +298,8 @@ export const LogClaimModal = ({
             </CoverageFormSection>
 
             <DialogFooter className="flex justify-end">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save</Button>
+              <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
+              <Button type="submit">Add claim</Button>
             </DialogFooter>
           </form>
         </div>

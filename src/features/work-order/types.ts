@@ -75,31 +75,12 @@ export interface Warranty {
   endDate: string;
 }
 
-export interface MaintenanceSummary {
-  totalScheduled: number;
-  inProgress: number;
-  completed: number;
-  overdue: number;
-  totalCost: number;
-  utilizationRate: number;
-}
-
 export interface WorkOrderSummary {
   totalWorkOrders: number;
   inProgress: number;
   completed: number;
   overdue: number;
   totalCost: number;
-}
-
-export interface MaintenanceFilters {
-  search: string;
-  assetId: string;
-  type: string;
-  status: string;
-  serviceBy: string;
-  dateFrom: string;
-  dateTo: string;
 }
 
 export interface WorkOrderFilters {
@@ -109,25 +90,6 @@ export interface WorkOrderFilters {
   status: string;
   serviceBy: string;
   assignedTo: string;
-}
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  date: string;
-  type: MaintenanceType;
-  assetName: string;
-  status: MaintenanceStatus;
-}
-
-export interface MaintenanceModalState {
-  createSchedule: boolean;
-  editSchedule: boolean;
-  createWorkOrder: boolean;
-  editWorkOrder: boolean;
-  transferFromRequest: boolean;
-  warrantyClaim: boolean;
-  viewDetails: boolean;
 }
 
 export interface WorkOrderFormData {
@@ -152,29 +114,6 @@ export interface WorkOrderFormData {
   warrantyId?: string;
   warrantyStatus?: WarrantyStatus;
 }
-
-export interface ScheduleFormData {
-  assetId: string;
-  assetName: string;
-  taskDescription: string;
-  type: MaintenanceType;
-  scheduledDate: string;
-  frequency?: string;
-  serviceBy: ServiceBy;
-  assignedTechnician?: string;
-  estimatedCost: number;
-  notes?: string;
-}
-
-export const DEFAULT_MAINTENANCE_FILTERS: MaintenanceFilters = {
-  search: "",
-  assetId: "",
-  type: "",
-  status: "",
-  serviceBy: "",
-  dateFrom: "",
-  dateTo: "",
-};
 
 export const DEFAULT_WORK_ORDER_FILTERS: WorkOrderFilters = {
   search: "",

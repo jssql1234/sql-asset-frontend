@@ -122,8 +122,6 @@ export const AddPartDialog: React.FC<AddPartDialogProps> = ({
     onClose();
   };
 
-  const totalCost = quantity * unitCost;
-
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent className="w-[600px] max-w-[90vw]">
@@ -133,8 +131,8 @@ export const AddPartDialog: React.FC<AddPartDialogProps> = ({
             {editPart ? "Edit Part" : "Add Part"}
           </h2>
           <p className="body-medium text-onSurfaceVariant mt-1">
-            {editPart 
-              ? "Update part details for this work order" 
+            {editPart
+              ? "Update part details for this work order"
               : "Select a part from inventory or enter manually"}
           </p>
         </div>
@@ -177,10 +175,14 @@ export const AddPartDialog: React.FC<AddPartDialogProps> = ({
                   }
                 }}
                 placeholder="Enter part name"
-                className={`w-full ${errors.partName ? "border-error focus:border-error" : ""}`}
+                className={`w-full ${
+                  errors.partName ? "border-error focus:border-error" : ""
+                }`}
               />
               {errors.partName && (
-                <p className="text-error body-small mt-1">Part name is required</p>
+                <p className="text-error body-small mt-1">
+                  Part name is required
+                </p>
               )}
             </div>
 
@@ -203,10 +205,14 @@ export const AddPartDialog: React.FC<AddPartDialogProps> = ({
                     }
                   }}
                   placeholder="0"
-                  className={`w-full ${errors.quantity ? "border-error focus:border-error" : ""}`}
+                  className={`w-full ${
+                    errors.quantity ? "border-error focus:border-error" : ""
+                  }`}
                 />
                 {errors.quantity && (
-                  <p className="text-error body-small mt-1">Quantity must be greater than 0</p>
+                  <p className="text-error body-small mt-1">
+                    Quantity must be greater than 0
+                  </p>
                 )}
               </div>
 
@@ -228,10 +234,14 @@ export const AddPartDialog: React.FC<AddPartDialogProps> = ({
                     }
                   }}
                   placeholder="0.00"
-                  className={`w-full ${errors.unitCost ? "border-error focus:border-error" : ""}`}
+                  className={`w-full ${
+                    errors.unitCost ? "border-error focus:border-error" : ""
+                  }`}
                 />
                 {errors.unitCost && (
-                  <p className="text-error body-small mt-1">Unit cost must be greater than 0</p>
+                  <p className="text-error body-small mt-1">
+                    Unit cost must be greater than 0
+                  </p>
                 )}
               </div>
             </div>
@@ -239,13 +249,6 @@ export const AddPartDialog: React.FC<AddPartDialogProps> = ({
 
           {/* Footer Actions */}
           <div className="px-6 py-4 flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 rounded text-primary hover:bg-primary/10 transition-colors label-large"
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large"

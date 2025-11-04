@@ -24,7 +24,7 @@ import {
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 import { WarrantyCheckDialog } from "./WarrantyCheckDialog";
-import { checkWarrantyCoverage as checkWarrantyCoverageAPI } from "../services/warrantyService";
+import { checkWarrantyCoverage as checkWarrantyCoverageAPI } from "../services/workOrderService";
 import { PartsUsedSection } from "./PartsUsedSection";
 
 interface WorkOrderFormProps {
@@ -37,7 +37,7 @@ interface WorkOrderFormProps {
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
   };
-  mode?: "view" | "edit" | "create"; // View mode to display read-only data
+  mode?: "view" | "edit" | "create"; 
 }
 
 export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
@@ -584,7 +584,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
             {/* Resource Assignment */}
             <section>
               <h3 className="title-medium font-semibold text-onSurface mb-4">
-                Resource Assignment
+                Resources Assignment
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>

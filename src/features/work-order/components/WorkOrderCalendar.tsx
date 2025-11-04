@@ -5,7 +5,6 @@ import type {
   DateSelectArg, 
   EventClickArg,
   EventContentArg,
-  EventChangeArg
 } from "@fullcalendar/core";
 import type { WorkOrder } from "../types";
 
@@ -38,7 +37,6 @@ export const WorkOrderCalendar = ({
   workOrders,
   onDateSelect,
   onEventClick,
-  onEventChange,
   initialView = "dayGridMonth",
   selectable = true,
   editable = false,
@@ -132,15 +130,6 @@ export const WorkOrderCalendar = ({
     }
   }, [onDateSelect]);
 
-  // const handleEventChange = useCallback((changeInfo: EventChangeArg) => {
-  //   const workOrder = changeInfo.event.extendedProps.workOrder as WorkOrder;
-  //   const newStart = changeInfo.event.start;
-  //   const newEnd = changeInfo.event.end;
-  //   if (onEventChange && newStart) {
-  //     onEventChange(workOrder, newStart, newEnd);
-  //   }
-  // }, [onEventChange]);
-
   return (
     <div className="work-order-calendar">
       <Calendar
@@ -157,7 +146,6 @@ export const WorkOrderCalendar = ({
         }}
         onDateSelect={handleDateSelect}
         onEventClick={handleEventClick}
-        // onEventChange={handleEventChange}
         eventContent={renderEventContent}
         nowIndicator={true}
         selectMirror={true}

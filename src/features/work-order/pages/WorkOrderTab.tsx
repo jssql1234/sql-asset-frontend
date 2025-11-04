@@ -29,24 +29,18 @@ export const WorkOrderTab = ({
     {
       label: "Total Work Orders",
       value: summary.totalWorkOrders.toLocaleString(),
-      // description: "All work orders",
     },
     {
       label: "In Progress",
       value: summary.inProgress.toLocaleString(),
-      // description: "Currently active",
-      // tone: "warning" as const,
     },
     {
       label: "Completed",
       value: summary.completed.toLocaleString(),
-      // description: "Successfully finished",
-      // tone: "success" as const,
     },
     {
       label: "Overdue",
       value: `${summary.overdue.toLocaleString()}`,
-      // description: "Average completion time",
     },
   ];
 

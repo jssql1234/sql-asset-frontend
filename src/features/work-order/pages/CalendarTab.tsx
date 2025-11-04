@@ -27,13 +27,6 @@ export const CalendarTab: React.FC<CalendarTabProps> = ({
 
   return (
     <div className="flex flex-col gap-6 p-2 overflow-auto">
-      {/* <div>
-        <h2 className="title-large font-semibold text-onSurface">Calendar View</h2>
-        <p className="body-medium text-onSurfaceVariant">
-          Visual overview of work orders and maintenance schedule. Click on events to view details, or select dates to create new work orders.
-        </p>
-      </div> */}
-
       {/* Color Legend */}
       <div className="flex flex-wrap items-center gap-4 p-4 bg-surfaceContainer rounded-lg border border-outline">
         <span className="text-sm font-medium text-onSurface">Maintenance Type:</span>

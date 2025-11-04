@@ -18,7 +18,9 @@ const WorkOrdersPage: React.FC = () => {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"view" | "edit" | "create">("create");
+  const [modalMode, setModalMode] = useState<"view" | "edit" | "create">(
+    "create"
+  );
   const [selectedWorkOrder, setSelectedWorkOrder] = useState<WorkOrder | null>(
     null
   );
@@ -30,15 +32,13 @@ const WorkOrdersPage: React.FC = () => {
 
   // Delete confirmation state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [workOrderToDelete, setWorkOrderToDelete] = useState<WorkOrder | null>(null);
+  const [workOrderToDelete, setWorkOrderToDelete] = useState<WorkOrder | null>(
+    null
+  );
 
   // Handlers
   const handleWorkOrderFilterChange = (filters: WorkOrderFilters) => {
     setWorkOrderFilters(filters);
-  };
-
-  const handleResetWorkOrderFilters = () => {
-    setWorkOrderFilters(DEFAULT_WORK_ORDER_FILTERS);
   };
 
   // Modal handlers
@@ -73,7 +73,9 @@ const WorkOrdersPage: React.FC = () => {
   const handleConfirmDelete = () => {
     if (workOrderToDelete) {
       // Remove work order from list
-      setWorkOrders((prev) => prev.filter((wo) => wo.id !== workOrderToDelete.id));
+      setWorkOrders((prev) =>
+        prev.filter((wo) => wo.id !== workOrderToDelete.id)
+      );
       setIsDeleteDialogOpen(false);
       setWorkOrderToDelete(null);
     }
@@ -244,7 +246,11 @@ const WorkOrdersPage: React.FC = () => {
             : undefined
         }
         itemCount={1}
-        itemName={workOrderToDelete ? `${workOrderToDelete.id} - ${workOrderToDelete.jobTitle}` : undefined}
+        itemName={
+          workOrderToDelete
+            ? `${workOrderToDelete.id} - ${workOrderToDelete.jobTitle}`
+            : undefined
+        }
         confirmButtonText="Delete Work Order"
       />
     </AppLayout>

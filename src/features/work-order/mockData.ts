@@ -1,6 +1,5 @@
 import type {
   WorkOrder,
-  MaintenanceSummary,
   WorkOrderSummary,
   Warranty,
 } from "./types";
@@ -167,16 +166,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
 ];
 
-// Mock Maintenance Summary
-export const MOCK_MAINTENANCE_SUMMARY: MaintenanceSummary = {
-  totalScheduled: 24,
-  inProgress: 3,
-  completed: 15,
-  overdue: 2,
-  totalCost: 45800.0,
-  utilizationRate: 78.5,
-};
-
 // Mock Work Order Summary
 export const MOCK_WORK_ORDER_SUMMARY: WorkOrderSummary = {
   totalWorkOrders: 48,
@@ -229,18 +218,18 @@ export const MOCK_VENDORS = [
   { id: "V-005", name: "Heavy Equipment Specialists" },
 ];
 
-// Maintenance Types
+// Maintenance Types (for backward compatibility with existing components)
 export const MAINTENANCE_TYPES = [
   "Preventive",
   "Corrective",
   "Upgrade/Modify",
   "Emergency",
-];
+] as const;
 
-// Status Options
+// Status Options (for backward compatibility with existing components)
 export const STATUS_OPTIONS = [
   "Pending",
   "In Progress",
   "Completed",
   "Overdue",
-];
+] as const;

@@ -5,7 +5,7 @@ import type { MeterGroup, MeterGroupInput } from "@/types/meter";
 import { Plus } from "@/assets/icons";
 import TabHeader from "@/components/TabHeader";
 import CreateGroupModal from "../components/CreateGroupModal";
-import DeleteGroupModal from "../components/DeleteGroupModal";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import MeterGroupsTable from "../components/MeterGroupsTable";
 
 type MeterGroupsViewProps = {
@@ -23,16 +23,23 @@ export const MeterGroupsView = ({
 }: MeterGroupsViewProps) => {
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [deleteGroupId, setDeleteGroupId] = useState<string | null>(null);
+  const [groupToDelete, setGroupToDelete] = useState<MeterGroup | null>(null);
 
   const handleCreateGroup = (input: MeterGroupInput) => {
     onCreateGroup(input);
   };
 
   const handleDeleteGroup = () => {
-    if (deleteGroupId) {
-      onDeleteGroup(deleteGroupId);
-      setDeleteGroupId(null);
+    if (groupToDelete) {
+      onDeleteGroup(groupToDelete.id);
+      setGroupToDelete(null);
+    }
+  };
+
+  const handleDeleteClick = (groupId: string) => {
+    const group = groups.find(g => g.id === groupId);
+    if (group) {
+      setGroupToDelete(group);
     }
   };
 
@@ -88,7 +95,7 @@ export const MeterGroupsView = ({
         groups={filteredGroups}
         onViewGroup={handleViewGroup}
         onCloneGroup={onCloneGroup}
-        onDeleteGroup={setDeleteGroupId}
+        onDeleteGroup={handleDeleteClick}
       />
 
       {/* Create Group Modal */}
@@ -98,11 +105,19 @@ export const MeterGroupsView = ({
         onSave={handleCreateGroup}
       />
 
-      {/* Delete Group Modal */}
-      <DeleteGroupModal
-        open={!!deleteGroupId}
-        onOpenChange={(open) => !open && setDeleteGroupId(null)}
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        isOpen={!!groupToDelete}
+        onClose={() => setGroupToDelete(null)}
         onConfirm={handleDeleteGroup}
+        title="Delete Meter Group"
+        description={
+          groupToDelete
+            ? `Are you sure you want to delete the meter group "${groupToDelete.name}"? This will affect ${groupToDelete.assignedAssets.length} assigned asset(s) and ${groupToDelete.meters.length} meter(s). This action cannot be undone.`
+            : undefined
+        }
+        itemName={groupToDelete?.name}
+        confirmButtonText="Delete Group"
       />
     </div>
   );

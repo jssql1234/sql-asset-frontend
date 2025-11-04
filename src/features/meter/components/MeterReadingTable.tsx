@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
-import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { ColumnDef, GroupingState, ExpandedState } from "@tanstack/react-table";
 import type { MeterReading, MeterGroup, Meter } from "@/types/meter";
 
@@ -34,23 +33,8 @@ export const MeterReadingHistoryTable = ({
   meterMetadata,
   onDeleteReading,
 }: MeterReadingHistoryTableProps) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [readingToDelete, setReadingToDelete] = useState<MeterReading | null>(null);
   const [grouping, setGrouping] = useState<GroupingState>(["meter"]);
   const [expanded, setExpanded] = useState<ExpandedState>(true);
-
-  const handleDeleteClick = (reading: MeterReading) => {
-    setReadingToDelete(reading);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (readingToDelete) {
-      onDeleteReading(readingToDelete.id);
-      setDeleteDialogOpen(false);
-      setReadingToDelete(null);
-    }
-  };
 
   const readingColumns = useMemo<ColumnDef<MeterReading>[]>(
     () => [
@@ -154,60 +138,41 @@ export const MeterReadingHistoryTable = ({
       {
         type: 'delete',
         onClick: (reading) => {
-          handleDeleteClick(reading);
+          onDeleteReading(reading.id);
         },
       },
     ],
-    []
+    [onDeleteReading]
   );
 
   return (
-    <>
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <label className="flex items-center gap-2 text-sm text-onSurface">
-            <input
-              type="checkbox"
-              checked={grouping.includes("meter")}
-              onChange={(e) => {
-                setGrouping(e.target.checked ? ["meter"] : []);
-              }}
-              className="rounded border-outline"
-            />
-            Group by Meter
-          </label>
-        </div>
-
-        <DataTableExtended
-          data={readings}
-          columns={readingColumns}
-          showCheckbox={false}
-          showPagination={true}
-          enableGrouping={true}
-          grouping={grouping}
-          onGroupingChange={setGrouping}
-          expanded={expanded}
-          onExpandedChange={setExpanded}
-          rowActions={rowActions}
-        />
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 text-sm text-onSurface">
+          <input
+            type="checkbox"
+            checked={grouping.includes("meter")}
+            onChange={(e) => {
+              setGrouping(e.target.checked ? ["meter"] : []);
+            }}
+            className="rounded border-outline"
+          />
+          Group by Meter
+        </label>
       </div>
 
-      <DeleteConfirmationDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setReadingToDelete(null);
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Meter Reading"
-        description={
-          readingToDelete
-            ? `Are you sure you want to delete the meter reading for "${readingToDelete.uom}" recorded at ${formatTimestamp(readingToDelete.recordedAt)}? This action cannot be undone.`
-            : undefined
-        }
-        itemName={readingToDelete ? `${readingToDelete.uom} - ${readingToDelete.value}` : undefined}
-        confirmButtonText="Delete Reading"
+      <DataTableExtended
+        data={readings}
+        columns={readingColumns}
+        showCheckbox={false}
+        showPagination={true}
+        enableGrouping={true}
+        grouping={grouping}
+        onGroupingChange={setGrouping}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
+        rowActions={rowActions}
       />
-    </>
+    </div>
   );
 };

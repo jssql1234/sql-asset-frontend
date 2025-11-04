@@ -1,9 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AssetChip } from "@/components/AssetChip";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { Badge } from "@/components/ui/components";
-import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { MeterGroup } from "@/types/meter";
 import { Copy } from "lucide-react";
 
@@ -20,21 +19,6 @@ export const MeterGroupsTable = ({
   onCloneGroup,
   onDeleteGroup,
 }: MeterGroupsTableProps) => {
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [groupToDelete, setGroupToDelete] = useState<MeterGroup | null>(null);
-
-  const handleDeleteClick = (group: MeterGroup) => {
-    setGroupToDelete(group);
-    setDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (groupToDelete) {
-      onDeleteGroup(groupToDelete.id);
-      setDeleteDialogOpen(false);
-      setGroupToDelete(null);
-    }
-  };
   const columns = useMemo<ColumnDef<MeterGroup>[]>(
     () => [
       {
@@ -143,39 +127,20 @@ export const MeterGroupsTable = ({
       {
         type: 'delete',
         onClick: (group) => {
-          handleDeleteClick(group);
+          onDeleteGroup(group.id);
         },
       },
     ],
-    [onViewGroup, onCloneGroup]
+    [onViewGroup, onCloneGroup, onDeleteGroup]
   );
 
   return (
-    <>
-      <DataTableExtended<MeterGroup, unknown>
-        columns={columns}
-        data={groups}
-        showPagination
-        rowActions={rowActions}
-      />
-
-      <DeleteConfirmationDialog
-        isOpen={deleteDialogOpen}
-        onClose={() => {
-          setDeleteDialogOpen(false);
-          setGroupToDelete(null);
-        }}
-        onConfirm={handleConfirmDelete}
-        title="Delete Meter Group"
-        description={
-          groupToDelete
-            ? `Are you sure you want to delete the meter group "${groupToDelete.name}"? This will affect ${groupToDelete.assignedAssets.length} assigned asset(s) and ${groupToDelete.meters.length} meter(s). This action cannot be undone.`
-            : undefined
-        }
-        itemName={groupToDelete?.name}
-        confirmButtonText="Delete Group"
-      />
-    </>
+    <DataTableExtended<MeterGroup, unknown>
+      columns={columns}
+      data={groups}
+      showPagination
+      rowActions={rowActions}
+    />
   );
 };
 

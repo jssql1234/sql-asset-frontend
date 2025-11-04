@@ -43,36 +43,22 @@ export function DowntimeTable({
   const columns: ColumnDef<DowntimeIncident>[] = useMemo(
     () => [
       {
-        id: "assets",
         accessorKey: "assets",
         header: "Assets",
-        cell: ({ row }) => {
-          const assets = row.original.assets;
-
-          return (
-            <div className="w-130 relative">
-              {assets.length > 0 ? (
-                <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-2">
-                  {assets.map((asset) => (
-                    <div
-                      key={asset.id}
-                      className="rounded-lg border border-outlineVariant/40 bg-surfaceContainerHighest px-3 py-2 shadow-sm transition hover:border-primary/60 min-w-0"
-                      title={`${asset.name} (${asset.id})`}
-                    >
-                      <div className="text-sm font-medium text-onSurface break-words" title={asset.name}>
-                        {asset.name} <span className="text-xs text-onSurfaceVariant">({asset.id})</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-onSurfaceVariant">—</div>
-              )}
-            </div>
-          );
-        },
-        enableSorting: false,
         enableColumnFilter: false,
+        enableSorting: false,
+        cell: ({ row }) => (
+          <div className="flex flex-wrap gap-1 max-w-150">
+            {row.original.assets.map((asset) => (
+              <Badge
+                key={asset.id}
+                text={`${asset.name} (${asset.id})`}
+                variant="grey"
+                className="h-7 px-3 py-1"
+              />
+            ))}
+          </div>
+        ),
       },
       {
         id: "priority",

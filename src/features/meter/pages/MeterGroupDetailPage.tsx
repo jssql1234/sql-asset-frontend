@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/components";
 import MeterTable from "../components/MeterTable";
 import EditMeterModal from "../components/EditMeterModal";
 import EditGroupModal from "../components/EditGroupModal";
-import DeleteMeterModal from "../components/DeleteMeterModal";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import MeterGroupHeader from "../components/MeterGroupHeader";
 import AssignedAssetsSection from "../components/AssignedAssetsSection";
 import AssignAssetsModal from "../components/AssignAssetsModal";
@@ -180,11 +180,14 @@ const MeterGroupDetailPage = () => {
         onSave={handleSaveMeter}
       />
 
-      {/* Delete Meter Modal */}
-      <DeleteMeterModal
-        open={!!meterToDelete}
-        onOpenChange={(open) => !open && setMeterToDelete(null)}
+      {/* Delete Meter Confirmation */}
+      <DeleteConfirmationDialog
+        isOpen={!!meterToDelete}
+        onClose={() => setMeterToDelete(null)}
         onConfirm={confirmRemoveMeter}
+        title="Delete Meter"
+        description={`Are you sure you want to delete the meter with UOM "${meterToDelete ? group?.meters.find(m => m.id === meterToDelete)?.uom : ''}"? This action cannot be undone.`}
+        itemName={meterToDelete ? group?.meters.find(m => m.id === meterToDelete)?.uom : undefined}
       />
 
       {/* Edit Group Modal */}

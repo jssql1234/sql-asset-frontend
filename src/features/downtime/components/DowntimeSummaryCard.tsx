@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import type { DowntimeSummary } from "@/features/downtime/types";
 
@@ -6,7 +6,7 @@ interface DowntimeSummaryCardProps {
   summary: DowntimeSummary;
 }
 
-export const DowntimeSummaryCard: React.FC<DowntimeSummaryCardProps> = ({ summary }) => {
+export function DowntimeSummaryCard({ summary }: DowntimeSummaryCardProps) {
   const summaryCardsData: SummaryCardItem[] = useMemo(
     () => [
       {

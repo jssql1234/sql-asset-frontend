@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import type { DowntimeIncident, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
-import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
 import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedIncidentsModal";
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
 import { DowntimeSummaryCard } from "@/features/downtime/components/DowntimeSummaryCard";
@@ -10,7 +9,7 @@ import { DowntimeTabHeader } from "@/features/downtime/components/DowntimeTabHea
 import { useGetDowntimeIncidents, useGetDowntimeSummary, useDeleteDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 
-const DowntimeTrackingPage: React.FC = () => {
+function DowntimeTrackingPage() {
   // Fetch data using hooks
   const { data: allIncidents = [] } = useGetDowntimeIncidents();
   const { data: summary } = useGetDowntimeSummary();
@@ -67,8 +66,14 @@ const DowntimeTrackingPage: React.FC = () => {
         <DowntimeTable incidents={allIncidents} onEditIncident={handleEditIncident} onDeleteIncident={handleDeleteIncident}/>
       </div>
 
-      <LogDowntimeModal open={modals.logDowntime} onClose={() => { handleModalClose("logDowntime") }}/>
-      <EditIncidentModal open={modals.editIncident} incident={selectedIncident} onClose={() => { handleModalClose("editIncident") }}/>
+      <LogDowntimeModal
+        open={modals.logDowntime || modals.editIncident}
+        incident={selectedIncident ?? undefined}
+        onClose={() => {
+          handleModalClose("logDowntime");
+          handleModalClose("editIncident");
+        }}
+      />
       <ResolvedIncidentsModal open={modals.resolvedIncidents} onClose={() => { handleModalClose("resolvedIncidents") }}/>
 
       <DeleteConfirmationDialog

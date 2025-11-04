@@ -5,7 +5,7 @@ import type { DowntimeIncident } from "../types";
 export const DEFAULT_ASSET_CATEGORY = "all" as const;
 export interface AssetDropdownItem { id: string; label: string; sublabel: string }
 
-//Custom hook for managing asset categories and filtering logic (Shared between EditIncidentModal and LogDowntimeModal)
+//Custom hook for managing asset categories and filtering logic used by the downtime incident modal
 export function useAssetCategories(incident?: DowntimeIncident | null) {
   const assetCategories = useMemo(
     () => [

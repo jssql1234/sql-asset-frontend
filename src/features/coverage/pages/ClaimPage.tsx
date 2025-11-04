@@ -91,12 +91,16 @@ const ClaimPage = () => {
 
         <ClaimSummaryCards summary={claimSummary} />
 
-        <Search
-          searchValue={searchQuery}
-          searchPlaceholder="Search by claim number, asset, or policy"
-          onSearch={setSearchQuery}
-          live
-        />
+        <div className="flex justify-end">
+          <div className="w-80">
+            <Search
+              searchValue={searchQuery}
+              searchPlaceholder="Search insurance..."
+              onSearch={setSearchQuery}
+              live
+            />
+          </div>
+        </div>
 
         <CoverageTable
           variant="claims"

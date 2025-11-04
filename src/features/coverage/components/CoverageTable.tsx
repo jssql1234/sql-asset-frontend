@@ -10,18 +10,24 @@ interface InsurancesVariantProps {
   variant: "insurances";
   policies: CoverageInsurance[];
   onViewInsurance: (insurance: CoverageInsurance) => void;
+  onEditInsurance: (insurance: CoverageInsurance) => void;
+  onDeleteInsurance: (insurance: CoverageInsurance) => void;
 }
 
 interface WarrantiesVariantProps {
   variant: "warranties";
   warranties: CoverageWarranty[];
   onViewWarranty: (warranty: CoverageWarranty) => void;
+  onEditWarranty: (warranty: CoverageWarranty) => void;
+  onDeleteWarranty: (warranty: CoverageWarranty) => void;
 }
 
 interface ClaimsVariantProps {
   variant: "claims";
   claims: CoverageClaim[];
   onViewClaim: (claim: CoverageClaim) => void;
+  onEditClaim: (claim: CoverageClaim) => void;
+  onDeleteClaim: (claim: CoverageClaim) => void;
 }
 
 type CoverageTableProps =
@@ -32,6 +38,8 @@ type CoverageTableProps =
 const InsurancesVariantTable = ({
   policies,
   onViewInsurance,
+  onEditInsurance,
+  onDeleteInsurance,
 }: InsurancesVariantProps) => {
   const columns = useMemo<ColumnDef<CoverageInsurance>[]>(
     () => [
@@ -116,8 +124,16 @@ const InsurancesVariantTable = ({
         type: "view",
         onClick: onViewInsurance,
       },
+      {
+        type: "edit",
+        onClick: onEditInsurance,
+      },
+      {
+        type: "delete",
+        onClick: onDeleteInsurance,
+      },
     ],
-    [onViewInsurance]
+    [onViewInsurance, onEditInsurance, onDeleteInsurance]
   );
 
   return (
@@ -130,7 +146,7 @@ const InsurancesVariantTable = ({
   );
 };
 
-const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVariantProps) => {
+const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, onDeleteWarranty }: WarrantiesVariantProps) => {
   const columns = useMemo<ColumnDef<CoverageWarranty>[]>(
     () => [
       {
@@ -185,8 +201,16 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
         type: "view",
         onClick: onViewWarranty,
       },
+      {
+        type: "edit",
+        onClick: onEditWarranty,
+      },
+      {
+        type: "delete",
+        onClick: onDeleteWarranty,
+      },
     ],
-    [onViewWarranty]
+    [onViewWarranty, onEditWarranty, onDeleteWarranty]
   );
 
   return (
@@ -202,6 +226,8 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty }: WarrantiesVarian
 const ClaimsVariantTable = ({
   claims,
   onViewClaim,
+  onEditClaim,
+  onDeleteClaim,
 }: ClaimsVariantProps) => {
   const columns = useMemo<ColumnDef<CoverageClaim>[]>(
     () => [
@@ -260,7 +286,7 @@ const ClaimsVariantTable = ({
             {row.original.assets.map((asset) => (
               <Badge
                 key={asset.id}
-                text={asset.name}
+                text={`${asset.name} (${asset.id})`}
                 variant="grey"
                 className="h-7 px-3 py-1"
               />
@@ -311,8 +337,16 @@ const ClaimsVariantTable = ({
         type: "view",
         onClick: onViewClaim,
       },
+      {
+        type: "edit",
+        onClick: onEditClaim,
+      },
+      {
+        type: "delete",
+        onClick: onDeleteClaim,
+      },
     ],
-    [onViewClaim]
+    [onViewClaim, onEditClaim, onDeleteClaim]
   );
 
   return (
@@ -327,22 +361,18 @@ const ClaimsVariantTable = ({
 
 const CoverageTable = (props: CoverageTableProps) => {
   if (props.variant === "insurances") {
-    const { policies, onViewInsurance } = props;
-    return <InsurancesVariantTable variant="insurances" policies={policies} onViewInsurance={onViewInsurance} />;
+    const { policies, onViewInsurance, onEditInsurance, onDeleteInsurance } = props;
+    return <InsurancesVariantTable variant="insurances" policies={policies} onViewInsurance={onViewInsurance} onEditInsurance={onEditInsurance} onDeleteInsurance={onDeleteInsurance} />;
   }
 
   if (props.variant === "warranties") {
-    const { warranties, onViewWarranty } = props;
-    return <WarrantiesVariantTable variant="warranties" warranties={warranties} onViewWarranty={onViewWarranty} />;
+    const { warranties, onViewWarranty, onEditWarranty, onDeleteWarranty } = props;
+    return <WarrantiesVariantTable variant="warranties" warranties={warranties} onViewWarranty={onViewWarranty} onEditWarranty={onEditWarranty} onDeleteWarranty={onDeleteWarranty} />;
   }
 
-  const { claims, onViewClaim } = props;
+  const { claims, onViewClaim, onEditClaim, onDeleteClaim } = props;
   return (
-    <ClaimsVariantTable
-      variant="claims"
-      claims={claims}
-      onViewClaim={onViewClaim}
-    />
+    <ClaimsVariantTable variant="claims" claims={claims} onViewClaim={onViewClaim} onEditClaim={onEditClaim} onDeleteClaim={onDeleteClaim}/>
   );
 };
 

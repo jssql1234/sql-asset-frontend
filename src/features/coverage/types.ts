@@ -1,9 +1,14 @@
-export type InsuranceStatus = "Active" | "Expiring Soon" | "Expired";
+export type InsuranceStatus = "Active" | "Expiring Soon" | "Expired" | "Upcoming";
 export type WarrantyStatus = "Active" | "Expiring Soon" | "Expired";
 export type ClaimStatus = "Filed" | "Rejected" | "Settled" | "Approved";
 export type ClaimType = "Insurance" | "Warranty";
 export type CoverageStatus = InsuranceStatus | WarrantyStatus | ClaimStatus;
 export type InsuranceLimitType = "Aggregate" | "Per Occurrence";
+
+export interface CoverageEntityAsset {
+  id: string;
+  name: string;
+}
 
 export interface CoverageInsurance {
   id: string;
@@ -18,10 +23,7 @@ export interface CoverageInsurance {
   startDate: string; // ISO date string
   expiryDate: string; // ISO date string
   status: InsuranceStatus;
-  assetsCovered: {
-    id: string;
-    name: string;
-  }[];
+  assetsCovered: CoverageEntityAsset[];
   description?: string;
 }
 
@@ -33,10 +35,7 @@ export interface CoverageWarranty {
   coverage: string;
   expiryDate: string;
   status: WarrantyStatus;
-  assetsCovered: {
-    id: string;
-    name: string;
-  }[];
+  assetsCovered: CoverageEntityAsset[];
   description?: string;
 }
 
@@ -46,10 +45,7 @@ export interface CoverageClaim {
   type: ClaimType;
   referenceId: string;
   referenceName: string;
-  assets: {
-    id: string;
-    name: string;
-  }[];
+  assets: CoverageEntityAsset[];
   amount: number;
   status: ClaimStatus;
   dateFiled: string; // ISO date string
@@ -86,11 +82,45 @@ export interface ClaimSummaryMetrics {
 
 export interface CoverageModalsState {
   insuranceForm: boolean;
+  insuranceEdit: CoverageInsurance | null;
   insuranceDetails: CoverageInsurance | null;
   warrantyForm: boolean;
+  warrantyEdit: CoverageWarranty | null;
   warrantyDetails: CoverageWarranty | null;
   claimForm: boolean;
+  claimEdit: CoverageClaim | null;
   workOrderFromClaim: boolean;
   claimForWorkOrder: CoverageClaim | null;
   claimDetails: CoverageClaim | null;
 }
+
+export type CoverageInsurancePayload = Omit<CoverageInsurance, "id" | "status" | "totalClaimed">;
+export type CoverageWarrantyPayload = Omit<CoverageWarranty, "id" | "status">;
+export type CoverageClaimPayload = Omit<CoverageClaim, "id">;
+
+export const EMPTY_INSURANCE_SUMMARY: InsuranceSummaryMetrics = {
+  activeInsurances: 0,
+  totalCoverage: 0,
+  remainingCoverage: 0,
+  annualPremiums: 0,
+  assetsCovered: 0,
+  assetsNotCovered: 0,
+  expiringSoon: 0,
+  expired: 0,
+};
+
+export const EMPTY_WARRANTY_SUMMARY: WarrantySummaryMetrics = {
+  activeWarranties: 0,
+  assetsCovered: 0,
+  assetsNotCovered: 0,
+  expiringSoon: 0,
+  expired: 0,
+};
+
+export const EMPTY_CLAIM_SUMMARY: ClaimSummaryMetrics = {
+  totalClaims: 0,
+  pendingClaims: 0,
+  settledClaims: 0,
+  totalSettlementAmount: 0,
+  rejectedClaims: 0,
+};

@@ -13,6 +13,7 @@ const statusVariantMap: Record<CoverageStatus, { variant: BadgeVariant; label: s
   Active: { variant: "green", label: "Active" },
   "Expiring Soon": { variant: "yellow", label: "Expiring Soon" },
   Expired: { variant: "red", label: "Expired" },
+  Upcoming: { variant: "blue", label: "Upcoming" },
   Filed: { variant: "blue", label: "Filed" },
   Settled: { variant: "green", label: "Settled" },
   Approved: { variant: "green", label: "Approved" },

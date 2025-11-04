@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
-import Search from "@/components/Search";
 import { WarrantySummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import { LogWarrantyModal } from "@/features/coverage/components/modal/LogWarrantyModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
@@ -9,7 +8,6 @@ import type { CoverageWarranty, CoverageWarrantyPayload } from "@/features/cover
 import { EMPTY_WARRANTY_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
 import { useCoverageModals } from "@/features/coverage/hooks/useCoverageModals";
-import { useCoverageSearch } from "@/features/coverage/hooks/useCoverageSearch";
 import { useGetWarrantySummary, useCreateWarranty, useUpdateWarranty, useDeleteWarranty } from "@/features/coverage/hooks/useCoverageService";
 
 const WarrantyPage = () => {
@@ -20,20 +18,6 @@ const WarrantyPage = () => {
   const createWarranty = useCreateWarranty(closeWarrantyForm);
   const updateWarranty = useUpdateWarranty(closeWarrantyForm);
   const deleteWarranty = useDeleteWarranty(hideWarrantyDetails);
-
-  const matchWarranty = useCallback((warranty: CoverageWarranty, query: string) => (
-    warranty.name.toLowerCase().includes(query) ||
-    warranty.provider.toLowerCase().includes(query) ||
-    warranty.warrantyNumber.toLowerCase().includes(query) ||
-    warranty.coverage.toLowerCase().includes(query) ||
-    warranty.status.toLowerCase().includes(query) ||
-    warranty.assetsCovered.some((asset) =>
-      asset.id.toLowerCase().includes(query) ||
-      asset.name.toLowerCase().includes(query)
-    )
-  ), []);
-
-  const { query: searchQuery, setQuery: setSearchQuery, filteredItems: filteredWarranties } = useCoverageSearch(warranties, matchWarranty);
 
   const handleCreateWarranty = useCallback((data: CoverageWarrantyPayload) => {
     createWarranty.mutate(data);
@@ -65,20 +49,9 @@ const WarrantyPage = () => {
 
         <WarrantySummaryCards summary={warrantySummary} />
 
-        <div className="flex justify-end">
-          <div className="w-80">
-            <Search
-              searchValue={searchQuery}
-              searchPlaceholder="Search warranty..."
-              onSearch={setSearchQuery}
-              live
-            />
-          </div>
-        </div>
-
         <CoverageTable 
           variant="warranties" 
-          warranties={filteredWarranties} 
+          warranties={warranties}
           onViewWarranty={showWarrantyDetails}
           onEditWarranty={openWarrantyForm}
           onDeleteWarranty={handleDeleteWarranty}

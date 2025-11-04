@@ -1,10 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
+import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
+import Search from "@/components/Search";
 
 interface InsurancesVariantProps {
   variant: "insurances";
@@ -12,6 +14,8 @@ interface InsurancesVariantProps {
   onViewInsurance: (insurance: CoverageInsurance) => void;
   onEditInsurance: (insurance: CoverageInsurance) => void;
   onDeleteInsurance: (insurance: CoverageInsurance) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 interface WarrantiesVariantProps {
@@ -20,6 +24,8 @@ interface WarrantiesVariantProps {
   onViewWarranty: (warranty: CoverageWarranty) => void;
   onEditWarranty: (warranty: CoverageWarranty) => void;
   onDeleteWarranty: (warranty: CoverageWarranty) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 interface ClaimsVariantProps {
@@ -28,6 +34,8 @@ interface ClaimsVariantProps {
   onViewClaim: (claim: CoverageClaim) => void;
   onEditClaim: (claim: CoverageClaim) => void;
   onDeleteClaim: (claim: CoverageClaim) => void;
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
 }
 
 type CoverageTableProps =
@@ -40,10 +48,34 @@ const InsurancesVariantTable = ({
   onViewInsurance,
   onEditInsurance,
   onDeleteInsurance,
+  searchQuery: externalSearchQuery,
+  onSearchQueryChange,
 }: InsurancesVariantProps) => {
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+
+  const filteredPolicies = useMemo(() => {
+    if (!searchQuery.trim()) return policies;
+    
+    const query = searchQuery.toLowerCase();
+    return policies.filter((policy) => {
+      return (
+        policy.name.toLowerCase().includes(query) ||
+        policy.provider.toLowerCase().includes(query) ||
+        policy.policyNumber.toLowerCase().includes(query) ||
+        policy.status.toLowerCase().includes(query) ||
+        policy.assetsCovered.some((asset) =>
+          asset.id.toLowerCase().includes(query) ||
+          asset.name.toLowerCase().includes(query)
+        )
+      );
+    });
+  }, [policies, searchQuery]);
   const columns = useMemo<ColumnDef<CoverageInsurance>[]>(
     () => [
       {
+        id: "name",
         accessorKey: "name",
         header: "Policy",
         enableColumnFilter: false,
@@ -60,6 +92,7 @@ const InsurancesVariantTable = ({
         },
       },
       {
+        id: "remainingCoverage",
         accessorKey: "remainingCoverage",
         header: "Available Coverage",
         enableColumnFilter: false,
@@ -73,6 +106,7 @@ const InsurancesVariantTable = ({
         },
       },
       {
+        id: "annualPremium",
         accessorKey: "annualPremium",
         header: "Annual Premium",
         enableColumnFilter: false,
@@ -82,6 +116,7 @@ const InsurancesVariantTable = ({
         },
       },
       {
+        id: "totalClaimed",
         accessorKey: "totalClaimed",
         header: "Total Claimed",
         enableColumnFilter: false,
@@ -91,6 +126,7 @@ const InsurancesVariantTable = ({
         },
       },
       {
+        id: "expiryDate",
         accessorKey: "expiryDate",
         header: "Expiry Date",
         enableColumnFilter: false,
@@ -107,6 +143,7 @@ const InsurancesVariantTable = ({
         },
       },
       {
+        id: "status",
         accessorKey: "status",
         header: "Status",
         enableColumnFilter: true,
@@ -136,20 +173,55 @@ const InsurancesVariantTable = ({
     [onViewInsurance, onEditInsurance, onDeleteInsurance]
   );
 
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<CoverageInsurance>[]>([]);
+
+  useEffect(() => {
+    if (visibleColumns.length === 0 && columns.length > 0) {
+      setVisibleColumns(columns);
+    }
+  }, [columns, visibleColumns.length]);
+
   return (
-    <DataTableExtended<CoverageInsurance, unknown>
-      columns={columns}
-      data={policies}
-      showPagination
-      rowActions={rowActions}
-    />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <TableColumnVisibility columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns}/>
+        <div className="flex-shrink-0 w-80">
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search policies..." live={true} />
+        </div>
+      </div>
+      <DataTableExtended<CoverageInsurance, unknown>
+        columns={visibleColumns}
+        data={filteredPolicies}
+        showPagination
+        rowActions={rowActions}
+      />
+    </div>
   );
 };
 
-const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, onDeleteWarranty }: WarrantiesVariantProps) => {
+const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, onDeleteWarranty, searchQuery: externalSearchQuery, onSearchQueryChange }: WarrantiesVariantProps) => {
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+
+  const filteredWarranties = useMemo(() => {
+    if (!searchQuery.trim()) return warranties;
+    
+    const query = searchQuery.toLowerCase();
+    return warranties.filter((warranty) => {
+      return (
+        warranty.name.toLowerCase().includes(query) ||
+        warranty.provider.toLowerCase().includes(query) ||
+        warranty.warrantyNumber.toLowerCase().includes(query) ||
+        warranty.status.toLowerCase().includes(query) ||
+        warranty.coverage.toLowerCase().includes(query)
+      );
+    });
+  }, [warranties, searchQuery]);
   const columns = useMemo<ColumnDef<CoverageWarranty>[]>(
     () => [
       {
+        id: "name",
         accessorKey: "name",
         header: "Warranty",
         enableColumnFilter: false,
@@ -166,11 +238,13 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, on
         },
       },
       {
+        id: "provider",
         accessorKey: "provider",
         header: "Provider",
         enableColumnFilter: false,
       },
       {
+        id: "coverage",
         accessorKey: "coverage",
         header: "Coverage",
         enableColumnFilter: true,
@@ -178,12 +252,14 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, on
         enableSorting: true,
       },
       {
+        id: "expiryDate",
         accessorKey: "expiryDate",
         header: "Expiry Date",
         enableColumnFilter: false,
         cell: ({ row }) => formatDate(row.original.expiryDate),
       },
       {
+        id: "status",
         accessorKey: "status",
         header: "Status",
         enableColumnFilter: true,
@@ -213,13 +289,29 @@ const WarrantiesVariantTable = ({ warranties, onViewWarranty, onEditWarranty, on
     [onViewWarranty, onEditWarranty, onDeleteWarranty]
   );
 
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<CoverageWarranty>[]>([]);
+
+  useEffect(() => {
+    if (visibleColumns.length === 0 && columns.length > 0) {
+      setVisibleColumns(columns);
+    }
+  }, [columns, visibleColumns.length]);
+
   return (
-    <DataTableExtended<CoverageWarranty, unknown>
-      columns={columns}
-      data={warranties}
-      showPagination
-      rowActions={rowActions}
-    />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <TableColumnVisibility columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns}/>
+        <div className="flex-shrink-0 w-80">
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search warranties..." live={true} />
+        </div>
+      </div>
+      <DataTableExtended<CoverageWarranty, unknown>
+        columns={visibleColumns}
+        data={filteredWarranties}
+        showPagination
+        rowActions={rowActions}
+      />
+    </div>
   );
 };
 
@@ -228,10 +320,36 @@ const ClaimsVariantTable = ({
   onViewClaim,
   onEditClaim,
   onDeleteClaim,
+  searchQuery: externalSearchQuery,
+  onSearchQueryChange,
 }: ClaimsVariantProps) => {
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+
+  const filteredClaims = useMemo(() => {
+    if (!searchQuery.trim()) return claims;
+    
+    const query = searchQuery.toLowerCase();
+    return claims.filter((claim) => {
+      return (
+        claim.claimNumber.toLowerCase().includes(query) ||
+        (claim.description?.toLowerCase().includes(query) ?? false) ||
+        claim.type.toLowerCase().includes(query) ||
+        claim.referenceName.toLowerCase().includes(query) ||
+        claim.referenceId.toLowerCase().includes(query) ||
+        claim.status.toLowerCase().includes(query) ||
+        claim.assets.some((asset) =>
+          asset.id.toLowerCase().includes(query) ||
+          asset.name.toLowerCase().includes(query)
+        )
+      );
+    });
+  }, [claims, searchQuery]);
   const columns = useMemo<ColumnDef<CoverageClaim>[]>(
     () => [
       {
+        id: "claimNumber",
         accessorKey: "claimNumber",
         header: "Claim",
         enableColumnFilter: false,
@@ -248,6 +366,7 @@ const ClaimsVariantTable = ({
         },
       },
       {
+        id: "type",
         accessorKey: "type",
         header: "Type",
         enableColumnFilter: true,
@@ -261,6 +380,7 @@ const ClaimsVariantTable = ({
         ),
       },
       {
+        id: "referenceName",
         accessorKey: "referenceName",
         header: "Policy/Warranty",
         enableColumnFilter: true,
@@ -277,6 +397,7 @@ const ClaimsVariantTable = ({
         },
       },
       {
+        id: "assets",
         accessorKey: "assets",
         header: "Assets",
         enableColumnFilter: false,
@@ -295,6 +416,7 @@ const ClaimsVariantTable = ({
         ),
       },
       {
+        id: "amount",
         accessorKey: "amount",
         header: "Amount",
         enableColumnFilter: false,
@@ -308,6 +430,7 @@ const ClaimsVariantTable = ({
         },
       },
       {
+        id: "status",
         accessorKey: "status",
         header: "Status",
         enableColumnFilter: true,
@@ -316,12 +439,14 @@ const ClaimsVariantTable = ({
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
+        id: "dateFiled",
         accessorKey: "dateFiled",
         header: "Date Filed",
         enableColumnFilter: false,
         cell: ({ row }) => formatDate(row.original.dateFiled),
       },
       {
+        id: "workOrderId",
         accessorKey: "workOrderId",
         header: "Work Order",
         enableColumnFilter: false,
@@ -349,30 +474,46 @@ const ClaimsVariantTable = ({
     [onViewClaim, onEditClaim, onDeleteClaim]
   );
 
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<CoverageClaim>[]>([]);
+
+  useEffect(() => {
+    if (visibleColumns.length === 0 && columns.length > 0) {
+      setVisibleColumns(columns);
+    }
+  }, [columns, visibleColumns.length]);
+
   return (
-    <DataTableExtended<CoverageClaim, unknown>
-      columns={columns}
-      data={claims}
-      showPagination
-      rowActions={rowActions}
-    />
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <TableColumnVisibility columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns}/>
+        <div className="flex-shrink-0 w-80">
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search claims..." live={true} />
+        </div>
+      </div>
+      <DataTableExtended<CoverageClaim, unknown>
+        columns={visibleColumns}
+        data={filteredClaims}
+        showPagination
+        rowActions={rowActions}
+      />
+    </div>
   );
 };
 
 const CoverageTable = (props: CoverageTableProps) => {
   if (props.variant === "insurances") {
-    const { policies, onViewInsurance, onEditInsurance, onDeleteInsurance } = props;
-    return <InsurancesVariantTable variant="insurances" policies={policies} onViewInsurance={onViewInsurance} onEditInsurance={onEditInsurance} onDeleteInsurance={onDeleteInsurance} />;
+    const { policies, onViewInsurance, onEditInsurance, onDeleteInsurance, searchQuery, onSearchQueryChange } = props;
+    return <InsurancesVariantTable variant="insurances" policies={policies} onViewInsurance={onViewInsurance} onEditInsurance={onEditInsurance} onDeleteInsurance={onDeleteInsurance} searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} />;
   }
 
   if (props.variant === "warranties") {
-    const { warranties, onViewWarranty, onEditWarranty, onDeleteWarranty } = props;
-    return <WarrantiesVariantTable variant="warranties" warranties={warranties} onViewWarranty={onViewWarranty} onEditWarranty={onEditWarranty} onDeleteWarranty={onDeleteWarranty} />;
+    const { warranties, onViewWarranty, onEditWarranty, onDeleteWarranty, searchQuery, onSearchQueryChange } = props;
+    return <WarrantiesVariantTable variant="warranties" warranties={warranties} onViewWarranty={onViewWarranty} onEditWarranty={onEditWarranty} onDeleteWarranty={onDeleteWarranty} searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} />;
   }
 
-  const { claims, onViewClaim, onEditClaim, onDeleteClaim } = props;
+  const { claims, onViewClaim, onEditClaim, onDeleteClaim, searchQuery, onSearchQueryChange } = props;
   return (
-    <ClaimsVariantTable variant="claims" claims={claims} onViewClaim={onViewClaim} onEditClaim={onEditClaim} onDeleteClaim={onDeleteClaim}/>
+    <ClaimsVariantTable variant="claims" claims={claims} onViewClaim={onViewClaim} onEditClaim={onEditClaim} onDeleteClaim={onDeleteClaim} searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange}/>
   );
 };
 

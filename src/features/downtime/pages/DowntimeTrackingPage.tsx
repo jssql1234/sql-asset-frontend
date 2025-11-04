@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import type { DowntimeIncident, ModalState } from "@/features/downtime/types";
 import { LogDowntimeModal } from "@/features/downtime/components/LogDowntimeModal";
-import { EditIncidentModal } from "@/features/downtime/components/EditIncidentModal";
 import { ResolvedIncidentsModal } from "@/features/downtime/components/ResolvedIncidentsModal";
 import { DowntimeTable } from "@/features/downtime/components/DowntimeTable";
 import { DowntimeSummaryCard } from "@/features/downtime/components/DowntimeSummaryCard";
@@ -67,8 +66,14 @@ const DowntimeTrackingPage: React.FC = () => {
         <DowntimeTable incidents={allIncidents} onEditIncident={handleEditIncident} onDeleteIncident={handleDeleteIncident}/>
       </div>
 
-      <LogDowntimeModal open={modals.logDowntime} onClose={() => { handleModalClose("logDowntime") }}/>
-      <EditIncidentModal open={modals.editIncident} incident={selectedIncident} onClose={() => { handleModalClose("editIncident") }}/>
+      <LogDowntimeModal
+        open={modals.logDowntime || modals.editIncident}
+        incident={selectedIncident ?? undefined}
+        onClose={() => {
+          handleModalClose("logDowntime");
+          handleModalClose("editIncident");
+        }}
+      />
       <ResolvedIncidentsModal open={modals.resolvedIncidents} onClose={() => { handleModalClose("resolvedIncidents") }}/>
 
       <DeleteConfirmationDialog

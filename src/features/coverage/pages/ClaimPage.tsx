@@ -7,13 +7,8 @@ import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModa
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
 import type { CoverageClaim } from "@/features/coverage/types";
-import { useCoverageContext } from "@/features/coverage/context/CoverageContext";
-import {
-  useGetClaimSummary,
-  useCreateClaim,
-  useUpdateClaim,
-  useDeleteClaim,
-} from "@/features/coverage/hooks/useCoverageService";
+import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
+import { useGetClaimSummary, useCreateClaim, useUpdateClaim, useDeleteClaim } from "@/features/coverage/hooks/useCoverageService";
 
 const ClaimPage = () => {
   const { insurances, warranties, claims, modals, setModals } = useCoverageContext();
@@ -107,20 +102,9 @@ const ClaimPage = () => {
 
         <ClaimSummaryCards summary={claimSummary} />
 
-        <Search
-          searchValue={searchQuery}
-          searchPlaceholder="Search by claim number, asset, or policy"
-          onSearch={setSearchQuery}
-          live
-        />
+        <Search searchValue={searchQuery} searchPlaceholder="Search by claim number, asset, or policy" onSearch={setSearchQuery} live/>
 
-        <CoverageTable
-          variant="claims"
-          claims={filteredClaims}
-          onViewClaim={handleViewClaim}
-          onEditClaim={handleEditClaim}
-          onDeleteClaim={handleDeleteClaim}
-        />
+        <CoverageTable variant="claims" claims={filteredClaims} onViewClaim={handleViewClaim} onEditClaim={handleEditClaim} onDeleteClaim={handleDeleteClaim}/>
       </div>
 
       <LogClaimModal

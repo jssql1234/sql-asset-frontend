@@ -6,7 +6,7 @@ import { InsuranceSummaryCards } from "@/features/coverage/components/CoverageSu
 import { LogInsuranceModal } from "@/features/coverage/components/modal/LogInsuranceModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import type { CoverageInsurance } from "@/features/coverage/types";
-import { useCoverageContext } from "@/features/coverage/context/CoverageContext";
+import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
 import {
   useGetInsuranceSummary,
   useCreateInsurance,

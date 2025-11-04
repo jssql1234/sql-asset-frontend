@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
@@ -121,8 +113,6 @@ export const LogWarrantyModal = ({
     } else if (!isEditing && onCreate) {
       onCreate(formData);
     }
-    
-    // Modal will be closed by the handlers in useCoverageState
   };
 
   return (

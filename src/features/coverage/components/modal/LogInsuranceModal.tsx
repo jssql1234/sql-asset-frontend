@@ -136,8 +136,6 @@ export const LogInsuranceModal = ({
     } else if (!isEditing && onCreate) {
       onCreate(formData);
     }
-    
-    // Modal will be closed by the handlers in useCoverageState
   };
 
   return (

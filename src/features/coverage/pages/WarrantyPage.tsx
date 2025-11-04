@@ -6,7 +6,7 @@ import { WarrantySummaryCards } from "@/features/coverage/components/CoverageSum
 import { LogWarrantyModal } from "@/features/coverage/components/modal/LogWarrantyModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import type { CoverageWarranty } from "@/features/coverage/types";
-import { useCoverageContext } from "@/features/coverage/context/CoverageContext";
+import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
 import {
   useGetWarrantySummary,
   useCreateWarranty,

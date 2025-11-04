@@ -1,29 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups, getCoverageAssetName } from "@/features/coverage/mockData";
-import type {
-  CoverageInsurance,
-  CoverageWarranty,
-  CoverageClaim,
-  ClaimType,
-  ClaimStatus,
-} from "@/features/coverage/types";
+import type { CoverageInsurance, CoverageWarranty, CoverageClaim, ClaimType, ClaimStatus } from "@/features/coverage/types";
 
 const EMPTY_POLICIES: readonly CoverageInsurance[] = [];
 const EMPTY_WARRANTIES: readonly CoverageWarranty[] = [];
@@ -171,9 +153,7 @@ export const LogClaimModal = ({
       onUpdate(claim.id, formData);
     } else if (!isEditing && onCreate) {
       onCreate(formData);
-    }
-    
-    // Modal will be closed by the handlers in useCoverageState
+    }    
   };
 
   return (

@@ -1,7 +1,26 @@
-import { useMemo, type ReactNode } from "react";
-import type { CoverageModalsState } from "@/features/coverage/types";
-import { CoverageContext } from "@/features/coverage/context/CoverageContext";
+import { createContext, use, useMemo, type ReactNode } from "react";
+import type { CoverageInsurance, CoverageWarranty, CoverageClaim, CoverageModalsState } from "@/features/coverage/types";
 import { useGetInsurances, useGetWarranties, useGetClaims } from "./useCoverageService";
+
+export interface CoverageContextValue {
+  insurances: CoverageInsurance[];
+  warranties: CoverageWarranty[];
+  claims: CoverageClaim[];
+  modals: CoverageModalsState;
+  setModals: React.Dispatch<React.SetStateAction<CoverageModalsState>>;
+}
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const CoverageContext = createContext<CoverageContextValue | null>(null);
+
+// eslint-disable-next-line react-refresh/only-export-components
+export function useCoverageContext() {
+  const context = use(CoverageContext);
+  if (!context) {
+    throw new Error("useCoverageContext must be used within CoverageProvider");
+  }
+  return context;
+}
 
 interface CoverageProviderProps {
   children: ReactNode;

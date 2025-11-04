@@ -1,4 +1,4 @@
-export type InsuranceStatus = "Active" | "Expiring Soon" | "Expired";
+export type InsuranceStatus = "Active" | "Expiring Soon" | "Expired" | "Upcoming";
 export type WarrantyStatus = "Active" | "Expiring Soon" | "Expired";
 export type ClaimStatus = "Filed" | "Rejected" | "Settled" | "Approved";
 export type ClaimType = "Insurance" | "Warranty";

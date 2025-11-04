@@ -1,17 +1,10 @@
 import { useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { AssetChip } from "@/components/AssetChip";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { Badge } from "@/components/ui/components";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@/components/ui/components/DropdownButton";
-import DeleteConfirmationDialog from "../../work-request/components/DeleteConfirmationDialog";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { MeterGroup } from "@/types/meter";
-import { Delete, Dots } from "@/assets/icons";
 import { Copy } from "lucide-react";
 
 type MeterGroupsTableProps = {
@@ -127,48 +120,34 @@ export const MeterGroupsTable = ({
           );
         },
       },
+    ],
+    []
+  );
+
+  const rowActions: RowAction<MeterGroup>[] = useMemo(
+    () => [
       {
-        id: "actions",
-        header: "Actions",
-        enableColumnFilter: false,
-        enableSorting: false,
-        cell: ({ row }) => {
-          const group = row.original;
-          return (
-            <div className="flex items-center justify-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <button
-                    className="p-1 rounded-md hover:bg-hover focus:outline-none focus:ring-2 focus:ring-primary"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Dots className="size-5 text-onSurface" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      onCloneGroup(group.id);
-                    }}
-                  >
-                    Clone
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => {
-                      handleDeleteClick(group);
-                    }}
-                    className="text-error hover:bg-errorContainer"
-                  >
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
+        type: 'view',
+        onClick: (group) => {
+          onViewGroup(group);
+        },
+      },
+      {
+        type: 'custom',
+        label: 'Clone',
+        icon: Copy,
+        onClick: (group) => {
+          onCloneGroup(group.id);
+        },
+      },
+      {
+        type: 'delete',
+        onClick: (group) => {
+          handleDeleteClick(group);
         },
       },
     ],
-    [onCloneGroup, onDeleteGroup]
+    [onViewGroup, onCloneGroup]
   );
 
   return (
@@ -177,18 +156,24 @@ export const MeterGroupsTable = ({
         columns={columns}
         data={groups}
         showPagination
+        rowActions={rowActions}
       />
 
       <DeleteConfirmationDialog
         isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setGroupToDelete(null);
+        }}
         onConfirm={handleConfirmDelete}
-        itemCount={1}
-        itemType="meter group"
         title="Delete Meter Group"
-        description="Are you sure you want to delete this meter group? This action cannot be undone."
-        itemIds={groupToDelete ? [groupToDelete.id] : []}
-        itemNames={groupToDelete ? [groupToDelete.name] : []}
+        description={
+          groupToDelete
+            ? `Are you sure you want to delete the meter group "${groupToDelete.name}"? This will affect ${groupToDelete.assignedAssets.length} assigned asset(s) and ${groupToDelete.meters.length} meter(s). This action cannot be undone.`
+            : undefined
+        }
+        itemName={groupToDelete?.name}
+        confirmButtonText="Delete Group"
       />
     </>
   );

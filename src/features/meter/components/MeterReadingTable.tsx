@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui/components";
-import { DataTableExtended } from "@/components/DataTableExtended";
-import DeleteConfirmationDialog from "../../work-request/components/DeleteConfirmationDialog";
-import { Delete } from "@/assets/icons";
+import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { ColumnDef, GroupingState, ExpandedState } from "@tanstack/react-table";
 import type { MeterReading, MeterGroup, Meter } from "@/types/meter";
 
@@ -147,26 +145,20 @@ export const MeterReadingHistoryTable = ({
           );
         },
       },
+    ],
+    [meterMetadata]
+  );
+
+  const rowActions: RowAction<MeterReading>[] = useMemo(
+    () => [
       {
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => {
-          if (row.getIsGrouped()) return null;
-          return (
-            <div className="flex">
-              <Button
-                size="sm"
-                variant="destructive"
-                onClick={() => handleDeleteClick(row.original)}
-              >
-                <Delete></Delete>
-              </Button>
-            </div>
-          );
+        type: 'delete',
+        onClick: (reading) => {
+          handleDeleteClick(reading);
         },
       },
     ],
-    [meterMetadata]
+    []
   );
 
   return (
@@ -196,19 +188,25 @@ export const MeterReadingHistoryTable = ({
           onGroupingChange={setGrouping}
           expanded={expanded}
           onExpandedChange={setExpanded}
+          rowActions={rowActions}
         />
       </div>
 
       <DeleteConfirmationDialog
         isOpen={deleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={() => {
+          setDeleteDialogOpen(false);
+          setReadingToDelete(null);
+        }}
         onConfirm={handleConfirmDelete}
-        itemCount={1}
-        itemType="meter reading"
         title="Delete Meter Reading"
-        description="Are you sure you want to delete this meter reading? This action cannot be undone."
-        itemIds={readingToDelete ? [readingToDelete.id] : []}
-        itemNames={readingToDelete ? [`${readingToDelete.uom} - ${readingToDelete.value}`] : []}
+        description={
+          readingToDelete
+            ? `Are you sure you want to delete the meter reading for "${readingToDelete.uom}" recorded at ${formatTimestamp(readingToDelete.recordedAt)}? This action cannot be undone.`
+            : undefined
+        }
+        itemName={readingToDelete ? `${readingToDelete.uom} - ${readingToDelete.value}` : undefined}
+        confirmButtonText="Delete Reading"
       />
     </>
   );

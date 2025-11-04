@@ -61,26 +61,31 @@ export function ResolvedIncidentsModal({ open, onClose }: ResolvedIncidentsModal
       },
       {
         accessorKey: "startTime",
-        header: "Start / End Time",
+        header: "Start Time",
         enableColumnFilter: false,
         cell: ({ row }) => {
           const startTime = row.original.startTime;
-          const endTime = row.original.endTime;
           return (
-            <div className="space-y-1">
-              <div>
-                <div className="text-sm font-medium">{formatDate(startTime)}</div>
-                <div className="text-xs text-onSurfaceVariant">{formatTime(startTime)}</div>
-              </div>
-              {endTime ? (
-                <div>
-                  <div className="text-sm font-medium">{formatDate(endTime)}</div>
-                  <div className="text-xs text-onSurfaceVariant">{formatTime(endTime)}</div>
-                </div>
-              ) : (
-                <div className="text-sm text-onSurfaceVariant">Pending</div>
-              )}
+            <div>
+              <div className="text-sm font-medium">{formatDate(startTime)}</div>
+              <div className="text-xs text-onSurfaceVariant">{formatTime(startTime)}</div>
             </div>
+          );
+        },
+      },
+      {
+        accessorKey: "endTime",
+        header: "End Time",
+        enableColumnFilter: false,
+        cell: ({ row }) => {
+          const endTime = row.original.endTime;
+          return endTime ? (
+            <div>
+              <div className="text-sm font-medium">{formatDate(endTime)}</div>
+              <div className="text-xs text-onSurfaceVariant">{formatTime(endTime)}</div>
+            </div>
+          ) : (
+            <div className="text-sm text-onSurfaceVariant">Pending</div>
           );
         },
       },

@@ -67,7 +67,6 @@ export function DowntimeTable({
         cell: ({ getValue }) => {
           const priority = getValue() as DowntimeIncident["priority"];
           const variant = getPriorityVariant(priority);
-
           return <Badge text={priority} variant={variant} className="h-6 px-3" />;
         },
         filterFn: "multiSelect",
@@ -140,12 +139,9 @@ export function DowntimeTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="title-medium font-medium text-onSurface">Current Incidents ({filteredIncidents.length})</h2>
-        <div className="flex items-center gap-2">
-          <TableColumnVisibility columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns}/>
-          <div className="flex-shrink-0 w-80">
-            <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
-          </div>
+        <TableColumnVisibility columns={columns} visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns}/>
+        <div className="flex-shrink-0 w-80">
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
         </div>
       </div>
       

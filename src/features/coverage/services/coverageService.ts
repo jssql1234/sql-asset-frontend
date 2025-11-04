@@ -1,4 +1,14 @@
-import type { CoverageInsurance, CoverageWarranty, CoverageClaim, InsuranceSummaryMetrics, WarrantySummaryMetrics, ClaimSummaryMetrics } from "../types";
+import type {
+  CoverageInsurance,
+  CoverageInsurancePayload,
+  CoverageWarranty,
+  CoverageWarrantyPayload,
+  CoverageClaim,
+  CoverageClaimPayload,
+  InsuranceSummaryMetrics,
+  WarrantySummaryMetrics,
+  ClaimSummaryMetrics,
+} from "../types";
 import { coverageAssets, mockInsurances, mockWarranties, mockClaims } from "../mockData";
 
 // In-memory data stores (persists during session, not across page refreshes)
@@ -105,7 +115,7 @@ export const fetchInsurances = (): Promise<CoverageInsurance[]> => {
   return Promise.resolve([...insurancesStore]);
 };
 
-export const createInsurance = (data: Omit<CoverageInsurance, 'id' | 'status' | 'totalClaimed'>): Promise<CoverageInsurance> => {
+export const createInsurance = (data: CoverageInsurancePayload): Promise<CoverageInsurance> => {
   const id = `POL-${String(nextInsuranceId++).padStart(3, '0')}`;
   const status = calculateInsuranceStatus(data.startDate, data.expiryDate);
   const totalClaimed = data.coverageAmount - data.remainingCoverage;
@@ -121,7 +131,7 @@ export const createInsurance = (data: Omit<CoverageInsurance, 'id' | 'status' | 
   return Promise.resolve(newInsurance);
 };
 
-export const updateInsurance = (id: string, data: Omit<CoverageInsurance, 'id' | 'status' | 'totalClaimed'>): Promise<CoverageInsurance> => {
+export const updateInsurance = (id: string, data: CoverageInsurancePayload): Promise<CoverageInsurance> => {
   const index = insurancesStore.findIndex(ins => ins.id === id);
   if (index === -1) throw new Error("Insurance policy not found");
   
@@ -149,7 +159,7 @@ export const fetchWarranties = (): Promise<CoverageWarranty[]> => {
   return Promise.resolve([...warrantiesStore]);
 };
 
-export const createWarranty = (data: Omit<CoverageWarranty, 'id' | 'status'>): Promise<CoverageWarranty> => {
+export const createWarranty = (data: CoverageWarrantyPayload): Promise<CoverageWarranty> => {
   const id = `WAR-${String(nextWarrantyId++).padStart(3, '0')}`;
   const status = calculateWarrantyStatus(data.expiryDate);
   
@@ -163,7 +173,7 @@ export const createWarranty = (data: Omit<CoverageWarranty, 'id' | 'status'>): P
   return Promise.resolve(newWarranty);
 };
 
-export const updateWarranty = (id: string, data: Omit<CoverageWarranty, 'id' | 'status'>): Promise<CoverageWarranty> => {
+export const updateWarranty = (id: string, data: CoverageWarrantyPayload): Promise<CoverageWarranty> => {
   const index = warrantiesStore.findIndex(war => war.id === id);
   if (index === -1) throw new Error("Warranty not found");
   
@@ -189,7 +199,7 @@ export const fetchClaims = (): Promise<CoverageClaim[]> => {
   return Promise.resolve([...claimsStore]);
 };
 
-export const createClaim = (data: Omit<CoverageClaim, 'id'>): Promise<CoverageClaim> => {
+export const createClaim = (data: CoverageClaimPayload): Promise<CoverageClaim> => {
   const id = `CLM-${String(nextClaimId++).padStart(3, '0')}`;
   const amount = Number.isFinite(data.amount) ? data.amount : 0;
   
@@ -218,7 +228,7 @@ export const createClaim = (data: Omit<CoverageClaim, 'id'>): Promise<CoverageCl
   return Promise.resolve(newClaim);
 };
 
-export const updateClaim = (id: string, data: Omit<CoverageClaim, 'id'>): Promise<CoverageClaim> => {
+export const updateClaim = (id: string, data: CoverageClaimPayload): Promise<CoverageClaim> => {
   const index = claimsStore.findIndex(claim => claim.id === id);
   if (index === -1) throw new Error("Claim not found");
   

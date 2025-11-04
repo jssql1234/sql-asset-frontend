@@ -1,7 +1,17 @@
 import { useDataQuery } from "@/hooks/useDataQuery";
 import { useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/components/Toast";
-import type { CoverageInsurance, CoverageWarranty, CoverageClaim, InsuranceSummaryMetrics, WarrantySummaryMetrics, ClaimSummaryMetrics } from "../types";
+import type {
+  CoverageInsurance,
+  CoverageInsurancePayload,
+  CoverageWarranty,
+  CoverageWarrantyPayload,
+  CoverageClaim,
+  CoverageClaimPayload,
+  InsuranceSummaryMetrics,
+  WarrantySummaryMetrics,
+  ClaimSummaryMetrics,
+} from "../types";
 import * as coverageService from "../services/coverageService";
 
 // Query keys for React Query cache management
@@ -49,7 +59,7 @@ export function useCreateInsurance(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<CoverageInsurance, Error, Omit<CoverageInsurance, 'id' | 'status' | 'totalClaimed'>>({
+  return useMutation<CoverageInsurance, Error, CoverageInsurancePayload>({
     mutationFn: coverageService.createInsurance,
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
@@ -77,7 +87,7 @@ export function useUpdateInsurance(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<CoverageInsurance, Error, { id: string; data: Omit<CoverageInsurance, 'id' | 'status' | 'totalClaimed'> }>({
+  return useMutation<CoverageInsurance, Error, { id: string; data: CoverageInsurancePayload }>({
     mutationFn: ({ id, data }) => coverageService.updateInsurance(id, data),
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
@@ -152,7 +162,7 @@ export function useCreateWarranty(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<CoverageWarranty, Error, Omit<CoverageWarranty, 'id' | 'status'>>({
+  return useMutation<CoverageWarranty, Error, CoverageWarrantyPayload>({
     mutationFn: coverageService.createWarranty,
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
@@ -180,7 +190,7 @@ export function useUpdateWarranty(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<CoverageWarranty, Error, { id: string; data: Omit<CoverageWarranty, 'id' | 'status'> }>({
+  return useMutation<CoverageWarranty, Error, { id: string; data: CoverageWarrantyPayload }>({
     mutationFn: ({ id, data }) => coverageService.updateWarranty(id, data),
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
@@ -255,7 +265,7 @@ export function useCreateClaim(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<CoverageClaim, Error, Omit<CoverageClaim, 'id'>>({
+  return useMutation<CoverageClaim, Error, CoverageClaimPayload>({
     mutationFn: coverageService.createClaim,
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
@@ -283,7 +293,7 @@ export function useUpdateClaim(onSuccess?: () => void) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
-  return useMutation<CoverageClaim, Error, { id: string; data: Omit<CoverageClaim, 'id'> }>({
+  return useMutation<CoverageClaim, Error, { id: string; data: CoverageClaimPayload }>({
     mutationFn: ({ id, data }) => coverageService.updateClaim(id, data),
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);

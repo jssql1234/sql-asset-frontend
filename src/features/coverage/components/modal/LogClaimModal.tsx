@@ -1,11 +1,11 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups, getCoverageAssetName } from "@/features/coverage/mockData";
-import type { CoverageInsurance, CoverageWarranty, CoverageClaim, ClaimType, ClaimStatus } from "@/features/coverage/types";
+import type { CoverageInsurance, CoverageWarranty, CoverageClaim, CoverageClaimPayload, ClaimType, ClaimStatus } from "@/features/coverage/types";
 
 const EMPTY_POLICIES: readonly CoverageInsurance[] = [];
 const EMPTY_WARRANTIES: readonly CoverageWarranty[] = [];
@@ -16,8 +16,8 @@ interface LogClaimModalProps {
   policies?: CoverageInsurance[];
   warranties?: CoverageWarranty[];
   claim?: CoverageClaim;
-  onCreate?: (data: Omit<CoverageClaim, 'id'>) => void;
-  onUpdate?: (id: string, data: Omit<CoverageClaim, 'id'>) => void;
+  onCreate?: (data: CoverageClaimPayload) => void;
+  onUpdate?: (id: string, data: CoverageClaimPayload) => void;
 }
 
 export const LogClaimModal = ({
@@ -60,7 +60,7 @@ export const LogClaimModal = ({
       : warranties ?? EMPTY_WARRANTIES;
   }, [claimType, policies, warranties]);
 
-  const assetCategories = React.useMemo(
+  const assetCategories = useMemo(
     () => [
       { id: "all", label: "All Assets" },
       ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
@@ -68,7 +68,7 @@ export const LogClaimModal = ({
     []
   );
 
-  const mockAssets = React.useMemo(() => {
+  const mockAssets = useMemo(() => {
     // Get all assets
     const allAssets = coverageAssets.map((asset) => ({
       id: asset.id,
@@ -136,7 +136,7 @@ export const LogClaimModal = ({
     
     const claimAmount = Number.isFinite(claimData.amount) ? claimData.amount : 0;
 
-    const formData: Omit<CoverageClaim, 'id'> = {
+    const formData: CoverageClaimPayload = {
       claimNumber: claimData.claimNumber,
       type: claimType,
       referenceId,
@@ -334,13 +334,20 @@ export const LogClaimModal = ({
                 />
               </div>
             </div>
+
+            <DialogFooter className="flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
           </form>
         </div>
-
-        <DialogFooter className="flex justify-end">
-          <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
-          <Button type="submit" onClick={handleSubmit}>Save</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

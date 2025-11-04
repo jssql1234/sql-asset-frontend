@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { coverageAssets, coverageAssetGroups } from "@/features/coverage/mockData";
-import type { CoverageWarranty } from "@/features/coverage/types";
+import type { CoverageEntityAsset, CoverageWarranty, CoverageWarrantyPayload } from "@/features/coverage/types";
 
 interface LogWarrantyModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   warranty?: CoverageWarranty;
-  onCreate?: (data: Omit<CoverageWarranty, 'id' | 'status'>) => void;
-  onUpdate?: (id: string, data: Omit<CoverageWarranty, 'id' | 'status'>) => void;
+  onCreate?: (data: CoverageWarrantyPayload) => void;
+  onUpdate?: (id: string, data: CoverageWarrantyPayload) => void;
 }
 
 // Helper function to calculate expiry date (364 days from start date)
@@ -20,6 +20,10 @@ const calculateExpiryDate = (startDate: Date): Date => {
   const expiryDate = new Date(startDate);
   expiryDate.setDate(startDate.getDate() + 364);
   return expiryDate;
+};
+
+type WarrantyFormState = Omit<CoverageWarrantyPayload, "assetsCovered"> & {
+  startDate: string;
 };
 
 export const LogWarrantyModal = ({
@@ -31,7 +35,7 @@ export const LogWarrantyModal = ({
 }: LogWarrantyModalProps) => {
   const isEditing = Boolean(warranty);
 
-  const assetCategories = React.useMemo(
+  const assetCategories = useMemo(
     () => [
       { id: "all", label: "All Assets" },
       ...coverageAssetGroups.map((group) => ({ id: group.id, label: group.label })),
@@ -39,7 +43,7 @@ export const LogWarrantyModal = ({
     []
   );
 
-  const mockAssets = React.useMemo(
+  const assetOptions = useMemo(
     () =>
       coverageAssets.map((asset) => ({
         id: asset.id,
@@ -49,7 +53,16 @@ export const LogWarrantyModal = ({
     []
   );
 
-  const [warrantyData, setWarrantyData] = useState(() => {
+  const assetNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    assetOptions.forEach((option) => {
+      const [name] = option.label.split(" (");
+      map.set(option.id, name);
+    });
+    return map;
+  }, [assetOptions]);
+
+  const [warrantyData, setWarrantyData] = useState<WarrantyFormState>(() => {
     const today = new Date();
     const expiryDate = calculateExpiryDate(today);
     
@@ -72,39 +85,43 @@ export const LogWarrantyModal = ({
 
   // Reset form when warranty prop changes (for edit mode) or when modal opens/closes
   useEffect(() => {
-    if (open) {
-      const today = new Date();
-      const expiryDate = calculateExpiryDate(today);
-      
-      setWarrantyData({
-        name: warranty?.name ?? "",
-        provider: warranty?.provider ?? "",
-        warrantyNumber: warranty?.warrantyNumber ?? "",
-        coverage: warranty?.coverage ?? "",
-        startDate: today.toISOString(),
-        expiryDate: warranty?.expiryDate ?? expiryDate.toISOString(),
-        description: warranty?.description ?? "",
-      });
-      
-      setSelectedAssetIds(warranty?.assetsCovered.map((a) => a.id) ?? []);
-      setSelectedAssetCategory("all");
+    if (!open) {
+      return;
     }
+
+    const today = new Date();
+    const expiryDate = calculateExpiryDate(today).toISOString();
+
+    setWarrantyData({
+      name: warranty?.name ?? "",
+      provider: warranty?.provider ?? "",
+      warrantyNumber: warranty?.warrantyNumber ?? "",
+      coverage: warranty?.coverage ?? "",
+      startDate: today.toISOString(),
+      expiryDate: warranty?.expiryDate ?? expiryDate,
+      description: warranty?.description ?? "",
+    });
+
+    setSelectedAssetIds(warranty?.assetsCovered.map((asset) => asset.id) ?? []);
+    setSelectedAssetCategory("all");
   }, [warranty, open]);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
     // Get selected assets with their names
-    const assetsCovered = selectedAssetIds.map(id => {
-      const asset = mockAssets.find(a => a.id === id);
-      return {
-        id,
-        name: asset?.label.split(' (')[0] ?? id,
-      };
-    });
+    const assetsCovered: CoverageEntityAsset[] = selectedAssetIds.map((id) => ({
+      id,
+      name: assetNameById.get(id) ?? id,
+    }));
     
-    const formData = {
-      ...warrantyData,
+    const formData: CoverageWarrantyPayload = {
+      name: warrantyData.name,
+      provider: warrantyData.provider,
+      warrantyNumber: warrantyData.warrantyNumber,
+      coverage: warrantyData.coverage,
+      expiryDate: warrantyData.expiryDate,
+      description: warrantyData.description,
       assetsCovered,
     };
     
@@ -219,7 +236,7 @@ export const LogWarrantyModal = ({
                   categories={assetCategories}
                   selectedCategoryId={selectedAssetCategory}
                   onCategoryChange={setSelectedAssetCategory}
-                  items={mockAssets}
+                  items={assetOptions}
                   selectedIds={selectedAssetIds}
                   onSelectionChange={setSelectedAssetIds}
                   placeholder="Search assets by name or ID"
@@ -245,13 +262,20 @@ export const LogWarrantyModal = ({
                 />
               </div>
             </div>
+
+            <DialogFooter className="flex justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save</Button>
+            </DialogFooter>
           </form>
         </div>
-
-        <DialogFooter className="flex justify-end">
-          <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
-          <Button type="submit" onClick={handleSubmit}>Save</Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useCallback } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import Search from "@/components/Search";
@@ -6,83 +6,56 @@ import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummar
 import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
-import type { CoverageClaim } from "@/features/coverage/types";
+import type { CoverageClaim, CoverageClaimPayload } from "@/features/coverage/types";
+import { EMPTY_CLAIM_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
+import { useCoverageModals } from "@/features/coverage/hooks/useCoverageModals";
+import { useCoverageSearch } from "@/features/coverage/hooks/useCoverageSearch";
 import { useGetClaimSummary, useCreateClaim, useUpdateClaim, useDeleteClaim } from "@/features/coverage/hooks/useCoverageService";
 
 const ClaimPage = () => {
-  const { insurances, warranties, claims, modals, setModals } = useCoverageContext();
-  const { data: claimSummary = {
-    totalClaims: 0,
-    pendingClaims: 0,
-    settledClaims: 0,
-    totalSettlementAmount: 0,
-    rejectedClaims: 0,
-  } } = useGetClaimSummary();
+  const { insurances, warranties, claims } = useCoverageContext();
+  const {
+    modals,
+    openClaimForm,
+    closeClaimForm,
+    showClaimDetails,
+    hideClaimDetails,
+    openWorkOrderModal,
+    closeWorkOrderModal,
+  } = useCoverageModals();
+  const { data: claimSummary = EMPTY_CLAIM_SUMMARY } = useGetClaimSummary();
 
-  const createClaim = useCreateClaim();
-  const updateClaim = useUpdateClaim();
-  const deleteClaim = useDeleteClaim();
+  const createClaim = useCreateClaim(closeClaimForm);
+  const updateClaim = useUpdateClaim(closeClaimForm);
+  const deleteClaim = useDeleteClaim(hideClaimDetails);
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const matchClaim = useCallback((claim: CoverageClaim, query: string) => (
+    claim.claimNumber.toLowerCase().includes(query) ||
+    claim.referenceName.toLowerCase().includes(query) ||
+    claim.referenceId.toLowerCase().includes(query) ||
+    (claim.description?.toLowerCase().includes(query) ?? false) ||
+    claim.type.toLowerCase().includes(query) ||
+    claim.status.toLowerCase().includes(query) ||
+    claim.assets.some((asset) =>
+      asset.id.toLowerCase().includes(query) ||
+      asset.name.toLowerCase().includes(query)
+    )
+  ), []);
 
-  const filteredClaims = useMemo(() => {
-    if (!searchQuery.trim()) return claims;
+  const { query: searchQuery, setQuery: setSearchQuery, filteredItems: filteredClaims } = useCoverageSearch(claims, matchClaim);
 
-    const query = searchQuery.toLowerCase();
-    return claims.filter((claim) => 
-      claim.claimNumber.toLowerCase().includes(query) ||
-      claim.referenceName.toLowerCase().includes(query) ||
-      claim.referenceId.toLowerCase().includes(query) ||
-      (claim.description?.toLowerCase().includes(query) ?? false) ||
-      claim.type.toLowerCase().includes(query) ||
-      claim.status.toLowerCase().includes(query) ||
-      claim.assets.some((asset) => 
-        asset.id.toLowerCase().includes(query) || 
-        asset.name.toLowerCase().includes(query)
-      )
-    );
-  }, [claims, searchQuery]);
+  const handleCreateClaim = useCallback((data: CoverageClaimPayload) => {
+    createClaim.mutate(data);
+  }, [createClaim]);
 
-  const handleCreateClaim = useCallback((data: Omit<CoverageClaim, 'id'>) => {
-    createClaim.mutate(data, {
-      onSuccess: () => {
-        setModals(prev => ({ ...prev, claimForm: false, claimEdit: null }));
-      },
-    });
-  }, [createClaim, setModals]);
-
-  const handleUpdateClaim = useCallback((id: string, data: Omit<CoverageClaim, 'id'>) => {
-    updateClaim.mutate({ id, data }, {
-      onSuccess: () => {
-        setModals(prev => ({ ...prev, claimForm: false, claimEdit: null }));
-      },
-    });
-  }, [updateClaim, setModals]);
+  const handleUpdateClaim = useCallback((id: string, data: CoverageClaimPayload) => {
+    updateClaim.mutate({ id, data });
+  }, [updateClaim]);
 
   const handleDeleteClaim = useCallback((claim: CoverageClaim) => {
-    deleteClaim.mutate(claim.id, {
-      onSuccess: () => {
-        setModals(prev => ({ ...prev, claimDetails: null }));
-      },
-    });
-  }, [deleteClaim, setModals]);
-
-  const handleViewClaim = useCallback((claim: CoverageClaim) => {
-    setModals(prev => ({ ...prev, claimDetails: claim }));
-  }, [setModals]);
-
-  const handleEditClaim = useCallback((claim: CoverageClaim) => {
-    setModals(prev => ({ ...prev, claimForm: true, claimEdit: claim }));
-  }, [setModals]);
-
-  const handleCloseClaimDetails = useCallback(() => {
-    setModals(prev => ({ ...prev, claimDetails: null }));
-  }, [setModals]);
-
-  const handleCloseWorkOrder = useCallback(() => {
-    setModals(prev => ({ ...prev, workOrderFromClaim: false, claimForWorkOrder: null }));
-  }, [setModals]);
+    deleteClaim.mutate(claim.id);
+  }, [deleteClaim]);
 
   return (
     <>
@@ -94,7 +67,7 @@ const ClaimPage = () => {
             {
               label: "Add Claim",
               onAction: () => {
-                setModals(prev => ({ ...prev, claimForm: true }));
+                openClaimForm();
               },
             },
           ]}
@@ -104,13 +77,17 @@ const ClaimPage = () => {
 
         <Search searchValue={searchQuery} searchPlaceholder="Search by claim number, asset, or policy" onSearch={setSearchQuery} live/>
 
-        <CoverageTable variant="claims" claims={filteredClaims} onViewClaim={handleViewClaim} onEditClaim={handleEditClaim} onDeleteClaim={handleDeleteClaim}/>
+        <CoverageTable variant="claims" claims={filteredClaims} onViewClaim={showClaimDetails} onEditClaim={openClaimForm} onDeleteClaim={handleDeleteClaim}/>
       </div>
 
       <LogClaimModal
         open={modals.claimForm}
-        onOpenChange={(open: boolean) => {
-          setModals((prev) => ({ ...prev, claimForm: open, claimEdit: open ? prev.claimEdit : null }));
+        onOpenChange={(open) => {
+          if (open) {
+            openClaimForm(modals.claimEdit ?? undefined);
+          } else {
+            closeClaimForm();
+          }
         }}
         policies={insurances}
         warranties={warranties}
@@ -125,7 +102,7 @@ const ClaimPage = () => {
         data={modals.claimDetails}
         onOpenChange={(open: boolean) => {
           if (!open) {
-            handleCloseClaimDetails();
+            hideClaimDetails();
           }
         }}
       />
@@ -133,10 +110,12 @@ const ClaimPage = () => {
       <WorkOrderFromClaimModal
         open={modals.workOrderFromClaim}
         onOpenChange={(open) => {
-          if (open) {
-            setModals((prev) => ({ ...prev, workOrderFromClaim: open }));
-          } else {
-            handleCloseWorkOrder();
+          if (open && modals.claimForWorkOrder) {
+            openWorkOrderModal(modals.claimForWorkOrder);
+          }
+
+          if (!open) {
+            closeWorkOrderModal();
           }
         }}
         claim={modals.claimForWorkOrder}

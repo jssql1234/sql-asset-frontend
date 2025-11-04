@@ -286,7 +286,7 @@ const ClaimsVariantTable = ({
             {row.original.assets.map((asset) => (
               <Badge
                 key={asset.id}
-                text={asset.name}
+                text={`${asset.name} (${asset.id})`}
                 variant="grey"
                 className="h-7 px-3 py-1"
               />

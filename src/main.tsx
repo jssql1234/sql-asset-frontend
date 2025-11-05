@@ -4,6 +4,7 @@ import "@/index.css";
 import App from "@/App";
 import { logError } from "@/utils/logger";
 import "@/i18n";
+import "./styles/dialogStyles";
 
 if (import.meta.env.DEV) {
   import("@/styles/index").catch((err: unknown) => {

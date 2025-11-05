@@ -48,7 +48,7 @@ export function DowntimeTable({
         enableColumnFilter: false,
         enableSorting: false,
         cell: ({ row }) => (
-          <div className="flex flex-wrap gap-1 max-w-150">
+          <div className="flex flex-wrap gap-1">
             {row.original.assets.map((asset) => (
               <Badge
                 key={asset.id}
@@ -59,6 +59,9 @@ export function DowntimeTable({
             ))}
           </div>
         ),
+        size: 300,
+        minSize: 200,
+        maxSize: 500,
       },
       {
         id: "priority",

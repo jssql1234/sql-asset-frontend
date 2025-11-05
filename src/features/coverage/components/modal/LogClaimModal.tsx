@@ -121,7 +121,7 @@ export const LogClaimModal = ({
     const reference = references.find(ref => ref.id === referenceId);
     const referenceName = reference?.name ?? "";
     
-    const claimAmount = Number.isFinite(claimData.amount) ? claimData.amount : 0;
+    const claimAmount = claimType === "Insurance" ? (Number.isFinite(claimData.amount) ? claimData.amount : 0) : 0;
 
     const formData: CoverageClaimPayload = {
       claimNumber: claimData.claimNumber,
@@ -171,6 +171,11 @@ export const LogClaimModal = ({
                               setClaimType(type);
                               setReferenceId("");
                               setSelectedAssetIds([]);
+                              // Reset amount for warranty claims
+                              if (type === "Warranty") {
+                                setClaimData(prev => ({ ...prev, amount: 0 }));
+                                setAmountInput("");
+                              }
                             }}
                           >
                             {type}
@@ -243,22 +248,24 @@ export const LogClaimModal = ({
                     className="w-full"
                   />
                 </div>
-                <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Claim Amount<span className="text-error"> *</span></label>
-                  <Input
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={amountInput}
-                    onChange={(event) => {
-                      const inputValue = event.target.value;
-                      setAmountInput(inputValue);
-                      const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
-                      setClaimData({ ...claimData, amount: Number.isNaN(numValue) ? 0 : numValue });
-                    }}
-                    placeholder="Enter claim amount"
-                  />
-                </div>
+                {claimType === "Insurance" && (
+                  <div className="flex flex-col gap-2">
+                    <label className="body-small text-onSurface">Claim Amount<span className="text-error"> *</span></label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={amountInput}
+                      onChange={(event) => {
+                        const inputValue = event.target.value;
+                        setAmountInput(inputValue);
+                        const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
+                        setClaimData({ ...claimData, amount: Number.isNaN(numValue) ? 0 : numValue });
+                      }}
+                      placeholder="Enter claim amount"
+                    />
+                  </div>
+                )}
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Claim Status<span className="text-error"> *</span></label>
                   <DropdownMenu>

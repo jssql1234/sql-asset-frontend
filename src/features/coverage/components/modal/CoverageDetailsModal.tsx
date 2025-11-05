@@ -4,6 +4,7 @@ import { DetailModalSection } from "@/features/coverage/components/DetailModal";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty, CoverageStatus } from "@/features/coverage/types";
 import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
+import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 
 export interface CoverageItem {
   id: string;
@@ -25,9 +26,6 @@ export interface DetailSection {
     value: ReactNode;
   }[];
   children?: ReactNode;
-  assetGrid?: {
-    assets: CoverageItem[];
-  };
   gridSections?: DetailSection[];
 }
 
@@ -48,7 +46,7 @@ interface ModalConfig {
 }
 
 const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
-  contentClassName: "max-w-4xl max-h-[80vh] overflow-hidden",
+  contentClassName: "w-2xl max-h-[80vh] overflow-hidden",
   title: data.name,
   subtitle: `${data.provider} • ${data.policyNumber}`,
   sections: [
@@ -96,6 +94,22 @@ const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
       ],
     },
     {
+      title: "Assets Covered",
+      children: (
+        <SearchWithDropdown
+          categories={[{ id: "all", label: "All Assets" }]}
+          selectedCategoryId="all"
+          onCategoryChange={() => undefined}
+          items={data.assetsCovered.map(asset => ({ id: asset.id, label: `${asset.name} (${asset.id})` }))}
+          selectedIds={data.assetsCovered.map(asset => asset.id)}
+          onSelectionChange={() => undefined}
+          hideSearchField={true}
+          hideSelectedCount={true}
+          disable={true}
+        />
+      ),
+    },
+    {
       title: "Description",
       children: (
         <p className="body-medium text-onSurfaceVariant whitespace-pre-line">
@@ -103,13 +117,7 @@ const getInsuranceConfig = (data: CoverageInsurance): ModalConfig => ({
         </p>
       ),
     },
-    {
-      title: "Assets Covered",
-      subtitle: `${data.assetsCovered.length.toString()} assets`,
-      assetGrid: {
-        assets: data.assetsCovered,
-      },
-    },
+
   ],
 });
 
@@ -142,9 +150,19 @@ const getWarrantyConfig = (data: CoverageWarranty): ModalConfig => ({
     {
       title: "Assets Covered",
       subtitle: `${data.assetsCovered.length.toString()} assets`,
-      assetGrid: {
-        assets: data.assetsCovered,
-      },
+      children: (
+        <SearchWithDropdown
+          categories={[{ id: "all", label: "All Assets" }]}
+          selectedCategoryId="all"
+          onCategoryChange={() => undefined}
+          items={data.assetsCovered.map(asset => ({ id: asset.id, label: `${asset.name} (${asset.id})` }))}
+          selectedIds={data.assetsCovered.map(asset => asset.id)}
+          onSelectionChange={() => undefined}
+          hideSearchField={true}
+          hideSelectedCount={true}
+          disable={true}
+        />
+      ),
     },
   ],
 });
@@ -195,9 +213,19 @@ const getClaimConfig = (data: CoverageClaim): ModalConfig => ({
     {
       title: "Assets",
       subtitle: `${data.assets.length.toString()} assets`,
-      assetGrid: {
-        assets: data.assets,
-      },
+      children: (
+        <SearchWithDropdown
+          categories={[{ id: "all", label: "All Assets" }]}
+          selectedCategoryId="all"
+          onCategoryChange={() => undefined}
+          items={data.assets.map(asset => ({ id: asset.id, label: `${asset.name} (${asset.id})` }))}
+          selectedIds={data.assets.map(asset => asset.id)}
+          onSelectionChange={() => undefined}
+          hideSearchField={true}
+          hideSelectedCount={true}
+          disable={true}
+        />
+      ),
     },
   ],
 });
@@ -263,20 +291,9 @@ export function CoverageDetailsModal({
 
             if (section.children) {
               return (
-                <DetailModalSection key={section.title} title={section.title}>
+                <DetailModalSection key={section.title} title={section.title} subtitle={section.subtitle}>
                   {section.children}
                 </DetailModalSection>
-              );
-            }
-
-            if (section.assetGrid) {
-              return (
-                <DetailModalSection
-                  key={section.title}
-                  title={section.title}
-                  subtitle={section.subtitle}
-                  assetGrid={section.assetGrid}
-                />
               );
             }
 

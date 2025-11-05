@@ -1001,6 +1001,13 @@ function DataTableRow<TData>({
         const centerCells = sortedCells.filter(c => !leftPinned.includes(c.column.id) && !rightPinned.includes(c.column.id));
         const rightCells = sortedCells.filter(c => rightPinned.includes(c.column.id));
 
+        // Determine background class based on row state
+        const pinnedBgClass = cn(
+          "bg-surface transition-colors", // default
+          row.getIsSelected() && "bg-secondaryContainer",
+          "group-hover/row:bg-secondaryContainer"
+        );
+
         return (
           <TableRow
             key={row.id}
@@ -1008,13 +1015,14 @@ function DataTableRow<TData>({
             data-state={row.getIsSelected() && 'selected'}
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
+              'group/row',
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
               row.getIsGrouped() && 'cursor-pointer'
             )}
           >
             {/* Left pinned cells */}
             {leftCells.length > 0 && (
-              <TableCell className="sticky left-0 z-10 bg-surface shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]" style={{ padding: 0 }}>
+              <TableCell className={cn("sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]", pinnedBgClass)} style={{ padding: 0 }}>
                 <div className="flex">
                   {leftCells.map((cell, i) => (
                     <div
@@ -1039,7 +1047,7 @@ function DataTableRow<TData>({
             
             {/* Right pinned cells */}
             {rightCells.length > 0 && (
-              <TableCell className="sticky right-0 z-10 bg-surface shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]" style={{ padding: 0 }}>
+              <TableCell className={cn("sticky right-0 z-10 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]", pinnedBgClass)} style={{ padding: 0 }}>
                 <div className="flex">
                   {rightCells.map((cell, i) => (
                     <div

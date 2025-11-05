@@ -6,7 +6,6 @@ import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { CoverageEntityAsset, CoverageWarranty, CoverageWarrantyPayload } from "@/features/coverage/types";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
-import { CoverageFormSection } from "../LogModal";
 
 interface LogWarrantyModalProps {
   open: boolean;
@@ -118,7 +117,8 @@ export const LogWarrantyModal = ({
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-            <CoverageFormSection title="Warranty Details">
+            <div className="space-y-4">
+              <h3 className="title-small font-semibold text-onSurface">Warranty Details</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Warranty Name<span className="text-error"> *</span></label>
@@ -194,9 +194,10 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                 </div>
-            </CoverageFormSection>
+            </div>
 
-            <CoverageFormSection title="Assets Covered">
+            <div className="space-y-4">
+              <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
               <SearchWithDropdown
                 categories={assetCategories}
                 selectedCategoryId={selectedAssetCategory}
@@ -208,9 +209,10 @@ export const LogWarrantyModal = ({
                 emptyMessage="No assets found"
                 hideSelectedField={selectedAssetIds.length === 0}
               />
-            </CoverageFormSection>
+            </div>
 
-            <CoverageFormSection title="Description">
+            <div className="space-y-4">
+              <h3 className="title-small font-semibold text-onSurface">Description</h3>
               <TextArea
                 rows={3}
                 value={warrantyData.description}
@@ -219,7 +221,7 @@ export const LogWarrantyModal = ({
                 }}
                 placeholder="Important clauses, limitations, service windows, etc."
               />
-            </CoverageFormSection>
+            </div>
 
             <DialogFooter className="flex justify-end">
               <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>

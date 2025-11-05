@@ -19,7 +19,6 @@ import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { CoverageEntityAsset, CoverageInsurance, CoverageInsurancePayload, InsuranceLimitType } from "@/features/coverage/types";
 import { createInsuranceSchema, updateInsuranceSchema } from "@/features/coverage/zod/coverageSchemas";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
-import { CoverageFormSection } from "../LogModal";
 
 interface LogInsuranceModalProps {
   open: boolean;
@@ -161,7 +160,8 @@ export const LogInsuranceModal = ({
 
         <div className="flex flex-col gap-6 overflow-y-auto pr-2">
           <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-            <CoverageFormSection title="Policy Details">
+            <div className="space-y-4">
+              <h3 className="title-small font-semibold text-onSurface">Policy Details</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Policy Name<span className="text-error"> *</span></label>
@@ -340,9 +340,10 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                 </div>
-            </CoverageFormSection>
+            </div>
 
-            <CoverageFormSection title="Assets Covered">
+            <div className="space-y-4">
+              <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
               <SearchWithDropdown
                 categories={assetCategories}
                 selectedCategoryId={selectedAssetCategory}
@@ -360,9 +361,10 @@ export const LogInsuranceModal = ({
               {fieldErrors.assetsCovered ? (
                 <span className="label-small text-error">{fieldErrors.assetsCovered}</span>
               ) : null}
-            </CoverageFormSection>
+            </div>
 
-            <CoverageFormSection title="Description">
+            <div className="space-y-4">
+              <h3 className="title-small font-semibold text-onSurface">Description</h3>
               <TextArea
                 rows={3}
                 value={insuranceData.description}
@@ -372,7 +374,7 @@ export const LogInsuranceModal = ({
                 }}
                 placeholder="Describe coverage, deductibles, or asset-specific clauses"
               />
-            </CoverageFormSection>
+            </div>
 
             <DialogFooter className="flex justify-end">
               <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>

@@ -1,9 +1,10 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { InsuranceSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import { LogInsuranceModal } from "@/features/coverage/components/modal/LogInsuranceModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { CoverageInsurance, CoverageInsurancePayload } from "@/features/coverage/types";
 import { EMPTY_INSURANCE_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
@@ -14,6 +15,8 @@ const InsurancePage = () => {
   const { insurances } = useCoverageContext();
   const { modals, openInsuranceForm, closeInsuranceForm, showInsuranceDetails, hideInsuranceDetails } = useCoverageModals();
   const { data: insuranceSummary = EMPTY_INSURANCE_SUMMARY } = useGetInsuranceSummary();
+
+  const [insuranceToDelete, setInsuranceToDelete] = useState<CoverageInsurance | null>(null);
 
   const createInsurance = useCreateInsurance(closeInsuranceForm);
   const updateInsurance = useUpdateInsurance(closeInsuranceForm);
@@ -28,8 +31,19 @@ const InsurancePage = () => {
   }, [updateInsurance]);
 
   const handleDeleteInsurance = useCallback((insurance: CoverageInsurance) => {
-    deleteInsurance.mutate(insurance.id);
-  }, [deleteInsurance]);
+    setInsuranceToDelete(insurance);
+  }, []);
+
+  const handleConfirmDelete = () => {
+    if (insuranceToDelete) {
+      deleteInsurance.mutate(insuranceToDelete.id);
+      setInsuranceToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setInsuranceToDelete(null);
+  };
 
   return (
     <>
@@ -81,6 +95,18 @@ const InsurancePage = () => {
             hideInsuranceDetails();
           }
         }}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={!!insuranceToDelete}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Insurance Policy?"
+        description="This will permanently remove the insurance policy and all associated coverage data. This action cannot be undone."
+        confirmButtonText="Delete Policy"
+        itemIds={insuranceToDelete?.assetsCovered.map((asset) => asset.id) ?? []}
+        itemNames={insuranceToDelete?.assetsCovered.map((asset) => `${asset.name} (${asset.id})`) ?? []}
+        itemCount={insuranceToDelete?.assetsCovered.length ?? 0}
       />
     </>
   );

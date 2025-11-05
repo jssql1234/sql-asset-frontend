@@ -157,7 +157,7 @@ export const LogClaimModal = ({
             <CoverageFormSection title="Claim Details">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Claim Type *</label>
+                  <label className="body-small text-onSurface">Claim Type<span className="text-error"> *</span></label>
                   {isEditing ? (
                     <Input value={claimType} disabled />
                   ) : (
@@ -181,7 +181,7 @@ export const LogClaimModal = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Policy / Warranty *</label>
+                  <label className="body-small text-onSurface">Policy / Warranty<span className="text-error"> *</span></label>
                   {isEditing ? (
                     <Input
                       value={references.find((item) => item.id === referenceId)?.name ?? claim?.referenceName ?? ""}
@@ -217,7 +217,7 @@ export const LogClaimModal = ({
                   )}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Claim Number *</label>
+                  <label className="body-small text-onSurface">Claim Number<span className="text-error"> *</span></label>
                   <Input
                     value={claimData.claimNumber}
                     onChange={(event) => {
@@ -232,7 +232,7 @@ export const LogClaimModal = ({
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Incident Date *</label>
+                  <label className="body-small text-onSurface">Incident Date<span className="text-error"> *</span></label>
                   <SemiDatePicker
                     value={claimData.dateFiled ? new Date(claimData.dateFiled) : null}
                     onChange={(date) => {
@@ -244,7 +244,7 @@ export const LogClaimModal = ({
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Claim Amount *</label>
+                  <label className="body-small text-onSurface">Claim Amount<span className="text-error"> *</span></label>
                   <Input
                     type="number"
                     min={0}
@@ -260,7 +260,7 @@ export const LogClaimModal = ({
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="body-small text-onSurface">Claim Status *</label>
+                  <label className="body-small text-onSurface">Claim Status<span className="text-error"> *</span></label>
                   <DropdownMenu>
                     <DropdownMenuTrigger label={claimStatus} className="w-full justify-between" />
                     <DropdownMenuContent>

@@ -121,7 +121,7 @@ export const LogWarrantyModal = ({
             <CoverageFormSection title="Warranty Details">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Warranty Name *</label>
+                    <label className="body-small text-onSurface">Warranty Name<span className="text-error"> *</span></label>
                     <Input
                       value={warrantyData.name}
                       onChange={(e) => {
@@ -131,7 +131,7 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Provider *</label>
+                    <label className="body-small text-onSurface">Provider<span className="text-error"> *</span></label>
                     <Input
                       value={warrantyData.provider}
                       onChange={(e) => {
@@ -141,7 +141,7 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Warranty Number *</label>
+                    <label className="body-small text-onSurface">Warranty Number<span className="text-error"> *</span></label>
                     <Input
                       value={warrantyData.warrantyNumber}
                       onChange={(e) => {
@@ -153,7 +153,7 @@ export const LogWarrantyModal = ({
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Coverage Type *</label>
+                    <label className="body-small text-onSurface">Coverage Type<span className="text-error"> *</span></label>
                     <Input
                       value={warrantyData.coverage}
                       onChange={(e) => {
@@ -163,7 +163,7 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Start Date *</label>
+                    <label className="body-small text-onSurface">Start Date<span className="text-error"> *</span></label>
                     <SemiDatePicker
                       value={warrantyData.startDate ? new Date(warrantyData.startDate) : null}
                       onChange={(date) => {
@@ -182,7 +182,7 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Expiry Date *</label>
+                    <label className="body-small text-onSurface">Expiry Date<span className="text-error"> *</span></label>
                     <SemiDatePicker
                       value={warrantyData.expiryDate ? new Date(warrantyData.expiryDate) : null}
                       onChange={(date) => {

@@ -164,7 +164,7 @@ export const LogInsuranceModal = ({
             <CoverageFormSection title="Policy Details">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Policy Name *</label>
+                    <label className="body-small text-onSurface">Policy Name<span className="text-error"> *</span></label>
                     <Input
                       value={insuranceData.name}
                       onChange={(event) => {
@@ -178,7 +178,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Insurance Provider *</label>
+                    <label className="body-small text-onSurface">Insurance Provider<span className="text-error"> *</span></label>
                     <Input
                       value={insuranceData.provider}
                       onChange={(event) => {
@@ -192,7 +192,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Policy Number *</label>
+                    <label className="body-small text-onSurface">Policy Number<span className="text-error"> *</span></label>
                     <Input
                       value={insuranceData.policyNumber}
                       onChange={(event) => {
@@ -206,7 +206,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Annual Premium *</label>
+                    <label className="body-small text-onSurface">Annual Premium<span className="text-error"> *</span></label>
                     <Input
                       type="number"
                       min={0}
@@ -229,7 +229,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Coverage Amount *</label>
+                    <label className="body-small text-onSurface">Coverage Amount<span className="text-error"> *</span></label>
                     <Input
                       type="number"
                       min={0}
@@ -255,7 +255,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Remaining Coverage</label>
+                    <label className="body-small text-onSurface">Remaining Coverage<span className="text-error"> *</span></label>
                     <Input
                       type="number"
                       min={0}
@@ -278,7 +278,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Limit Type *</label>
+                    <label className="body-small text-onSurface">Limit Type<span className="text-error"> *</span></label>
                     <DropdownMenu>
                       <DropdownMenuTrigger label={insuranceData.limitType} className="w-full justify-between" />
                       <DropdownMenuContent>
@@ -297,7 +297,8 @@ export const LogInsuranceModal = ({
                     </DropdownMenu>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Start Date *</label>
+                    <label className="body-small text-onSurface">Start Date<span className="text-error"> *</span></label>
+
                     <SemiDatePicker
                       value={insuranceData.startDate ? new Date(insuranceData.startDate) : null}
                       onChange={(date) => {
@@ -320,7 +321,7 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Expiry Date *</label>
+                    <label className="body-small text-onSurface">Expiry Date<span className="text-error"> *</span></label>
                     <SemiDatePicker
                       value={insuranceData.expiryDate ? new Date(insuranceData.expiryDate) : null}
                       onChange={(date) => {

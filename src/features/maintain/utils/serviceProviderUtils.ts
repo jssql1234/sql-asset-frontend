@@ -126,5 +126,9 @@ export function validateServiceProviderForm(formData: ServiceProviderFormData): 
     errors.name = 'Service Provider name is required';
   }
 
+    if (!formData.status.trim()) {
+    errors.status = 'Status type is required';
+  }
+
   return errors;
 }

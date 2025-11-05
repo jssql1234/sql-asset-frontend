@@ -10,6 +10,8 @@ import {
 import { Input } from '@/components/ui/components/Input/Input';
 import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';
+import SelectDropdown from '@/components/SelectDropdown';
+
 import type {
   ServiceProvider,
   ServiceProviderFormData,
@@ -38,7 +40,7 @@ const initialFormState: ServiceProviderFormData = {
   phone: '',
   description: '',
   contractEndDate: '',
-  status: 'Active',
+  status: '' as 'Active' | 'Inactive',
   createdAt: '',
 };
 
@@ -214,22 +216,27 @@ export const ServiceProviderFormModal: React.FC<ServiceProviderFormModalProps> =
             <label htmlFor="status" className="block text-sm font-medium text-onSurface mb-1">
               Status <span className="text-error">*</span>
             </label>
-            <select
-              id="status"
-              value={formData.status}
-              onChange={(e) => { handleInputChange('status', e.target.value); }}
-              className={`w-full px-3 py-2 border rounded-md bg-surfaceContainerHighest text-onSurface focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.status ? 'border-error' : 'border-outlineVariant'
-              }`}
-            >
-              <option value="">Select Status</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+              <SelectDropdown
+                value={formData.status}
+                onChange={(value) => {
+                  handleInputChange('status', value);
+                  if (errors.status && value) {
+                    setErrors(prev => ({ ...prev, status: '' }));
+                  }
+                }}
+                options={[
+                  { value: '', label: 'Select Type',disabled: true },
+                  { value: 'Active', label: 'Active' },
+                  { value: 'Inactive', label: 'Inactive' }
+                ]}
+                placeholder="Select Type"
+                className={`w-full ${errors.status ? 'border-error' : ''}`}
+              />
             {errors.status && (
               <p className="text-sm text-error mt-1">{errors.status}</p>
             )}
           </div>
+
             <div className="col-span-2">
               <label htmlFor="description" className="block text-sm font-medium text-onSurface mb-1">
                 Description

@@ -25,6 +25,7 @@ interface SearchWithDropdownProps {
   emptyMessage?: string;
   hideSelectedField?: boolean;
   hideSearchField?: boolean;
+  hideSelectedCount?: boolean;
   disable?: boolean;
 }
 
@@ -58,6 +59,7 @@ export const SearchWithDropdown = ({
   emptyMessage = "No results found",
   hideSelectedField = false,
   hideSearchField = false,
+  hideSelectedCount = false,
   disable = false,
 }: SearchWithDropdownProps) => {
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false);
@@ -330,28 +332,30 @@ export const SearchWithDropdown = ({
       {/* Selected Items Display */}
       {!hideSelectedField || resolvedSelectedIds.length > 0 ? (
         <Card className="bg-surfaceContainerLow/60 border border-outlineVariant/60 rounded-xl p-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
-            <div className="flex items-center gap-2 text-sm text-onSurfaceVariant">
-              {/* <Badge
-                text={`selected ${String(resolvedSelectedIds.length)} items`}
-                variant="primary"
-                className="px-2 py-1 text-xs"
-              /> */}
-              Selected {resolvedSelectedIds.length}{" "}
-              {resolvedSelectedIds.length === 1 ? "item" : "items"}
+          {!hideSelectedCount && (
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <div className="flex items-center gap-2 text-sm text-onSurfaceVariant">
+                {/* <Badge
+                  text={`selected ${String(resolvedSelectedIds.length)} items`}
+                  variant="primary"
+                  className="px-2 py-1 text-xs"
+                /> */}
+                Selected {resolvedSelectedIds.length}{" "}
+                {resolvedSelectedIds.length === 1 ? "item" : "items"}
+              </div>
+              {!disable && resolvedSelectedIds.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectionChange([]);
+                  }}
+                  className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
             </div>
-            {!disable && resolvedSelectedIds.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  onSelectionChange([]);
-                }}
-                className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
-              >
-                Clear all
-              </button>
-            )}
-          </div>
+          )}
 
           {resolvedSelectedIds.length === 0 ? (
             <div className="flex items-center justify-center rounded-lg border border-dashed border-outlineVariant/50 bg-surfaceContainerLowest px-4 py-6 text-sm text-onSurfaceVariant">

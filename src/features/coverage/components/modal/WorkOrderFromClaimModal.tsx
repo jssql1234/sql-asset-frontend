@@ -3,7 +3,8 @@ import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogH
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { DetailModalSection } from "@/features/coverage/components/DetailModal";
-import type { CoverageClaim } from "@/features/coverage/types";
+import { SearchWithDropdown } from "@/components/SearchWithDropdown";
+import type { CoverageClaim, CoverageEntityAsset } from "@/features/coverage/types";
 
 interface WorkOrderFromClaimModalProps {
   open: boolean;
@@ -62,16 +63,20 @@ export const WorkOrderFromClaimModal: React.FC<WorkOrderFromClaimModalProps> = (
 
               <DetailModalSection
                 title="Assets"
-                subtitle="Asset linkage is read-only for warranty-originated work orders."
-                assetGrid={{
-                  assets: claim.assets,
-                  action: (asset) => (
-                    <Button variant="link" size="sm" disabled aria-label={`${asset.name} locked`}>
-                      Locked
-                    </Button>
-                  ),
-                }}
-              />
+                subtitle={`${claim.assets.length.toString()} assets`}
+              >
+                <SearchWithDropdown
+                  categories={[{ id: "all", label: "All Assets" }]}
+                  selectedCategoryId="all"
+                  onCategoryChange={() => undefined}
+                  items={claim.assets.map((asset: CoverageEntityAsset) => ({ id: asset.id, label: `${asset.name} (${asset.id})` }))}
+                  selectedIds={claim.assets.map((asset: CoverageEntityAsset) => asset.id)}
+                  onSelectionChange={() => undefined}
+                  hideSearchField={true}
+                  hideSelectedCount={true}
+                  disable={true}
+                />
+              </DetailModalSection>
 
               <DetailModalSection title="Work Order Details">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">

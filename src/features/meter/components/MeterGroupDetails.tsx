@@ -70,7 +70,7 @@ export const MeterGroupDetails = ({
   }
 
   return (
-    <div className="bg-primaryontainer p-15 pt-4">
+    <div className="bg-surfaceContainer pl-15 pr-15 p-4">
       <h4 className="mb-3 text-sm font-bold text-onSurface">
         Meters in {group.name}
       </h4>

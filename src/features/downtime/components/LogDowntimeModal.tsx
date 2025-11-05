@@ -191,7 +191,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
         <div className="flex-1 min-h-0 overflow-y-auto">
           <form onSubmit={(e) => { void handleSubmit(e); }} className="flex h-full flex-col gap-4 pr-1">
             <div className="flex flex-col gap-2">
-              <label className="label-medium text-onSurface">Assets<span className="text-error">*</span></label>
+              <label className="label-medium text-onSurface">Assets<span className="text-error"> *</span></label>
               <SearchWithDropdown
                 categories={assetCategories}
                 selectedCategoryId={selectedCategoryId}
@@ -209,7 +209,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
 
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
-                <label className="label-medium text-onSurface">Priority<span className="text-error">*</span></label>
+                <label className="label-medium text-onSurface">Priority<span className="text-error"> *</span></label>
                 <DropdownMenu className="w-full">
                   <DropdownMenuTrigger label={formData.priority} className="w-full justify-between" />
                   <DropdownMenuContent matchTriggerWidth>
@@ -221,7 +221,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
               </div>
 
               <div className="flex flex-col gap-2">
-                <label className="label-medium text-onSurface">Status<span className="text-error">*</span></label>
+                <label className="label-medium text-onSurface">Status<span className="text-error"> *</span></label>
                 <DropdownMenu className="w-full">
                   <DropdownMenuTrigger label={formData.status} className="w-full justify-between" />
                   <DropdownMenuContent matchTriggerWidth>
@@ -236,7 +236,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
             {formData.status === "Resolved" ? (
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex flex-col gap-2">
-                  <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
+                  <label className="label-medium text-onSurface">Start Time<span className="text-error"> *</span></label>
                   <SemiDatePicker
                     value={formData.startTime ? new Date(formData.startTime) : null}
                     onChange={handleDateTimeChange("startTime")}
@@ -247,7 +247,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <label className="label-medium text-onSurface">End Time<span className="text-error">*</span></label>
+                  <label className="label-medium text-onSurface">End Time<span className="text-error"> *</span></label>
                   <SemiDatePicker
                     value={formData.endTime ? new Date(formData.endTime) : null}
                     onChange={handleDateTimeChange("endTime")}
@@ -259,7 +259,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
               </div>
             ) : (
               <div className="flex flex-col gap-2">
-                <label className="label-medium text-onSurface">Start Time<span className="text-error">*</span></label>
+                <label className="label-medium text-onSurface">Start Time<span className="text-error"> *</span></label>
                 <SemiDatePicker
                   value={formData.startTime ? new Date(formData.startTime) : null}
                   onChange={handleDateTimeChange("startTime")}
@@ -273,7 +273,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
             <div className="flex flex-col gap-2">
               <label className="label-medium text-onSurface">
                 {formData.status === "Resolved" ? "Resolution Notes" : "Description"}
-                <span className="text-error">*</span>
+                <span className="text-error"> *</span>
               </label>
               <TextArea
                 value={formData.status === "Resolved" ? formData.resolutionNotes ?? "" : formData.description ?? ""}

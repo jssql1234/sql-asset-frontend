@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Button, Card } from '@/components/ui/components';
 import { DataTableExtended } from '@/components/DataTableExtended';
-import { TableVisibilityControl } from '@/components/DataTableExtended/TableVisibilityControl';
+import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { type ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete, Plus } from '@/assets/icons';
 import type { Customer } from '../types/customers';
@@ -58,7 +58,6 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
           <div className="text-sm text-onSurfaceVariant">Code: {row.original.code}</div>
         </div>
       ),
-      //enableColumnFilter: false,
     },
     {
       id: 'contactPerson',
@@ -67,7 +66,6 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
       cell: ({ row }) => (
         <span className="font-medium">{row.original.contactPerson || 'N/A'}</span>
       ),
-      //enableColumnFilter: false,
     },
     {
       id: 'email',
@@ -76,7 +74,6 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
       cell: ({ row }) => (
         <span className="text-sm text-onSurfaceVariant">{row.original.email || 'N/A'}</span>
       ),
-      //enableColumnFilter: false,
     },
     {
       id: 'phone',
@@ -85,7 +82,6 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
       cell: ({ row }) => (
         <span className="text-sm text-onSurfaceVariant">{row.original.phone || 'N/A'}</span>
       ),
-      //enableColumnFilter: false,
     },
     {
       id: 'status',
@@ -128,10 +124,10 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
   });
 
   return (
-    <Card className="p-3 space-y-4 h-full flex flex-col">
+    <Card className="p-3 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <TableVisibilityControl
+          <TableColumnVisibility
             columns={toggleableColumns}
             visibleColumns={visibleColumns}
             setVisibleColumns={setVisibleColumns}

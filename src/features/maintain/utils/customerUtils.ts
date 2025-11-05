@@ -106,6 +106,10 @@ export function validateCustomerForm(formData: CustomerFormData): CustomerValida
     errors.email = 'Please enter a valid email address.';
   }
 
+  if (!formData.status) {
+    errors.status = 'Status is required.';
+  }
+
   return errors;
 }
 

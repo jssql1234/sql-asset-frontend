@@ -37,4 +37,5 @@ export interface CustomerValidationErrors {
     contactPerson?: string;
     email?: string;
     phone?: string;
+    status?: string;
 }

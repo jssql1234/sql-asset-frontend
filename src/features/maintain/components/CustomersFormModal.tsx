@@ -9,6 +9,7 @@ import {
 } from '@/components/DialogExtended';
 import { Input } from '@/components/ui/components/Input/Input';
 import { Button } from '@/components/ui/components/Button';
+import SelectDropdown from '@/components/SelectDropdown';
 import type {
   Customer,
   CustomerFormData,
@@ -30,7 +31,7 @@ const initialFormState: CustomerFormData = {
   contactPerson: '',
   email: '',
   phone: '',
-  status: 'Active',
+  status: '' as 'Active' | 'Inactive',
 };
 
 export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
@@ -74,7 +75,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
       [field]: value,
     }));
 
-    if (field === 'name' || field === 'email') {
+    if (field === 'name' || field === 'email' || field === 'status') {
       if (errors[field]) {
         setErrors(prevErrors => ({
           ...prevErrors,
@@ -129,7 +130,7 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={(event) => { void handleSubmit(event); }} className="space-y-4">
+        <form onSubmit={(event) => { void handleSubmit(event); }} className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="customerCode" className="block text-sm font-medium text-onSurface mb-1">
@@ -170,18 +171,23 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-onSurface mb-1">
-                Email
+              <label htmlFor="status" className="block text-sm font-medium text-onSurface mb-1" >
+                Status <span className="text-error">*</span>
               </label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(event) => { handleInputChange('email', event.target.value); }}
-                placeholder="e.g., contact@example.com"
-                className={errors.email ? 'border-error' : ''}
+              <SelectDropdown
+                value={formData.status}
+                onChange={(value) => {
+                  handleInputChange('status', value as 'Active' | 'Inactive');
+                }}
+                options={[
+                  { value: '', label: 'Select Status', disabled: true },
+                  { value: 'Active', label: 'Active' },
+                  { value: 'Inactive', label: 'Inactive' },
+                ]}
+                placeholder="Select Status"
+                className={`w-full ${errors.status ? 'border-error' : ''}`}
               />
-              {errors.email && <p className="text-sm text-error mt-1">{errors.email}</p>}
+              {errors.status && <p className="text-sm text-error mt-1">{errors.status}</p>}
             </div>
           </div>
 
@@ -198,18 +204,18 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
               />
             </div>
             <div>
-              <label htmlFor="status" className="block text-sm font-medium text-onSurface mb-1">
-                Status
+              <label htmlFor="email" className="block text-sm font-medium text-onSurface mb-1">
+                Email
               </label>
-              <select
-                id="status"
-                value={formData.status}
-                onChange={(event) => { handleInputChange('status', event.target.value as 'Active' | 'Inactive'); }}
-                className="w-full rounded-md border border-outline bg-transparent px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(event) => { handleInputChange('email', event.target.value); }}
+                placeholder="e.g., contact@example.com"
+                className={errors.email ? 'border-error' : ''}
+              />
+              {errors.email && <p className="text-sm text-error mt-1">{errors.email}</p>}
             </div>
           </div>
 

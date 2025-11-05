@@ -90,7 +90,7 @@ const DeleteConfirmationDialog = (props: DeleteConfirmationDialogProps) => {
               <h5 className="font-medium text-onSurface mb-3 text-sm">
                 {itemCount === 1 ? "Item to be affected:" : `${String(itemCount)} items to be affected:`}
               </h5>
-              <div className="max-h-40 overflow-y-auto space-y-2">
+              <div className="max-h-40 overflow-y-auto space-y-2 pr-2">
                 {itemIds.map((id, index) => (
                   <div
                     key={id}

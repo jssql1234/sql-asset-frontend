@@ -1,10 +1,11 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
 import { LogClaimModal } from "@/features/coverage/components/modal/LogClaimModal";
 import { CoverageDetailsModal } from "@/features/coverage/components/modal/CoverageDetailsModal";
 import { WorkOrderFromClaimModal } from "@/features/coverage/components/modal/WorkOrderFromClaimModal";
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import type { CoverageClaim, CoverageClaimPayload } from "@/features/coverage/types";
 import { EMPTY_CLAIM_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
@@ -23,6 +24,8 @@ const ClaimPage = () => {
     closeWorkOrderModal,
   } = useCoverageModals();
   const { data: claimSummary = EMPTY_CLAIM_SUMMARY } = useGetClaimSummary();
+
+  const [claimToDelete, setClaimToDelete] = useState<CoverageClaim | null>(null);
 
   const createClaim = useCreateClaim(closeClaimForm);
   const updateClaim = useUpdateClaim(closeClaimForm);
@@ -44,10 +47,21 @@ const ClaimPage = () => {
 
   const handleDeleteClaim = useCallback(
     (claim: CoverageClaim) => {
-      deleteClaim.mutate(claim.id);
+      setClaimToDelete(claim);
     },
-    [deleteClaim]
+    []
   );
+
+  const handleConfirmDelete = () => {
+    if (claimToDelete) {
+      deleteClaim.mutate(claimToDelete.id);
+      setClaimToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setClaimToDelete(null);
+  };
 
   return (
     <>
@@ -115,6 +129,18 @@ const ClaimPage = () => {
           }
         }}
         claim={modals.claimForWorkOrder}
+      />
+
+      <DeleteConfirmationDialog
+        isOpen={!!claimToDelete}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Claim?"
+        description="This will permanently remove the claim record and all associated data. This action cannot be undone."
+        confirmButtonText="Delete Claim"
+        itemIds={claimToDelete?.assets.map((asset) => asset.id) ?? []}
+        itemNames={claimToDelete?.assets.map((asset) => `${asset.name} (${asset.id})`) ?? []}
+        itemCount={claimToDelete?.assets.length ?? 0}
       />
     </>
   );

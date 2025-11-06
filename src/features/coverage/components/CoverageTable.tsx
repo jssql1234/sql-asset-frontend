@@ -417,7 +417,7 @@ const ClaimsVariantTable = ({
         enableColumnFilter: false,
         cell: ({ row }) => (
           <div className="text-right font-medium">
-            {formatCurrency(row.original.amount)}
+            {row.original.type === "Warranty" ? "—" : formatCurrency(row.original.amount)}
           </div>
         ),
         meta: {

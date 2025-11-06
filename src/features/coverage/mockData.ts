@@ -138,6 +138,7 @@ export const mockWarranties: CoverageWarranty[] = [
     provider: "PowerTech Solutions",
     warrantyNumber: "PTS-GEN-2025-001",
     coverage: "Parts and Labor",
+    startDate: new Date().toISOString(),
     expiryDate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString(), // 2 years from now
     assetsCovered: [
       { id: "GEN-003", name: "Generator C3" }
@@ -151,13 +152,14 @@ export const mockWarranties: CoverageWarranty[] = [
     provider: "Precision Instruments Ltd",
     warrantyNumber: "PIL-QCS-2025-002",
     coverage: "Parts Only",
-    expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year from now
+    startDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
+    expiryDate: new Date(Date.now() + 395 * 24 * 60 * 60 * 1000).toISOString(), // ~1 year from start date
     assetsCovered: [
       { id: "QC-007", name: "Quality Scanner G7" },
       { id: "TM-008", name: "Testing Machine H8" }
     ],
     description: "Manufacturer warranty for quality control and testing equipment",
-    status: "Active"
+    status: "Upcoming"
   }
 ];
 
@@ -186,8 +188,8 @@ export const mockClaims: CoverageClaim[] = [
     assets: [
       { id: "GEN-003", name: "Generator C3" }
     ],
-    amount: 2500,
-    status: "Approved",
+    amount: 0,
+    status: "Settled",
     dateFiled: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks ago
     description: "Generator maintenance service under warranty",
     workOrderId: "WO-2025-001"

@@ -41,6 +41,7 @@ export const LogWarrantyModal = ({
       provider: warranty?.provider ?? "",
       warrantyNumber: warranty?.warrantyNumber ?? "",
       coverage: warranty?.coverage ?? "",
+      startDate: warranty?.startDate ?? today.toISOString(),
       expiryDate: warranty?.expiryDate ?? expiryDate.toISOString(),
       description: warranty?.description ?? "",
     };
@@ -78,6 +79,7 @@ export const LogWarrantyModal = ({
       provider: warranty?.provider ?? "",
       warrantyNumber: warranty?.warrantyNumber ?? "",
       coverage: warranty?.coverage ?? "",
+      startDate: warranty?.startDate ?? today.toISOString(),
       expiryDate: warranty?.expiryDate ?? expiryDate,
       description: warranty?.description ?? "",
     });
@@ -101,6 +103,7 @@ export const LogWarrantyModal = ({
       provider: warrantyData.provider,
       warrantyNumber: warrantyData.warrantyNumber,
       coverage: warrantyData.coverage,
+      startDate: warrantyData.startDate,
       expiryDate: warrantyData.expiryDate,
       description: warrantyData.description,
       assetsCovered,
@@ -186,7 +189,7 @@ export const LogWarrantyModal = ({
                     ) : null}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Coverage Type<span className="text-error"> *</span></label>
                     <Input
@@ -199,6 +202,29 @@ export const LogWarrantyModal = ({
                     />
                     {fieldErrors.coverage ? (
                       <span className="label-small text-error">{fieldErrors.coverage}</span>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <label className="body-small text-onSurface">Start Date<span className="text-error"> *</span></label>
+                    <SemiDatePicker
+                      value={warrantyData.startDate ? new Date(warrantyData.startDate) : null}
+                      onChange={(date) => {
+                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
+                        const startDate = new Date(isoDate);
+                        const expiryDate = calculateExpiryDate(startDate).toISOString();
+                        setWarrantyData({
+                          ...warrantyData,
+                          startDate: isoDate,
+                          expiryDate,
+                        });
+                        clearFieldError("startDate");
+                        clearFieldError("expiryDate");
+                      }}
+                      inputType="date"
+                      className="w-full"
+                    />
+                    {fieldErrors.startDate ? (
+                      <span className="label-small text-error">{fieldErrors.startDate}</span>
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
@@ -263,7 +289,7 @@ export const LogWarrantyModal = ({
 
             <DialogFooter className="flex justify-end">
               <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
-              <Button type="submit">Add warranty</Button>
+              <Button type="submit">{isEditing ? "Update warranty" : "Add warranty"}</Button>
             </DialogFooter>
           </form>
         </div>

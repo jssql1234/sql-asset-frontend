@@ -97,6 +97,12 @@ export const WarrantySummaryCards: React.FC<WarrantySummaryCardsProps> = ({ summ
         description: "Coverage lapsed",
         tone: summary.expired > 0 ? "danger" : "default",
       },
+      {
+        label: "Successful Warranty Claims",
+        value: summary.successfulWarrantyClaims,
+        description: "Settled claims",
+        tone: summary.successfulWarrantyClaims > 0 ? "success" : "default",
+      },
     ],
     [summary]
   );

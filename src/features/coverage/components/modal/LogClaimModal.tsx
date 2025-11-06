@@ -140,7 +140,9 @@ export const LogClaimModal = ({
     const reference = references.find(ref => ref.id === referenceId);
     const referenceName = reference?.name ?? "";
     
-    const claimAmount = claimType === "Insurance" ? (Number.isFinite(claimData.amount) ? claimData.amount : 0) : 0;
+    const claimAmount = claimType === "Insurance" 
+      ? (Number.isFinite(claimData.amount) ? claimData.amount : 0) 
+      : (isEditing && claim?.amount ? claim.amount : 0);
 
     const formData: CoverageClaimPayload = {
       claimNumber: claimData.claimNumber,
@@ -382,7 +384,7 @@ export const LogClaimModal = ({
 
             <DialogFooter className="flex justify-end">
               <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
-              <Button type="submit">Add claim</Button>
+              <Button type="submit">{isEditing ? "Update claim" : "Add claim"}</Button>
             </DialogFooter>
           </form>
         </div>

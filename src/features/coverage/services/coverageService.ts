@@ -79,10 +79,16 @@ const calculateInsuranceStatus = (startDate: string, expiryDate: string): Covera
 };
 
 // Helper to calculate warranty status
-const calculateWarrantyStatus = (expiryDate: string): CoverageWarranty["status"] => {
+const calculateWarrantyStatus = (startDate: string, expiryDate: string): CoverageWarranty["status"] => {
   const today = new Date();
   const expiry = new Date(expiryDate);
+  const start = new Date(startDate);
   
+  if (Number.isNaN(expiry.getTime()) || Number.isNaN(start.getTime())) {
+    return "Active";
+  }
+
+  if (today < start) return "Upcoming"; // Warranties that haven't started yet
   if (today > expiry) return "Expired";
   
   const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -143,12 +149,17 @@ const calculateWarrantySummary = (): WarrantySummaryMetrics => {
   const assetsCovered = coveredAssetIds.size;
   const assetsNotCovered = Math.max(0, coverageAssets.length - assetsCovered);
   
+  const successfulWarrantyClaims = claimsStore.filter(claim => 
+    claim.type === "Warranty" && claim.status === "Settled"
+  ).length;
+  
   return {
     activeWarranties,
     assetsCovered,
     assetsNotCovered,
     expiringSoon: warrantiesStore.filter(war => war.status === "Expiring Soon").length,
     expired: warrantiesStore.filter(war => war.status === "Expired").length,
+    successfulWarrantyClaims,
   };
 };
 
@@ -231,7 +242,7 @@ export const fetchWarranties = (): Promise<CoverageWarranty[]> => {
 
 export const createWarranty = (data: CoverageWarrantyPayload): Promise<CoverageWarranty> => {
   const id = `WAR-${String(nextWarrantyId++).padStart(3, '0')}`;
-  const status = calculateWarrantyStatus(data.expiryDate);
+  const status = calculateWarrantyStatus(data.startDate, data.expiryDate);
   
   const newWarranty: CoverageWarranty = {
     ...data,
@@ -247,7 +258,7 @@ export const updateWarranty = (id: string, data: CoverageWarrantyPayload): Promi
   const index = warrantiesStore.findIndex(war => war.id === id);
   if (index === -1) throw new Error("Warranty not found");
   
-  const status = calculateWarrantyStatus(data.expiryDate);
+  const status = calculateWarrantyStatus(data.startDate, data.expiryDate);
   
   const updated: CoverageWarranty = {
     ...data,

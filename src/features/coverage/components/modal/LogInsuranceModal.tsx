@@ -376,7 +376,7 @@ export const LogInsuranceModal = ({
 
             <DialogFooter className="flex justify-end">
               <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
-              <Button type="submit">Add insurance</Button>
+              <Button type="submit">{isEditing ? "Update insurance" : "Add insurance"}</Button>
             </DialogFooter>
           </form>
         </div>

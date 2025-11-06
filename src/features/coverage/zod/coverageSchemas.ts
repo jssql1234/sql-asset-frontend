@@ -6,7 +6,7 @@ const baseInsuranceFields = {
   provider: z.string().min(1, "Insurance provider is required"),
   policyNumber: z.string().min(1, "Policy number is required"),
   coverageAmount: z.number().min(0.01, "Coverage amount must be greater than zero"),
-  remainingCoverage: z.number().min(0.01, "Remaining coverage must be greater than zero"),
+  remainingCoverage: z.number().min(0.01, "Remaining coverage must be greater than zero").optional(),
   annualPremium: z.number().min(0.01, "Annual premium must be greater than zero"),
   limitType: z.enum(["Aggregate", "Per Occurrence"]),
   startDate: z.iso.datetime(),
@@ -21,12 +21,15 @@ const baseInsuranceFields = {
 } as const;
 
 export const createInsuranceSchema = z.object(baseInsuranceFields).superRefine((data, ctx) => {
-  if (data.remainingCoverage > data.coverageAmount) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Remaining coverage cannot exceed total coverage amount",
-      path: ["remainingCoverage"],
-    });
+  // Only validate remaining coverage when limit type is Aggregate
+  if (data.limitType === "Aggregate" && data.remainingCoverage !== undefined) {
+    if (data.remainingCoverage > data.coverageAmount) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Remaining coverage cannot exceed total coverage amount",
+        path: ["remainingCoverage"],
+      });
+    }
   }
   
   const startDate = new Date(data.startDate);

@@ -188,6 +188,31 @@ export const LogInsuranceModal = ({
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
+                    <label className="body-small text-onSurface">Limit Type<span className="text-error"> *</span></label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger label={insuranceData.limitType} className="w-full justify-between" />
+                      <DropdownMenuContent>
+                        {(["Aggregate", "Per Occurrence"] as InsuranceLimitType[]).map((type) => (
+                          <DropdownMenuItem
+                            key={type}
+                            onClick={() => {
+                              setInsuranceData({ ...insuranceData, limitType: type });
+                              clearFieldError("limitType");
+                              // Reset remaining coverage when switching away from Aggregate
+                              if (type !== "Aggregate") {
+                                setRemainingCoverageInput("");
+                                setInsuranceData(prev => ({ ...prev, limitType: type, remainingCoverage: 0 }));
+                                clearFieldError("remainingCoverage");
+                              }
+                            }}
+                          >
+                            {type}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                  <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Annual Premium<span className="text-error"> *</span></label>
                     <Input
                       type="number"
@@ -236,48 +261,32 @@ export const LogInsuranceModal = ({
                       <span className="label-small text-error">{fieldErrors.coverageAmount}</span>
                     ) : null}
                   </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Remaining Coverage<span className="text-error"> *</span></label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step="0.01"
-                      value={remainingCoverageInput}
-                      onChange={(event) => {
-                        const inputValue = event.target.value;
-                        setRemainingCoverageInput(inputValue);
-                        const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
-                        setInsuranceData({
-                          ...insuranceData,
-                          remainingCoverage: Number.isNaN(numValue) ? 0 : numValue,
-                        });
-                        clearFieldError("remainingCoverage");
-                      }}
-                      placeholder="Enter remaining coverage"
-                    />
-                    {fieldErrors.remainingCoverage ? (
-                      <span className="label-small text-error">{fieldErrors.remainingCoverage}</span>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Limit Type<span className="text-error"> *</span></label>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger label={insuranceData.limitType} className="w-full justify-between" />
-                      <DropdownMenuContent>
-                        {(["Aggregate", "Per Occurrence"] as InsuranceLimitType[]).map((type) => (
-                          <DropdownMenuItem
-                            key={type}
-                            onClick={() => {
-                              setInsuranceData({ ...insuranceData, limitType: type });
-                              clearFieldError("limitType");
-                            }}
-                          >
-                            {type}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                  {insuranceData.limitType === "Aggregate" && (
+                    <div className="flex flex-col gap-2">
+                      <label className="body-small text-onSurface">Remaining Coverage<span className="text-error"> *</span></label>
+                      <Input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={remainingCoverageInput}
+                        onChange={(event) => {
+                          const inputValue = event.target.value;
+                          setRemainingCoverageInput(inputValue);
+                          const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
+                          setInsuranceData({
+                            ...insuranceData,
+                            remainingCoverage: Number.isNaN(numValue) ? 0 : numValue,
+                          });
+                          clearFieldError("remainingCoverage");
+                        }}
+                        placeholder="Enter remaining coverage"
+                      />
+                      {fieldErrors.remainingCoverage ? (
+                        <span className="label-small text-error">{fieldErrors.remainingCoverage}</span>
+                      ) : null}
+                    </div>
+                  )}
+                  
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Start Date<span className="text-error"> *</span></label>
 

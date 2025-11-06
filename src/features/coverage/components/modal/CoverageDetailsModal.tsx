@@ -137,7 +137,6 @@ const getWarrantyConfig = (data: CoverageWarranty): ModalConfig => ({
     },
     {
       title: "Assets Covered",
-      subtitle: `${data.assetsCovered.length.toString()} assets`,
       children: (
         <SearchWithDropdown
           categories={[{ id: "all", label: "All Assets" }]}
@@ -200,7 +199,6 @@ const getClaimConfig = (data: CoverageClaim): ModalConfig => ({
     },
     {
       title: "Assets",
-      subtitle: `${data.assets.length.toString()} assets`,
       children: (
         <SearchWithDropdown
           categories={[{ id: "all", label: "All Assets" }]}

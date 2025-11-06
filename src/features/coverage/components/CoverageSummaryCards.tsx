@@ -17,12 +17,12 @@ export const InsuranceSummaryCards: React.FC<InsuranceSummaryCardsProps> = ({ su
         tone: summary.activeInsurances > 0 ? "success" : "default",
       },
       {
-        label: "Total Coverage",
-        value: formatCurrency(summary.totalCoverage),
-        description: "Aggregate limit",
+        label: "Total Insurance Claimed",
+        value: formatCurrency(summary.totalInsuranceClaimed),
+        description: "Settlement amount",
       },
       {
-        label: "Remaining Coverage",
+        label: "Total Remaining Coverage",
         value: formatCurrency(summary.remainingCoverage),
         description: "Available balance",
       },
@@ -96,6 +96,12 @@ export const WarrantySummaryCards: React.FC<WarrantySummaryCardsProps> = ({ summ
         value: summary.expired,
         description: "Coverage lapsed",
         tone: summary.expired > 0 ? "danger" : "default",
+      },
+      {
+        label: "Successful Warranty Claims",
+        value: summary.successfulWarrantyClaims,
+        description: "Settled claims",
+        tone: summary.successfulWarrantyClaims > 0 ? "success" : "default",
       },
     ],
     [summary]

@@ -5,9 +5,9 @@ const baseInsuranceFields = {
   name: z.string().min(1, "Policy name is required"),
   provider: z.string().min(1, "Insurance provider is required"),
   policyNumber: z.string().min(1, "Policy number is required"),
-  coverageAmount: z.number().min(0, "Coverage amount must be positive"),
-  remainingCoverage: z.number().min(0, "Remaining coverage must be positive"),
-  annualPremium: z.number().min(0, "Annual premium must be positive"),
+  coverageAmount: z.number().min(0.01, "Coverage amount must be greater than zero"),
+  remainingCoverage: z.number().min(0.01, "Remaining coverage must be greater than zero").optional(),
+  annualPremium: z.number().min(0.01, "Annual premium must be greater than zero"),
   limitType: z.enum(["Aggregate", "Per Occurrence"]),
   startDate: z.iso.datetime(),
   expiryDate: z.iso.datetime(),
@@ -21,12 +21,15 @@ const baseInsuranceFields = {
 } as const;
 
 export const createInsuranceSchema = z.object(baseInsuranceFields).superRefine((data, ctx) => {
-  if (data.remainingCoverage > data.coverageAmount) {
-    ctx.addIssue({
-      code: "custom",
-      message: "Remaining coverage cannot exceed total coverage amount",
-      path: ["remainingCoverage"],
-    });
+  // Only validate remaining coverage when limit type is Aggregate
+  if (data.limitType === "Aggregate" && data.remainingCoverage !== undefined) {
+    if (data.remainingCoverage > data.coverageAmount) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Remaining coverage cannot exceed total coverage amount",
+        path: ["remainingCoverage"],
+      });
+    }
   }
   
   const startDate = new Date(data.startDate);
@@ -49,6 +52,7 @@ const baseWarrantyFields = {
   provider: z.string().min(1, "Provider is required"),
   warrantyNumber: z.string().min(1, "Warranty number is required"),
   coverage: z.string().min(1, "Coverage type is required"),
+  startDate: z.iso.datetime(),
   expiryDate: z.iso.datetime(),
   assetsCovered: z.array(
     z.object({
@@ -59,7 +63,18 @@ const baseWarrantyFields = {
   description: z.string().min(1, "Description is required"),
 } as const;
 
-export const createWarrantySchema = z.object(baseWarrantyFields);
+export const createWarrantySchema = z.object(baseWarrantyFields).superRefine((data, ctx) => {
+  const startDate = new Date(data.startDate);
+  const expiryDate = new Date(data.expiryDate);
+  
+  if (expiryDate <= startDate) {
+    ctx.addIssue({
+      code: "custom",
+      message: "Expiry date must be after start date",
+      path: ["expiryDate"],
+    });
+  }
+});
 export const updateWarrantySchema = createWarrantySchema;
 
 // Claim Schema

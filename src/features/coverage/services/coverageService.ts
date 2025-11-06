@@ -79,10 +79,16 @@ const calculateInsuranceStatus = (startDate: string, expiryDate: string): Covera
 };
 
 // Helper to calculate warranty status
-const calculateWarrantyStatus = (expiryDate: string): CoverageWarranty["status"] => {
+const calculateWarrantyStatus = (startDate: string, expiryDate: string): CoverageWarranty["status"] => {
   const today = new Date();
   const expiry = new Date(expiryDate);
+  const start = new Date(startDate);
   
+  if (Number.isNaN(expiry.getTime()) || Number.isNaN(start.getTime())) {
+    return "Active";
+  }
+
+  if (today < start) return "Upcoming"; // Warranties that haven't started yet
   if (today > expiry) return "Expired";
   
   const daysUntilExpiry = Math.floor((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
@@ -94,7 +100,9 @@ const calculateWarrantyStatus = (expiryDate: string): CoverageWarranty["status"]
 // Calculate insurance summary
 const calculateInsuranceSummary = (): InsuranceSummaryMetrics => {
   const activeInsurances = insurancesStore.filter(ins => ins.status === "Active").length;
-  const totalCoverage = insurancesStore.reduce((acc, ins) => acc + ins.coverageAmount, 0);
+  const totalInsuranceClaimed = claimsStore
+    .filter(claim => claim.type === "Insurance" && claim.status === "Settled")
+    .reduce((acc, claim) => acc + claim.amount, 0);
   
   // Calculate remaining coverage: only deduct settled claims from aggregate policies
   let totalRemainingCoverage = 0;
@@ -123,7 +131,7 @@ const calculateInsuranceSummary = (): InsuranceSummaryMetrics => {
   
   return {
     activeInsurances,
-    totalCoverage,
+    totalInsuranceClaimed,
     remainingCoverage: totalRemainingCoverage,
     annualPremiums,
     assetsCovered,
@@ -141,12 +149,17 @@ const calculateWarrantySummary = (): WarrantySummaryMetrics => {
   const assetsCovered = coveredAssetIds.size;
   const assetsNotCovered = Math.max(0, coverageAssets.length - assetsCovered);
   
+  const successfulWarrantyClaims = claimsStore.filter(claim => 
+    claim.type === "Warranty" && claim.status === "Settled"
+  ).length;
+  
   return {
     activeWarranties,
     assetsCovered,
     assetsNotCovered,
     expiringSoon: warrantiesStore.filter(war => war.status === "Expiring Soon").length,
     expired: warrantiesStore.filter(war => war.status === "Expired").length,
+    successfulWarrantyClaims,
   };
 };
 
@@ -229,7 +242,7 @@ export const fetchWarranties = (): Promise<CoverageWarranty[]> => {
 
 export const createWarranty = (data: CoverageWarrantyPayload): Promise<CoverageWarranty> => {
   const id = `WAR-${String(nextWarrantyId++).padStart(3, '0')}`;
-  const status = calculateWarrantyStatus(data.expiryDate);
+  const status = calculateWarrantyStatus(data.startDate, data.expiryDate);
   
   const newWarranty: CoverageWarranty = {
     ...data,
@@ -245,7 +258,7 @@ export const updateWarranty = (id: string, data: CoverageWarrantyPayload): Promi
   const index = warrantiesStore.findIndex(war => war.id === id);
   if (index === -1) throw new Error("Warranty not found");
   
-  const status = calculateWarrantyStatus(data.expiryDate);
+  const status = calculateWarrantyStatus(data.startDate, data.expiryDate);
   
   const updated: CoverageWarranty = {
     ...data,

@@ -335,11 +335,6 @@ export const SearchWithDropdown = ({
           {!hideSelectedCount && (
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <div className="flex items-center gap-2 text-sm text-onSurfaceVariant">
-                {/* <Badge
-                  text={`selected ${String(resolvedSelectedIds.length)} items`}
-                  variant="primary"
-                  className="px-2 py-1 text-xs"
-                /> */}
                 Selected {resolvedSelectedIds.length}{" "}
                 {resolvedSelectedIds.length === 1 ? "item" : "items"}
               </div>

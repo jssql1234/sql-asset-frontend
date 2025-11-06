@@ -1,5 +1,5 @@
 export type InsuranceStatus = "Active" | "Expiring Soon" | "Expired" | "Upcoming";
-export type WarrantyStatus = "Active" | "Expiring Soon" | "Expired";
+export type WarrantyStatus = "Active" | "Expiring Soon" | "Expired" | "Upcoming";
 export type ClaimStatus = "Filed" | "Rejected" | "Settled" | "Approved";
 export type ClaimType = "Insurance" | "Warranty";
 export type CoverageStatus = InsuranceStatus | WarrantyStatus | ClaimStatus;
@@ -33,6 +33,7 @@ export interface CoverageWarranty {
   provider: string;
   warrantyNumber: string;
   coverage: string;
+  startDate: string; // ISO date string
   expiryDate: string;
   status: WarrantyStatus;
   assetsCovered: CoverageEntityAsset[];
@@ -55,7 +56,7 @@ export interface CoverageClaim {
 
 export interface InsuranceSummaryMetrics {
   activeInsurances: number;
-  totalCoverage: number;
+  totalInsuranceClaimed: number;
   remainingCoverage: number;
   annualPremiums: number;
   assetsCovered: number;
@@ -70,6 +71,7 @@ export interface WarrantySummaryMetrics {
   assetsNotCovered: number;
   expiringSoon: number;
   expired: number;
+  successfulWarrantyClaims: number;
 }
 
 export interface ClaimSummaryMetrics {
@@ -100,7 +102,7 @@ export type CoverageClaimPayload = Omit<CoverageClaim, "id">;
 
 export const EMPTY_INSURANCE_SUMMARY: InsuranceSummaryMetrics = {
   activeInsurances: 0,
-  totalCoverage: 0,
+  totalInsuranceClaimed: 0,
   remainingCoverage: 0,
   annualPremiums: 0,
   assetsCovered: 0,
@@ -115,6 +117,7 @@ export const EMPTY_WARRANTY_SUMMARY: WarrantySummaryMetrics = {
   assetsNotCovered: 0,
   expiringSoon: 0,
   expired: 0,
+  successfulWarrantyClaims: 0,
 };
 
 export const EMPTY_CLAIM_SUMMARY: ClaimSummaryMetrics = {

@@ -6,6 +6,7 @@ import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { CoverageEntityAsset, CoverageWarranty, CoverageWarrantyPayload } from "@/features/coverage/types";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
+import { calculateExpiryDate } from "@/features/coverage/services/coverageService";
 
 interface LogWarrantyModalProps {
   open: boolean;
@@ -15,16 +16,7 @@ interface LogWarrantyModalProps {
   onUpdate?: (id: string, data: CoverageWarrantyPayload) => void;
 }
 
-// Helper function to calculate expiry date (364 days from start date)
-const calculateExpiryDate = (startDate: Date): Date => {
-  const expiryDate = new Date(startDate);
-  expiryDate.setDate(startDate.getDate() + 364);
-  return expiryDate;
-};
-
-type WarrantyFormState = Omit<CoverageWarrantyPayload, "assetsCovered"> & {
-  startDate: string;
-};
+type WarrantyFormState = Omit<CoverageWarrantyPayload, "assetsCovered">;
 
 export const LogWarrantyModal = ({
   open,
@@ -46,7 +38,6 @@ export const LogWarrantyModal = ({
       provider: warranty?.provider ?? "",
       warrantyNumber: warranty?.warrantyNumber ?? "",
       coverage: warranty?.coverage ?? "",
-      startDate: today.toISOString(),
       expiryDate: warranty?.expiryDate ?? expiryDate.toISOString(),
       description: warranty?.description ?? "",
     };
@@ -72,7 +63,6 @@ export const LogWarrantyModal = ({
       provider: warranty?.provider ?? "",
       warrantyNumber: warranty?.warrantyNumber ?? "",
       coverage: warranty?.coverage ?? "",
-      startDate: today.toISOString(),
       expiryDate: warranty?.expiryDate ?? expiryDate,
       description: warranty?.description ?? "",
     });
@@ -151,7 +141,7 @@ export const LogWarrantyModal = ({
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Coverage Type<span className="text-error"> *</span></label>
                     <Input
@@ -160,25 +150,6 @@ export const LogWarrantyModal = ({
                         setWarrantyData({ ...warrantyData, coverage: e.target.value });
                       }}
                       placeholder="Parts, Labour, or Full Coverage"
-                    />
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <label className="body-small text-onSurface">Start Date<span className="text-error"> *</span></label>
-                    <SemiDatePicker
-                      value={warrantyData.startDate ? new Date(warrantyData.startDate) : null}
-                      onChange={(date) => {
-                        const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
-                        const startDate = new Date(isoDate);
-                        const expiryDate = calculateExpiryDate(startDate);
-                        
-                        setWarrantyData({ 
-                          ...warrantyData, 
-                          startDate: isoDate,
-                          expiryDate: expiryDate.toISOString()
-                        });
-                      }}
-                      inputType="date"
-                      className="w-full"
                     />
                   </div>
                   <div className="flex flex-col gap-2">

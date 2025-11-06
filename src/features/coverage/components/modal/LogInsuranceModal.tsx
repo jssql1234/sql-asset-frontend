@@ -1,17 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/components";
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
@@ -19,6 +7,7 @@ import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { CoverageEntityAsset, CoverageInsurance, CoverageInsurancePayload, InsuranceLimitType } from "@/features/coverage/types";
 import { createInsuranceSchema, updateInsuranceSchema } from "@/features/coverage/zod/coverageSchemas";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
+import { calculateExpiryDate } from "@/features/coverage/services/coverageService";
 
 interface LogInsuranceModalProps {
   open: boolean;
@@ -27,13 +16,6 @@ interface LogInsuranceModalProps {
   onCreate?: (data: CoverageInsurancePayload) => void;
   onUpdate?: (id: string, data: CoverageInsurancePayload) => void;
 }
-
-// Helper function to calculate expiry date (364 days from start date)
-const calculateExpiryDate = (startDate: Date): Date => {
-  const expiryDate = new Date(startDate);
-  expiryDate.setDate(startDate.getDate() + 364);
-  return expiryDate;
-};
 
 const DEFAULT_LIMIT_TYPE: InsuranceLimitType = "Aggregate";
 

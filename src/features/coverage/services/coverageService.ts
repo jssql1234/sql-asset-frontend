@@ -2,6 +2,55 @@ import type { CoverageInsurance, CoverageInsurancePayload, CoverageWarranty, Cov
               CoverageClaim, CoverageClaimPayload, InsuranceSummaryMetrics, WarrantySummaryMetrics, ClaimSummaryMetrics } from "../types";
 import { coverageAssets, mockInsurances, mockWarranties, mockClaims } from "../mockData";
 
+// Helper to calculate expiry date by adding 364 days to the start date
+// This represents a typical 1-year coverage period (365 days - 1 day for inclusive calculation)
+export const calculateExpiryDate = (startDate: Date): Date => {
+  const expiryDate = new Date(startDate);
+  expiryDate.setDate(startDate.getDate() + 364);
+  return expiryDate;
+};
+
+export interface FormatCurrencyOptions {
+  locale?: string;
+  currencyPrefix?: string;
+}
+
+const DEFAULT_CURRENCY_OPTIONS: Required<FormatCurrencyOptions> = {
+  locale: "en-MY",
+  currencyPrefix: "RM",
+};
+
+export const formatCurrency = (value: number, options: FormatCurrencyOptions = {}): string => {
+  const { locale, currencyPrefix } = { ...DEFAULT_CURRENCY_OPTIONS, ...options };
+  const formattingOptions: Intl.NumberFormatOptions = {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  };
+
+  return `${currencyPrefix} ${value.toLocaleString(locale, formattingOptions)}`;
+};
+
+export interface FormatDateOptions {
+  locale?: string;
+  dateStyle?: "full" | "long" | "medium" | "short";
+}
+
+const DEFAULT_DATE_OPTIONS: Required<FormatDateOptions> = {
+  locale: "en-GB",
+  dateStyle: "medium",
+};
+
+export const formatDate = (isoDate: string, options: FormatDateOptions = {}): string => {
+  const { locale, dateStyle } = { ...DEFAULT_DATE_OPTIONS, ...options };
+  const date = new Date(isoDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return isoDate;
+  }
+
+  return new Intl.DateTimeFormat(locale, { dateStyle }).format(date);
+};
+
 // In-memory data stores (persists during session, not across page refreshes)
 let insurancesStore: CoverageInsurance[] = [...mockInsurances];
 let warrantiesStore: CoverageWarranty[] = [...mockWarranties];

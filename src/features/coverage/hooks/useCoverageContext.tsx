@@ -43,4 +43,3 @@ export function CoverageProvider({ children, modals, setModals }: CoverageProvid
 
   return <CoverageContext value={value}>{children}</CoverageContext>;
 }
-

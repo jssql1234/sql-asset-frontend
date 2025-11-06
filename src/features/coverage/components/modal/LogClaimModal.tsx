@@ -8,9 +8,6 @@ import { getCoverageAssetName } from "@/features/coverage/mockData";
 import type { CoverageInsurance, CoverageWarranty, CoverageClaim, CoverageClaimPayload, ClaimType, ClaimStatus } from "@/features/coverage/types";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
 
-const EMPTY_POLICIES: readonly CoverageInsurance[] = [];
-const EMPTY_WARRANTIES: readonly CoverageWarranty[] = [];
-
 interface LogClaimModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -20,6 +17,9 @@ interface LogClaimModalProps {
   onCreate?: (data: CoverageClaimPayload) => void;
   onUpdate?: (id: string, data: CoverageClaimPayload) => void;
 }
+
+const EMPTY_POLICIES: readonly CoverageInsurance[] = [];
+const EMPTY_WARRANTIES: readonly CoverageWarranty[] = [];
 
 export const LogClaimModal = ({
   open,

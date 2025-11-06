@@ -28,7 +28,7 @@ export const DetailModalSection = ({
   const hasChildren = Boolean(children);
 
   return (
-    <div className={cn("mt-0 space-y-4 bg-surfaceContainer", className)}>
+    <div className={cn("mt-0 bg-surfaceContainer", hasItems ? "space-y-4" : "space-y-1", className)}>
       <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
         <div className="space-y-1">
           <h3 className="title-small font-semibold text-onSurface">{title}</h3>

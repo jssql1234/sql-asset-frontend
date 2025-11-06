@@ -4,7 +4,7 @@ import type { Asset } from "@/types/asset";
 import { ExpandableCard } from "@/components/ExpandableCard";
 import MeterGroupDetails from "./MeterGroupDetailsNew";
 import { TablePagination } from "@/components/ui/components/Table";
-import EditGroupModal from "./EditGroupModal";
+import MeterGroupFormModal from "./MeterGroupFormModal";
 
 type MeterGroupsListProps = {
   groups: MeterGroup[];
@@ -140,12 +140,14 @@ export const MeterGroupsList = ({
       )}
 
       {/* Edit Group Modal */}
-      <EditGroupModal
+      <MeterGroupFormModal
         open={!!groupToEdit}
         onOpenChange={(open) => !open && setGroupToEdit(null)}
         group={groupToEdit}
         onSave={(groupId, name, description) => {
-          onEditGroup(groupId, name, description);
+          if (groupId) {
+            onEditGroup(groupId, name, description);
+          }
           setGroupToEdit(null);
         }}
       />

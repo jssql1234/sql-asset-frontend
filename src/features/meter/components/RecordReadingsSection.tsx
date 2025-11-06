@@ -1,5 +1,5 @@
 import { Button, Card, Banner } from "@/components/ui/components";
-import { MeterInputCard, type MeterDraft } from "./MeterInputCard";
+import { MeterInputCard, type MeterDraft } from "./ReadingInputCard";
 import type { MeterGroup, Meter } from "@/types/meter";
 
 interface RecordReadingsSectionProps {

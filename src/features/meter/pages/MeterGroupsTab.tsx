@@ -4,7 +4,7 @@ import type { MeterGroup, MeterGroupInput, Meter } from "@/types/meter";
 import type { Asset } from "@/types/asset";
 import { Plus } from "@/assets/icons";
 import TabHeader from "@/components/TabHeader";
-import CreateGroupModal from "../components/CreateGroupModal";
+import MeterGroupFormModal from "../components/MeterGroupFormModal";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import MeterGroupsList from "../components/MeterGroupsList";
 
@@ -36,8 +36,14 @@ export const MeterGroupsView = ({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<MeterGroup | null>(null);
 
-  const handleCreateGroup = (input: MeterGroupInput) => {
-    onCreateGroup(input);
+  const handleSaveGroup = (groupId: string | undefined, name: string, description: string) => {
+    if (groupId) {
+      // Edit mode
+      onEditGroup(groupId, name, description);
+    } else {
+      // Create mode
+      onCreateGroup({ name, description });
+    }
   };
 
   const handleDeleteGroup = () => {
@@ -109,11 +115,11 @@ export const MeterGroupsView = ({
         onAssignAssets={onAssignAssets}
       />
 
-      {/* Create Group Modal */}
-      <CreateGroupModal
+      {/* Create/Edit Group Modal */}
+      <MeterGroupFormModal
         open={isCreateModalOpen}
         onOpenChange={setIsCreateModalOpen}
-        onSave={handleCreateGroup}
+        onSave={handleSaveGroup}
       />
 
       {/* Delete Confirmation Dialog */}

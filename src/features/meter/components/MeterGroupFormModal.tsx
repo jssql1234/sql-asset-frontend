@@ -8,43 +8,67 @@ import {
   Button,
 } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
-import type { MeterGroupInput } from "@/types/meter";
 
-type CreateGroupModalProps = {
+type MeterGroupFormModalProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (input: MeterGroupInput) => void;
+  group?: {
+    id: string;
+    name: string;
+    description?: string;
+  } | null;
+  onSave: (groupId: string | undefined, name: string, description: string) => void;
 };
 
-export const CreateGroupModal = ({
+export const MeterGroupFormModal = ({
   open,
   onOpenChange,
+  group,
   onSave,
-}: CreateGroupModalProps) => {
-  const [groupForm, setGroupForm] = useState<MeterGroupInput>({
-    name: "",
-    description: "",
-  });
+}: MeterGroupFormModalProps) => {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Reset form when modal opens
+  const isEditMode = !!group;
+
+  // Reset/populate form when modal opens or group changes
   useEffect(() => {
     if (open) {
-      setGroupForm({ name: "", description: "" });
+      if (group) {
+        setName(group.name);
+        setDescription(group.description || "");
+      } else {
+        setName("");
+        setDescription("");
+      }
       setFormError(null);
     }
-  }, [open]);
+  }, [open, group]);
 
   const handleSubmit = () => {
-    if (!groupForm.name.trim()) {
+    if (!name.trim()) {
       setFormError("Group name is required");
       return;
     }
 
-    onSave({
-      name: groupForm.name.trim(),
-      description: groupForm.description?.trim() || "",
-    });
+    onSave(
+      group?.id,
+      name.trim(),
+      description.trim()
+    );
+    onOpenChange(false);
+  };
+
+  const handleCancel = () => {
+    if (group) {
+      setName(group.name);
+      setDescription(group.description || "");
+    } else {
+      setName("");
+      setDescription("");
+    }
+    setFormError(null);
     onOpenChange(false);
   };
 
@@ -52,19 +76,20 @@ export const CreateGroupModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl min-w-2xl">
         <DialogHeader>
-          <DialogTitle>Create meter group</DialogTitle>
+          <DialogTitle>
+            {isEditMode ? "Edit meter group" : "Create meter group"}
+          </DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-onSurface">Group name</label>
+            <label className="text-sm font-medium text-onSurface">
+              Group name <span className="text-error">*</span>
+            </label>
             <Input
-              value={groupForm.name}
+              value={name}
               placeholder="e.g. Plant Utilities"
               onChange={(event: ChangeEvent<HTMLInputElement>) =>
-                setGroupForm((prev) => ({
-                  ...prev,
-                  name: event.target.value,
-                }))
+                setName(event.target.value)
               }
             />
           </div>
@@ -73,12 +98,9 @@ export const CreateGroupModal = ({
             <TextArea
               rows={4}
               placeholder="Summary that explains what this meter group is tracking"
-              value={groupForm.description}
+              value={description}
               onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
-                setGroupForm((prev) => ({
-                  ...prev,
-                  description: event.target.value,
-                }))
+                setDescription(event.target.value)
               }
             />
           </div>
@@ -86,10 +108,12 @@ export const CreateGroupModal = ({
         </div>
         <DialogFooter>
           <div className="flex w-full justify-end gap-2">
-            <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            <Button variant="secondary" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>Create group</Button>
+            <Button onClick={handleSubmit} disabled={!name.trim()}>
+              {isEditMode ? "Save Changes" : "Create group"}
+            </Button>
           </div>
         </DialogFooter>
       </DialogContent>
@@ -97,4 +121,4 @@ export const CreateGroupModal = ({
   );
 };
 
-export default CreateGroupModal;
+export default MeterGroupFormModal;

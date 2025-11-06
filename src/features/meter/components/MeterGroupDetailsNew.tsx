@@ -12,13 +12,14 @@ import {
   TableRow,
 } from "@/components/ui/components/Table";
 import AssignAssetsModal from "./AssignAssetsModal";
-import EditMeterModal from "./EditMeterModal";
+import EditMeterModal from "./MeterFormModal";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 
 type MeterGroupDetailsProps = {
   group: MeterGroup;
   onEditMeter: (meter: Meter) => void;
   onDeleteMeter: (meterId: string) => void;
+  onAddMeter?: (meter: Meter) => void;
   availableAssets?: any[];
   onAssignAssets?: (assetIds: string[]) => void;
 };
@@ -67,6 +68,7 @@ export const MeterGroupDetails = ({
   group,
   onEditMeter,
   onDeleteMeter,
+  onAddMeter,
   availableAssets = [],
   onAssignAssets,
 }: MeterGroupDetailsProps) => {
@@ -74,21 +76,41 @@ export const MeterGroupDetails = ({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [meterToEdit, setMeterToEdit] = useState<Meter | null>(null);
   const [meterToDelete, setMeterToDelete] = useState<Meter | null>(null);
+  const [isAddMode, setIsAddMode] = useState(false);
 
   const handleAssignAssets = (assetIds: string[]) => {
     onAssignAssets?.(assetIds);
   };
 
+  const handleAddMeterClick = () => {
+    // Create a temporary meter for add mode
+    const tempMeter: Meter = {
+      id: `m-temp-${Date.now()}`,
+      uom: "",
+      conditions: [],
+    };
+    setMeterToEdit(tempMeter);
+    setIsAddMode(true);
+    setIsEditModalOpen(true);
+  };
+
   const handleEditClick = (meter: Meter) => {
     setMeterToEdit(meter);
+    setIsAddMode(false);
     setIsEditModalOpen(true);
   };
 
   const handleEditSave = (updatedMeter: Meter) => {
-    // Call the parent's onEditMeter handler with the updated meter
-    onEditMeter(updatedMeter);
+    if (isAddMode) {
+      // Call the parent's onAddMeter handler for new meters
+      onAddMeter?.(updatedMeter);
+    } else {
+      // Call the parent's onEditMeter handler with the updated meter
+      onEditMeter(updatedMeter);
+    }
     setIsEditModalOpen(false);
     setMeterToEdit(null);
+    setIsAddMode(false);
   };
 
   const handleDeleteClick = (meter: Meter) => {
@@ -153,6 +175,15 @@ export const MeterGroupDetails = ({
           <h4 className="title-small uppercase font-semibold tracking-wide">
             Meters
           </h4>
+          <Button
+            onClick={handleAddMeterClick}
+            variant="default"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Meter
+          </Button>
         </div>
 
         <div className="space-y-4">

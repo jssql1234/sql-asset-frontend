@@ -3,8 +3,8 @@ import { Card } from "@/components/ui/components";
 import { SearchableDropdown } from "@/components/SearchableDropdown";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import { RecordReadingsSection } from "../components/RecordReadingsSection";
-import { MeterReadingHistoryTable } from "../components/MeterReadingTable";
-import type { MeterDraft } from "../components/MeterInputCard";
+import { MeterReadingHistoryTable } from "../components/ReadingTable";
+import type { MeterDraft } from "../components/ReadingInputCard";
 import {
   type Meter,
   type MeterGroup,

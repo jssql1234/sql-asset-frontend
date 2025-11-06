@@ -235,18 +235,12 @@ export const MeterReadingsView = ({
       />
 
       {/* Section 3: Reading History */}
-      <Card className="space-y-4 shadow-xl">
-        <header className="flex flex-col gap-2 pb-4">
-          <h3 className="text-lg font-semibold text-onSurface">Meter Reading History</h3>
-        </header>
-        
+        <h3 className="text-lg font-semibold text-onSurface">Meter Reading History</h3>
         <MeterReadingHistoryTable
           readings={assetHistory}
           meterMetadata={meterMetadata}
           onDeleteReading={onDeleteReading}
         />
-      </Card>
-      <br />
     </div>
   );
 };

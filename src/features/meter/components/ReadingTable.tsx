@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
-import type { ColumnDef, GroupingState, ExpandedState } from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 import type { MeterReading, MeterGroup, Meter } from "@/types/meter";
+
 
 interface MeterReadingHistoryTableProps {
   readings: MeterReading[];
@@ -33,14 +34,11 @@ export const MeterReadingHistoryTable = ({
   meterMetadata,
   onDeleteReading,
 }: MeterReadingHistoryTableProps) => {
-  const [grouping, setGrouping] = useState<GroupingState>(["meter"]);
-  const [expanded, setExpanded] = useState<ExpandedState>(true);
-
   const readingColumns = useMemo<ColumnDef<MeterReading>[]>(
     () => [
       {
         id: "timestamp",
-        header: "DateTime",
+        header: "Date & Time",
         accessorFn: (row) => row.recordedAt,
         cell: ({ row }) => (
           <div className="flex flex-col text-sm">
@@ -52,82 +50,58 @@ export const MeterReadingHistoryTable = ({
             </span>
           </div>
         ),
+       enableColumnFilter: false,
       },
       {
         id: "meter",
         header: "Meter",
         accessorKey: "uom",
-        cell: ({ row, getValue }) => {
-          if (row.getIsGrouped()) {
-            return (
-              <div className="flex items-center gap-2 font-semibold text-onSurface hover:text-primary py-2 px-1 rounded">
-                <span>{row.getIsExpanded() ? "▼" : "▶"}</span>
-                <span>{getValue() as string}</span>
-                <span className="text-xs text-onSurfaceVariant">
-                  ({row.subRows.length} readings)
-                </span>
-              </div>
-            );
-          }
-          return (
-            <div className="flex flex-col text-sm text-onSurface">
-              <span className="font-medium">{row.original.uom}</span>
-            </div>
-          );
-        },
-        enableGrouping: true,
+        cell: ({ getValue }) => (
+          <span className="text-sm font-medium text-onSurface">
+            {getValue() as string}
+          </span>
+        ),
       },
       {
         id: "group",
         header: "Group",
         accessorFn: (row) => meterMetadata.get(row.meterId)?.group.name ?? "—",
-        cell: ({ row, getValue }) => {
-          if (row.getIsGrouped()) return null;
-          return (
-            <span className="text-sm text-onSurfaceVariant">
-              {getValue() as string}
-            </span>
-          );
-        },
+        cell: ({ getValue }) => (
+          <span className="text-sm text-onSurfaceVariant">
+            {getValue() as string}
+          </span>
+        ),
       },
       {
         accessorKey: "value",
         header: "Reading",
-        cell: ({ row, getValue }) => {
-          if (row.getIsGrouped()) return null;
-          return (
-            <span className="text-sm font-semibold text-onSurface">
-              {getValue() as number}
-            </span>
-          );
-        },
-        aggregationFn: "count",
+        cell: ({ getValue }) => (
+          <span className="text-sm font-semibold text-onSurface">
+            {getValue() as number}
+          </span>
+        ),
+        enableColumnFilter: false,
       },
       {
         id: "user",
         header: "Recorded by",
         accessorKey: "recordedBy",
-        cell: ({ row, getValue }) => {
-          if (row.getIsGrouped()) return null;
-          return (
-            <span className="text-sm text-onSurfaceVariant">
-              {getValue() as string}
-            </span>
-          );
-        },
+        cell: ({ getValue }) => (
+          <span className="text-sm text-onSurfaceVariant">
+            {getValue() as string}
+          </span>
+        ),
       },
       {
         id: "notes",
         header: "Notes",
         accessorKey: "notes",
-        cell: ({ row, getValue }) => {
-          if (row.getIsGrouped()) return null;
-          return (
-            <span className="text-sm text-onSurfaceVariant">
-              {(getValue() as string) ?? "—"}
-            </span>
-          );
-        },
+        cell: ({ getValue }) => (
+          <span className="text-sm text-onSurfaceVariant">
+            {(getValue() as string) ?? "—"}
+          </span>
+        ),
+        enableColumnFilter: false,
       },
     ],
     [meterMetadata]
@@ -147,30 +121,11 @@ export const MeterReadingHistoryTable = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <label className="flex items-center gap-2 text-sm text-onSurface">
-          <input
-            type="checkbox"
-            checked={grouping.includes("meter")}
-            onChange={(e) => {
-              setGrouping(e.target.checked ? ["meter"] : []);
-            }}
-            className="rounded border-outline"
-          />
-          Group by Meter
-        </label>
-      </div>
-
       <DataTableExtended
         data={readings}
         columns={readingColumns}
         showCheckbox={false}
         showPagination={true}
-        enableGrouping={true}
-        grouping={grouping}
-        onGroupingChange={setGrouping}
-        expanded={expanded}
-        onExpandedChange={setExpanded}
         rowActions={rowActions}
       />
     </div>

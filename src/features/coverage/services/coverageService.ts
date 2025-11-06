@@ -94,7 +94,9 @@ const calculateWarrantyStatus = (expiryDate: string): CoverageWarranty["status"]
 // Calculate insurance summary
 const calculateInsuranceSummary = (): InsuranceSummaryMetrics => {
   const activeInsurances = insurancesStore.filter(ins => ins.status === "Active").length;
-  const totalCoverage = insurancesStore.reduce((acc, ins) => acc + ins.coverageAmount, 0);
+  const totalInsuranceClaimed = claimsStore
+    .filter(claim => claim.type === "Insurance" && claim.status === "Settled")
+    .reduce((acc, claim) => acc + claim.amount, 0);
   
   // Calculate remaining coverage: only deduct settled claims from aggregate policies
   let totalRemainingCoverage = 0;
@@ -123,7 +125,7 @@ const calculateInsuranceSummary = (): InsuranceSummaryMetrics => {
   
   return {
     activeInsurances,
-    totalCoverage,
+    totalInsuranceClaimed,
     remainingCoverage: totalRemainingCoverage,
     annualPremiums,
     assetsCovered,

@@ -55,7 +55,7 @@ export interface CoverageClaim {
 
 export interface InsuranceSummaryMetrics {
   activeInsurances: number;
-  totalCoverage: number;
+  totalInsuranceClaimed: number;
   remainingCoverage: number;
   annualPremiums: number;
   assetsCovered: number;
@@ -100,7 +100,7 @@ export type CoverageClaimPayload = Omit<CoverageClaim, "id">;
 
 export const EMPTY_INSURANCE_SUMMARY: InsuranceSummaryMetrics = {
   activeInsurances: 0,
-  totalCoverage: 0,
+  totalInsuranceClaimed: 0,
   remainingCoverage: 0,
   annualPremiums: 0,
   assetsCovered: 0,

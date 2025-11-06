@@ -17,12 +17,12 @@ export const InsuranceSummaryCards: React.FC<InsuranceSummaryCardsProps> = ({ su
         tone: summary.activeInsurances > 0 ? "success" : "default",
       },
       {
-        label: "Total Coverage",
-        value: formatCurrency(summary.totalCoverage),
-        description: "Aggregate limit",
+        label: "Total Insurance Claimed",
+        value: formatCurrency(summary.totalInsuranceClaimed),
+        description: "Settlement amount",
       },
       {
-        label: "Remaining Coverage",
+        label: "Total Remaining Coverage",
         value: formatCurrency(summary.remainingCoverage),
         description: "Available balance",
       },

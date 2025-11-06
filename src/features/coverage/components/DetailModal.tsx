@@ -1,17 +1,15 @@
 import type { ReactNode } from "react";
 import { cn } from "@/utils/utils";
 
-export interface DetailModalDefinitionItem {
-  label: string;
-  value: ReactNode;
-  align?: "start" | "end";
-}
-
 interface DetailModalSectionProps {
   title: string;
   subtitle?: string;
   action?: ReactNode;
-  items?: DetailModalDefinitionItem[];
+  items?: {
+    label: string;
+    value: ReactNode;
+    align?: "start" | "end";
+  }[];
   children?: ReactNode;
   className?: string;
   contentClassName?: string;

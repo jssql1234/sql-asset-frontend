@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import SummaryCards, { type SummaryCardItem } from "@/components/SummaryCards";
 import type { ClaimSummaryMetrics, InsuranceSummaryMetrics, WarrantySummaryMetrics } from "@/features/coverage/types";
-import { formatCurrency } from "@/features/coverage/utils/formatters";
+import { formatCurrency } from "@/features/coverage/services/coverageService";
 
 interface InsuranceSummaryCardsProps {
   summary: InsuranceSummaryMetrics;

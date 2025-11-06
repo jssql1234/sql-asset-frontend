@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/components";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
 import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
-import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
+import { formatCurrency, formatDate } from "@/features/coverage/services/coverageService";
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import Search from "@/components/Search";
 

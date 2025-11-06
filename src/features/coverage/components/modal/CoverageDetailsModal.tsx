@@ -2,21 +2,9 @@ import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { DetailModalSection } from "@/features/coverage/components/DetailModal";
 import { StatusBadge } from "@/features/coverage/components/StatusBadge";
-import type { CoverageClaim, CoverageInsurance, CoverageWarranty, CoverageStatus } from "@/features/coverage/types";
-import { formatCurrency, formatDate } from "@/features/coverage/utils/formatters";
+import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/features/coverage/types";
+import { formatCurrency, formatDate } from "@/features/coverage/services/coverageService";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-
-export interface CoverageItem {
-  id: string;
-  name: string;
-}
-
-export interface BaseCoverageData {
-  status: CoverageStatus;
-  description?: string;
-  assetsCovered?: CoverageItem[];
-  assets?: CoverageItem[];
-}
 
 export interface DetailSection {
   title: string;
@@ -314,16 +302,3 @@ export function CoverageDetailsModal({
     </Dialog>
   );
 }
-
-// Legacy exports for backward compatibility
-export const InsuranceDetailsModal = ({ insurance, ...props }: { insurance: CoverageInsurance | null } & Omit<CoverageDetailsModalProps, 'variant' | 'data'>) => (
-  <CoverageDetailsModal variant="insurance" data={insurance} {...props} />
-);
-
-export const WarrantyDetailsModal = ({ warranty, ...props }: { warranty: CoverageWarranty | null } & Omit<CoverageDetailsModalProps, 'variant' | 'data'>) => (
-  <CoverageDetailsModal variant="warranty" data={warranty} {...props} />
-);
-
-export const ClaimDetailsModal = ({ claim, ...props }: { claim: CoverageClaim | null } & Omit<CoverageDetailsModalProps, 'variant' | 'data'>) => (
-  <CoverageDetailsModal variant="claim" data={claim} {...props} />
-);

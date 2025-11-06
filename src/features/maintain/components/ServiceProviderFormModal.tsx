@@ -225,7 +225,7 @@ export const ServiceProviderFormModal: React.FC<ServiceProviderFormModalProps> =
                   }
                 }}
                 options={[
-                  { value: '', label: 'Select Type',disabled: true },
+                  { value: '', label: 'Select Status',disabled: true },
                   { value: 'Active', label: 'Active' },
                   { value: 'Inactive', label: 'Inactive' }
                 ]}

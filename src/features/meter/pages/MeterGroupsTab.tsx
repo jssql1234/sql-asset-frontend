@@ -2,28 +2,33 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Search from "@/components/Search";
 import type { MeterGroup, MeterGroupInput, Meter } from "@/types/meter";
+import type { Asset } from "@/types/asset";
 import { Plus } from "@/assets/icons";
 import TabHeader from "@/components/TabHeader";
 import CreateGroupModal from "../components/CreateGroupModal";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
-import MeterGroupsTable from "../components/MeterGroupsTable";
+import MeterGroupsList from "../components/MeterGroupsList";
 
 type MeterGroupsViewProps = {
   groups: MeterGroup[];
+  availableAssets: Asset[];
   onCreateGroup: (input: MeterGroupInput) => void;
   onDeleteGroup: (groupId: string) => void;
   onCloneGroup: (groupId: string) => void;
-  onEditMeter?: (meter: Meter) => void;
-  onDeleteMeter?: (meterId: string) => void;
+  onEditMeter?: (groupId: string, meterId: string, meter: Meter) => void;
+  onDeleteMeter?: (groupId: string, meterId: string) => void;
+  onAssignAssets?: (groupId: string, assetIds: string[]) => void;
 };
 
 export const MeterGroupsView = ({
   groups,
+  availableAssets,
   onCreateGroup,
   onDeleteGroup,
   onCloneGroup,
   onEditMeter,
   onDeleteMeter,
+  onAssignAssets,
 }: MeterGroupsViewProps) => {
   const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -95,13 +100,15 @@ export const MeterGroupsView = ({
         live
       />
 
-      <MeterGroupsTable
+      <MeterGroupsList
         groups={filteredGroups}
+        availableAssets={availableAssets}
         onViewGroup={handleViewGroup}
         onCloneGroup={onCloneGroup}
         onDeleteGroup={handleDeleteClick}
-        onEditMeter={onEditMeter || (() => {})}
-        onDeleteMeter={onDeleteMeter || (() => {})}
+        onEditMeter={onEditMeter}
+        onDeleteMeter={onDeleteMeter}
+        onAssignAssets={onAssignAssets}
       />
 
       {/* Create Group Modal */}

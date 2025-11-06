@@ -34,9 +34,13 @@ const MeterPage = () => {
         content: (
           <MeterGroupsView
             groups={meterGroups}
+            availableAssets={availableAssets}
             onCreateGroup={createGroup}
             onDeleteGroup={deleteGroup}
             onCloneGroup={cloneGroup}
+            onEditMeter={(groupId, meterId, meter) => updateMeter(groupId, meterId, meter)}
+            onDeleteMeter={(groupId, meterId) => removeMeter(groupId, meterId)}
+            onAssignAssets={(groupId, assetIds) => assignAssetsToGroup(groupId, assetIds)}
           />
         ),
       },

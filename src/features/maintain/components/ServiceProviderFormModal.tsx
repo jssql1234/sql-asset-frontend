@@ -39,7 +39,6 @@ const initialFormState: ServiceProviderFormData = {
   email: '',
   phone: '',
   description: '',
-  contractEndDate: '',
   status: '' as 'Active' | 'Inactive',
   createdAt: '',
 };
@@ -66,7 +65,6 @@ export const ServiceProviderFormModal: React.FC<ServiceProviderFormModalProps> =
         email: editingServiceProvider.email,
         phone: editingServiceProvider.phone,
         description: editingServiceProvider.description,
-        contractEndDate: editingServiceProvider.contractEndDate,
         status: editingServiceProvider.status,
         createdAt: editingServiceProvider.createdAt,
       });
@@ -196,19 +194,6 @@ export const ServiceProviderFormModal: React.FC<ServiceProviderFormModalProps> =
                 value={formData.phone}
                 onChange={(event) => { handleInputChange('phone', event.target.value); }}
                 placeholder="Phone number"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label htmlFor="contractEndDate" className="block text-sm font-medium text-onSurface mb-1">
-                Contract End Date
-              </label>
-              <Input
-                id="contractEndDate"
-                value={formData.contractEndDate}
-                onChange={(event) => { handleInputChange('contractEndDate', event.target.value); }}
-                placeholder="Contract End Date"
               />
             </div>
           </div>

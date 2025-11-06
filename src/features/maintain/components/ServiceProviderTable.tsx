@@ -114,15 +114,6 @@ export const ServiceProviderTable: React.FC<ServiceProviderTableProps> = ({
       enableColumnFilter: false,
     },
     {
-      id:'contractEndDate',  
-      accessorKey: 'contractEndDate',
-      header: 'Contract End',
-      cell: ({ row }) => (
-        <div className="text-sm">{row.original.contractEndDate}</div>
-      ),
-      enableColumnFilter: false,
-    },
-    {
       id:'status',  
       accessorKey: 'status',
       header: 'Status',

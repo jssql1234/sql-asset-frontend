@@ -33,22 +33,6 @@ export function generateServiceProviderCode(
 }
 
 
-export function formatServiceProviderDate(dateString: string): string {
-  if (!dateString) {
-    return '';
-  }
-
-  const date = new Date(dateString);
-  if (Number.isNaN(date.getTime())) {
-    return dateString;
-  }
-
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
 
 export function getServiceProviderTypeName(code: string, serviceProviderTypes: ServiceProviderTypeOption[]): string {
   const matchedType = serviceProviderTypes.find(type => type.id === code);
@@ -73,7 +57,6 @@ export function filterServiceProvider(
       (serviceProvider.contactPerson?.toLowerCase() || '').includes(normalizedSearch) ||
       (serviceProvider.email?.toLowerCase() || '').includes(normalizedSearch) ||
       (serviceProvider.phone?.toLowerCase() || '').includes(normalizedSearch) ||
-      (serviceProvider.contractEndDate?.toLowerCase() || '').includes(normalizedSearch) ||  
       (serviceProvider.createdAt?.toLowerCase() || '').includes(normalizedSearch);
           
       getServiceProviderTypeName(serviceProvider.code, serviceProviderTypes).toLowerCase().includes(normalizedSearch);
@@ -99,7 +82,6 @@ export function createServiceProviderFromForm(
       contactPerson: formData.contactPerson,
       email: formData.email,
       phone: formData.phone,
-      contractEndDate: formData.contractEndDate,
       status: formData.status,
       createdAt: timestamp,
     };
@@ -113,7 +95,6 @@ export function createServiceProviderFromForm(
       contactPerson: formData.contactPerson,
       email: formData.email,
       phone: formData.phone,
-      contractEndDate: formData.contractEndDate,
       status: formData.status,
       createdAt: timestamp,
   };

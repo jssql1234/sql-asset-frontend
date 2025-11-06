@@ -11,7 +11,6 @@ export interface ServiceProvider {
   email: string;
   phone: string;
   description: string;
-  contractEndDate: string;
   status: 'Active' | 'Inactive';
   createdAt: string;
 }
@@ -24,7 +23,6 @@ export interface ServiceProviderFormData {
   email: string;
   phone: string;
   description: string;
-  contractEndDate: string;
   status: 'Active' | 'Inactive';
   createdAt: string;
 }

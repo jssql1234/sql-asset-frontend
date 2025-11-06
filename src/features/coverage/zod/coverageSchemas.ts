@@ -17,7 +17,7 @@ const baseInsuranceFields = {
       name: z.string(),
     })
   ).min(1, "Select at least one asset"),
-  description: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
 } as const;
 
 export const createInsuranceSchema = z.object(baseInsuranceFields).superRefine((data, ctx) => {
@@ -56,11 +56,10 @@ const baseWarrantyFields = {
       name: z.string(),
     })
   ).min(1, "Select at least one asset"),
-  description: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
 } as const;
 
 export const createWarrantySchema = z.object(baseWarrantyFields);
-
 export const updateWarrantySchema = createWarrantySchema;
 
 // Claim Schema
@@ -79,11 +78,10 @@ const baseClaimFields = {
   status: z.enum(["Filed", "Rejected", "Settled", "Approved"]),
   dateFiled: z.iso.datetime(),
   workOrderId: z.string().optional(),
-  description: z.string().optional(),
+  description: z.string().min(1, "Description is required"),
 } as const;
 
 export const createClaimSchema = z.object(baseClaimFields);
-
 export const updateClaimSchema = createClaimSchema;
 
 // Type exports

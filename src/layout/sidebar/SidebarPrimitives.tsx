@@ -215,7 +215,12 @@ function SidebarGroupItem({ items, pathname }: SidebarGroupItemProps) {
               className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
             >
               <Icon className="size-4 group-data-[collapsible=icon]:size-5" />
-              <span className="group-data-[collapsible=icon]:hidden">{item.name}</span>
+              <span className={cn(
+                "group-data-[collapsible=icon]:hidden",
+                (item.name === "Process CA" || item.name === "Asset Disposal") && "text-red-500"
+              )}>
+                {item.name}
+              </span>
             </SidebarMenuButton>
           </SidebarMenuButtonWithTooltip>
         );

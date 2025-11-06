@@ -5,8 +5,16 @@ import { type ColumnDef } from "@tanstack/react-table";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import Search from "@/components/Search";
 import { formatDate, formatTime } from "@/features/downtime/services/downtimeService";
-import { getPriorityVariant } from "@/features/downtime/constants";
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
+
+const getPriorityVariant = (priority: DowntimeIncident["priority"]) => {
+  const variantMap = {
+    Low: "blue",
+    High: "orange",
+    Critical: "red",
+  } as const;
+  return variantMap[priority];
+};
 
 interface DowntimeTableProps {
   incidents: DowntimeIncident[];

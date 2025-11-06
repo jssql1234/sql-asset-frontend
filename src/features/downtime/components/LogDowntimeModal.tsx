@@ -7,8 +7,18 @@ import type { DowntimeIncident } from "@/features/downtime/types";
 import type { CreateDowntimeInput, EditDowntimeInput } from "@/features/downtime/zod/downtimeSchemas";
 import { createDowntimeSchema, editDowntimeSchema } from "@/features/downtime/zod/downtimeSchemas";
 import { useCreateDowntimeIncident, useUpdateDowntimeIncident } from "@/features/downtime/hooks/useDowntimeService";
-import { PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/features/downtime/constants";
 import { DEFAULT_ASSET_CATEGORY, useAssetCategories, useAssetItems, useFormErrors, useDateTimeChange, useAssetSelectionHandler, usePriorityHandler, useInputChangeHandler } from "@/features/downtime/hooks/useDowntimeForm";
+
+const PRIORITY_OPTIONS = [
+  { value: "Low" as const, label: "Low" },
+  { value: "High" as const, label: "High" },
+  { value: "Critical" as const, label: "Critical" },
+] as const;
+
+const STATUS_OPTIONS = [
+  { value: "Down" as const, label: "Down" },
+  { value: "Resolved" as const, label: "Resolved" },
+] as const;
 
 interface LogDowntimeModalProps {
   open: boolean;

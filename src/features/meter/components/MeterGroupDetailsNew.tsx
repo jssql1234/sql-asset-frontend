@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/components/Table";
 import AssignAssetsModal from "./AssignAssetsModal";
-import EditMeterModal from "./MeterFormModal";
+import MeterFormModal from "./MeterFormModal";
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 
 type MeterGroupDetailsProps = {
@@ -73,7 +73,7 @@ export const MeterGroupDetails = ({
   onAssignAssets,
 }: MeterGroupDetailsProps) => {
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMeterModalOpen, setIsMeterModalOpen] = useState(false);
   const [meterToEdit, setMeterToEdit] = useState<Meter | null>(null);
   const [meterToDelete, setMeterToDelete] = useState<Meter | null>(null);
   const [isAddMode, setIsAddMode] = useState(false);
@@ -83,7 +83,6 @@ export const MeterGroupDetails = ({
   };
 
   const handleAddMeterClick = () => {
-    // Create a temporary meter for add mode
     const tempMeter: Meter = {
       id: `m-temp-${Date.now()}`,
       uom: "",
@@ -91,24 +90,22 @@ export const MeterGroupDetails = ({
     };
     setMeterToEdit(tempMeter);
     setIsAddMode(true);
-    setIsEditModalOpen(true);
+    setIsMeterModalOpen(true);
   };
 
   const handleEditClick = (meter: Meter) => {
     setMeterToEdit(meter);
     setIsAddMode(false);
-    setIsEditModalOpen(true);
+    setIsMeterModalOpen(true);
   };
 
   const handleEditSave = (updatedMeter: Meter) => {
     if (isAddMode) {
-      // Call the parent's onAddMeter handler for new meters
       onAddMeter?.(updatedMeter);
     } else {
-      // Call the parent's onEditMeter handler with the updated meter
       onEditMeter(updatedMeter);
     }
-    setIsEditModalOpen(false);
+    setIsMeterModalOpen(false);
     setMeterToEdit(null);
     setIsAddMode(false);
   };
@@ -119,7 +116,6 @@ export const MeterGroupDetails = ({
 
   const handleDeleteConfirm = () => {
     if (meterToDelete) {
-      // Call the parent's onDeleteMeter handler with the meter ID
       onDeleteMeter(meterToDelete.id);
       setMeterToDelete(null);
     }
@@ -135,7 +131,7 @@ export const MeterGroupDetails = ({
 
   return (
     <div className="p-4 space-y-6">
-      {/* Assigned Assets Section */}
+      {/* Assigned Assets */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h4 className="title-small uppercase font-semibold tracking-wide">
@@ -169,7 +165,7 @@ export const MeterGroupDetails = ({
         )}
       </div>
 
-      {/* Meters Section */}
+      {/* Meters */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
           <h4 className="title-small uppercase font-semibold tracking-wide">
@@ -255,18 +251,9 @@ export const MeterGroupDetails = ({
                           <TableCell>
                             {getOperatorLabel(condition.operator)}
                           </TableCell>
+                          <TableCell>{condition.value}</TableCell>
                           <TableCell>
-                            {/* <Badge
-                              text={condition.value}
-                              variant="blue"
-                              className="h-7 px-3"
-                            /> */}
-                            {condition.value}
-                          </TableCell>
-                          <TableCell>
-                            {/* <span className="text-primary"> */}
                             {getTriggerActionLabel(condition.triggerAction)}
-                            {/* </span> */}
                           </TableCell>
                           <TableCell>
                             <Badge
@@ -295,15 +282,21 @@ export const MeterGroupDetails = ({
         onAssign={handleAssignAssets}
       />
 
-      {/* Edit Meter Modal */}
-      <EditMeterModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
+      {/* Meter Form Modal */}
+      <MeterFormModal
+        open={isMeterModalOpen}
+        onOpenChange={(open) => {
+          setIsMeterModalOpen(open);
+          if (!open) {
+            setMeterToEdit(null);
+            setIsAddMode(false);
+          }
+        }}
         meter={meterToEdit}
         onSave={handleEditSave}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation */}
       <DeleteConfirmationDialog
         isOpen={!!meterToDelete}
         onClose={() => setMeterToDelete(null)}

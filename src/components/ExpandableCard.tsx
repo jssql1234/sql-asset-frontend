@@ -90,7 +90,7 @@ export const ExpandableCard = ({
         {/* Title, Subtitle and Badge */}
         <div className="flex flex-col gap-0.5 flex-1">
           <div className="flex items-center gap-2">
-            <h3 className="title-medium text-onSurface">{title}</h3>
+            <h3 className="text-lg font-semibold text-onSurface">{title}</h3>
             {badge && (
               <Badge
                 text={badge.text}

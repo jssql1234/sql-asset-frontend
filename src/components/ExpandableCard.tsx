@@ -65,8 +65,8 @@ export const ExpandableCard = ({
       <div
         className={cn(
           "flex items-center gap-3 px-4 py-3 transition-colors",
-          expandable && "cursor-pointer hover:bg-surfaceContainerHighest",
-          isExpanded && "bg-surfaceContainerLow"
+          expandable && "cursor-pointer hover:bg-hover",
+          isExpanded && "bg-surfaceContainerHighest"
         )}
         onClick={expandable ? handleToggle : undefined}
       >
@@ -109,8 +109,12 @@ export const ExpandableCard = ({
           <div className="flex items-center gap-6">
             {stats.map((stat, index) => (
               <div key={index} className="flex flex-col items-center">
-                <span className="headline-small text-onSurface">{stat.value}</span>
-                <span className="body-small text-onSurfaceVariant">{stat.label}</span>
+                <span className="headline-small text-onSurface">
+                  {stat.value}
+                </span>
+                <span className="body-small text-onSurfaceVariant">
+                  {stat.label}
+                </span>
               </div>
             ))}
           </div>

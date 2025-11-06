@@ -79,9 +79,12 @@ export const LogClaimModal = ({
 
   // Computed values that depend on state
   const references = useMemo((): readonly (CoverageInsurance | CoverageWarranty)[] => {
-    return claimType === "Insurance"
+    const allReferences = claimType === "Insurance"
       ? policies ?? EMPTY_POLICIES
       : warranties ?? EMPTY_WARRANTIES;
+    
+    // Filter to show only references with 'Active' status
+    return allReferences.filter((ref) => ref.status === "Active");
   }, [claimType, policies, warranties]);
 
   const { assetCategories, assetOptions, assetNameById } = useCoverageAssetCatalog();

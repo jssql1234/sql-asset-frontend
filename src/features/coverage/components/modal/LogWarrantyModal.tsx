@@ -5,6 +5,7 @@ import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import type { CoverageEntityAsset, CoverageWarranty, CoverageWarrantyPayload } from "@/features/coverage/types";
+import { createWarrantySchema, updateWarrantySchema } from "@/features/coverage/zod/coverageSchemas";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
 import { calculateExpiryDate } from "@/features/coverage/services/coverageService";
 
@@ -17,6 +18,8 @@ interface LogWarrantyModalProps {
 }
 
 type WarrantyFormState = Omit<CoverageWarrantyPayload, "assetsCovered">;
+type WarrantyField = keyof WarrantyFormState | "assetsCovered";
+type WarrantyFieldErrors = Partial<Record<WarrantyField, string>>;
 
 export const LogWarrantyModal = ({
   open,
@@ -48,6 +51,18 @@ export const LogWarrantyModal = ({
   );
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
+  const [fieldErrors, setFieldErrors] = useState<WarrantyFieldErrors>({});
+
+  const clearFieldError = (field: WarrantyField) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) {
+        return prev;
+      }
+      return Object.fromEntries(
+        Object.entries(prev).filter(([key]) => key !== field)
+      ) as WarrantyFieldErrors;
+    });
+  };
 
   // Reset form when warranty prop changes (for edit mode) or when modal opens/closes
   useEffect(() => {
@@ -69,6 +84,7 @@ export const LogWarrantyModal = ({
 
     setSelectedAssetIds(warranty?.assetsCovered.map((asset) => asset.id) ?? []);
     setSelectedAssetCategory("all");
+    setFieldErrors({});
   }, [warranty, open]);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -89,7 +105,24 @@ export const LogWarrantyModal = ({
       description: warrantyData.description,
       assetsCovered,
     };
-    
+
+    const schema = isEditing ? updateWarrantySchema : createWarrantySchema;
+    const validation = schema.safeParse(formData);
+
+    if (!validation.success) {
+      const errors: WarrantyFieldErrors = {};
+      validation.error.issues.forEach((issue) => {
+        const field = issue.path[0];
+        if (typeof field === "string") {
+          errors[field as WarrantyField] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+
     if (isEditing && warranty && onUpdate) {
       onUpdate(warranty.id, formData);
     } else if (!isEditing && onCreate) {
@@ -116,9 +149,13 @@ export const LogWarrantyModal = ({
                       value={warrantyData.name}
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, name: e.target.value });
+                        clearFieldError("name");
                       }}
                       placeholder="Enter warranty name"
                     />
+                    {fieldErrors.name ? (
+                      <span className="label-small text-error">{fieldErrors.name}</span>
+                    ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Provider<span className="text-error"> *</span></label>
@@ -126,9 +163,13 @@ export const LogWarrantyModal = ({
                       value={warrantyData.provider}
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, provider: e.target.value });
+                        clearFieldError("provider");
                       }}
                       placeholder="Enter provider name"
                     />
+                    {fieldErrors.provider ? (
+                      <span className="label-small text-error">{fieldErrors.provider}</span>
+                    ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Warranty Number<span className="text-error"> *</span></label>
@@ -136,9 +177,13 @@ export const LogWarrantyModal = ({
                       value={warrantyData.warrantyNumber}
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, warrantyNumber: e.target.value });
+                        clearFieldError("warrantyNumber");
                       }}
                       placeholder="Enter warranty number"
                     />
+                    {fieldErrors.warrantyNumber ? (
+                      <span className="label-small text-error">{fieldErrors.warrantyNumber}</span>
+                    ) : null}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -148,9 +193,13 @@ export const LogWarrantyModal = ({
                       value={warrantyData.coverage}
                       onChange={(e) => {
                         setWarrantyData({ ...warrantyData, coverage: e.target.value });
+                        clearFieldError("coverage");
                       }}
                       placeholder="Parts, Labour, or Full Coverage"
                     />
+                    {fieldErrors.coverage ? (
+                      <span className="label-small text-error">{fieldErrors.coverage}</span>
+                    ) : null}
                   </div>
                   <div className="flex flex-col gap-2">
                     <label className="body-small text-onSurface">Expiry Date<span className="text-error"> *</span></label>
@@ -159,39 +208,57 @@ export const LogWarrantyModal = ({
                       onChange={(date) => {
                         const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
                         setWarrantyData({ ...warrantyData, expiryDate: isoDate });
+                        clearFieldError("expiryDate");
                       }}
                       inputType="date"
                       className="w-full"
                     />
+                    {fieldErrors.expiryDate ? (
+                      <span className="label-small text-error">{fieldErrors.expiryDate}</span>
+                    ) : null}
                   </div>
                 </div>
             </div>
 
             <div className="space-y-4">
               <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
-              <SearchWithDropdown
-                categories={assetCategories}
-                selectedCategoryId={selectedAssetCategory}
-                onCategoryChange={setSelectedAssetCategory}
-                items={assetOptions}
-                selectedIds={selectedAssetIds}
-                onSelectionChange={setSelectedAssetIds}
-                placeholder="Search assets by name or ID"
-                emptyMessage="No assets found"
-                hideSelectedField={selectedAssetIds.length === 0}
-              />
+              <div className="flex flex-col gap-2">
+                <SearchWithDropdown
+                  categories={assetCategories}
+                  selectedCategoryId={selectedAssetCategory}
+                  onCategoryChange={setSelectedAssetCategory}
+                  items={assetOptions}
+                  selectedIds={selectedAssetIds}
+                  onSelectionChange={(ids) => {
+                    setSelectedAssetIds(ids);
+                    clearFieldError("assetsCovered");
+                  }}
+                  placeholder="Search assets by name or ID"
+                  emptyMessage="No assets found"
+                  hideSelectedField={selectedAssetIds.length === 0}
+                />
+                {fieldErrors.assetsCovered ? (
+                  <span className="label-small text-error">{fieldErrors.assetsCovered}</span>
+                ) : null}
+              </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="title-small font-semibold text-onSurface">Description</h3>
-              <TextArea
-                rows={3}
-                value={warrantyData.description}
-                onChange={(e) => {
-                  setWarrantyData({ ...warrantyData, description: e.target.value });
-                }}
-                placeholder="Important clauses, limitations, service windows, etc."
-              />
+              <h3 className="title-small font-semibold text-onSurface">Description<span className="text-error"> *</span></h3>
+              <div className="flex flex-col gap-2">
+                <TextArea
+                  rows={3}
+                  value={warrantyData.description}
+                  onChange={(e) => {
+                    setWarrantyData({ ...warrantyData, description: e.target.value });
+                    clearFieldError("description");
+                  }}
+                  placeholder="Important clauses, limitations, service windows, etc."
+                />
+                {fieldErrors.description ? (
+                  <span className="label-small text-error">{fieldErrors.description}</span>
+                ) : null}
+              </div>
             </div>
 
             <DialogFooter className="flex justify-end">

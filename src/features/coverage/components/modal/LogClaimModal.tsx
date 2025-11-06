@@ -6,6 +6,7 @@ import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { getCoverageAssetName } from "@/features/coverage/mockData";
 import type { CoverageInsurance, CoverageWarranty, CoverageClaim, CoverageClaimPayload, ClaimType, ClaimStatus } from "@/features/coverage/types";
+import { createClaimSchema, updateClaimSchema } from "@/features/coverage/zod/coverageSchemas";
 import { useCoverageAssetCatalog } from "@/features/coverage/hooks/useCoverageAssets";
 
 interface LogClaimModalProps {
@@ -54,10 +55,27 @@ export const LogClaimModal = ({
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
   
+  type ClaimFormState = Omit<CoverageClaimPayload, "assets">;
+  type ClaimField = keyof ClaimFormState | "assets";
+  type ClaimFieldErrors = Partial<Record<ClaimField, string>>;
+
+  const [fieldErrors, setFieldErrors] = useState<ClaimFieldErrors>({});
+
   // Track amount as string to allow clearing
   const [amountInput, setAmountInput] = useState<string>(
     claim?.amount.toString() ?? ""
   );
+
+  const clearFieldError = (field: ClaimField) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) {
+        return prev;
+      }
+      return Object.fromEntries(
+        Object.entries(prev).filter(([key]) => key !== field)
+      ) as ClaimFieldErrors;
+    });
+  };
 
   // Computed values that depend on state
   const references = useMemo((): readonly (CoverageInsurance | CoverageWarranty)[] => {
@@ -105,6 +123,7 @@ export const LogClaimModal = ({
       setAmountInput(claim?.amount.toString() ?? "");
       setSelectedAssetIds(claim?.assets.map((a) => a.id) ?? []);
       setSelectedAssetCategory("all");
+      setFieldErrors({});
     }
   }, [claim, open]);
 
@@ -135,7 +154,24 @@ export const LogClaimModal = ({
       workOrderId: claim?.workOrderId,
       description: claimData.description,
     };
-    
+
+    const schema = isEditing ? updateClaimSchema : createClaimSchema;
+    const validation = schema.safeParse(formData);
+
+    if (!validation.success) {
+      const errors: ClaimFieldErrors = {};
+      validation.error.issues.forEach((issue) => {
+        const field = issue.path[0];
+        if (typeof field === "string") {
+          errors[field as ClaimField] = issue.message;
+        }
+      });
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+
     if (isEditing && claim && onUpdate) {
       onUpdate(claim.id, formData);
     } else if (!isEditing && onCreate) {
@@ -209,6 +245,7 @@ export const LogClaimModal = ({
                             onClick={() => {
                               setReferenceId(item.id);
                               setSelectedAssetIds([]);
+                              clearFieldError("referenceId");
                             }}
                           >
                             <div className="flex flex-col">
@@ -220,6 +257,9 @@ export const LogClaimModal = ({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
+                  {fieldErrors.referenceId ? (
+                    <span className="label-small text-error">{fieldErrors.referenceId}</span>
+                  ) : null}
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="body-small text-onSurface">Claim Number<span className="text-error"> *</span></label>
@@ -228,10 +268,14 @@ export const LogClaimModal = ({
                     onChange={(event) => {
                       if (isEditing) return;
                       setClaimData({ ...claimData, claimNumber: event.target.value });
+                      clearFieldError("claimNumber");
                     }}
                     disabled={isEditing}
                     placeholder="Enter claim number"
                   />
+                  {fieldErrors.claimNumber ? (
+                    <span className="label-small text-error">{fieldErrors.claimNumber}</span>
+                  ) : null}
                 </div>
               </div>
 
@@ -243,10 +287,14 @@ export const LogClaimModal = ({
                     onChange={(date) => {
                       const isoDate = date instanceof Date ? date.toISOString() : typeof date === "string" ? date : "";
                       setClaimData({ ...claimData, dateFiled: isoDate });
+                      clearFieldError("dateFiled");
                     }}
                     inputType="date"
                     className="w-full"
                   />
+                  {fieldErrors.dateFiled ? (
+                    <span className="label-small text-error">{fieldErrors.dateFiled}</span>
+                  ) : null}
                 </div>
                 {claimType === "Insurance" && (
                   <div className="flex flex-col gap-2">
@@ -261,9 +309,13 @@ export const LogClaimModal = ({
                         setAmountInput(inputValue);
                         const numValue = inputValue === "" ? 0 : Number.parseFloat(inputValue);
                         setClaimData({ ...claimData, amount: Number.isNaN(numValue) ? 0 : numValue });
+                        clearFieldError("amount");
                       }}
                       placeholder="Enter claim amount"
                     />
+                    {fieldErrors.amount ? (
+                      <span className="label-small text-error">{fieldErrors.amount}</span>
+                    ) : null}
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
@@ -289,29 +341,43 @@ export const LogClaimModal = ({
 
             <div className="space-y-4">
               <h3 className="title-small font-semibold text-onSurface">Assets</h3>
-              <SearchWithDropdown
-                categories={assetCategories}
-                selectedCategoryId={selectedAssetCategory}
-                onCategoryChange={setSelectedAssetCategory}
-                items={availableAssets}
-                selectedIds={selectedAssetIds}
-                onSelectionChange={setSelectedAssetIds}
-                placeholder="Search assets by name or ID"
-                emptyMessage="No assets found"
-                hideSelectedField={selectedAssetIds.length === 0}
-              />
+              <div className="flex flex-col gap-2">
+                <SearchWithDropdown
+                  categories={assetCategories}
+                  selectedCategoryId={selectedAssetCategory}
+                  onCategoryChange={setSelectedAssetCategory}
+                  items={availableAssets}
+                  selectedIds={selectedAssetIds}
+                  onSelectionChange={(ids) => {
+                    setSelectedAssetIds(ids);
+                    clearFieldError("assets");
+                  }}
+                  placeholder="Search assets by name or ID"
+                  emptyMessage="No assets found"
+                  hideSelectedField={selectedAssetIds.length === 0}
+                />
+                {fieldErrors.assets ? (
+                  <span className="label-small text-error">{fieldErrors.assets}</span>
+                ) : null}
+              </div>
             </div>
 
             <div className="space-y-4">
-              <h3 className="title-small font-semibold text-onSurface">Description</h3>
-              <TextArea
-                rows={4}
-                value={claimData.description}
-                onChange={(e) => {
-                  setClaimData({ ...claimData, description: e.target.value });
-                }}
-                placeholder="Provide summary of incident, damages, or supporting notes"
-              />
+              <h3 className="title-small font-semibold text-onSurface">Description<span className="text-error"> *</span></h3>
+              <div className="flex flex-col gap-2">
+                <TextArea
+                  rows={4}
+                  value={claimData.description}
+                  onChange={(e) => {
+                    setClaimData({ ...claimData, description: e.target.value });
+                    clearFieldError("description");
+                  }}
+                  placeholder="Provide summary of incident, damages, or supporting notes"
+                />
+                {fieldErrors.description ? (
+                  <span className="label-small text-error">{fieldErrors.description}</span>
+                ) : null}
+              </div>
             </div>
 
             <DialogFooter className="flex justify-end">

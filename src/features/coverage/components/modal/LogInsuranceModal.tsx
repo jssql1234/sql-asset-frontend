@@ -326,36 +326,43 @@ export const LogInsuranceModal = ({
 
             <div className="space-y-4">
               <h3 className="title-small font-semibold text-onSurface">Assets Covered</h3>
-              <SearchWithDropdown
-                categories={assetCategories}
-                selectedCategoryId={selectedAssetCategory}
-                onCategoryChange={setSelectedAssetCategory}
-                items={assetOptions}
-                selectedIds={selectedAssetIds}
-                onSelectionChange={(ids) => {
-                  setSelectedAssetIds(ids);
-                  clearFieldError("assetsCovered");
-                }}
-                placeholder="Search assets by name or ID"
-                emptyMessage="No assets found"
-                hideSelectedField={selectedAssetIds.length === 0}
-              />
-              {fieldErrors.assetsCovered ? (
-                <span className="label-small text-error">{fieldErrors.assetsCovered}</span>
-              ) : null}
+              <div className="flex flex-col gap-2">
+                <SearchWithDropdown
+                  categories={assetCategories}
+                  selectedCategoryId={selectedAssetCategory}
+                  onCategoryChange={setSelectedAssetCategory}
+                  items={assetOptions}
+                  selectedIds={selectedAssetIds}
+                  onSelectionChange={(ids) => {
+                    setSelectedAssetIds(ids);
+                    clearFieldError("assetsCovered");
+                  }}
+                  placeholder="Search assets by name or ID"
+                  emptyMessage="No assets found"
+                  hideSelectedField={selectedAssetIds.length === 0}
+                />
+                {fieldErrors.assetsCovered ? (
+                  <span className="label-small text-error">{fieldErrors.assetsCovered}</span>
+                ) : null}
+              </div>
             </div>
 
             <div className="space-y-4">
               <h3 className="title-small font-semibold text-onSurface">Description</h3>
-              <TextArea
-                rows={3}
-                value={insuranceData.description}
-                onChange={(event) => {
-                  setInsuranceData({ ...insuranceData, description: event.target.value });
-                  clearFieldError("description");
-                }}
-                placeholder="Describe coverage, deductibles, or asset-specific clauses"
-              />
+              <div className="flex flex-col gap-2">
+                <TextArea
+                  rows={3}
+                  value={insuranceData.description}
+                  onChange={(event) => {
+                    setInsuranceData({ ...insuranceData, description: event.target.value });
+                    clearFieldError("description");
+                  }}
+                  placeholder="Describe coverage, deductibles, or asset-specific clauses"
+                />
+                {fieldErrors.description ? (
+                  <span className="label-small text-error">{fieldErrors.description}</span>
+                ) : null}
+              </div>
             </div>
 
             <DialogFooter className="flex justify-end">

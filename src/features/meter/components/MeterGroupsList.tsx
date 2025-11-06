@@ -4,13 +4,15 @@ import type { Asset } from "@/types/asset";
 import { ExpandableCard } from "@/components/ExpandableCard";
 import MeterGroupDetails from "./MeterGroupDetailsNew";
 import { TablePagination } from "@/components/ui/components/Table";
+import EditGroupModal from "./EditGroupModal";
 
 type MeterGroupsListProps = {
   groups: MeterGroup[];
   availableAssets: Asset[];
-  onViewGroup: (group: MeterGroup) => void;
+  onEditGroup: (groupId: string, name: string, description: string) => void;
   onCloneGroup: (groupId: string) => void;
   onDeleteGroup: (groupId: string) => void;
+  onAddMeter?: (groupId: string, meter: Meter) => void;
   onEditMeter?: (groupId: string, meterId: string, meter: Meter) => void;
   onDeleteMeter?: (groupId: string, meterId: string) => void;
   onAssignAssets?: (groupId: string, assetIds: string[]) => void;
@@ -20,9 +22,10 @@ type MeterGroupsListProps = {
 export const MeterGroupsList = ({
   groups,
   availableAssets,
-  onViewGroup,
+  onEditGroup,
   onCloneGroup,
   onDeleteGroup,
+  onAddMeter,
   onEditMeter,
   onDeleteMeter,
   onAssignAssets,
@@ -30,6 +33,7 @@ export const MeterGroupsList = ({
 }: MeterGroupsListProps) => {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupToEdit, setGroupToEdit] = useState<MeterGroup | null>(null);
 
   // Calculate pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -91,8 +95,8 @@ export const MeterGroupsList = ({
               ]}
               actions={[
                 {
-                  label: "View Details",
-                  onClick: () => onViewGroup(group),
+                  label: "Edit Group",
+                  onClick: () => setGroupToEdit(group),
                 },
                 {
                   label: "Clone Group",
@@ -110,6 +114,7 @@ export const MeterGroupsList = ({
             >
               <MeterGroupDetails
                 group={group}
+                onAddMeter={(meter) => onAddMeter?.(group.id, meter)}
                 onEditMeter={(meter) => onEditMeter?.(group.id, meter.id, meter)}
                 onDeleteMeter={(meterId) => onDeleteMeter?.(group.id, meterId)}
                 availableAssets={availableAssets}
@@ -133,6 +138,17 @@ export const MeterGroupsList = ({
           }}
         />
       )}
+
+      {/* Edit Group Modal */}
+      <EditGroupModal
+        open={!!groupToEdit}
+        onOpenChange={(open) => !open && setGroupToEdit(null)}
+        group={groupToEdit}
+        onSave={(groupId, name, description) => {
+          onEditGroup(groupId, name, description);
+          setGroupToEdit(null);
+        }}
+      />
     </div>
   );
 };

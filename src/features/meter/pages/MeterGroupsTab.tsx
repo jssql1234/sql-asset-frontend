@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import Search from "@/components/Search";
 import type { MeterGroup, MeterGroupInput, Meter } from "@/types/meter";
 import type { Asset } from "@/types/asset";
@@ -13,8 +12,10 @@ type MeterGroupsViewProps = {
   groups: MeterGroup[];
   availableAssets: Asset[];
   onCreateGroup: (input: MeterGroupInput) => void;
+  onEditGroup: (groupId: string, name: string, description: string) => void;
   onDeleteGroup: (groupId: string) => void;
   onCloneGroup: (groupId: string) => void;
+  onAddMeter?: (groupId: string, meter: Meter) => void;
   onEditMeter?: (groupId: string, meterId: string, meter: Meter) => void;
   onDeleteMeter?: (groupId: string, meterId: string) => void;
   onAssignAssets?: (groupId: string, assetIds: string[]) => void;
@@ -24,13 +25,14 @@ export const MeterGroupsView = ({
   groups,
   availableAssets,
   onCreateGroup,
+  onEditGroup,
   onDeleteGroup,
   onCloneGroup,
+  onAddMeter,
   onEditMeter,
   onDeleteMeter,
   onAssignAssets,
 }: MeterGroupsViewProps) => {
-  const navigate = useNavigate();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<MeterGroup | null>(null);
 
@@ -73,11 +75,6 @@ export const MeterGroupsView = ({
     );
   }, [groups, searchQuery]);
 
-  const handleViewGroup = (group: MeterGroup) => {
-    // Navigate to detail page
-    navigate(`/meter-reading/group/${group.id}`);
-  };
-
   return (
     <div className="flex flex-col gap-6">
       <TabHeader
@@ -103,9 +100,10 @@ export const MeterGroupsView = ({
       <MeterGroupsList
         groups={filteredGroups}
         availableAssets={availableAssets}
-        onViewGroup={handleViewGroup}
+        onEditGroup={onEditGroup}
         onCloneGroup={onCloneGroup}
         onDeleteGroup={handleDeleteClick}
+        onAddMeter={onAddMeter}
         onEditMeter={onEditMeter}
         onDeleteMeter={onDeleteMeter}
         onAssignAssets={onAssignAssets}

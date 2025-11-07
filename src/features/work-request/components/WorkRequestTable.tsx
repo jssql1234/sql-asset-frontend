@@ -1,23 +1,20 @@
 import React, { useMemo } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
-import { WorkRequestStatusBadge } from './WorkRequestBadges';
-import type { WorkRequest, WorkRequestAsset } from '@/types/work-request';
+import { Badge } from '@/components/ui/components';
+import type { WorkRequest, WorkRequestAsset } from '../types';
+import { getStatusVariant } from '../constants';
 
 interface WorkRequestTableProps {
   workRequests: WorkRequest[];
-  // selectedWorkRequestIds: string[];
   isLoading?: boolean;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
-  onEditWorkRequest?: (workRequest: WorkRequest) => void;
+  onReviewWorkRequest?: (workRequest: WorkRequest) => void;
 }
 
 const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   workRequests,
-  // selectedWorkRequestIds: _selectedWorkRequestIds,
-  // isLoading = false,
-  // onSelectionChange,
-  onEditWorkRequest,
+  onReviewWorkRequest,
 }) => {
   // Table columns configuration
   const columns: ColumnDef<WorkRequest>[] = useMemo(() => [
@@ -68,9 +65,10 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     {
       accessorKey: 'status',
       header: 'Status',
-      cell: ({ getValue }: any) => (
-        <WorkRequestStatusBadge status={getValue() as WorkRequest['status']} />
-      ),
+      cell: ({ getValue }: any) => {
+        const status = getValue() as WorkRequest['status'];
+        return <Badge text={status} variant={getStatusVariant(status)}/>;
+      },
     },
     {
       accessorKey: 'requestDate',
@@ -99,25 +97,37 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     },
   ], []);
 
-  // const handleRowSelectionChange = (selectedRows: WorkRequest[], _selectedRowIds: string[]) => {
-  //   onSelectionChange(selectedRows);
-  // };
+  // Row actions configuration
+  const rowActions = useMemo(() => {
+    const actions = [];
+    
+    if (onReviewWorkRequest) {
+      actions.push({
+        type: 'view' as const,
+        label: 'Review',
+        onClick: (row: WorkRequest) => onReviewWorkRequest(row),
+      });
+    }
+    
+    return actions;
+  }, [onReviewWorkRequest]);
 
-  // // Convert selectedWorkRequestIds to selected row state
-  // const selectedRowState = useMemo(() => {
-  //   const selectedState: Record<string, boolean> = {};
-  //   workRequests.forEach((request, index) => {
-  //     selectedState[index] = _selectedWorkRequestIds.includes(request.id);
-  //   });
-  //   return selectedState;
-  // }, [workRequests, _selectedWorkRequestIds]);
+  // Sort work requests by request date (latest first)
+  const sortedWorkRequests = useMemo(() => {
+    return [...workRequests].sort((a, b) => {
+      const dateA = new Date(a.requestDate).getTime();
+      const dateB = new Date(b.requestDate).getTime();
+      return dateB - dateA; 
+    });
+  }, [workRequests]);
 
   return (
     <div className="flex flex-col gap-4">
       <DataTableExtended
         columns={columns}
-        data={workRequests}
+        data={sortedWorkRequests}
         showPagination={true}
+        rowActions={rowActions}
       />
     </div>
   );

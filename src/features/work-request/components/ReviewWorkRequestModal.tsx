@@ -11,17 +11,17 @@ import {
 } from '@/components/ui/components/Dialog';
 
 import { SearchWithDropdown } from '@/components/SearchWithDropdown';
-import { WorkRequestStatusBadge } from './WorkRequestBadges';
+import { Badge } from '@/components/ui/components/Badge';
 import { MaintenanceHistoryTable } from './MaintenanceHistoryTable';
-import { CreateWorkOrderModal } from '@/features/work-order/components/CreateWorkOrderModal';
+import { WorkOrderForm } from '@/features/work-order/components/WorkOrderForm';
 import { useToast } from '@/components/ui/components/Toast/useToast';
-import { workRequestService, maintenanceHistoryService } from '../services/workRequestService';
-import DeleteConfirmationDialog from './DeleteConfirmationDialog';
-
+import { useUpdateWorkRequestStatus } from '../hooks/useWorkRequestService';
+import { maintenanceHistoryService } from '../services/workRequestService';
+import { getStatusVariant } from '../constants';
 import type { 
   WorkRequest,
   MaintenanceHistory
-} from '@/types/work-request';
+} from '../types';
 import type { WorkOrderFormData } from '@/features/work-order/types';
 
 interface ReviewWorkRequestModalProps {
@@ -39,20 +39,15 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
   onClose,
   onSuccess,
   onReject: _onReject,
-  onDelete,
 }) => {
   const { addToast } = useToast();
+  const { mutate: updateWorkRequestStatus } = useUpdateWorkRequestStatus();
   const [maintenanceHistory, setMaintenanceHistory] = useState<MaintenanceHistory[]>([]);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [rejectReasonError, setRejectReasonError] = useState(false);
-  const [isCreateWorkOrderModalOpen, setIsCreateWorkOrderModalOpen] = useState(false);
-  const [prefilledWorkOrderData, setPrefilledWorkOrderData] = useState<{
-    assetIds: string[];
-    description: string;
-    jobTitle: string;
-  } | null>(null);
-  const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
+  const [isWorkOrderFormOpen, setIsWorkOrderFormOpen] = useState(false);
+  const [prefilledWorkOrder, setPrefilledWorkOrder] = useState<Partial<WorkOrderFormData> | null>(null);
 
   // Asset categories for SearchWithDropdown (disabled in review mode)
   const assetCategories = [
@@ -83,13 +78,13 @@ export const ReviewWorkRequestModal: React.FC<ReviewWorkRequestModalProps> = ({
 
     // Prepare description from work request details
     const description = `Request Type: ${workRequest.requestType}
-Requester: ${workRequest.requesterName}
-Department: ${workRequest.department}
+                        Requester: ${workRequest.requesterName}
+                        Department: ${workRequest.department}
 
-Problem Description:
-${workRequest.problemDescription}
+                        Problem Description:
+                        ${workRequest.problemDescription}
 
-${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNotes}` : ''}`.trim();
+                        ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNotes}` : ''}`.trim();
 
     // Prepare asset IDs from selected assets
     const assetIds = workRequest.selectedAssets.map((asset) => asset.main.code);
@@ -98,42 +93,53 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
     const assetNames = workRequest.selectedAssets.map((asset) => asset.main.name).join(', ');
     const jobTitle = `${workRequest.requestType} - ${assetNames.length > 50 ? assetNames.substring(0, 50) + '...' : assetNames}`;
 
-    // Set prefilled data and open work order modal
-    setPrefilledWorkOrderData({
-      assetIds,
-      description,
+    // Create prefilled work order form data
+    const prefilledData: Partial<WorkOrderFormData> = {
+      assetId: assetIds.join(','),
+      assetName: assetNames,
       jobTitle,
-    });
-    setIsCreateWorkOrderModalOpen(true);
+      description,
+      type: 'Corrective',
+      status: 'Pending',
+      serviceBy: 'In-House',
+      estimatedCost: 0,
+      actualCost: 0,
+    };
+
+    setPrefilledWorkOrder(prefilledData);
+    setIsWorkOrderFormOpen(true);
   };
 
   const handleWorkOrderCreated = async (_data: WorkOrderFormData) => {
     if (!workRequest) return;
 
-    try {
-      // Update work request status to approved
-      workRequestService.updateWorkRequestStatus(workRequest.id, 'Approved');
-      
-      // Close both modals
-      setIsCreateWorkOrderModalOpen(false);
-      onSuccess();
-      onClose();
-      
-      addToast({
-        title: "Success to Approved & Create Work Order",
-        // description: "Work order created and work request approved successfully.",
-        variant: "success",
-        duration: 7000,
-      });
-    } catch (error) {
-      console.error('Error updating work request status:', error);
-      addToast({
-        title: "Partial Success",
-        description: "Work order created but failed to update work request status.",
-        variant: "warning",
-        duration: 10000,
-      });
-    }
+    // Update work request status to approved
+    updateWorkRequestStatus({
+      requestId: workRequest.id,
+      status: 'Approved',
+    }, {
+      onSuccess: () => {
+        // Close both modals
+        setIsWorkOrderFormOpen(false);
+        onSuccess();
+        onClose();
+        
+        addToast({
+          title: "Success to Approved & Create Work Order",
+          variant: "success",
+          duration: 5000,
+        });
+      },
+      onError: (error) => {
+        console.error('Error updating work request status:', error);
+        addToast({
+          title: "Partial Success",
+          description: "Work order created but failed to update work request status.",
+          variant: "warning",
+          duration: 7000,
+        });
+      }
+    });
   };
 
   const handleRejectWorkRequest = async () => {
@@ -144,45 +150,42 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
 
     if (!workRequest) return;
 
-    try {
-      workRequestService.updateWorkRequestStatus(workRequest.id, 'Rejected', rejectReason);
-      setIsRejectModalOpen(false);
-      setRejectReason('');
-      setRejectReasonError(false);
-      onSuccess();
-      onClose();
-      
-      addToast({
-        title: "Success to Reject Work Request",
-        // description: "Work request has been rejected successfully.",
-        variant: "success",
-        duration: 7000,
-      });
-    } catch (error) {
-      console.error('Error rejecting work request:', error);
-      addToast({
-        title: "Error",
-        description: "Error rejecting work request. Please try again.",
-        variant: "error",
-        duration: 10000,
-      });
-    }
+    updateWorkRequestStatus({
+      requestId: workRequest.id,
+      status: 'Rejected',
+      rejectionReason: rejectReason,
+    }, {
+      onSuccess: () => {
+        setIsRejectModalOpen(false);
+        setRejectReason('');
+        setRejectReasonError(false);
+        onSuccess();
+        onClose();
+        
+        addToast({
+          title: "Success to Reject Work Request",
+          variant: "success",
+          duration: 5000,
+        });
+      },
+      onError: (error) => {
+        console.error('Error rejecting work request:', error);
+        addToast({
+          title: "Error",
+          description: "Error rejecting work request. Please try again.",
+          variant: "error",
+          duration: 7000,
+        });
+      }
+    });
   };
 
   const handleClose = () => {
     setIsRejectModalOpen(false);
     setRejectReason('');
     setRejectReasonError(false);
-    setIsCreateWorkOrderModalOpen(false);
-    setPrefilledWorkOrderData(null);
-    setIsDeleteConfirmationOpen(false);
-    onClose();
-  };
-
-  const handleDeleteWorkRequest = () => {
-    if (!workRequest || !onDelete) return;
-    
-    onDelete(workRequest.id);
+    setIsWorkOrderFormOpen(false);
+    setPrefilledWorkOrder(null);
     onClose();
   };
 
@@ -263,7 +266,7 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
               <div className="space-y-2">
                 <label className="text-sm font-medium text-onSurface">Current Status</label>
                 <div className="p-2">
-                  <WorkRequestStatusBadge status={workRequest.status} />
+                  <Badge text={workRequest.status} variant={getStatusVariant(workRequest.status)} />
                 </div>
               </div>
             </div>
@@ -326,14 +329,7 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
             >
               Cancel
             </Button>
-            {isApprovedOrRejected ? (
-              // Show Delete button for APPROVED or REJECTED status
-              <Button
-                variant="destructive"
-                onClick={() => setIsDeleteConfirmationOpen(true)}
-              >
-                Delete
-              </Button>
+            {isApprovedOrRejected ? (<></>
             ) : (
               // Show Reject and Approve buttons for PENDING status
               <>
@@ -355,20 +351,17 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
         </DialogContent>
       </Dialog>
 
-      {/* Create Work Order Modal */}
-      {prefilledWorkOrderData && workRequest && (
-        <CreateWorkOrderModal
-          isOpen={isCreateWorkOrderModalOpen}
+      {/* Work Order Form */}
+      {prefilledWorkOrder && (
+        <WorkOrderForm
+          isOpen={isWorkOrderFormOpen}
           onClose={() => {
-            setIsCreateWorkOrderModalOpen(false);
-            setPrefilledWorkOrderData(null);
+            setIsWorkOrderFormOpen(false);
+            setPrefilledWorkOrder(null);
           }}
           onSubmit={handleWorkOrderCreated}
-          prefilledData={{
-            assetIds: prefilledWorkOrderData.assetIds,
-            description: prefilledWorkOrderData.description,
-            jobTitle: prefilledWorkOrderData.jobTitle,
-          }}
+          workOrder={prefilledWorkOrder as any}
+          mode="create"
         />
       )}
 
@@ -420,17 +413,6 @@ ${workRequest.additionalNotes ? `Additional Notes:\n${workRequest.additionalNote
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Delete Confirmation Dialog */}
-      <DeleteConfirmationDialog
-        isOpen={isDeleteConfirmationOpen}
-        onClose={() => setIsDeleteConfirmationOpen(false)}
-        onConfirm={handleDeleteWorkRequest}
-        itemCount={1}
-        itemType="work request"
-        itemIds={[workRequest.requestId]}
-        itemNames={[workRequest.requestId]}
-      />
     </>
   );
 };

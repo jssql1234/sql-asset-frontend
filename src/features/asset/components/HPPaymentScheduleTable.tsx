@@ -224,14 +224,10 @@ export const HPPaymentScheduleTable: React.FC<HPPaymentScheduleTableProps> = ({
   ], [expandedYears, onToggleYearExpansion]);
 
   return (
-    <div className="border rounded-lg overflow-hidden h-96 flex flex-col">
-      <div className="flex-1 overflow-y-auto min-h-0">
-        <DataTableExtended
-          columns={columns}
-          data={tableData}
-          showPagination={false}
-        />
-      </div>
-    </div>
+    <DataTableExtended
+      columns={columns}
+      data={tableData}
+      showPagination={false}
+    />
   );
 };

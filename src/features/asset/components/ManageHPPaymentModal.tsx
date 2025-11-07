@@ -41,7 +41,7 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
         <DialogHeader>
           <DialogTitle>Manage HP Payment</DialogTitle>
         </DialogHeader>
-        <div className="p-6 pt-2">
+        <div className="p-6 pt-2 flex flex-col" style={{ overflow: 'auto', maxHeight: '600px' }}>
           {/* Action Buttons - Sticky container */}
           <div className="sticky top-0 pb-2 mb-2 z-10">
             <div className="flex gap-2">
@@ -67,13 +67,15 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
           </div>
 
           {/* Payment Schedule Table */}
-          <HPPaymentScheduleTable
-            financialYearGroups={financialYearGroups}
-            totals={totals}
-            depositAmount={paymentProps.depositAmount}
-            expandedYears={expandedYears}
-            onToggleYearExpansion={toggleYearExpansion}
-          />
+          <div style={{ overflowY: 'auto' }}>
+            <HPPaymentScheduleTable
+              financialYearGroups={financialYearGroups}
+              totals={totals}
+              depositAmount={paymentProps.depositAmount}
+              expandedYears={expandedYears}
+              onToggleYearExpansion={toggleYearExpansion}
+            />
+          </div>
         </div>
       </DialogContent>
 

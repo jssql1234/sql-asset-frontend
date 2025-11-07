@@ -46,9 +46,8 @@ function DowntimeTrackingPage() {
   };
 
   return (
-    <AppLayout
-      breadcrumbs={[ { label: "Asset Maintenance" }, { label: "Downtime Tracking" } ]}>
-        
+    <AppLayout>
+
       <div className="flex flex-col gap-6 p-1">
         <DowntimeTabHeader
           onViewResolved={() => {

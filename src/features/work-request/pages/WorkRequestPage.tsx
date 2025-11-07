@@ -105,12 +105,7 @@ const WorkRequestPage: React.FC = () => {
   }, []);
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Asset Maintenance" },
-        { label: "Work Requests" },
-      ]}
-    >
+    <AppLayout>
       <div className="flex flex-col gap-4 min-h-full">
 
         <div className="px-4 pb-4">

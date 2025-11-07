@@ -42,12 +42,7 @@ const MaintainUserGroupPage: React.FC = () => {
   } = useMaintainUserGroup();
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Tools" },
-        { label: "Maintain User Group" },
-      ]}
-    >
+    <AppLayout>
 
       <TabHeader
         title="Maintain User Group"

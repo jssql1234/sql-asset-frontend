@@ -57,12 +57,7 @@ const MaintainSparePartPage: React.FC = () => {
   };
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Tools" },
-        { label: "Maintain Spare Part" },
-      ]}
-    >
+    <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <TabHeader
           title="Spare Parts Management"

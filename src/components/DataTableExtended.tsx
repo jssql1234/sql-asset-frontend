@@ -5,45 +5,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, 
          getFacetedRowModel, getFacetedUniqueValues, getExpandedRowModel, getGroupedRowModel, flexRender,
-         type ColumnDef, type SortingState, type ColumnFiltersState, type ExpandedState, type GroupingState, type ColumnPinningState,
+         type ColumnDef, type SortingState, type ColumnFiltersState, type ExpandedState, type GroupingState,
          type Table as TanStackTable, type Header, type Row } from '@tanstack/react-table';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent, DragOverEvent } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  horizontalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, horizontalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DragOverlay } from '@dnd-kit/core';
-import { 
-  Skeleton, 
-  Option,
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/components';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-  MemoizedTableFilter,
-  TablePagination,
-} from '@/components/ui/components/Table';
+import { Skeleton, Option, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/components';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, MemoizedTableFilter, TablePagination } from '@/components/ui/components/Table';
 import { cn } from '@/utils/utils';
 import { CaretDownFilled, CaretUpDown, CaretUpFilled } from '@/assets/icons';
 import { MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
-import {
-  multiSelectFilterFn,
-  fuzzyArrayIncludesFilterFn,
-} from '@/components/ui/utils/tableFilter';
+import { multiSelectFilterFn, fuzzyArrayIncludesFilterFn } from '@/components/ui/utils/tableFilter';
 import { useTranslation } from 'react-i18next';
 
 // Row action types
@@ -104,10 +79,6 @@ interface DataTableExtendedProps<TData, TValue> {
   expanded?: ExpandedState;
   onExpandedChange?: (expanded: ExpandedState) => void;
   onColumnOrderChange?: (columnOrder: string[]) => void;
-  
-  // Column pinning props
-  columnPinning?: ColumnPinningState;
-  onColumnPinningChange?: (columnPinning: ColumnPinningState) => void;
 }
 
 type ColumnDefWithHeaderAlign<TData, TValue> = ColumnDef<TData, TValue> & {
@@ -142,14 +113,12 @@ function DraggableHeader<TData, TValue>({
   totalHeaders,
   activeId,
   overId,
-  isPinned = false,
 }: {
   header: Header<TData, TValue>;
   index: number;
   totalHeaders: number;
   activeId: string | null;
   overId: string | null;
-  isPinned?: boolean;
 }) {
   const isSelectionColumn = header.column.id === 'select';
   const isRowActionsColumn = header.column.id === 'row-actions';
@@ -163,7 +132,7 @@ function DraggableHeader<TData, TValue>({
     isDragging,
   } = useSortable({
     id: header.column.id,
-    disabled: isSelectionColumn || isPinned || isRowActionsColumn, // Disable dragging for pinned columns
+    disabled: isSelectionColumn || isRowActionsColumn,
   });
 
   const style = {
@@ -220,30 +189,17 @@ function DraggableHeader<TData, TValue>({
   const isActive = header.column.id === activeId;
   const isOver = header.column.id === overId && !isActive;
 
-  if (isSelectionColumn || isPinned) {
-    return (
-      <TableHead
-        className={cn('relative', {
-          'rounded-tl-md': index === 0,
-          'rounded-tr-md': index === totalHeaders - 1,
-        })}
-      >
-        {headerContent}
-      </TableHead>
-    );
-  }
-
   return (
     <TableHead
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}  // Apply listeners directly to TableHead for drag without visible handle
+      {...listeners}
       className={cn('relative group', {
         'rounded-tl-md': index === 0,
         'rounded-tr-md': index === totalHeaders - 1,
         'opacity-50': isDragging,
-        'cursor-grab': !isDragging,  // Subtle cursor change on hover to indicate draggability
+        'cursor-grab': !isDragging,
         'cursor-grabbing': isDragging,
         // Drop zone highlight
         'border-2 border-primary bg-primary/10 rounded': isOver,
@@ -302,8 +258,6 @@ export function DataTableExtended<TData, TValue>({
   onExpandedChange,
   onColumnOrderChange,
   rowActions,
-  columnPinning,
-  onColumnPinningChange,
 }: DataTableExtendedProps<TData, TValue>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isMountedRef = useRef(false);
@@ -311,19 +265,10 @@ export function DataTableExtended<TData, TValue>({
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
-  
-  // Initialize column pinning with row-actions pinned to right by default
-  const [internalColumnPinning, setInternalColumnPinning] = useState<ColumnPinningState>(() => {
-    if (columnPinning) return columnPinning;
-    return rowActions && rowActions.length > 0 
-      ? { left: [], right: ['row-actions'] }
-      : { left: [], right: [] };
-  });
 
   const currentRowSelection = useMemo(() => rowSelection ?? {}, [rowSelection]);
   const currentGrouping = useMemo(() => grouping ?? [], [grouping]);
   const currentExpanded = useMemo(() => expanded ?? internalExpanded, [expanded, internalExpanded]);
-  const currentColumnPinning = useMemo(() => columnPinning ?? internalColumnPinning, [columnPinning, internalColumnPinning]);
   const isGroupingActive = useMemo(() => enableGrouping && currentGrouping.length > 0, [enableGrouping, currentGrouping]);
   const isSelectionEnabled = showCheckbox || enableRowClickSelection;
 
@@ -413,7 +358,7 @@ export function DataTableExtended<TData, TValue>({
             >
               <Option
                 checked={row.getIsSelected()}
-                disabled={!canSelectRow}
+                disabled={!row.getCanSelect()}
                 onChange={handleToggle}
               />
             </div>
@@ -653,17 +598,6 @@ export function DataTableExtended<TData, TValue>({
       }
     }),
     
-    onColumnPinningChange: ((updaterOrValue) => {
-      const newPinning =
-        typeof updaterOrValue === 'function' ? updaterOrValue(currentColumnPinning) : updaterOrValue;
-
-      setInternalColumnPinning(newPinning);
-      
-      if (onColumnPinningChange && isMountedRef.current) {
-        onColumnPinningChange(newPinning);
-      }
-    }),
-    
     filterFns: {
       multiSelect: multiSelectFilterFn,
       fuzzyArrayIncludes: fuzzyArrayIncludesFilterFn,
@@ -684,7 +618,6 @@ export function DataTableExtended<TData, TValue>({
       // Include expanded state for both grouping and row expansion
       expanded: currentExpanded,
       columnOrder,
-      columnPinning: currentColumnPinning,
     },
     initialState: {
       pagination: {
@@ -769,64 +702,18 @@ export function DataTableExtended<TData, TValue>({
                     return indexA - indexB;
                   });
                   
-                  // Separate pinned and center columns
-                  const { left: leftPinned = [], right: rightPinned = [] } = currentColumnPinning;
-                  const leftHeaders = sortedHeaders.filter(h => leftPinned.includes(h.column.id));
-                  const centerHeaders = sortedHeaders.filter(h => !leftPinned.includes(h.column.id) && !rightPinned.includes(h.column.id));
-                  const rightHeaders = sortedHeaders.filter(h => rightPinned.includes(h.column.id));
-                  
                   return (
                     <TableRow key={headerGroup.id} className="hover:bg-tertiaryContainer/80">
-                      {/* Left pinned columns */}
-                      {leftHeaders.length > 0 && (
-                        <th className="sticky left-0 z-20 bg-surface shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]" style={{ padding: 0 }}>
-                          <div className="flex">
-                            {leftHeaders.map((header, index) => (
-                              <DraggableHeader 
-                                key={header.id} 
-                                header={header} 
-                                index={index}
-                                totalHeaders={leftHeaders.length}
-                                activeId={activeId}
-                                overId={overId}
-                                isPinned={true}
-                              />
-                            ))}
-                          </div>
-                        </th>
-                      )}
-                      
-                      {/* Center columns */}
-                      {centerHeaders.map((header, index) => (
+                      {sortedHeaders.map((header, index) => (
                         <DraggableHeader 
                           key={header.id} 
                           header={header} 
-                          index={leftHeaders.length + index}
+                          index={index}
                           totalHeaders={totalHeaders}
                           activeId={activeId}
                           overId={overId}
-                          isPinned={false}
                         />
                       ))}
-                      
-                      {/* Right pinned columns */}
-                      {rightHeaders.length > 0 && (
-                        <th className="sticky right-0 z-20 bg-surface shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]" style={{ padding: 0 }}>
-                          <div className="flex">
-                            {rightHeaders.map((header, index) => (
-                              <DraggableHeader 
-                                key={header.id} 
-                                header={header} 
-                                index={leftHeaders.length + centerHeaders.length + index}
-                                totalHeaders={rightHeaders.length}
-                                activeId={activeId}
-                                overId={overId}
-                                isPinned={true}
-                              />
-                            ))}
-                          </div>
-                        </th>
-                      )}
                     </TableRow>
                   );
                 })}
@@ -841,7 +728,6 @@ export function DataTableExtended<TData, TValue>({
                   table={table}
                   enableRowClickSelection={enableRowClickSelection}
                   columnOrder={columnOrder}
-                  columnPinning={currentColumnPinning}
                 />
               ) : (
                 <EmptyDataRow columnLength={columns.length} />
@@ -958,12 +844,10 @@ function DataTableRow<TData>({
   table,
   enableRowClickSelection = false,
   columnOrder,
-  columnPinning,
 }: {
   table: TanStackTable<TData>;
   enableRowClickSelection?: boolean;
   columnOrder: string[];
-  columnPinning: ColumnPinningState;
 }) {
   const handleRowClick = (row: Row<TData>, event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
@@ -984,8 +868,7 @@ function DataTableRow<TData>({
 
   return (
     <>
-      {table.getRowModel().rows.map((row, index) => {
-        const isLastRow = index === table.getRowModel().rows.length - 1;
+      {table.getRowModel().rows.map((row) => {
         const cells = row.getVisibleCells();
         
         // Sort cells according to columnOrder
@@ -994,19 +877,6 @@ function DataTableRow<TData>({
           const indexB = columnOrder.indexOf(b.column.id);
           return indexA - indexB;
         });
-        
-        // Separate pinned and center cells
-        const { left: leftPinned = [], right: rightPinned = [] } = columnPinning;
-        const leftCells = sortedCells.filter(c => leftPinned.includes(c.column.id));
-        const centerCells = sortedCells.filter(c => !leftPinned.includes(c.column.id) && !rightPinned.includes(c.column.id));
-        const rightCells = sortedCells.filter(c => rightPinned.includes(c.column.id));
-
-        // Determine background class based on row state
-        const pinnedBgClass = cn(
-          "bg-surface transition-colors", // default
-          row.getIsSelected() && "bg-secondaryContainer",
-          "group-hover/row:bg-secondaryContainer"
-        );
 
         return (
           <TableRow
@@ -1020,48 +890,11 @@ function DataTableRow<TData>({
               row.getIsGrouped() && 'cursor-pointer'
             )}
           >
-            {/* Left pinned cells */}
-            {leftCells.length > 0 && (
-              <TableCell className={cn("sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]", pinnedBgClass)} style={{ padding: 0 }}>
-                <div className="flex">
-                  {leftCells.map((cell, i) => (
-                    <div
-                      key={cell.id}
-                      className={cn('px-4 py-3', {
-                        'rounded-bl-md': isLastRow && i === 0,
-                      })}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </div>
-                  ))}
-                </div>
-              </TableCell>
-            )}
-            
-            {/* Center cells */}
-            {centerCells.map((cell) => (
+            {sortedCells.map((cell) => (
               <TableCell key={cell.id}>
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </TableCell>
             ))}
-            
-            {/* Right pinned cells */}
-            {rightCells.length > 0 && (
-              <TableCell className={cn("sticky right-0 z-10 shadow-[-2px_0_4px_-2px_rgba(0,0,0,0.1)]", pinnedBgClass)} style={{ padding: 0 }}>
-                <div className="flex">
-                  {rightCells.map((cell, i) => (
-                    <div
-                      key={cell.id}
-                      className={cn('px-4 py-3', {
-                        'rounded-br-md': isLastRow && i === rightCells.length - 1,
-                      })}
-                    >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </div>
-                  ))}
-                </div>
-              </TableCell>
-            )}
           </TableRow>
         );
       })}

@@ -12,7 +12,6 @@ const WorkRequestPage = lazy(() => import("./features/work-request/pages/WorkReq
 const DowntimeTrackingPage = lazy(() => import("./features/downtime/pages/DowntimeTrackingPage"));
 const CoverageMainPage = lazy(() => import("./features/coverage/pages/CoverageMainPage"));
 const MeterPage = lazy(() => import("./features/meter/pages/MeterPage"));
-const MeterGroupDetailPage = lazy(() => import("./features/meter/pages/MeterGroupDetailPage"));
 const DisposalMainPage = lazy(() => import("./features/disposal/pages/DisposalMainPage"));
 const UserAccessRightsPage = lazy(() => import("./features/user/pages/UserAccessRightsPage"));
 const MaintainUserGroupPage = lazy(() => import("./features/user/pages/MaintainUserGroupPage"));
@@ -69,7 +68,6 @@ function AppRoutes() {
           <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
           <Route path="/insurance" element={<CoverageMainPage />} />
           <Route path="/meter-reading" element={<MeterPage />} />
-          <Route path="/meter-reading/group/:groupId" element={<MeterGroupDetailPage />} />
           <Route path="/notifications" element={<NotificationPage />} />
 
           {/* Maintenance Routes */}

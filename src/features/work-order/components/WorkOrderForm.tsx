@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/components";
+import { Dialog, DialogContent, Button } from "@/components/ui/components";
 import { Input, TextArea } from "@/components/ui/components/Input";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import SelectDropdown from "@/components/SelectDropdown";
@@ -24,7 +24,7 @@ import {
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 import { WarrantyCheckDialog } from "./WarrantyCheckDialog";
-import { checkWarrantyCoverage as checkWarrantyCoverageAPI } from "../services/warrantyService";
+import { checkWarrantyCoverage as checkWarrantyCoverageAPI } from "../services/workOrderService";
 import { PartsUsedSection } from "./PartsUsedSection";
 
 interface WorkOrderFormProps {
@@ -37,6 +37,7 @@ interface WorkOrderFormProps {
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
   };
+  mode?: "view" | "edit" | "create"; 
 }
 
 export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
@@ -45,12 +46,14 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   onSubmit,
   workOrder = null,
   prefilledDates,
+  mode = workOrder ? "edit" : "create",
 }) => {
   const { addToast } = useToast();
-  const isEditMode = workOrder !== null;
+
+  // Internal mode state to allow switching from view to edit
+  const [currentMode, setCurrentMode] = useState<"view" | "edit" | "create">(mode);
 
   const [formData, setFormData] = useState<WorkOrderFormData>({
-    workOrderNumber: "",
     assetId: "",
     assetName: "",
     jobTitle: "",
@@ -140,11 +143,15 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     { id: "tools", label: "Tools & Machinery", sublabel: "Welding Machines" },
   ];
 
-  // Populate form when workOrder changes (Edit mode)
+  // Sync internal mode with prop mode when it changes
+  useEffect(() => {
+    setCurrentMode(mode);
+  }, [mode]);
+
+  // Populate form when workOrder changes (Edit/View mode)
   useEffect(() => {
     if (workOrder) {
       setFormData({
-        workOrderNumber: workOrder.workOrderNumber,
         assetId: workOrder.assetId,
         assetName: workOrder.assetName,
         jobTitle: workOrder.jobTitle,
@@ -185,26 +192,10 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     }
   }, [workOrder]);
 
-  // Generate work order number on mount (Create mode only)
-  useEffect(() => {
-    if (!isEditMode && isOpen && !formData.workOrderNumber) {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const random = Math.floor(Math.random() * 1000)
-        .toString()
-        .padStart(3, "0");
-      setFormData((prev) => ({
-        ...prev,
-        workOrderNumber: `WO-${year}${month}-${random}`,
-      }));
-    }
-  }, [isOpen, isEditMode, formData.workOrderNumber]);
-
   // Update scheduled dates if prefilledDates changes (Create mode)
   useEffect(() => {
     if (
-      !isEditMode &&
+      mode !== "edit" &&
       (prefilledDates?.scheduledDate ||
         prefilledDates?.scheduledStartDateTime ||
         prefilledDates?.scheduledEndDateTime)
@@ -218,22 +209,22 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
           prefilledDates.scheduledEndDateTime || prev.scheduledEndDateTime,
       }));
     }
-  }, [prefilledDates, isEditMode]);
+  }, [prefilledDates, mode]);
 
   // Update assignee options based on service type
   useEffect(() => {
     if (formData.serviceBy === "In-House") {
       setAssigneeOptions(MOCK_TECHNICIANS);
-      if (!isEditMode) {
+      if (mode === "create") {
         setFormData((prev) => ({ ...prev, assignedTo: "" }));
       }
     } else if (formData.serviceBy === "Outsourced") {
       setAssigneeOptions(MOCK_VENDORS);
-      if (!isEditMode) {
+      if (mode === "create") {
         setFormData((prev) => ({ ...prev, assignedTo: "" }));
       }
     }
-  }, [formData.serviceBy, isEditMode]);
+  }, [formData.serviceBy, mode]);
 
   // Clear cost allocations when assets change (for outsourced services)
   useEffect(() => {
@@ -251,10 +242,10 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
 
   // Clear parts when switching from In-House to Outsourced
   useEffect(() => {
-    if (formData.serviceBy === "Outsourced" && !isEditMode) {
+    if (formData.serviceBy === "Outsourced" && mode === "create") {
       setPartsUsed([]);
     }
-  }, [formData.serviceBy, isEditMode]);
+  }, [formData.serviceBy, mode]);
 
   const handleAssetSelectionChange = (assetIds: string[]) => {
     setSelectedAssets(assetIds);
@@ -355,7 +346,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     }
 
     // Check warranty coverage before submitting (only in create mode)
-    if (!isEditMode && selectedAssets.length > 0) {
+    if (mode === "create" && selectedAssets.length > 0) {
       checkWarrantyCoverageAsync();
     } else {
       // No warranty check needed in edit mode - proceed with submission
@@ -412,8 +403,8 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
 
     // Show success toast
     addToast({
-      title: isEditMode ? "Work Order Updated" : "Work Order Created",
-      description: `Work order ${formData.workOrderNumber} has been ${isEditMode ? "updated" : "created"} successfully.`,
+      title: mode === "edit" ? "Work Order Updated" : "Work Order Created",
+      description: `Work order has been ${mode === "edit" ? "updated" : "created"} successfully.`,
       variant: "success",
       duration: 3000,
     });
@@ -424,7 +415,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   const handleClose = () => {
     // Reset form
     setFormData({
-      workOrderNumber: "",
       assetId: "",
       assetName: "",
       jobTitle: "",
@@ -445,6 +435,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     setSelectedAssets([]);
     setPartsUsed([]);
     setErrors({});
+    setCurrentMode(mode); // Reset to original mode
     onClose();
   };
 
@@ -454,7 +445,11 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
         {/* Header */}
         <div className="px-6 py-4 border-b border-outlineVariant">
           <h2 className="headline-small font-semibold text-onSurface">
-            {isEditMode ? "Edit Work Order" : "Create Work Order"}
+            {currentMode === "view" && workOrder
+              ? `View Work Order - ${workOrder.id}`
+              : currentMode === "edit" && workOrder
+              ? `Edit Work Order - ${workOrder.id}`
+              : "Create Work Order"}
           </h2>
         </div>
 
@@ -467,17 +462,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                 Basic Information
               </h3>
               <div className="space-y-4">
-                <div>
-                  <label className="label-large block mb-2 text-onSurface">
-                    Work Order No{" "}
-                    {!isEditMode && <span className="text-error">*</span>}
-                  </label>
-                  <Input
-                    value={formData.workOrderNumber}
-                    disabled
-                    className="w-full"
-                  />
-                </div>
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Assets <span className="text-error">*</span>
@@ -495,8 +479,9 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     onSelectionChange={handleAssetSelectionChange}
                     placeholder="Search asset by name or ID..."
                     emptyMessage="No assets found"
-                    disable={isEditMode}
+                    disable={mode !== "create" }
                     hideSelectedField={true}
+                    hideSearchField={mode !== "create"}
                   />
                   {errors.assets && (
                     <p className="text-error body-small mt-1">
@@ -504,15 +489,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     </p>
                   )}
                 </div>
-              </div>
-            </section>
-
-            {/* Work Details */}
-            <section>
-              <h3 className="title-medium font-semibold text-onSurface mb-4">
-                Work Details
-              </h3>
-              <div className="space-y-4">
+            
                 <div>
                   <label className="label-large block mb-2 text-onSurface">
                     Job Title <span className="text-error">*</span>
@@ -532,6 +509,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     className={`w-full ${
                       errors.jobTitle ? "border-error focus:border-error" : ""
                     }`}
+                    disabled={currentMode === "view"}
                   />
                   {errors.jobTitle && (
                     <p className="text-error body-small mt-1">
@@ -554,6 +532,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     placeholder="Detailed description of the work to be performed"
                     rows={3}
                     className="w-full"
+                    disabled={currentMode === "view"}
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -575,6 +554,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                       }))}
                       placeholder="Select maintenance type"
                       className="w-full"
+                      disabled={currentMode === "view"}
                     />
                   </div>
                   <div>
@@ -595,16 +575,16 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                       }))}
                       placeholder="Select status"
                       className="w-full"
+                      disabled={currentMode === "view"}
                     />
                   </div>
                 </div>
               </div>
             </section>
-
             {/* Resource Assignment */}
             <section>
               <h3 className="title-medium font-semibold text-onSurface mb-4">
-                Resource Assignment
+                Resources Assignment
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -626,6 +606,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     ]}
                     placeholder="Select service type"
                     className="w-full"
+                    disabled={currentMode === "view"}
                   />
                 </div>
                 <div>
@@ -665,6 +646,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     }`}
                     className="w-full"
                     buttonClassName={errors.assignedTo ? "border-error" : ""}
+                    disabled={currentMode === "view"}
                   />
                   {errors.assignedTo && (
                     <p className="text-error body-small mt-1">
@@ -743,6 +725,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                           }));
                         }
                       }}
+                      disabled={currentMode === "view"}
                     />
                   </div>
                   {errors.scheduledStartDateTime && (
@@ -814,6 +797,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                           }));
                         }
                       }}
+                      disabled={currentMode === "view"}
                     />
                   </div>
                   {errors.scheduledEndDateTime &&
@@ -871,6 +855,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                         }));
                       }
                     }}
+                    disabled={currentMode === "view"}
                   />
                 </div>
                 <div>
@@ -936,6 +921,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                           }));
                         }
                       }}
+                      disabled={currentMode === "view"}
                     />
                   </div>
                   {/* <p className="body-small text-onSurfaceVariant mt-1">
@@ -982,6 +968,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                     }
                     placeholder="0.00"
                     className="w-full"
+                    disabled={currentMode === "view"}
                   />
                 </div>
                 <div>
@@ -1002,10 +989,12 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                       }
                       placeholder="0.00"
                       className="flex-1"
+                      disabled={currentMode === "view"}
                     />
                     {formData.serviceBy === "Outsourced" &&
                       selectedAssets.length > 0 &&
-                      (formData.actualCost ?? 0) > 0 && (
+                      (formData.actualCost ?? 0) > 0 &&
+                      currentMode !== "view" && (
                         <button
                           type="button"
                           onClick={handleDistributeEqually}
@@ -1053,6 +1042,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                           }));
                         }
                       }}
+                      disabled={currentMode === "view"}
                     />
                     {errors.costAllocation && (
                       <p className="text-error body-small mt-2">
@@ -1069,6 +1059,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
               <PartsUsedSection
                 partsUsed={partsUsed}
                 onPartsChange={setPartsUsed}
+                disabled={currentMode === "view"}
               />
             )}
 
@@ -1085,40 +1076,50 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
                 placeholder="Additional notes or comments..."
                 rows={4}
                 className="w-full"
+                disabled={currentMode === "view"}
               />
             </section>
           </div>
 
           {/* Footer Actions */}
           <div className="px-6 py-4 border-t border-outlineVariant flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              disabled={isProcessing}
-              className="px-4 py-2 rounded text-primary hover:bg-primary/10 transition-colors label-large disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isProcessing}
-              className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {isProcessing ? (
-                <>
-                  <div
-                    className={
-                      "w-5 h-5 flex-shrink-0 mr-3 text-onSurface animate-spin rounded-full border-2 border-current border-t-transparent"
-                    }
-                  />
-                  Checking Warranty...
-                </>
-              ) : isEditMode ? (
-                "Save Changes"
-              ) : (
-                "Create Work Order"
-              )}
-            </button>
+            {currentMode === "view" ? (
+              // View mode - show Edit button
+              <Button
+                type="button"
+                onClick={() => setCurrentMode("edit")}
+                className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large"
+              >
+                Edit
+              </Button>
+            ) : (
+              <></>
+            )}
+
+            {currentMode !== "view" ? (
+              // Create/Edit mode - show submit button only
+              <Button
+                type="submit"
+                disabled={isProcessing}
+                className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isProcessing ? (
+                  <>
+                    <div
+                      className={
+                        "w-5 h-5 flex-shrink-0 mr-3 text-onSurface animate-spin rounded-full border-2 border-current border-t-transparent"
+                      }
+                    />
+                    Checking Warranty...
+                  </>
+                ) : currentMode === "edit" ? (
+                  "Save Changes"
+                ) : (
+                  "Create Work Order"
+                )}
+              </Button>
+            ): (<></>
+            )}
           </div>
         </form>
       </DialogContent>

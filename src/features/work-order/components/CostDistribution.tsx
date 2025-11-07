@@ -19,6 +19,7 @@ interface CostDistributionProps {
   allocations?: AssetCostAllocation[];
   onAllocationsChange: (allocations: AssetCostAllocation[]) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 export const CostDistribution: React.FC<CostDistributionProps> = ({
@@ -27,6 +28,7 @@ export const CostDistribution: React.FC<CostDistributionProps> = ({
   allocations: initialAllocations,
   onAllocationsChange,
   className,
+  disabled = false,
 }) => {
   const [allocations, setAllocations] = useState<AssetCostAllocation[]>([]);
   const isInitialized = useRef(false);
@@ -134,6 +136,14 @@ export const CostDistribution: React.FC<CostDistributionProps> = ({
       // Also update on blur (when user clicks away)
       handleCostChange(assetId, e.target.value);
     };
+
+    if (disabled) {
+      return (
+        <span className="text-right block w-32 ml-auto text-onSurface">
+          {parseFloat(localValue).toFixed(2)}
+        </span>
+      );
+    }
 
     return (
       <Input

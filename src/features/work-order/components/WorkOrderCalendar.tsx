@@ -5,7 +5,6 @@ import type {
   DateSelectArg, 
   EventClickArg,
   EventContentArg,
-  EventChangeArg
 } from "@fullcalendar/core";
 import type { WorkOrder } from "../types";
 
@@ -38,7 +37,6 @@ export const WorkOrderCalendar = ({
   workOrders,
   onDateSelect,
   onEventClick,
-  onEventChange,
   initialView = "dayGridMonth",
   selectable = true,
   editable = false,
@@ -83,7 +81,7 @@ export const WorkOrderCalendar = ({
           type: workOrder.type,
           progress: workOrder.progress,
           assetName: workOrder.assetName,
-          workOrderNumber: workOrder.workOrderNumber,
+          workOrderId: workOrder.id,
         },
       };
     });
@@ -97,7 +95,7 @@ export const WorkOrderCalendar = ({
   }, [onEventClick]);
 
   const renderEventContent = useCallback((eventInfo: EventContentArg) => {
-    const { workOrderNumber, assetName, status, progress } = eventInfo.event.extendedProps;
+    const { workOrderId, assetName, status, progress } = eventInfo.event.extendedProps;
     return (
       <div className="flex flex-col gap-0.5 p-1 overflow-hidden">
         <div className="flex items-center gap-1">
@@ -108,7 +106,7 @@ export const WorkOrderCalendar = ({
         {eventInfo.view.type !== "dayGridMonth" && (
           <>
             <div className="text-[10px] opacity-90 truncate">
-              {workOrderNumber} • {assetName}
+              {workOrderId} • {assetName}
             </div>
             <div className="flex items-center gap-2 text-[10px]">
               <span className="px-1.5 py-0.5 bg-white/30 rounded">
@@ -132,15 +130,6 @@ export const WorkOrderCalendar = ({
     }
   }, [onDateSelect]);
 
-  // const handleEventChange = useCallback((changeInfo: EventChangeArg) => {
-  //   const workOrder = changeInfo.event.extendedProps.workOrder as WorkOrder;
-  //   const newStart = changeInfo.event.start;
-  //   const newEnd = changeInfo.event.end;
-  //   if (onEventChange && newStart) {
-  //     onEventChange(workOrder, newStart, newEnd);
-  //   }
-  // }, [onEventChange]);
-
   return (
     <div className="work-order-calendar">
       <Calendar
@@ -157,7 +146,6 @@ export const WorkOrderCalendar = ({
         }}
         onDateSelect={handleDateSelect}
         onEventClick={handleEventClick}
-        // onEventChange={handleEventChange}
         eventContent={renderEventContent}
         nowIndicator={true}
         selectMirror={true}

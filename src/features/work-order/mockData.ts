@@ -1,6 +1,5 @@
 import type {
   WorkOrder,
-  MaintenanceSummary,
   WorkOrderSummary,
   Warranty,
 } from "./types";
@@ -43,7 +42,6 @@ export const MOCK_WARRANTIES: Warranty[] = [
 export const MOCK_WORK_ORDERS: WorkOrder[] = [
   {
     id: "WO-001",
-    workOrderNumber: "WO-2025-001",
     assetId: "AST-001",
     assetName: "Excavator CAT 320D",
     assetCode: "EXC-001",
@@ -84,7 +82,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-002",
-    workOrderNumber: "WO-2025-002",
     assetId: "AST-006",
     assetName: "Compressor Atlas Copco XAS 185",
     assetCode: "CMP-006",
@@ -114,7 +111,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-003",
-    workOrderNumber: "WO-2025-003",
     assetId: "AST-003",
     assetName: "Crane Liebherr LTM 1060",
     assetCode: "CRN-003",
@@ -135,7 +131,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-004",
-    workOrderNumber: "WO-2025-004",
     assetId: "AST-007",
     assetName: "Welding Machine Lincoln Electric",
     assetCode: "WLD-007",
@@ -153,7 +148,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-005",
-    workOrderNumber: "WO-2025-005",
     assetId: "AST-004",
     assetName: "Generator Cummins 500kVA",
     assetCode: "GEN-004",
@@ -171,16 +165,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     warrantyStatus: "Claimed",
   },
 ];
-
-// Mock Maintenance Summary
-export const MOCK_MAINTENANCE_SUMMARY: MaintenanceSummary = {
-  totalScheduled: 24,
-  inProgress: 3,
-  completed: 15,
-  overdue: 2,
-  totalCost: 45800.0,
-  utilizationRate: 78.5,
-};
 
 // Mock Work Order Summary
 export const MOCK_WORK_ORDER_SUMMARY: WorkOrderSummary = {
@@ -234,18 +218,18 @@ export const MOCK_VENDORS = [
   { id: "V-005", name: "Heavy Equipment Specialists" },
 ];
 
-// Maintenance Types
+// Maintenance Types (for backward compatibility with existing components)
 export const MAINTENANCE_TYPES = [
   "Preventive",
   "Corrective",
   "Upgrade/Modify",
   "Emergency",
-];
+] as const;
 
-// Status Options
+// Status Options (for backward compatibility with existing components)
 export const STATUS_OPTIONS = [
   "Pending",
   "In Progress",
   "Completed",
   "Overdue",
-];
+] as const;

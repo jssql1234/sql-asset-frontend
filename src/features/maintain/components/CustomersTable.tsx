@@ -90,7 +90,8 @@ export const CustomersTable: React.FC<CustomersTableProps> = ({
       cell: ({ row }) => (
         <Badge
           text={row.original.status}
-          variant={row.original.status === 'Active' ? 'success' : 'default'}
+          variant={row.original.status === 'Active' ? 'green' : 'grey'}
+          dot={true}
         />
       ),
     },

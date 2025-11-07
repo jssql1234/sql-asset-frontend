@@ -134,7 +134,7 @@ export const MeterGroupDetails = ({
       {/* Assigned Assets */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h4 className="title-small uppercase font-semibold tracking-wide">
+          <h4 className="title-small uppercase font-medium tracking-wide">
             Assigned Assets
           </h4>
           <Button
@@ -168,7 +168,7 @@ export const MeterGroupDetails = ({
       {/* Meters */}
       <div>
         <div className="flex items-center justify-between mb-3 px-1">
-          <h4 className="title-small uppercase font-semibold tracking-wide">
+          <h4 className="title-small uppercase font-medium tracking-wide">
             Meters
           </h4>
           <Button
@@ -222,7 +222,7 @@ export const MeterGroupDetails = ({
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow className="font-semibold border-transparent bg-surfaceContainerLowest hover:bg-surfaceContainerLowest">
+                      <TableRow className="border-transparent bg-surfaceContainerLowest hover:bg-surfaceContainerLowest">
                         <TableHead className="w-[15%]">
                           Target Reading
                         </TableHead>

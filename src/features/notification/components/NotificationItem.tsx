@@ -1,16 +1,7 @@
 import type { MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import {
-  AlertTriangle,
-  Bell,
-  CheckCircle2,
-  FileText,
-  Gauge,
-  Info,
-  Trash2,
-  Wrench,
-} from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, FileText, Gauge, Info, Trash2, Wrench } from "lucide-react";
 import { cn } from "@/utils/utils";
 import type { Notification } from "../types";
 import { formatRelativeTime, getPriorityBorder, getPriorityIndicator, getPriorityTone } from "../utils/notificationUtils";
@@ -37,11 +28,20 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
   const Icon = TYPE_ICON_MAP[notification.type];
 
   const handleNavigate = () => {
+    console.log("Notification item clicked:", notification);
     if (notification.status === "unread") {
       onMarkAsRead(notification.id);
     }
     if (notification.actionUrl) {
-      void navigate(notification.actionUrl);
+      // For work order notifications, pass the work order ID to open detail view
+      if (notification.type === "work_order" && notification.sourceId) {
+        console.log("Navigating to work order with ID:", notification.sourceId);
+        void navigate(notification.actionUrl, {
+          state: { workOrderId: notification.sourceId, openDetail: true }
+        });
+      } else {
+        void navigate(notification.actionUrl);
+      }
     }
   };
 

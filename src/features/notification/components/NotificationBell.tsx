@@ -1,25 +1,30 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { Bell, BellRing } from "lucide-react";
-import { useNotificationContext } from "../hooks/useNotificationContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils/utils";
-import type { Notification } from "../types";
+import type { Notification, NotificationFilters } from "../types";
+import { useNotifications } from "../hooks/useNotifications";
 import { formatRelativeTime, getNotificationEmoji, getPriorityTone, sortNotificationsByDate } from "../utils/notificationUtils";
 import { NotificationToggle } from "./NotificationToggle";
+
+const UNREAD_FILTER: NotificationFilters = { status: "unread" };
 
 export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotificationContext();
+  const {
+    filteredNotifications,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications(activeTab === "unread" ? UNREAD_FILTER : undefined);
   const navigate = useNavigate();
 
   const recentNotifications = useMemo(() => {
-    const filtered = activeTab === "unread" 
-      ? notifications.filter((notification) => notification.status === "unread")
-      : notifications;
-    return sortNotificationsByDate(filtered).slice(0, 4);
-  }, [notifications, activeTab]);
+    return sortNotificationsByDate(filteredNotifications).slice(0, 4);
+  }, [filteredNotifications]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -39,9 +44,18 @@ export const NotificationBell = () => {
   }, [isOpen]);
 
   const handleNotificationClick = (notification: Notification) => {
+    console.log("Notification clicked:", notification);
     markAsRead(notification.id);
     if (notification.actionUrl) {
-      void navigate(notification.actionUrl);
+      // For work order notifications, pass the work order ID to open detail view
+      if (notification.type === "work_order" && notification.sourceId) {
+        console.log("Navigating to work order with ID:", notification.sourceId);
+        void navigate(notification.actionUrl, {
+          state: { workOrderId: notification.sourceId, openDetail: true }
+        });
+      } else {
+        void navigate(notification.actionUrl);
+      }
     }
     setIsOpen(false);
   };
@@ -75,6 +89,8 @@ export const NotificationBell = () => {
         }}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
         aria-label="Notifications"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
       >
         {unreadCount > 0 ? (
           <BellRing className="h-5 w-5 text-gray-700" />
@@ -84,7 +100,7 @@ export const NotificationBell = () => {
         
         {/* Unread Count Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          <span className="absolute -top-0.5 -right-0 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -100,7 +116,11 @@ export const NotificationBell = () => {
               <button
                 type="button"
                 onClick={handleMarkAllAsRead}
-                className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors underline"
+                className={cn(
+                  "text-sm font-medium text-gray-900 transition-colors underline hover:text-gray-700",
+                  unreadCount === 0 && "pointer-events-none opacity-50 no-underline",
+                )}
+                disabled={unreadCount === 0}
               >
                 Mark all as read
               </button>

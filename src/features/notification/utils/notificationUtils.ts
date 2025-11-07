@@ -1,10 +1,4 @@
-import type {
-  Notification,
-  NotificationFilters,
-  NotificationGroup,
-  NotificationPriority,
-  NotificationType,
-} from "../types";
+import type { Notification, NotificationFilters, NotificationGroup, NotificationPriority, NotificationType } from "../types";
 
 export const sortNotificationsByDate = (items: readonly Notification[]): Notification[] =>
   [...items].sort(
@@ -93,17 +87,17 @@ export const formatRelativeTime = (input: string, now = new Date()): string => {
   }
 
   if (diffMinutes < 60) {
-  return `${String(diffMinutes)}m ago`;
+    return `${String(diffMinutes)}m ago`;
   }
 
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) {
-  return `${String(diffHours)}h ago`;
+    return `${String(diffHours)}h ago`;
   }
 
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) {
-  return `${String(diffDays)}d ago`;
+    return `${String(diffDays)}d ago`;
   }
 
   return value.toLocaleDateString();

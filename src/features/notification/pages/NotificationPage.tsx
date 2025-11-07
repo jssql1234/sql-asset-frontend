@@ -4,13 +4,11 @@ import { Card } from "@/components/ui/components";
 import TabHeader from "@/components/TabHeader";
 import Search from "@/components/Search";
 import { NotificationGroup } from "../components/NotificationGroup";
-import { useToast } from "@/components/ui/components/Toast/useToast";
 import { CheckCheck, Trash2 } from "lucide-react";
 import type { NotificationFilters } from "../types";
 import { useNotifications } from "../hooks/useNotifications";
 
 const NotificationPage = () => {
-  const { addToast } = useToast();
   const [filters, setFilters] = useState<NotificationFilters>({
     search: "",
     type: "",
@@ -24,49 +22,11 @@ const NotificationPage = () => {
     groupedNotifications,
     unreadCount,
     filteredUnreadCount,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    clearAll,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+    handleDelete,
+    handleClearAll,
   } = useNotifications(filters);
-
-  const handleMarkAsRead = (id: string) => {
-    markAsRead(id);
-  };
-
-  const handleMarkAllAsRead = () => {
-    const count = markAllAsRead();
-    if (count > 0) {
-      addToast({
-        title: "Notifications Marked as Read",
-  description: `${String(count)} notification${count !== 1 ? "s" : ""} marked as read.`,
-        variant: "success",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleDelete = (id: string) => {
-    const removed = deleteNotification(id);
-    if (removed) {
-      addToast({
-        title: "Notification Deleted",
-        variant: "success",
-        duration: 3000,
-      });
-    }
-  };
-
-  const handleClearAll = () => {
-    if (window.confirm("Are you sure you want to clear all notifications? This action cannot be undone.")) {
-      clearAll();
-      addToast({
-        title: "All Notifications Cleared",
-        variant: "success",
-        duration: 3000,
-      });
-    }
-  };
 
   const handleFilterChange = (key: keyof NotificationFilters, value: string) => {
     setFilters((prev) => ({ ...prev, [key]: value }));

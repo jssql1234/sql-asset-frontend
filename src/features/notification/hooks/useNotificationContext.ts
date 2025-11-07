@@ -1,12 +1,4 @@
-import {
-  createContext,
-  createElement,
-  use,
-  useCallback,
-  useMemo,
-  useSyncExternalStore,
-  type ReactNode,
-} from "react";
+import { createContext, createElement, use, useCallback, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { notificationService } from "../services/notificationService";
 import type { CreateNotificationData, Notification } from "../types";
 

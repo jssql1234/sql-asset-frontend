@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
@@ -10,6 +11,8 @@ import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
 import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
 
 const WorkOrdersPage: React.FC = () => {
+  const location = useLocation();
+  
   // State
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(MOCK_WORK_ORDERS);
   const [workOrderFilters, setWorkOrderFilters] = useState<WorkOrderFilters>(
@@ -174,6 +177,24 @@ const WorkOrdersPage: React.FC = () => {
     );
     setIsModalOpen(false);
   };
+
+  // Handle navigation from notifications
+  useEffect(() => {
+    const state = location.state as { workOrderId?: string; openDetail?: boolean } | null;
+
+    if (state?.openDetail && state.workOrderId) {
+      const workOrder = workOrders.find(wo => wo.id === state.workOrderId);
+
+      if (workOrder) {
+        setModalMode("view");
+        setSelectedWorkOrder(workOrder);
+        setIsModalOpen(true);
+      }
+
+      // Clear the state to prevent reopening on component updates
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, workOrders]);
 
   // Tabs configuration
   const tabs = [

@@ -1,11 +1,6 @@
 import { createMockNotifications } from "../mockData";
-import { filterNotifications, sortNotificationsByDate } from "../utils/notificationUtils";
-import type {
-  CreateNotificationData,
-  Notification,
-  NotificationFilters,
-  NotificationListener,
-} from "../types";
+import { sortNotificationsByDate } from "../utils/notificationUtils";
+import type { CreateNotificationData, Notification, NotificationListener } from "../types";
 
 const STORAGE_KEY = "sql_asset_notifications";
 const isBrowser = typeof window !== "undefined";
@@ -109,26 +104,9 @@ export const notificationService = {
     notifySubscribers();
   },
 
-  getAllNotifications(): Notification[] {
-    return clone(notifications);
-  },
-
   getNotificationById(id: string): Notification | undefined {
     ensureHydrated();
     return notifications.find((notification) => notification.id === id);
-  },
-
-  getFilteredNotifications(filters: NotificationFilters): Notification[] {
-    ensureHydrated();
-    return filterNotifications(notifications, filters);
-  },
-
-  getUnreadCount(): number {
-    ensureHydrated();
-    return notifications.reduce(
-      (count, notification) => (notification.status === "unread" ? count + 1 : count),
-      0,
-    );
   },
 
   createNotification(data: CreateNotificationData): Notification {

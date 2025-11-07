@@ -1,16 +1,38 @@
-import { useCallback, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import {
+  createContext,
+  createElement,
+  use,
+  useCallback,
+  useMemo,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
 import { notificationService } from "../services/notificationService";
-import type { NotificationListener } from "../types";
-import type { NotificationContextValue } from "./NotificationContext.types";
-import { NotificationContext } from "./NotificationContextObject";
+import type { CreateNotificationData, Notification } from "../types";
+
+export interface NotificationContextValue {
+  notifications: readonly Notification[];
+  unreadCount: number;
+  refresh: () => void;
+  createNotification: (input: CreateNotificationData) => Notification;
+  markAsRead: (id: string) => boolean;
+  markAllAsRead: () => number;
+  deleteNotification: (id: string) => boolean;
+  deleteNotifications: (ids: string[]) => number;
+  archiveNotification: (id: string) => boolean;
+  clearAll: () => void;
+  getNotificationById: (id: string) => Notification | undefined;
+}
+
+export const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
 interface NotificationProviderProps {
-  children: ReactNode;
+  readonly children: ReactNode;
 }
 
 export const NotificationProvider = ({ children }: NotificationProviderProps) => {
   const subscribe = useCallback(
-    (listener: NotificationListener) => notificationService.subscribe(listener),
+    (listener: () => void) => notificationService.subscribe(listener),
     [],
   );
 
@@ -86,5 +108,15 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     ],
   );
 
-  return <NotificationContext value={value}>{children}</NotificationContext>;
+  return createElement(NotificationContext, { value }, children);
+};
+
+export const useNotificationContext = (): NotificationContextValue => {
+  const value = use(NotificationContext);
+
+  if (!value) {
+    throw new Error("useNotificationContext must be used within a NotificationProvider");
+  }
+
+  return value;
 };

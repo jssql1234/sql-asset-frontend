@@ -1,25 +1,25 @@
-import { useState, useEffect, useRef } from "react";
-import { Bell, BellRing, X, Eye, Trash2 } from "lucide-react";
-import { useNotificationContext } from "../context/NotificationContext";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { Bell, BellRing } from "lucide-react";
+import { useNotificationContext } from "../hooks/useNotificationContext";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils/utils";
-import type { Notification } from "@/types/notification";
+import type { Notification } from "../types";
+import { formatRelativeTime, getNotificationEmoji, getPriorityTone, sortNotificationsByDate } from "../utils/notificationUtils";
+import { NotificationToggle } from "./NotificationToggle";
 
 export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [recentNotifications, setRecentNotifications] = useState<Notification[]>([]);
+  const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, markAsRead, deleteNotification } = useNotificationContext();
+  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotificationContext();
   const navigate = useNavigate();
 
-  // Get the 5 most recent unread notifications
-  useEffect(() => {
-    const unreadNotifications = notifications
-      .filter(n => n.status === 'unread')
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 5);
-    setRecentNotifications(unreadNotifications);
-  }, [notifications]);
+  const recentNotifications = useMemo(() => {
+    const filtered = activeTab === "unread" 
+      ? notifications.filter((notification) => notification.status === "unread")
+      : notifications;
+    return sortNotificationsByDate(filtered).slice(0, 4);
+  }, [notifications, activeTab]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -46,6 +46,10 @@ export const NotificationBell = () => {
     setIsOpen(false);
   };
 
+  const handleMarkAllAsRead = () => {
+    markAllAsRead();
+  };
+
   const handleMarkAsRead = (e: React.MouseEvent, notificationId: string) => {
     e.stopPropagation();
     markAsRead(notificationId);
@@ -59,57 +63,6 @@ export const NotificationBell = () => {
   const handleViewAll = () => {
     void navigate("/notifications");
     setIsOpen(false);
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'text-red-600 bg-red-50';
-      case 'high':
-        return 'text-orange-600 bg-orange-50';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-50';
-      default:
-        return 'text-blue-600 bg-blue-50';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'work_order':
-        return '🔧';
-      case 'work_request':
-        return '📋';
-      case 'maintenance':
-        return '⚙️';
-      case 'meter_reading':
-        return '📊';
-      case 'asset_alert':
-        return '⚠️';
-      case 'approval':
-        return '✅';
-      case 'reminder':
-        return '⏰';
-      default:
-        return '📌';
-    }
-  };
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
-
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${String(diffInMinutes)}m ago`;
-    
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    if (diffInHours < 24) return `${String(diffInHours)}h ago`;
-    
-    const diffInDays = Math.floor(diffInHours / 24);
-    if (diffInDays < 7) return `${String(diffInDays)}d ago`;
-    
-    return date.toLocaleDateString();
   };
 
   return (
@@ -139,95 +92,95 @@ export const NotificationBell = () => {
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-96 rounded-lg border border-gray-200 bg-white shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-[440px] rounded-2xl bg-white shadow-2xl z-50 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
-              {unreadCount > 0 && (
-                <span className="rounded-full bg-red-500 px-2 py-0.5 text-xs font-medium text-white">
-                  {unreadCount}
-                </span>
-              )}
+          <div className="px-6 pt-6 pb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-2xl font-bold text-gray-900">Notifications</h3>
+              <button
+                type="button"
+                onClick={handleMarkAllAsRead}
+                className="text-sm font-medium text-gray-900 hover:text-gray-700 transition-colors underline"
+              >
+                Mark all as read
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-              }}
-              className="rounded p-1 hover:bg-gray-100"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4 text-gray-500" />
-            </button>
+
+            {/* Tabs */}
+            <NotificationToggle activeTab={activeTab} onTabChange={setActiveTab} />
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-96 overflow-y-auto">
+          <div className="max-h-[400px] overflow-y-auto">
             {recentNotifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
                 <Bell className="h-12 w-12 mb-2 text-gray-300" />
-                <p className="text-sm">No new notifications</p>
+                <p className="text-sm">No notifications</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div>
                 {recentNotifications.map((notification) => (
                   <div
                     key={notification.id}
                     onClick={() => {
                       handleNotificationClick(notification);
                     }}
-                    className="group flex gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors"
+                    className="group flex gap-3 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-gray-100"
                   >
                     {/* Icon */}
                     <div className="flex-shrink-0 pt-1">
                       <div className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-lg text-lg",
-                        getPriorityColor(notification.priority)
+                        "flex h-10 w-10 items-center justify-center rounded-full text-xl",
+                        getPriorityTone(notification.priority)
                       )}>
-                        {getTypeIcon(notification.type)}
+                        <span aria-hidden="true">{getNotificationEmoji(notification.type)}</span>
+                        <span className="sr-only">
+                          {notification.type.replace(/_/g, " ")}
+                        </span>
                       </div>
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <h4 className="text-sm font-medium text-gray-900 line-clamp-1">
-                          {notification.title}
-                        </h4>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {formatTime(notification.createdAt)}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600 line-clamp-2 mt-1">
+                      <h4 className="text-[15px] font-medium text-gray-900 mb-1">
+                        {notification.title}
+                      </h4>
+                      <p className="text-[13px] text-gray-500 mb-1.5 line-clamp-2">
                         {notification.message}
                       </p>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            handleMarkAsRead(e, notification.id);
-                          }}
-                          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700"
-                          title="Mark as read"
-                        >
-                          <Eye className="h-3 w-3" />
-                          <span>Read</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            handleDelete(e, notification.id);
-                          }}
-                          className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                          <span>Delete</span>
-                        </button>
+                      <div className="flex items-center gap-2 text-xs text-gray-400">
+                        <span>{formatRelativeTime(notification.createdAt)}</span>
+                        {notification.sourceModule && (
+                          <>
+                            <span>•</span>
+                            <span>{notification.sourceModule}</span>
+                          </>
+                        )}
                       </div>
+
+                      {/* Action Buttons for requests/approvals */}
+                      {notification.type === "approval" && notification.status === "unread" && (
+                        <div className="flex items-center gap-2 mt-3">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              handleMarkAsRead(e, notification.id);
+                            }}
+                            className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              handleDelete(e, notification.id);
+                            }}
+                            className="px-4 py-1.5 rounded-full text-xs font-medium text-gray-900 hover:bg-gray-100 transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -236,13 +189,13 @@ export const NotificationBell = () => {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-gray-200 px-4 py-2">
+          <div className="border-t border-gray-100 px-6 py-4">
             <button
               type="button"
               onClick={handleViewAll}
-              className="w-full rounded-md py-2 text-center text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+              className="w-full text-center text-sm font-medium text-gray-900 hover:text-gray-700 underline transition-colors"
             >
-              View all notifications
+              See all notifications
             </button>
           </div>
         </div>

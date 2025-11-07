@@ -1,192 +1,161 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-// import { Button } from '@/components/ui/components/Button';
-import { 
-  Bell, 
-  CheckCircle, 
-  AlertTriangle, 
-  Info, 
-  Wrench,
+import type { MouseEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import type { LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  Bell,
+  CheckCircle2,
   FileText,
   Gauge,
-  Trash2
-} from 'lucide-react';
-import type { Notification as NotificationType, NotificationPriority } from '@/types/notification';
+  Info,
+  Trash2,
+  Wrench,
+} from "lucide-react";
+import { cn } from "@/utils/utils";
+import type { Notification } from "../types";
+import { formatRelativeTime, getPriorityBorder, getPriorityIndicator, getPriorityTone } from "../utils/notificationUtils";
 
 interface NotificationItemProps {
-  notification: NotificationType;
+  notification: Notification;
   onMarkAsRead: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-const priorityColors: Record<NotificationPriority, string> = {
-  low: 'bg-blue-100 text-blue-800 border-blue-200',
-  medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  high: 'bg-orange-100 text-orange-800 border-orange-200',
-  urgent: 'bg-red-100 text-red-800 border-red-200',
-};
-
-const priorityBadgeColors: Record<NotificationPriority, string> = {
-  low: 'bg-blue-500',
-  medium: 'bg-yellow-500',
-  high: 'bg-orange-500',
-  urgent: 'bg-red-500',
-};
-
-const typeIcons = {
+const TYPE_ICON_MAP: Record<Notification["type"], LucideIcon> = {
   work_order: Wrench,
   work_request: FileText,
   maintenance: Wrench,
   meter_reading: Gauge,
   asset_alert: AlertTriangle,
   system: Info,
-  approval: CheckCircle,
+  approval: CheckCircle2,
   reminder: Bell,
 };
 
-export const NotificationItem: React.FC<NotificationItemProps> = ({
-  notification,
-  onMarkAsRead,
-}) => {
+export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: NotificationItemProps) => {
   const navigate = useNavigate();
-  const Icon = typeIcons[notification.type] || Bell;
+  const Icon = TYPE_ICON_MAP[notification.type];
 
-  const handleClick = () => {
-    if (notification.status === 'unread') {
+  const handleNavigate = () => {
+    if (notification.status === "unread") {
       onMarkAsRead(notification.id);
     }
     if (notification.actionUrl) {
-      navigate(notification.actionUrl);
+      void navigate(notification.actionUrl);
     }
   };
 
-//   const handleActionClick = (e: React.MouseEvent) => {
-//     e.stopPropagation();
-//     if (notification.status === 'unread') {
-//       onMarkAsRead(notification.id);
-//     }
-//     if (notification.actionUrl) {
-//       navigate(notification.actionUrl);
-//     }
-//   };
-
-//   const handleDelete = (e: React.MouseEvent) => {
-//     e.stopPropagation();
-//     onDelete(notification.id);
-//   };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInMs = now.getTime() - date.getTime();
-    const diffInMins = Math.floor(diffInMs / (1000 * 60));
-
-    // If less than 1 minute
-    if (diffInMins < 1) return 'Just now';
-    
-    // If less than 60 minutes, show minutes
-    if (diffInMins < 60) return `${diffInMins} min${diffInMins > 1 ? 's' : ''} ago`;
-    
-    // Check if same day
-    const isSameDay = date.toDateString() === now.toDateString();
-    
-    if (isSameDay) {
-      // Same day - show time
-      return date.toLocaleTimeString('en-US', { 
-        hour: 'numeric', 
-        minute: '2-digit',
-        hour12: true 
-      });
-    }
-    
-    // Different day - show date
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric', 
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
-    });
+  const handleMarkAsRead = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onMarkAsRead(notification.id);
   };
+
+  const handleDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    onDelete(notification.id);
+  };
+
+  const timestampLabel = formatRelativeTime(notification.createdAt);
 
   return (
-    <div
-      className={`
-        relative flex gap-4 p-4 rounded-lg border transition-all cursor-pointer
-        hover:shadow-md hover:border-primary/30
-        ${notification.status === 'unread' ? 'bg-primaryContainer/10 border-primary/20' : 'bg-surface border-outlineVariant'}
-      `}
-      onClick={handleClick}
+    <article
+      className={cn(
+        "relative flex cursor-pointer gap-4 rounded-lg border p-4 transition-all hover:border-primary/30 hover:shadow-md",
+        notification.status === "unread"
+          ? "bg-primaryContainer/10 border-primary/20"
+          : "bg-surface border-outlineVariant",
+      )}
+      onClick={handleNavigate}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleNavigate();
+        }
+      }}
+      aria-pressed={notification.status !== "unread"}
     >
-      {/* Priority Indicator */}
-      {notification.status === 'unread' && (
-        <div className={`absolute left-0 top-4 bottom-4 w-1 rounded-r ${priorityBadgeColors[notification.priority]}`} />
+      {notification.status === "unread" && (
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute left-0 top-4 bottom-4 w-1 rounded-r",
+            getPriorityIndicator(notification.priority),
+          )}
+        />
       )}
 
-      {/* Icon */}
-      <div className={`
-        flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center border
-        ${priorityColors[notification.priority]}
-      `}>
-        <Icon className="size-5" />
+      <div
+        className={cn(
+          "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border",
+          getPriorityTone(notification.priority),
+          getPriorityBorder(notification.priority),
+        )}
+      >
+        <Icon aria-hidden="true" className="size-5" />
+        <span className="sr-only">{notification.type.replace(/_/g, " ")}</span>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <h4 className={`font-medium text-onSurface ${notification.status === 'unread' ? 'font-semibold' : ''}`}>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex items-start justify-between gap-3">
+          <h4
+            className={cn("text-base font-medium text-onSurface", {
+              "font-semibold": notification.status === "unread",
+            })}
+          >
             {notification.title}
           </h4>
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs text-onSurfaceVariant">
-              {formatDate(notification.createdAt)}
-            </span>
-            {notification.status === 'unread' && (
-              <div className="w-2 h-2 rounded-full bg-primary" title="Unread" />
-            )}
+          <div className="flex items-center gap-2 text-xs text-onSurfaceVariant">
+            <time dateTime={notification.createdAt}>{timestampLabel}</time>
+            {notification.status === "unread" && <span className="sr-only">Unread notification</span>}
           </div>
         </div>
 
-        <p className="text-sm text-onSurfaceVariant mb-2 line-clamp-2">
-          {notification.message}
-        </p>
+        <p className="text-sm text-onSurfaceVariant line-clamp-2">{notification.message}</p>
 
-        {/* Metadata */}
-        {/* <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs px-2 py-0.5 rounded bg-surfaceContainerHigh text-onSurface">
-            {notification.sourceModule}
-          </span>
-          {notification.sourceId && (
-            <span className="text-xs px-2 py-0.5 rounded bg-surfaceContainerHigh text-onSurface">
-              {notification.sourceId}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-onSurfaceVariant">
+            <span className="rounded bg-surfaceContainerHigh px-2 py-0.5">
+              {notification.sourceModule}
             </span>
-          )}
-          <span className={`text-xs px-2 py-0.5 rounded border ${priorityColors[notification.priority]}`}>
-            {notification.priority.toUpperCase()}
-          </span>
-        </div> */}
-
-        {/* Actions */}
-        {/* {notification.actionUrl && notification.actionLabel && (
-          <div className="mt-3 flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={handleActionClick}
-              className="text-xs"
+            {notification.sourceId && (
+              <span className="rounded bg-surfaceContainerHigh px-2 py-0.5">
+                {notification.sourceId}
+              </span>
+            )}
+            <span
+              className={cn(
+                "rounded-full border px-2 py-0.5 font-medium uppercase tracking-wide",
+                getPriorityBorder(notification.priority),
+                getPriorityTone(notification.priority),
+              )}
             >
-              {notification.actionLabel}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleDelete}
-              className="text-xs text-error hover:bg-errorContainer"
-            >
-              <Trash2 className="size-3 mr-1" />
-              Delete
-            </Button>
+              {notification.priority}
+            </span>
           </div>
-        )} */}
+
+          <div className="flex items-center gap-2">
+            {notification.status === "unread" && (
+              <button
+                type="button"
+                onClick={handleMarkAsRead}
+                className="rounded border border-primary/30 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+              >
+                Mark as read
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="rounded border border-error/20 p-1 text-error transition-colors hover:bg-error/10"
+              aria-label="Delete notification"
+            >
+              <Trash2 className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </article>
   );
 };

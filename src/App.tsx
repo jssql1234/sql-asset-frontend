@@ -9,7 +9,7 @@ import UserProvider from "./context/UserProvider";
 import ErrorBoundary from "@/components/errors/ErrorBoundary";
 import ErrorFallback from "@/components/errors/ErrorFallback";
 import { logError } from "@/utils/logger";
-import { NotificationProvider } from "./features/notification/context/NotificationContext";
+import { NotificationProvider } from "./features/notification/hooks/useNotificationContext";
 
 
 const queryClient = new QueryClient({

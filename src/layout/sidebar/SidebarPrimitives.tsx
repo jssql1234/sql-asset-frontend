@@ -16,7 +16,7 @@ function SidebarWrapper({ className, style, children, ...props }: React.Componen
       data-slot="sidebar-wrapper"
       style={ { "--sidebar-width": SIDEBAR_WIDTH, "--sidebar-collapsed-width": SIDEBAR_COLLAPSED_WIDTH, ...style } as React.CSSProperties }
       className={cn(
-        "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full",
+        "group/sidebar-wrapper has-data-[variant=inset]:bg-sidebar flex min-h-svh w-full overflow-x-hidden",
         className
       )}
       {...props}
@@ -29,7 +29,14 @@ function SidebarWrapper({ className, style, children, ...props }: React.Componen
 //Main content area sits next to the sidebar.
 function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
   return (
-    <main data-slot="sidebar-inset" className={cn("bg-background relative flex w-full flex-1 flex-col", className)} {...props}/>
+    <main 
+      data-slot="sidebar-inset" 
+      className={cn(
+        "bg-background relative flex flex-1 flex-col min-w-0",
+        className
+      )} 
+      {...props}
+    />
   );
 }
 

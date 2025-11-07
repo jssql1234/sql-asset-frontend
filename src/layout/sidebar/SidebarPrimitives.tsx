@@ -74,26 +74,6 @@ function SidebarSeparator({ className, orientation = "horizontal", ...props }: S
   );
 }
 
-export interface SidebarBreadcrumbProps { items: { label: string }[]; className?: string } 
-
-//Breadcrumb component for sidebar header.
-function SidebarBreadcrumb({ items, className }: SidebarBreadcrumbProps) {
-  if (items.length === 0) return null;
-
-  return (
-    <nav className={cn( "text-sm text-onSurfaceVariant hidden md:flex items-center gap-2", className )}
-      aria-label="Breadcrumb"
-    >
-      {items.map((crumb, index) => (
-        <React.Fragment key={crumb.label}>
-          {index > 0 && <span aria-hidden="true">&gt;</span>}
-          <span>{crumb.label}</span>
-        </React.Fragment>
-      ))}
-    </nav>
-  );
-}
-
 //Props for Sidebar root component (Supports icon collapsible mode with left positioning).
 export interface SidebarProps extends React.ComponentProps<"div"> { collapsible?: "icon" }
 
@@ -312,4 +292,4 @@ function SidebarUserInfo({ name, email, className }: SidebarUserInfoProps) {
   );
 }
 
-export { SidebarWrapper, SidebarInset, SidebarTrigger, SidebarSeparator, SidebarBreadcrumb, Sidebar, SidebarHeader, SidebarBody, SidebarFooter, SidebarGroup, SidebarGroupTitle, SidebarGroupItem, SidebarMenuButton, SidebarMenuButtonWithTooltip, SidebarUserInfo };
+export { SidebarWrapper, SidebarInset, SidebarTrigger, SidebarSeparator, Sidebar, SidebarHeader, SidebarBody, SidebarFooter, SidebarGroup, SidebarGroupTitle, SidebarGroupItem, SidebarMenuButton, SidebarMenuButtonWithTooltip, SidebarUserInfo };

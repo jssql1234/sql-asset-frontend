@@ -26,12 +26,7 @@ const MaintainLocationPage: React.FC = () => {
   } = useLocations();
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: 'Tools' },
-        { label: 'Maintain Location' },
-      ]}
-    >
+    <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <TabHeader
           title="Location Management"

@@ -26,9 +26,7 @@ const AllocationPage: React.FC = () => {
   });
 
   return (
-    <AppLayout
-      breadcrumbs={[ { label: "Asset Maintenance" }, { label: "Allocation" } ]}
-    >
+    <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <Tabs tabs={tabs} defaultValue="allocation" />
       </div>

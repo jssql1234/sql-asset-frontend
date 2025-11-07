@@ -136,12 +136,7 @@ const UserAccessRightsPage: React.FC = () => {
   };
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Tools" },
-        { label: "User Access Rights Assignment" },
-      ]}
-    >
+    <AppLayout>
       <TabHeader
         title="User Access Rights Assignment"
         subtitle="Maintain Permissions for Each User Groups"

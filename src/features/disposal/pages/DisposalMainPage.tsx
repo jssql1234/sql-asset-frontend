@@ -366,12 +366,7 @@ const DisposalMainPage: React.FC = () => {
   };
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Tax Computation" },
-        { label: "Asset Disposal" },
-      ]}
-    >
+    <AppLayout>
       <div className="h-full flex flex-col">
         {/* Header */}
         <div className="bg-surface border-b border-outlineVariant px-6 py-4">

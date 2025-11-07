@@ -77,12 +77,7 @@ const MaintainUserPage: React.FC = () => {
   } = useDepartments();
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Tools" },
-        { label: "Maintain User" },
-      ]}
-    >
+    <AppLayout>
       <TabHeader
         title="Maintain User"
         customActions={

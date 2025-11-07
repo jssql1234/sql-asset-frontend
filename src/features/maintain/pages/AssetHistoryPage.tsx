@@ -3,12 +3,7 @@ import { AppLayout } from '@/layout/sidebar/AppLayout';
 
 const AssetHistoryPage: React.FC = () => {
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Tools" },
-        { label: "Asset History" },
-      ]}
-    >
+    <AppLayout>
       <div className="flex flex-col h-full">
         {/* Header Actions */}
         <div className="flex items-center justify-between mb-6">

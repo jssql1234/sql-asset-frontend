@@ -49,12 +49,7 @@ const CoverageMainPage = () => {
   ], []);
 
   return (
-    <AppLayout
-      breadcrumbs={[
-        { label: "Asset Maintenance" },
-        { label: "Insurance & Warranty" },
-      ]}
-    >
+    <AppLayout>
       <CoverageProvider modals={modals} setModals={setModals}>
         <div className="flex flex-col gap-2">
           <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />

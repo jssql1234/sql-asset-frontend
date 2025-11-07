@@ -228,9 +228,7 @@ const WorkOrdersPage: React.FC = () => {
   ];
 
   return (
-    <AppLayout
-      breadcrumbs={[{ label: "Asset Maintenance" }, { label: "Work Orders" }]}
-    >
+    <AppLayout>
       <div className="flex min-h-full flex-col gap-4 overflow-hidden">
         <Tabs tabs={tabs} defaultValue="workorders" />
       </div>

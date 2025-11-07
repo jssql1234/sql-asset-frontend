@@ -82,9 +82,7 @@ const MeterPage = () => {
   );
 
   return (
-    <AppLayout
-      breadcrumbs={[{ label: "Asset Maintenance" }, { label: "Meter Reading" }]}
-    >
+    <AppLayout>
       <div className="flex h-full flex-col gap-6">
         <Tabs tabs={tabs} defaultValue="groups">
           <Button variant="secondary" onClick={reset}>

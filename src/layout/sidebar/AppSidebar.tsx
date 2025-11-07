@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HomeFilled, Dots, User, BellFilled, Bell} from "@/assets/icons";
+import { HomeFilled, Dots, User } from "@/assets/icons";
 import { ChevronsUpDown, LogOut, Settings, Shuffle } from "lucide-react";
 import { Sidebar, SidebarBody, SidebarFooter, SidebarHeader, SidebarMenuButton, SidebarGroup, SidebarGroupTitle, SidebarSeparator, SidebarGroupItem, SidebarUserInfo, SidebarMenuButtonWithTooltip } from "./SidebarPrimitives";
 import { navigationSections, mockUser, toolsMenuItems } from "./SidebarConstant";
@@ -58,7 +58,7 @@ export function AppSidebar(props: SidebarProps) {
         ))}
       </SidebarBody>
 
-      {/* Footer - Notification, tools, profile dropdown, and switch user toggle(temp) */}
+      {/* Footer - Tools, profile dropdown, and switch user toggle(temp) */}
       <SidebarFooter>
         {/* Switch User (Temp) */}
         <DropdownMenu className="w-full">
@@ -99,25 +99,6 @@ export function AppSidebar(props: SidebarProps) {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* Notifications */}
-        <SidebarMenuButtonWithTooltip tooltip="Notifications">
-          <SidebarMenuButton
-            size="default"
-            isActive={location.pathname === "/notifications"}
-            onClick={() => void navigate("/notifications")}
-            className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:gap-0"
-          >
-            {location.pathname === "/notifications" ? (
-              <BellFilled className="size-4 group-data-[collapsible=icon]:size-5" />
-            ) : (
-              <Bell className="size-4 group-data-[collapsible=icon]:size-5" />
-            )}
-            <span className="group-data-[collapsible=icon]:hidden">
-              Notifications
-            </span>
-          </SidebarMenuButton>
-        </SidebarMenuButtonWithTooltip>
 
         {/* Tools */}
         <DropdownMenu className="w-full">

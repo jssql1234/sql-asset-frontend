@@ -9,6 +9,7 @@ import UserProvider from "./context/UserProvider";
 import ErrorBoundary from "@/components/errors/ErrorBoundary";
 import ErrorFallback from "@/components/errors/ErrorFallback";
 import { logError } from "@/utils/logger";
+import { NotificationProvider } from "./features/notification/context/NotificationContext";
 
 
 const queryClient = new QueryClient({
@@ -61,16 +62,18 @@ function App() {
     >
       <ThemeProvider>
         <UserProvider>
-          <ToastProvider>
-            <BrowserRouter>
-              <QueryClientProvider client={queryClient}>
-                {/* <TranslationProvider translations={tableTranslations}> */}
-                <TranslationProvider>
-                  <AppRoutes />
-                </TranslationProvider>
-              </QueryClientProvider>
-            </BrowserRouter>
-          </ToastProvider>
+          <NotificationProvider>
+            <ToastProvider>
+              <BrowserRouter>
+                <QueryClientProvider client={queryClient}>
+                  {/* <TranslationProvider translations={tableTranslations}> */}
+                  <TranslationProvider>
+                    <AppRoutes />
+                  </TranslationProvider>
+                </QueryClientProvider>
+              </BrowserRouter>
+            </ToastProvider>
+          </NotificationProvider>
         </UserProvider>
       </ThemeProvider>
     </ErrorBoundary>

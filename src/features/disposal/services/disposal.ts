@@ -17,6 +17,9 @@ export interface DisposalCalculationRequest {
   disposalType: string;
   disposalCase: 'special' | 'normal';
   multipleAssetsData?: any[];
+  // Forest-specific fields
+  isControlledDisposal?: boolean;
+  isAssetScrapped?: boolean;
 }
 
 export interface DisposalCalculationResult {
@@ -58,8 +61,75 @@ export const disposalService = {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Mock calculation logic based on disposal type
-    const { assetData, disposalType } = request;
+    const { assetData, disposalType, isControlledDisposal = false, isAssetScrapped = false } = request;
+    
+    // Forest disposal logic
+    if (disposalType === 'forest') {
+      // Rule 1: Controlled Disposal (>50% control transfer) - No charge
+      if (isControlledDisposal) {
+        return {
+          balancingAllowance: 0,
+          balancingCharge: 0,
+          writtenDownValue: assetData.totalCAClaimed,
+          taxTreatment: 'No Charge - Controlled Disposal',
+          clawbackAmount: 0,
+          netTaxEffect: 0,
+        };
+      }
+
+      // Rule 2: Asset Scrapped - No charge
+      if (isAssetScrapped) {
+        return {
+          balancingAllowance: 0,
+          balancingCharge: 0,
+          writtenDownValue: assetData.totalCAClaimed,
+          taxTreatment: 'No Charge - Asset Scrapped',
+          clawbackAmount: 0,
+          netTaxEffect: 0,
+        };
+      }
+
+      // Rule 3: Normal Forest Disposal - Full clawback (no year limit)
+      // Clawback = Total CA Claimed
+      const clawbackAmount = assetData.totalCAClaimed;
+      
+      return {
+        balancingAllowance: 0,
+        balancingCharge: clawbackAmount,
+        writtenDownValue: assetData.totalCAClaimed,
+        taxTreatment: 'Balancing Charge - Full Clawback',
+        clawbackAmount: clawbackAmount,
+        netTaxEffect: -clawbackAmount, // Negative because it's a charge
+      };
+    }
+
+    // Agriculture disposal logic 
+    if (disposalType === 'agriculture') {
+      if (isControlledDisposal || isAssetScrapped) {
+        return {
+          balancingAllowance: 0,
+          balancingCharge: 0,
+          writtenDownValue: assetData.totalCAClaimed,
+          taxTreatment: isControlledDisposal ? 'No Charge - Controlled Disposal' : 'No Charge - Asset Scrapped',
+          clawbackAmount: 0,
+          netTaxEffect: 0,
+        };
+      }
+
+      // Simplified agriculture calculation
+      const clawbackAmount = assetData.totalCAClaimed * 0.5; // Mock 50% clawback
+      
+      return {
+        balancingAllowance: 0,
+        balancingCharge: clawbackAmount,
+        writtenDownValue: assetData.totalCAClaimed,
+        taxTreatment: 'Balancing Charge - Agriculture',
+        clawbackAmount: clawbackAmount,
+        netTaxEffect: -clawbackAmount,
+      };
+    }
+    
+    // Normal/Partial disposal logic (existing code)
     const disposalValue = assetData.originalCost * 0.85; // Simplified calculation
     const writtenDownValue = assetData.originalCost - assetData.totalCAClaimed;
     
@@ -106,7 +176,7 @@ export const disposalService = {
       {
         id: '2',
         assetCode: 'AS-0002',
-        disposalType: 'mfrs5',
+        disposalType: 'forest',
         disposalDate: '2024-11-20',
         disposalValue: 125000,
         status: 'Draft',

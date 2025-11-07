@@ -8,6 +8,8 @@ import AgricultureDisposalForm from '../components/AgricultureDisposalForm';
 import DisposalHistoryTable from '../components/DisposalHistoryTable';
 import DisposalResults from '../components/DisposalResults';
 import TabHeader from '@/components/TabHeader';
+import ForestDisposalForm from '../components/ForestDisposalForm';
+
 
 // Interface definitions based on the disposal process
 interface AssetData {
@@ -97,6 +99,17 @@ const DisposalMainPage: React.FC = () => {
     annualAllowance: 137500,
     apportionedAllowance: 61612,
   });
+
+  const [forestDisposalData, setForestDisposalData] = useState({
+    assetId: 'AS-0001',
+    acquireDate: '',
+    disposalDate: '', 
+    disposalValue: 0,
+    recipient: '',
+    assetScrapped: false,
+    controlledDisposal: false,
+    annualAllowance: 0,
+  });
   
   // Calculation results
   const [calculationResults, setCalculationResults] = useState<DisposalCalculationResults>({
@@ -172,6 +185,12 @@ const DisposalMainPage: React.FC = () => {
           acquireDate: baseAssetData.purchaseDate,
         }));
         
+        setForestDisposalData(prev => ({
+          ...prev,
+          assetId: baseAssetData.assetId,
+          acquireDate: baseAssetData.purchaseDate,
+        }));
+
         localStorage.removeItem('disposalAssetData');
       }
     } catch (error) {
@@ -226,6 +245,13 @@ const DisposalMainPage: React.FC = () => {
       [field]: value,
     }));
   };
+
+  const handleForestDisposalChange = (field: string, value: string | number | boolean) => {
+    setForestDisposalData(prev => ({
+      ...prev,
+      [field]: value,
+    }));
+  }
 
   // Hardcoded disposal results
   const calculateDisposalResults = (): DisposalCalculationResults => {
@@ -319,6 +345,16 @@ const DisposalMainPage: React.FC = () => {
             <AgricultureDisposalForm
               data={agricultureDisposalData}
               onChange={handleAgricultureDisposalChange}
+              onNext={handleNextStep}
+              onPrevious={handlePreviousStep}
+            />
+          );
+        } else if (selectedDisposalType === 'forest') {
+          // Assuming ForestDisposalForm is implemented similarly
+          return (
+            <ForestDisposalForm
+              data={forestDisposalData}
+              onChange={handleForestDisposalChange}
               onNext={handleNextStep}
               onPrevious={handlePreviousStep}
             />

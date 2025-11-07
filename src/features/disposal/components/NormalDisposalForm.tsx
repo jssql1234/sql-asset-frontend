@@ -3,6 +3,8 @@ import { Input } from '@/components/ui/components/Input';
 import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
 import MultipleAssetsTable from './MultipleAssetsTable';
+import { SemiDatePicker } from '@/components/ui/components';
+
 
 interface NormalDisposalFormData {
   assetId: string;
@@ -65,6 +67,16 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
     setIsMultipleAssets(!isMultipleAssets);
   };
 
+  const handleDateChange = (field: keyof NormalDisposalFormData) => (date: string | Date | Date[] | string[] | undefined) => {
+    let isoDate = '';
+    if (date instanceof Date) {
+      isoDate = date.toISOString();
+    } else if (typeof date === 'string') {
+      isoDate = date;
+    }
+    onChange(field, isoDate);
+  };
+
   return (
     <Card className="space-y-6">
       <div className="border-b border-outlineVariant pb-4">
@@ -110,13 +122,12 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
               <label htmlFor="disposal-date" className="block text-sm font-medium text-onSurface">
                 Disposal Date <span className="text-error">*</span>
               </label>
-              <Input
-                id="disposal-date"
-                type="date"
-                value={localData.disposalDate}
-                onChange={handleInputChange('disposalDate')}
+              <SemiDatePicker
+                value={localData.disposalDate ? new Date(localData.disposalDate) : null}
+                onChange={handleDateChange('disposalDate')}
+                inputType="date"
                 disabled={readOnly}
-                required
+                className="w-full"
               />
             </div>
 
@@ -233,13 +244,12 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
               <label htmlFor="disposal-date" className="block text-sm font-medium text-onSurface">
                 Disposal Date <span className="text-error">*</span>
               </label>
-              <Input
-                id="disposal-date"
-                type="date"
-                value={localData.disposalDate}
-                onChange={handleInputChange('disposalDate')}
+              <SemiDatePicker
+                value={localData.disposalDate ? new Date(localData.disposalDate) : null}
+                onChange={handleDateChange('disposalDate')}
+                inputType="date"
                 disabled={readOnly}
-                required
+                className="w-full"
               />
             </div>
           </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
+import {Switch} from '@/components/ui/components/Switch';
 
 // Type definitions for disposal results
 interface AssetData {
@@ -284,77 +285,54 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
         
         <div className="bg-white border border-outline rounded-xl p-6 shadow-sm">
           <div className="space-y-1">
-            {/* Tax Treatment */}
-            <div className="bg-surfaceContainer rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <span className="text-onSurface font-medium">Tax Treatment</span>
-                <span className="font-semibold text-lg text-onBackground px-3 py-1 bg-primary/10 rounded-lg">
-                  {calculationResults.taxTreatment}
-                </span>
-              </div>
-            </div>
-
-            {/* Balancing Allowance/Charge */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {calculationResults.balancingAllowance > 0 && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="text-center">
-                    <div className="text-green-700 text-sm font-medium mb-2">Balancing Allowance</div>
-                    <div className="text-2xl font-bold text-green-600">{formatCurrency(calculationResults.balancingAllowance)}</div>
-                  </div>
-                </div>
-              )}
-              {calculationResults.balancingCharge > 0 && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <div className="text-center">
-                    <div className="text-red-700 text-sm font-medium mb-2">Balancing Charge</div>
-                    <div className="text-2xl font-bold text-red-600">{formatCurrency(calculationResults.balancingCharge)}</div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Clawback Checkbox */}
-            {onClawbackChange && (
-              <div className="bg-surfaceContainer rounded-lg p-4 space-y-4">
-                <div className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    id="clawback-applicable"
-                    checked={isClawbackApplicable}
-                    onChange={(e) => { onClawbackChange(e.target.checked); }}
-                    className="w-5 h-5 text-primary border-outlineVariant focus:ring-primary rounded"
-                  />
-                  <label htmlFor="clawback-applicable" className="font-medium text-onBackground">
-                    Clawback: Asset disposed within {disposalType === 'agriculture' ? '5' : '2'} years of acquisition
-                  </label>
-                </div>
-
-                {/* Spread Balancing Charge Checkbox - Only shows for agriculture disposal when clawback is applicable */}
-                {disposalType === 'agriculture' && isClawbackApplicable && onSpreadBalancingChargeChange && (
-                  <div className="flex items-center space-x-3 pl-8">
-                    <input
-                      type="checkbox"
-                      id="spread-balancing-charge"
-                      checked={isSpreadBalancingCharge}
-                      onChange={(e) => { onSpreadBalancingChargeChange(e.target.checked); }}
-                      className="w-5 h-5 text-primary border-outlineVariant focus:ring-primary rounded"
-                    />
-                    <label htmlFor="spread-balancing-charge" className="font-medium text-onBackground">
-                      Spread Balancing Charge over Years of Assessment
-                    </label>
-                  </div>
-                )}
-                
-                <div className="pt-4 border-t border-outline">
+            
+            <div className="pt-1">
                   <div className="flex justify-between items-center">
                     <span className="text-onSurface font-medium">Balancing Charge</span>
                     <span className="font-bold text-lg text-red-600">0</span>
                   </div>
                 </div>
 
-                {/* Spread Details Table - Only shows for agriculture disposal when spread is enabled */}
-                {disposalType === 'agriculture' && isSpreadBalancingCharge && (
+            {/* Clawback Switch */}
+            {onClawbackChange && (
+              <div className="bg-surfaceContainer rounded-lg pt-4 space-y-4 border-t border-outline mt-6">
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    isChecked={isClawbackApplicable}
+                    onChange={onClawbackChange}
+                    size="default"
+                  />
+                  <label className="font-medium text-onBackground">
+                    {disposalType === 'forest' 
+                      ? 'Clawback: LHDN will clawback all capital allowances' 
+                      : `Clawback: Asset disposed within ${disposalType === 'agriculture' ? '5' : '2'} years of acquisition`
+                    }
+                  </label>
+                </div>
+
+                {/* Spread Balancing Charge Switch - Now shows for all disposal types */}
+                {onSpreadBalancingChargeChange && (
+                  <div className="flex items-center space-x-3">
+                    <Switch
+                      isChecked={isSpreadBalancingCharge}
+                      disabled={!isClawbackApplicable}
+                      onChange={onSpreadBalancingChargeChange}
+                      size="default"
+                    />
+                    <label 
+                      className={`font-medium ${
+                        isClawbackApplicable 
+                          ? 'text-onBackground cursor-pointer' 
+                          : 'text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Spread Balancing Charge over Years of Assessment
+                    </label>
+                  </div>
+                )}
+
+                {/* Spread Details Table - Now shows for all disposal types when spread is enabled */}
+                {isSpreadBalancingCharge && (
                   <div className="mt-4 pt-4 border-t border-outline">
                     <h5 className="text-sm font-semibold text-onBackground mb-3">Spread Details</h5>
                     <div className="overflow-hidden rounded-lg border-2 border-outline">

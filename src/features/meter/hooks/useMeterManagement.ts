@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { meterIdGenerator } from "@/utils/id";
 import {
-  type BoundaryTrigger,
   type Meter,
   type MeterAssignmentStrategy,
   type MeterGroup,
@@ -9,7 +8,7 @@ import {
   type MeterReading,
   type MeterReadingDraft,
   type MeterState,
-} from "../../../types/meter";
+} from "@/types/meter";
 import type { Asset } from "@/types/asset";
 import {
   loadMeterState,

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Card } from "@/components/ui/components";
 import { SearchableDropdown } from "@/components/SearchableDropdown";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 import { RecordReadingsSection } from "../components/RecordReadingsSection";
-import { MeterReadingHistoryTable } from "../components/MeterReadingTable";
-import type { MeterDraft } from "../components/MeterInputCard";
+import { MeterReadingHistoryTable } from "../components/ReadingTable";
+import Search from "@/components/Search";
+import type { MeterDraft } from "../components/ReadingInputCard";
 import {
   type Meter,
   type MeterGroup,
@@ -68,6 +68,7 @@ export const MeterReadingsView = ({
     buildEmptyDraft(assetOptions[0]?.group.meters ?? [])
   );
   const [formError, setFormError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const selectedOption = useMemo(() =>
     assetOptions.find((option) => option.asset.id.toString() === selectedAssetId),
@@ -180,9 +181,9 @@ export const MeterReadingsView = ({
     setFormError(null);
     addToast({
       title: "Success",
-      description: `New readings saved as ${activeUser}.`,
+      description: `New ${entries.length} readings saved as ${activeUser}.`,
       variant: "success",
-      duration: 5000,
+      duration: 3000,
       dismissible: false,
     });
   };
@@ -190,6 +191,28 @@ export const MeterReadingsView = ({
   const assetHistory = selectedAsset?.id
     ? getReadingsByAssetId(selectedAsset.id.toString())
     : [];
+
+  const filteredHistory = useMemo(() => {
+    if (!searchQuery.trim()) return assetHistory;
+    
+    const lowerQuery = searchQuery.toLowerCase();
+    return assetHistory.filter((reading) => {
+      const meterInfo = meterMetadata.get(reading.meterId);
+      const groupName = meterInfo?.group.name?.toLowerCase() ?? "";
+      const meterUom = reading.uom.toLowerCase();
+      const recordedBy = reading.recordedBy.toLowerCase();
+      const notes = reading.notes?.toLowerCase() ?? "";
+      const value = reading.value.toString();
+      
+      return (
+        meterUom.includes(lowerQuery) ||
+        groupName.includes(lowerQuery) ||
+        recordedBy.includes(lowerQuery) ||
+        notes.includes(lowerQuery) ||
+        value.includes(lowerQuery)
+      );
+    });
+  }, [assetHistory, searchQuery, meterMetadata]);
 
   if (assetOptions.length === 0) {
     return (
@@ -235,18 +258,23 @@ export const MeterReadingsView = ({
       />
 
       {/* Section 3: Reading History */}
-      <Card className="space-y-4 shadow-xl">
-        <header className="flex flex-col gap-2 pb-4">
-          <h3 className="text-lg font-semibold text-onSurface">Meter Reading History</h3>
-        </header>
+      <div className="flex flex-col gap-4">
+        <h3 className="text-lg font-semibold text-onSurface">Meter Reading History</h3>
+        
+        <Search
+          searchValue={searchQuery}
+          onSearch={setSearchQuery}
+          searchPlaceholder="Search by meter, group, recorded by, notes, or value..."
+          live={true}
+          showLiveSearchIcon={true}
+        />
         
         <MeterReadingHistoryTable
-          readings={assetHistory}
+          readings={filteredHistory}
           meterMetadata={meterMetadata}
           onDeleteReading={onDeleteReading}
         />
-      </Card>
-      <br />
+      </div>
     </div>
   );
 };

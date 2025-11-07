@@ -1,7 +1,5 @@
 import type { Asset } from "./asset";
 
-export type BoundaryTrigger = "none" | "lower" | "upper" | "both";
-
 export interface MeterCondition {
 	id: string;
 	conditionTarget: string;

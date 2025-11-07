@@ -23,12 +23,11 @@ export const MeterInputCard = ({
   onNotesChange,
 }: MeterInputCardProps) => {
   return (
-    <div className="flex flex-col gap-3 rounded-md border border-outlineVariant bg-surfaceContainer p-3 min-w-0">
-      <div className="flex flex-col gap-1">
-        <span className="text-sm font-semibold text-onSurface truncate">
+    <div className="flex flex-col gap-1 rounded-md  bg-surfaceContainer  min-w-0">
+      <span className="text-sm font-semibold text-onSurface truncate">
           {uom}
-        </span>
-      </div>
+      </span>
+
 
       <div className="flex flex-col gap-2">
         <Input

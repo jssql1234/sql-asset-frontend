@@ -1,5 +1,5 @@
-import { Button, Card, Banner } from "@/components/ui/components";
-import { MeterInputCard, type MeterDraft } from "./MeterInputCard";
+import { Button, Banner } from "@/components/ui/components";
+import { MeterInputCard, type MeterDraft } from "./ReadingInputCard";
 import type { MeterGroup, Meter } from "@/types/meter";
 
 interface RecordReadingsSectionProps {
@@ -28,16 +28,26 @@ export const RecordReadingsSection = ({
   );
 
   return (
-    <Card className="space-y-4 shadow-xl">
-      <header className="flex flex-col gap-2">
+    <>
+      <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-onSurface">Record Readings</h2>
-      </header>
+        <div className="flex justify-end gap-2">
+          <Button variant="secondary" onClick={onToggleAllNotes}>
+            {anyNotesVisible ? "Hide all notes" : "Add notes"}
+          </Button>
+          <Button onClick={onSaveReadings}>Save readings</Button>
+        </div>
+      </div>
 
       {selectedGroup ? (
         <div className="flex flex-col gap-4">
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {selectedGroup.meters.map((meter: Meter) => {
-              const draft = meterDrafts[meter.id] ?? { value: "", notes: "", showNotes: false };
+              const draft = meterDrafts[meter.id] ?? {
+                value: "",
+                notes: "",
+                showNotes: false,
+              };
 
               return (
                 <MeterInputCard
@@ -51,7 +61,7 @@ export const RecordReadingsSection = ({
               );
             })}
           </div>
-          
+
           {formError && (
             <Banner
               variant="error"
@@ -60,22 +70,12 @@ export const RecordReadingsSection = ({
               onClose={onClearError}
             />
           )}
-          
-          <div className="flex justify-end gap-2">
-            <Button 
-              variant="secondary" 
-              onClick={onToggleAllNotes}
-            >
-              {anyNotesVisible ? "Hide all notes" : "Add notes"}
-            </Button>
-            <Button onClick={onSaveReadings}>Save readings</Button>
-          </div>
         </div>
       ) : (
         <div className="rounded-md border border-dashed border-outlineVariant bg-surfaceContainer p-6 text-center text-sm text-onSurfaceVariant">
           Select an asset to enter readings.
         </div>
       )}
-    </Card>
+    </>
   );
 };

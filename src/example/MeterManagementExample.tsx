@@ -1,6 +1,6 @@
 import { useState } from "react";
 import MeterTable, { type MeterWithConditions } from "../features/meter/components/MeterTable";
-import EditMeterModal from "../features/meter/components/EditMeterModal";
+import EditMeterModal from "../features/meter/components/MeterFormModal";
 
 // Example usage component showing how to integrate MeterTable and EditMeterModal
 const MeterManagement = () => {

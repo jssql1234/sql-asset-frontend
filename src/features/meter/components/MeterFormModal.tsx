@@ -14,7 +14,7 @@ import { Delete } from "@/assets/icons";
 
 type MeterWithConditions = Meter;
 
-interface EditMeterModalProps {
+interface MeterFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   meter: MeterWithConditions | null;
@@ -48,12 +48,12 @@ const TRIGGER_MODE_OPTIONS = [
   { value: "every_time", label: "Every Time" },
 ];
 
-const EditMeterModal = ({
+const MeterFormModal = ({
   open,
   onOpenChange,
   meter,
   onSave,
-}: EditMeterModalProps) => {
+}: MeterFormModalProps) => {
   const [uom, setUom] = useState("");
   const [conditions, setConditions] = useState<MeterCondition[]>([]);
 
@@ -287,4 +287,4 @@ const EditMeterModal = ({
   );
 };
 
-export default EditMeterModal;
+export default MeterFormModal;

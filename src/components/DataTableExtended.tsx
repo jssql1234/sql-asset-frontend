@@ -310,6 +310,7 @@ export function DataTableExtended<TData, TValue>({
   const [hasMounted, setHasMounted] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [internalExpanded, setInternalExpanded] = useState<ExpandedState>({});
   
   // Initialize column pinning with row-actions pinned to right by default
   const [internalColumnPinning, setInternalColumnPinning] = useState<ColumnPinningState>(() => {
@@ -321,7 +322,7 @@ export function DataTableExtended<TData, TValue>({
 
   const currentRowSelection = useMemo(() => rowSelection ?? {}, [rowSelection]);
   const currentGrouping = useMemo(() => grouping ?? [], [grouping]);
-  const currentExpanded = useMemo(() => expanded ?? {}, [expanded]);
+  const currentExpanded = useMemo(() => expanded ?? internalExpanded, [expanded, internalExpanded]);
   const currentColumnPinning = useMemo(() => columnPinning ?? internalColumnPinning, [columnPinning, internalColumnPinning]);
   const isGroupingActive = useMemo(() => enableGrouping && currentGrouping.length > 0, [enableGrouping, currentGrouping]);
   const isSelectionEnabled = showCheckbox || enableRowClickSelection;
@@ -642,6 +643,11 @@ export function DataTableExtended<TData, TValue>({
       const newExpanded =
         typeof updaterOrValue === 'function' ? updaterOrValue(currentExpanded) : updaterOrValue;
 
+      // Update internal state if no external expanded state provided
+      if (!expanded) {
+        setInternalExpanded(newExpanded);
+      }
+      
       if (onExpandedChange && isMountedRef.current) {
         onExpandedChange(newExpanded);
       }
@@ -674,8 +680,9 @@ export function DataTableExtended<TData, TValue>({
       rowSelection: currentRowSelection,
       ...(enableGrouping && {
         grouping: currentGrouping,
-        expanded: currentExpanded,
       }),
+      // Include expanded state for both grouping and row expansion
+      expanded: currentExpanded,
       columnOrder,
       columnPinning: currentColumnPinning,
     },
@@ -971,13 +978,6 @@ function DataTableRow<TData>({
     ) {
       event.preventDefault();
       row.toggleSelected(!row.getIsSelected());
-      return;
-    }
-
-    // Fallback: expand/collapse grouped rows when clicking non-interactive area
-    if (row.getIsGrouped() && !isInteractiveElement) {
-      event.preventDefault();
-      row.getToggleExpandedHandler()();
       return;
     }
   };

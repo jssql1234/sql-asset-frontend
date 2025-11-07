@@ -814,6 +814,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         </div>
       ) : view === 'create' ? (
         <AssetForm
+          listModeHint={groupByBatch ? 'batch' : 'normal'}
           editingAsset={null}
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}
@@ -829,6 +830,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         />
       ) : (
         <AssetForm
+          listModeHint={groupByBatch ? 'batch' : 'normal'}
           editingAsset={editingAsset}
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}

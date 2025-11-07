@@ -34,7 +34,8 @@ export const createAssetFormSchema = z.object({
   agriAa: z.string().optional(),
   selfUsePercentage: z.string().optional(),
   rentedApportionPercentage: z.string().optional(),
-
+  manualQE: z.boolean().optional(),
+  
   // Depreciation tab
   depreciationMethod: z.string(),
   depreciationFrequency: z.string(),

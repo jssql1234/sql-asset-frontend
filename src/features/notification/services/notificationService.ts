@@ -1,435 +1,232 @@
-import type { Notification, CreateNotificationData, NotificationFilters } from '@/types/notification';
+import { createMockNotifications } from "../mockData";
+import { sortNotificationsByDate } from "../utils/notificationUtils";
+import type { CreateNotificationData, Notification, NotificationListener } from "../types";
 
-const STORAGE_KEY = 'sql_asset_notifications';
+const STORAGE_KEY = "sql_asset_notifications";
+const isBrowser = typeof window !== "undefined";
 
-class NotificationService {
-  private notifications: Notification[] = [];
+let notifications: Notification[] = [];
+let hydrated = false;
+const listeners = new Set<NotificationListener>();
 
-  constructor() {
-    this.loadFromStorage();
+const clone = (items: Notification[]): Notification[] => items.map((item) => ({ ...item }));
+
+const readFromStorage = (): Notification[] => {
+  if (!isBrowser) {
+    return sortNotificationsByDate(createMockNotifications());
   }
 
-  private loadFromStorage(): void {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        this.notifications = JSON.parse(stored);
-      } else {
-        // Initialize with some sample notifications
-        this.notifications = this.getSampleNotifications();
-        this.saveToStorage();
-      }
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-      this.notifications = [];
+  try {
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) {
+      return sortNotificationsByDate(createMockNotifications());
     }
+
+    const parsed = JSON.parse(stored) as Notification[];
+    return sortNotificationsByDate(parsed);
+  } catch (error) {
+    console.error("Failed to load notifications from storage", error);
+    return sortNotificationsByDate(createMockNotifications());
+  }
+};
+
+const persist = () => {
+  if (!isBrowser) {
+    return;
   }
 
-  private saveToStorage(): void {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.notifications));
-    } catch (error) {
-      console.error('Error saving notifications:', error);
-    }
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
+  } catch (error) {
+    console.error("Failed to persist notifications", error);
+  }
+};
+
+const ensureHydrated = () => {
+  if (hydrated) {
+    return;
   }
 
-  private getSampleNotifications(): Notification[] {
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const lastWeek = new Date(now);
-    lastWeek.setDate(lastWeek.getDate() - 7);
+  notifications = readFromStorage();
+  hydrated = true;
+};
 
-    return [
-      {
-        id: '1',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-            {
-        id: '11',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-            {
-        id: '12',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },      {
-        id: '13',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-            {
-        id: '14',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-            {
-        id: '15',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-            {
-        id: '16',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-            {
-        id: '17',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-                  {
-        id: '21',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-                  {
-        id: '18',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-                  {
-        id: '19',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
-                  {
-        id: '20',
-        type: 'maintenance',
-        priority: 'high',
-        status: 'unread',
-        title: 'Work Order #WO-2025-001 Assigned',
-        message: 'You have been assigned to work order WO-2025-001: Repair Excavator - EXC-001',
-        sourceModule: 'work-order',
-        sourceId: 'WO-2025-001',
-        actionUrl: '/work-orders',
-        actionLabel: 'View Work Order',
-        createdAt: now.toISOString(),
-        createdBy: 'System',
-      },
+const notifySubscribers = () => {
+  persist();
+  listeners.forEach((listener) => {
+    listener();
+  });
+};
 
-      {
-        id: '2',
-        type: 'meter_reading',
-        priority: 'urgent',
-        status: 'unread',
-        title: 'Meter Reading Alert',
-        message: 'Engine hours for Bulldozer BD-002 exceeded threshold (5000 hours)',
-        sourceModule: 'meter-reading',
-        sourceId: 'MTR-001',
-        actionUrl: '/meter-reading',
-        actionLabel: 'Check Meter',
-        metadata: { assetCode: 'BD-002', currentReading: 5050, threshold: 5000 },
-        createdAt: now.toISOString(),
-      },
-      {
-        id: '3',
-        type: 'work_request',
-        priority: 'medium',
-        status: 'read',
-        title: 'Work Request Approved',
-        message: 'Work request WR-2025-015 has been approved and converted to work order',
-        sourceModule: 'work-request',
-        sourceId: 'WR-2025-015',
-        actionUrl: '/work-request',
-        actionLabel: 'View Request',
-        createdAt: yesterday.toISOString(),
-        readAt: yesterday.toISOString(),
-      },
-      {
-        id: '4',
-        type: 'maintenance',
-        priority: 'medium',
-        status: 'unread',
-        title: 'Scheduled Maintenance Due',
-        message: 'Preventive maintenance for Generator GEN-003 is due in 3 days',
-        sourceModule: 'work-order',
-        sourceId: 'PM-2025-089',
-        actionUrl: '/work-orders',
-        actionLabel: 'Schedule Maintenance',
-        createdAt: yesterday.toISOString(),
-      },
-      {
-        id: '5',
-        type: 'asset_alert',
-        priority: 'high',
-        status: 'read',
-        title: 'Asset Downtime Alert',
-        message: 'Forklift FK-005 has been down for 48 hours',
-        sourceModule: 'downtime-tracking',
-        sourceId: 'FK-005',
-        actionUrl: '/downtime-tracking',
-        actionLabel: 'View Downtime',
-        createdAt: lastWeek.toISOString(),
-        readAt: lastWeek.toISOString(),
-      },
-    ];
+const setNotifications = (next: Notification[]) => {
+  ensureHydrated();
+  notifications = sortNotificationsByDate(next);
+  notifySubscribers();
+};
+
+const mutateNotifications = (updater: (draft: Notification[]) => void) => {
+  ensureHydrated();
+  const draft = clone(notifications);
+  updater(draft);
+  setNotifications(draft);
+};
+
+const generateId = () => {
+  if (isBrowser && typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
   }
 
-  getAllNotifications(): Notification[] {
-    return [...this.notifications];
-  }
+  return `notif-${String(Date.now())}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+const getSnapshot = (): readonly Notification[] => {
+  ensureHydrated();
+  return notifications;
+};
+
+export const notificationService = {
+  subscribe(listener: NotificationListener) {
+    ensureHydrated();
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  },
+
+  getSnapshot,
+
+  getServerSnapshot(): Notification[] {
+    return [];
+  },
+
+  refresh(): void {
+    ensureHydrated();
+    notifySubscribers();
+  },
 
   getNotificationById(id: string): Notification | undefined {
-    return this.notifications.find(n => n.id === id);
-  }
-
-  getFilteredNotifications(filters: NotificationFilters): Notification[] {
-    let filtered = [...this.notifications];
-
-    // Search filter
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(n => 
-        n.title.toLowerCase().includes(searchLower) ||
-        n.message.toLowerCase().includes(searchLower) ||
-        n.sourceModule.toLowerCase().includes(searchLower)
-      );
-    }
-
-    // Type filter
-    if (filters.type) {
-      filtered = filtered.filter(n => n.type === filters.type);
-    }
-
-    // Priority filter
-    if (filters.priority) {
-      filtered = filtered.filter(n => n.priority === filters.priority);
-    }
-
-    // Status filter
-    if (filters.status) {
-      filtered = filtered.filter(n => n.status === filters.status);
-    }
-
-    // Date range filter
-    if (filters.dateFrom) {
-      filtered = filtered.filter(n => new Date(n.createdAt) >= new Date(filters.dateFrom!));
-    }
-    if (filters.dateTo) {
-      filtered = filtered.filter(n => new Date(n.createdAt) <= new Date(filters.dateTo!));
-    }
-
-    // Sort by date (newest first)
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    return filtered;
-  }
-
-  getUnreadCount(): number {
-    return this.notifications.filter(n => n.status === 'unread').length;
-  }
+    ensureHydrated();
+    return notifications.find((notification) => notification.id === id);
+  },
 
   createNotification(data: CreateNotificationData): Notification {
     const newNotification: Notification = {
-      id: `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      ...data,
-      status: 'unread',
+      id: generateId(),
+      status: "unread",
       createdAt: new Date().toISOString(),
+      ...data,
     };
 
-    this.notifications.unshift(newNotification);
-    this.saveToStorage();
-
-    // Dispatch custom event for real-time updates
-    window.dispatchEvent(new CustomEvent('notification-created', { 
-      detail: newNotification 
-    }));
+    mutateNotifications((draft) => {
+      draft.unshift(newNotification);
+    });
 
     return newNotification;
-  }
+  },
 
   markAsRead(id: string): boolean {
-    const notification = this.notifications.find(n => n.id === id);
-    if (notification && notification.status === 'unread') {
-      notification.status = 'read';
-      notification.readAt = new Date().toISOString();
-      this.saveToStorage();
+    let updated = false;
 
-      // Dispatch custom event
-      window.dispatchEvent(new CustomEvent('notification-updated', { 
-        detail: notification 
-      }));
+    mutateNotifications((draft) => {
+      const index = draft.findIndex((notification) => notification.id === id);
+      if (index === -1) {
+        return;
+      }
 
-      return true;
-    }
-    return false;
-  }
+      const current = draft[index];
+      if (current.status !== "unread") {
+        return;
+      }
+
+      draft[index] = {
+        ...current,
+        status: "read",
+        readAt: new Date().toISOString(),
+      };
+
+      updated = true;
+    });
+
+    return updated;
+  },
 
   markAllAsRead(): number {
     let count = 0;
-    const now = new Date().toISOString();
-    
-    this.notifications.forEach(n => {
-      if (n.status === 'unread') {
-        n.status = 'read';
-        n.readAt = now;
-        count++;
-      }
+
+    mutateNotifications((draft) => {
+      const timestamp = new Date().toISOString();
+      draft.forEach((notification, index) => {
+        if (notification.status === "unread") {
+          draft[index] = {
+            ...notification,
+            status: "read",
+            readAt: timestamp,
+          };
+          count += 1;
+        }
+      });
     });
 
-    if (count > 0) {
-      this.saveToStorage();
-      window.dispatchEvent(new CustomEvent('notifications-bulk-updated'));
-    }
-
     return count;
-  }
+  },
 
   deleteNotification(id: string): boolean {
-    const index = this.notifications.findIndex(n => n.id === id);
-    if (index !== -1) {
-      this.notifications.splice(index, 1);
-      this.saveToStorage();
+    let deleted = false;
 
-      window.dispatchEvent(new CustomEvent('notification-deleted', { 
-        detail: { id } 
-      }));
-
-      return true;
-    }
-    return false;
-  }
-
-  deleteMultipleNotifications(ids: string[]): number {
-    let count = 0;
-    ids.forEach(id => {
-      const index = this.notifications.findIndex(n => n.id === id);
-      if (index !== -1) {
-        this.notifications.splice(index, 1);
-        count++;
+    mutateNotifications((draft) => {
+      const next = draft.filter((notification) => notification.id !== id);
+      if (next.length !== draft.length) {
+        deleted = true;
+        draft.splice(0, draft.length, ...next);
       }
     });
 
-    if (count > 0) {
-      this.saveToStorage();
-      window.dispatchEvent(new CustomEvent('notifications-bulk-updated'));
-    }
+    return deleted;
+  },
 
-    return count;
-  }
+  deleteMultipleNotifications(ids: string[]): number {
+    const removalSet = new Set(ids);
+    let deleted = 0;
+
+    mutateNotifications((draft) => {
+      const next = draft.filter((notification) => {
+        if (removalSet.has(notification.id)) {
+          deleted += 1;
+          return false;
+        }
+        return true;
+      });
+
+      if (deleted > 0) {
+        draft.splice(0, draft.length, ...next);
+      }
+    });
+
+    return deleted;
+  },
 
   archiveNotification(id: string): boolean {
-    const notification = this.notifications.find(n => n.id === id);
-    if (notification) {
-      notification.status = 'archived';
-      this.saveToStorage();
+    let archived = false;
 
-      window.dispatchEvent(new CustomEvent('notification-updated', { 
-        detail: notification 
-      }));
+    mutateNotifications((draft) => {
+      const index = draft.findIndex((notification) => notification.id === id);
+      if (index === -1) {
+        return;
+      }
 
-      return true;
-    }
-    return false;
-  }
+      draft[index] = {
+        ...draft[index],
+        status: "archived",
+      };
+      archived = true;
+    });
+
+    return archived;
+  },
 
   clearAll(): void {
-    this.notifications = [];
-    this.saveToStorage();
-    window.dispatchEvent(new CustomEvent('notifications-bulk-updated'));
-  }
-}
+    setNotifications([]);
+  },
+};
 
-export const notificationService = new NotificationService();
+export type NotificationService = typeof notificationService;

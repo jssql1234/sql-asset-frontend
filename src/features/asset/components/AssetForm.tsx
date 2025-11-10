@@ -549,7 +549,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         purchaseDate: editingAsset.purchaseDate,
         cost: editingAsset.cost.toString(),
         quantity: editingAsset.qty || 1,
-        quantityPerUnit: 1,
+        quantityPerUnit: editingAsset.quantityPerUnit || 1,
         inactive: !editingAsset.active,
         // Keep defaults for other fields
         depreciationMethod: "Straight Line",
@@ -905,6 +905,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           purchaseDate: '',
           cost: Number(data.cost ?? '0') || 0,
           qty: 1,
+          quantityPerUnit: data.quantityPerUnit || 1,
           active: !data.inactive,
         });
       }
@@ -922,6 +923,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         cost: Number(data.cost ?? '0') || 0,
         active: !data.inactive,
         qty: 1,
+        quantityPerUnit: data.quantityPerUnit || 1,
       };
 
       const updatePayloads = batchAssets.map(asset => ({ id: asset.id, ...updatePartial }));

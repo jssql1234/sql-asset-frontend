@@ -41,30 +41,30 @@ export interface LoadPaymentScheduleParams {
   startDate: string;
 }
 
-/**
- * Mock service for HP payment calculations
- * TODO: Replace with actual backend API calls when available
- */
+
 export const hpPaymentService = {
-  /**
-   * Load payment schedule data
-   * Currently uses simplified calculations - will be replaced with backend API
-   */
   loadPaymentSchedule(params: LoadPaymentScheduleParams): Promise<HPPaymentData> {
     const { depositAmount, interestRate, numberOfInstalments, totalCost, startDate } = params;
 
     // TODO: Get from global settings when implemented
     const financialStartDate = "01-01"; // Default to Jan 1st as financial year start
 
-    // Mock calculation - simplified amortization formula
-    // TODO: Replace with actual backend calculation logic
+    // Calculation based on flat-rate interest for Hire Purchase
     const financedAmount = totalCost - depositAmount;
-    const monthlyInterestRate = interestRate / 100 / 12;
+    const termInYears = numberOfInstalments / 12;
 
-    // Simple monthly payment calculation (approximate)
-    const monthlyPayment = financedAmount * (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfInstalments)) /
-                          (Math.pow(1 + monthlyInterestRate, numberOfInstalments) - 1);
+    // 1. Calculate total interest using flat rate
+    const totalInterest = financedAmount * (interestRate / 100) * termInYears;
 
+    // 2. Calculate total amount to be repaid
+    const totalRepayment = financedAmount + totalInterest;
+
+    // 3. Calculate the constant monthly instalment
+    const monthlyInstalment = totalRepayment / numberOfInstalments;
+
+    // 4. Calculate the Sum of Digits for the Rule of 78s
+    const sumOfDigits = (numberOfInstalments * (numberOfInstalments + 1)) / 2;
+    
     const paymentSchedule: PaymentRow[] = [];
     let outstandingPrincipal = financedAmount;
 
@@ -74,10 +74,12 @@ export const hpPaymentService = {
     const fsdMonthIndex = fsdMonth - 1; // Convert to 0-based
 
     for (let i = 1; i <= numberOfInstalments; i++) {
-      const interestAmount = outstandingPrincipal * monthlyInterestRate;
-      const principalAmount = monthlyPayment - interestAmount;
-      outstandingPrincipal -= principalAmount;
+      // Calculate interest for the current month using the Rule of 78s
+      const remainingInstalments = numberOfInstalments - (i - 1);
+      const interestForMonth = totalInterest * (remainingInstalments / sumOfDigits);
+      const principalForMonth = monthlyInstalment - interestForMonth;
 
+      outstandingPrincipal -= principalForMonth;
       // Calculate financial year and month for this instalment
       const instalmentDate = new Date(startDateObj);
       instalmentDate.setMonth(startDateObj.getMonth() + (i - 1));
@@ -99,9 +101,9 @@ export const hpPaymentService = {
         ya: financialYear,
         month: financialMonth,
         instalmentNumber: i,
-        principalAmount: Math.round(principalAmount * 100) / 100,
-        interestAmount: Math.round(interestAmount * 100) / 100,
-        totalInstalmentAmount: Math.round(monthlyPayment * 100) / 100,
+        principalAmount: Math.round(principalForMonth * 100) / 100,
+        interestAmount: Math.round(interestForMonth * 100) / 100,
+        totalInstalmentAmount: Math.round(monthlyInstalment * 100) / 100,
         outstandingPrincipal: Math.round(Math.max(0, outstandingPrincipal) * 100) / 100,
       });
     }

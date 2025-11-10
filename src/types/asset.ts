@@ -8,5 +8,6 @@ export interface Asset {
   purchaseDate: string;
   cost: number;
   qty: number;
+  quantityPerUnit: number;
   active: boolean;
 }

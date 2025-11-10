@@ -13,10 +13,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Actual sidebar */}
         <AppSidebar />
         {/* Main content area (Right side of sidebar) */}
-        <SidebarInset>  
-          
-          {/* Sticky header with menu icon, breadcrumbs, and notification bell */}
-          <header className="sticky top-0 left-0 right-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <SidebarInset>
+          {/* Fixed header with menu icon and notification bell */}
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 z-10">
             <div className="flex flex-1 items-center gap-2 px-4 min-w-0">
               <SidebarTrigger className="-ml-1 shrink-0" />
             </div>

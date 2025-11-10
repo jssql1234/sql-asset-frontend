@@ -29,15 +29,17 @@ const ClaimPage = () => {
 
   const [claimToDelete, setClaimToDelete] = useState<CoverageClaim | null>(null);
   const [warrantyClaimData, setWarrantyClaimData] = useState<Record<string, unknown> | null>(null);
+  const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
   
   // Track if we've already processed a warranty notification to prevent reopening modal
   const processedWarrantyRef = useRef(false);
 
   // Handle navigation state from warranty notifications
   useEffect(() => {
-    const state = location.state as { openClaimForm?: boolean; warrantyData?: Record<string, unknown> } | null;
+    const state = location.state as { openClaimForm?: boolean; warrantyData?: Record<string, unknown>; notificationId?: string } | null;
     if (state?.openClaimForm && state.warrantyData && !processedWarrantyRef.current) {
       setWarrantyClaimData(state.warrantyData);
+      setNotificationId(state.notificationId);
       openClaimForm();
       processedWarrantyRef.current = true;
       // Clear the navigation state
@@ -45,7 +47,7 @@ const ClaimPage = () => {
     }
   }, [location.state, openClaimForm]);
 
-  const createClaim = useCreateClaim(closeClaimForm);
+  const createClaim = useCreateClaim(closeClaimForm, notificationId);
   const updateClaim = useUpdateClaim(closeClaimForm);
   const deleteClaim = useDeleteClaim(hideClaimDetails);
 

@@ -12,7 +12,6 @@ const NotificationPage = () => {
   const [filters, setFilters] = useState<NotificationFilters>({
     search: "",
     type: "",
-    priority: "",
     status: "",
   });
 
@@ -22,10 +21,10 @@ const NotificationPage = () => {
     groupedNotifications,
     unreadCount,
     filteredUnreadCount,
-    handleMarkAsRead,
-    handleMarkAllAsRead,
-    handleDelete,
-    handleClearAll,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
   } = useNotifications(filters);
 
   const handleFilterChange = (key: keyof NotificationFilters, value: string) => {
@@ -41,13 +40,17 @@ const NotificationPage = () => {
           actions={[
             {
               label: `Mark All as Read (${String(filteredUnreadCount)})`,
-              onAction: handleMarkAllAsRead,
+              onAction: () => {
+                markAllAsRead();
+              },
               disabled: filteredUnreadCount === 0,
               icon: <CheckCheck className="size-4" />,
             },
             {
               label: "Clear All",
-              onAction: handleClearAll,
+              onAction: () => {
+                clearAll();
+              },
               disabled: notifications.length === 0,
               icon: <Trash2 className="size-4" />,
               variant: "destructive",
@@ -80,7 +83,7 @@ const NotificationPage = () => {
                 <CheckCheck className="size-12 mx-auto text-onSurfaceVariant opacity-50 mb-3" />
                 <h3 className="text-lg font-medium text-onSurface mb-1">No Notifications</h3>
                 <p className="text-sm text-onSurfaceVariant">
-                  {filters.search || filters.type || filters.priority || filters.status
+                  {filters.search || filters.type || filters.status
                     ? "No notifications match your filters"
                     : "You're all caught up!"}
                 </p>
@@ -92,8 +95,8 @@ const NotificationPage = () => {
                 <NotificationGroup
                   key={group.date}
                   group={group}
-                  onMarkAsRead={handleMarkAsRead}
-                  onDelete={handleDelete}
+                  onMarkAsRead={markAsRead}
+                  onDelete={deleteNotification}
                 />
               ))}
             </div>

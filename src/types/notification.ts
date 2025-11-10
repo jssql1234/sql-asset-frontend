@@ -1,5 +1,4 @@
 export type {
-  NotificationPriority,
   NotificationStatus,
   NotificationType,
   Notification,

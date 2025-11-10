@@ -24,7 +24,7 @@ export const NotificationBell = () => {
   const prevUnreadCountRef = useRef(unreadCount);
 
   const recentNotifications = useMemo(() => {
-    return sortNotificationsByDate(filteredNotifications).slice(0, 4);
+    return sortNotificationsByDate(filteredNotifications).slice(0, 10);
   }, [filteredNotifications]);
 
   // Auto-open dropdown when new notifications arrive
@@ -124,7 +124,13 @@ export const NotificationBell = () => {
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-[440px] rounded-2xl bg-white shadow-2xl z-50 overflow-hidden">
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/10 animate-in fade-in-0 duration-200 z-40"
+            onClick={() => { setIsOpen(false); }}
+          />
+          <div className="absolute right-0 mt-2 w-[440px] rounded-2xl bg-white shadow-2xl z-50 overflow-hidden">
           {/* Header */}
           <div className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between mb-4">
@@ -237,7 +243,8 @@ export const NotificationBell = () => {
               See all notifications
             </button>
           </div>
-        </div>
+          </div>
+        </>
       )}
     </div>
   );

@@ -101,7 +101,7 @@ const ForestDisposalForm: React.FC<ForestDisposalFormProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                    <label htmlFor="forest-disposal-date" className="block text-sm font-medium text-onBackground">
+                    <label htmlFor="forest-disposal-date" className="block text-sm font-medium text-onBackground ">
                         Disposal Date <span className="text-error">*</span>
                     </label>
                     <SemiDatePicker
@@ -178,6 +178,23 @@ const ForestDisposalForm: React.FC<ForestDisposalFormProps> = ({
                 </div>
             </div>
         
+            {/* Warning Messages */}
+          {data.assetScrapped && (
+            <div className="bg-warningContainer border border-warning rounded-md p-4">
+              <div className="text-onWarningContainer text-sm">
+                <strong>Note:</strong> Asset scrapped - disposal value is set to 0.
+              </div>
+            </div>
+          )}
+
+          {data.controlledDisposal && (
+            <div className="bg-primaryContainer border border-primary rounded-md p-4">
+              <div className="text-onPrimaryContainer text-sm">
+                Special rules apply for controlled disposal transactions.
+              </div>
+            </div>
+          )}
+
             <div className="flex justify-between pt-4">
                 <Button
                     variant="outline"

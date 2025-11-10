@@ -70,7 +70,7 @@ export const disposalService = {
         return {
           balancingAllowance: 0,
           balancingCharge: 0,
-          writtenDownValue: assetData.totalCAClaimed,
+          writtenDownValue: assetData.originalCost - assetData.totalCAClaimed,
           taxTreatment: 'No Charge - Controlled Disposal',
           clawbackAmount: 0,
           netTaxEffect: 0,
@@ -82,7 +82,7 @@ export const disposalService = {
         return {
           balancingAllowance: 0,
           balancingCharge: 0,
-          writtenDownValue: assetData.totalCAClaimed,
+          writtenDownValue: assetData.originalCost - assetData.totalCAClaimed,
           taxTreatment: 'No Charge - Asset Scrapped',
           clawbackAmount: 0,
           netTaxEffect: 0,
@@ -96,7 +96,7 @@ export const disposalService = {
       return {
         balancingAllowance: 0,
         balancingCharge: clawbackAmount,
-        writtenDownValue: assetData.totalCAClaimed,
+        writtenDownValue: assetData.originalCost - assetData.totalCAClaimed,
         taxTreatment: 'Balancing Charge - Full Clawback',
         clawbackAmount: clawbackAmount,
         netTaxEffect: -clawbackAmount, // Negative because it's a charge
@@ -109,7 +109,7 @@ export const disposalService = {
         return {
           balancingAllowance: 0,
           balancingCharge: 0,
-          writtenDownValue: assetData.totalCAClaimed,
+          writtenDownValue: assetData.originalCost - assetData.totalCAClaimed,
           taxTreatment: isControlledDisposal ? 'No Charge - Controlled Disposal' : 'No Charge - Asset Scrapped',
           clawbackAmount: 0,
           netTaxEffect: 0,
@@ -122,7 +122,7 @@ export const disposalService = {
       return {
         balancingAllowance: 0,
         balancingCharge: clawbackAmount,
-        writtenDownValue: assetData.totalCAClaimed,
+        writtenDownValue: assetData.originalCost - assetData.totalCAClaimed,
         taxTreatment: 'Balancing Charge - Agriculture',
         clawbackAmount: clawbackAmount,
         netTaxEffect: -clawbackAmount,

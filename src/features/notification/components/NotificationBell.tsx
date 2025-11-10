@@ -21,10 +21,19 @@ export const NotificationBell = () => {
     deleteNotification,
   } = useNotifications(activeTab === "unread" ? UNREAD_FILTER : undefined);
   const navigate = useNavigate();
+  const prevUnreadCountRef = useRef(unreadCount);
 
   const recentNotifications = useMemo(() => {
     return sortNotificationsByDate(filteredNotifications).slice(0, 4);
   }, [filteredNotifications]);
+
+  // Auto-open dropdown when new notifications arrive
+  useEffect(() => {
+    if (unreadCount > prevUnreadCountRef.current) {
+      setIsOpen(true);
+    }
+    prevUnreadCountRef.current = unreadCount;
+  }, [unreadCount]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

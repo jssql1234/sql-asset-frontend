@@ -17,7 +17,6 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
   onEditLocation,
   onDeleteLocation,
   displayedColumns,
-  handleColumnOrderChange,
 }) => {
 
   const rowActions: RowAction<Location>[] = [
@@ -39,14 +38,21 @@ export const LocationsTable: React.FC<LocationsTableProps> = ({
   const columnsWithActions = displayedColumns;
 
   return (
-    <div className="w-full [&_thead_th]:bg-gray-100">
-      <DataTableExtended
-        columns={columnsWithActions}
-        data={locations}
-        showPagination
-        onColumnOrderChange={handleColumnOrderChange}
-        rowActions={rowActions}
-      />
+    <div>
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
+        <DataTableExtended
+          columns={columnsWithActions}
+          data={locations}
+          showPagination
+          rowActions={rowActions}
+        />
+      </div>
     </div>
   );
 };

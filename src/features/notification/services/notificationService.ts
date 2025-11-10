@@ -2,77 +2,42 @@ import { createMockNotifications } from "../mockData";
 import { sortNotificationsByDate } from "../utils/notificationUtils";
 import type { CreateNotificationData, Notification, NotificationListener } from "../types";
 
-const STORAGE_KEY = "sql_asset_notifications";
-const isBrowser = typeof window !== "undefined";
-
 let notifications: Notification[] = [];
-let hydrated = false;
+let initialized = false;
 const listeners = new Set<NotificationListener>();
 
 const clone = (items: Notification[]): Notification[] => items.map((item) => ({ ...item }));
 
-const readFromStorage = (): Notification[] => {
-  if (!isBrowser) {
-    return sortNotificationsByDate(createMockNotifications());
-  }
-
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (!stored) {
-      return sortNotificationsByDate(createMockNotifications());
-    }
-
-    const parsed = JSON.parse(stored) as Notification[];
-    return sortNotificationsByDate(parsed);
-  } catch (error) {
-    console.error("Failed to load notifications from storage", error);
-    return sortNotificationsByDate(createMockNotifications());
-  }
-};
-
-const persist = () => {
-  if (!isBrowser) {
+const initializeMockData = (): void => {
+  if (initialized) {
     return;
   }
 
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notifications));
-  } catch (error) {
-    console.error("Failed to persist notifications", error);
-  }
-};
-
-const ensureHydrated = () => {
-  if (hydrated) {
-    return;
-  }
-
-  notifications = readFromStorage();
-  hydrated = true;
+  notifications = sortNotificationsByDate(createMockNotifications());
+  initialized = true;
 };
 
 const notifySubscribers = () => {
-  persist();
   listeners.forEach((listener) => {
     listener();
   });
 };
 
 const setNotifications = (next: Notification[]) => {
-  ensureHydrated();
+  initializeMockData();
   notifications = sortNotificationsByDate(next);
   notifySubscribers();
 };
 
 const mutateNotifications = (updater: (draft: Notification[]) => void) => {
-  ensureHydrated();
+  initializeMockData();
   const draft = clone(notifications);
   updater(draft);
   setNotifications(draft);
 };
 
 const generateId = () => {
-  if (isBrowser && typeof crypto !== "undefined" && "randomUUID" in crypto) {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
   }
 
@@ -80,13 +45,13 @@ const generateId = () => {
 };
 
 const getSnapshot = (): readonly Notification[] => {
-  ensureHydrated();
+  initializeMockData();
   return notifications;
 };
 
 export const notificationService = {
   subscribe(listener: NotificationListener) {
-    ensureHydrated();
+    initializeMockData();
     listeners.add(listener);
     return () => {
       listeners.delete(listener);
@@ -100,12 +65,12 @@ export const notificationService = {
   },
 
   refresh(): void {
-    ensureHydrated();
+    initializeMockData();
     notifySubscribers();
   },
 
   getNotificationById(id: string): Notification | undefined {
-    ensureHydrated();
+    initializeMockData();
     return notifications.find((notification) => notification.id === id);
   },
 

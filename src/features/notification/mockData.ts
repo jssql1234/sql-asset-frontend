@@ -1,7 +1,5 @@
 import type { Notification } from "./types";
 
-const now = () => new Date().toISOString();
-
 const subtractHours = (hours: number) => {
   const date = new Date();
   date.setHours(date.getHours() - hours);
@@ -38,7 +36,7 @@ export const createMockNotifications = (): Notification[] => [
     message: "Engine hours for Bulldozer BD-002 exceeded 5,000 hours.",
     sourceModule: "meter",
     sourceId: "BD-002",
-    actionUrl: "/meter",
+    actionUrl: "/meter-reading",
     actionLabel: "Review meter",
     metadata: { currentReading: 5050, threshold: 5000 },
     createdAt: subtractHours(6),
@@ -66,7 +64,7 @@ export const createMockNotifications = (): Notification[] => [
     message: "Forklift FK-005 has been offline for 48 hours.",
     sourceModule: "downtime",
     sourceId: "FK-005",
-    actionUrl: "/downtime",
+    actionUrl: "/downtime-tracking",
     actionLabel: "Investigate downtime",
     createdAt: subtractDays(2),
   },
@@ -83,17 +81,5 @@ export const createMockNotifications = (): Notification[] => [
     actionLabel: "View request",
     createdAt: subtractDays(5),
     readAt: subtractDays(4),
-  },
-  {
-    id: "notif-6",
-    type: "reminder",
-    priority: "medium",
-    status: "unread",
-    title: "Monthly Safety Checklist",
-    message: "Submit the monthly safety checklist for Plant A.",
-    sourceModule: "system",
-    actionUrl: "/safety",
-    actionLabel: "Complete checklist",
-    createdAt: now(),
   },
 ];

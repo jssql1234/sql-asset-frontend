@@ -58,7 +58,6 @@ const MaintainLocationPage: React.FC = () => {
     filters,
     editingLocation,
     updateFilters,
-    handleAddLocation,
     handleDeleteMultipleLocations,
     handleSaveLocation,
   } = useLocations();
@@ -106,7 +105,14 @@ const MaintainLocationPage: React.FC = () => {
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <div className="flex items-center justify-between">
           <TabHeader title="Location Management" subtitle="Manage locations and related information" />
-          <Button size="sm" onClick={handleAddLocation} className="flex items-center gap-2">
+          <Button
+            size="sm"
+            onClick={() => {
+              setSelectedLocation(null);
+              setModals((prev) => ({ ...prev, editLocation: true }));
+            }}
+            className="flex items-center gap-2"
+          >
             <Plus className="h-4 w-4" />
             Add Location
           </Button>

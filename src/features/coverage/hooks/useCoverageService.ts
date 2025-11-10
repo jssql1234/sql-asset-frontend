@@ -252,7 +252,7 @@ export function useGetClaimSummary() {
   });
 }
 
-export function useCreateClaim(onSuccess?: () => void) {
+export function useCreateClaim(onSuccess?: () => void, notificationId?: string) {
   const queryClient = useQueryClient();
   const { addToast } = useToast();
 
@@ -260,6 +260,13 @@ export function useCreateClaim(onSuccess?: () => void) {
     mutationFn: coverageService.createClaim,
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
+
+      // Remove the warranty notification if it exists
+      if (notificationId) {
+        // Import notificationService dynamically to avoid circular dependencies
+        const { notificationService } = await import("@/features/notification/services/notificationService");
+        notificationService.deleteNotification(notificationId);
+      }
 
       addToast({
         variant: "success",

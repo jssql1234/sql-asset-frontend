@@ -56,7 +56,8 @@ export const NotificationBell = () => {
         void navigate("/insurance?tab=claims", {
           state: { 
             openClaimForm: true,
-            warrantyData: notification.metadata
+            warrantyData: notification.metadata,
+            notificationId: notification.id
           }
         });
       } else {

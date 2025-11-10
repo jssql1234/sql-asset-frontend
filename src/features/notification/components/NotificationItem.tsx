@@ -43,7 +43,8 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
         void navigate("/insurance?tab=claims", {
           state: { 
             openClaimForm: true,
-            warrantyData: notification.metadata
+            warrantyData: notification.metadata,
+            notificationId: notification.id
           }
         });
       } else {

@@ -1,10 +1,11 @@
-import type { MouseEvent } from "react";
+import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, Bell, CheckCircle2, FileText, Gauge, Info, Shield, Trash2, Wrench } from "lucide-react";
 import { cn } from "@/utils/utils";
 import type { Notification } from "../types";
-import { formatRelativeTime, getPriorityBorder, getPriorityIndicator, getPriorityTone } from "../utils/notificationUtils";
+import { formatRelativeTime } from "../utils/notificationUtils";
+import { navigateForNotification } from "../utils/notificationNavigation";
 
 interface NotificationItemProps {
   notification: Notification;
@@ -28,40 +29,39 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
   const navigate = useNavigate();
   const Icon = TYPE_ICON_MAP[notification.type];
 
-  const handleNavigate = () => {
+  const handleNavigate = useCallback(() => {
     if (notification.status === "unread") {
       onMarkAsRead(notification.id);
     }
-    if (notification.actionUrl) {
-      // For work order notifications, pass the work order ID to open detail view
-      if (notification.type === "work_order" && notification.sourceId) {
-        void navigate(notification.actionUrl, {
-          state: { workOrderId: notification.sourceId, openDetail: true }
-        });
-      } else if (notification.type === "warranty") {
-        // For warranty notifications, navigate to coverage page claim tab with prefilled data
-        void navigate("/insurance?tab=claims", {
-          state: { 
-            openClaimForm: true,
-            warrantyData: notification.metadata,
-            notificationId: notification.id
-          }
-        });
-      } else {
-        void navigate(notification.actionUrl);
+
+    navigateForNotification(notification, navigate);
+  }, [navigate, notification, onMarkAsRead]);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        handleNavigate();
       }
-    }
-  };
+    },
+    [handleNavigate],
+  );
 
-  const handleMarkAsRead = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onMarkAsRead(notification.id);
-  };
+  const handleMarkAsRead = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      onMarkAsRead(notification.id);
+    },
+    [notification.id, onMarkAsRead],
+  );
 
-  const handleDelete = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    onDelete(notification.id);
-  };
+  const handleDelete = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
+      onDelete(notification.id);
+    },
+    [notification.id, onDelete],
+  );
 
   const timestampLabel = formatRelativeTime(notification.createdAt);
 
@@ -76,32 +76,10 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
       onClick={handleNavigate}
       role="button"
       tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          handleNavigate();
-        }
-      }}
-      aria-pressed={notification.status !== "unread"}
+      onKeyDown={handleKeyDown}
     >
-      {notification.status === "unread" && (
-        <span
-          aria-hidden="true"
-          className={cn(
-            "absolute left-0 top-4 bottom-4 w-1 rounded-r",
-            getPriorityIndicator(notification.priority),
-          )}
-        />
-      )}
-
-      <div
-        className={cn(
-          "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border",
-          getPriorityTone(notification.priority),
-          getPriorityBorder(notification.priority),
-        )}
-      >
-        <Icon aria-hidden="true" className="size-5" />
+      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border border-gray-100 bg-gray-100">
+        <Icon aria-hidden="true" className="size-5 text-gray-600" />
         <span className="sr-only">{notification.type.replace(/_/g, " ")}</span>
       </div>
 
@@ -132,15 +110,6 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
                 {notification.sourceId}
               </span>
             )}
-            <span
-              className={cn(
-                "rounded-full border px-2 py-0.5 font-medium uppercase tracking-wide",
-                getPriorityBorder(notification.priority),
-                getPriorityTone(notification.priority),
-              )}
-            >
-              {notification.priority}
-            </span>
           </div>
 
           <div className="flex items-center gap-2">

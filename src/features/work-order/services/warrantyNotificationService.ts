@@ -68,7 +68,6 @@ export const checkAndNotifyWarranty = (
 
       notificationService.createNotification({
         type: "warranty",
-        priority: "medium",
         title: `Warranty Available for Work Order ${workOrderId}`,
         message: `Asset(s) ${assetNames.join(", ")} under warranty "${warranty.name}" (${warranty.provider}). You may file a warranty claim before proceeding with repairs.`,
         sourceModule: "work-order",

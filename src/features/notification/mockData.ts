@@ -16,7 +16,6 @@ export const createMockNotifications = (): Notification[] => [
   {
     id: "notif-1",
     type: "work_order",
-    priority: "high",
     status: "unread",
     title: "Work Order WO-001 Assigned",
     message: "You have been assigned to repair Excavator EXC-001.",
@@ -30,7 +29,6 @@ export const createMockNotifications = (): Notification[] => [
   {
     id: "notif-2",
     type: "meter_reading",
-    priority: "urgent",
     status: "unread",
     title: "Meter Reading Threshold Reached",
     message: "Engine hours for Bulldozer BD-002 exceeded 5,000 hours.",
@@ -44,7 +42,6 @@ export const createMockNotifications = (): Notification[] => [
   {
     id: "notif-3",
     type: "maintenance",
-    priority: "medium",
     status: "read",
     title: "Scheduled Maintenance Due",
     message: "Preventive maintenance for Generator GEN-003 is due in 3 days.",
@@ -58,7 +55,6 @@ export const createMockNotifications = (): Notification[] => [
   {
     id: "notif-4",
     type: "asset_alert",
-    priority: "urgent",
     status: "unread",
     title: "Asset Downtime Alert",
     message: "Forklift FK-005 has been offline for 48 hours.",
@@ -71,7 +67,6 @@ export const createMockNotifications = (): Notification[] => [
   {
     id: "notif-5",
     type: "approval",
-    priority: "low",
     status: "read",
     title: "Work Request WR-2025-015 Approved",
     message: "The work request has been converted into a work order.",

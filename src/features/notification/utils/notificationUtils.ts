@@ -1,4 +1,4 @@
-import type { Notification, NotificationFilters, NotificationGroup, NotificationPriority, NotificationType } from "../types";
+import type { Notification, NotificationFilters, NotificationGroup } from "../types";
 
 export const sortNotificationsByDate = (items: readonly Notification[]): Notification[] =>
   [...items].sort(
@@ -28,10 +28,6 @@ export const filterNotifications = (
     }
 
     if (filters.type && notification.type !== filters.type) {
-      return false;
-    }
-
-    if (filters.priority && notification.priority !== filters.priority) {
       return false;
     }
 
@@ -133,44 +129,3 @@ export const describeGroupDate = (input: string): string => {
     year: date.getFullYear() === today.getFullYear() ? undefined : "numeric",
   });
 };
-
-const PRIORITY_TONE: Record<NotificationPriority, string> = {
-  low: "text-blue-600 bg-blue-50",
-  medium: "text-yellow-700 bg-yellow-50",
-  high: "text-orange-700 bg-orange-50",
-  urgent: "text-red-700 bg-red-50",
-};
-
-const PRIORITY_BORDER: Record<NotificationPriority, string> = {
-  low: "border-blue-200",
-  medium: "border-yellow-200",
-  high: "border-orange-200",
-  urgent: "border-red-200",
-};
-
-const PRIORITY_INDICATOR: Record<NotificationPriority, string> = {
-  low: "bg-blue-500",
-  medium: "bg-yellow-500",
-  high: "bg-orange-500",
-  urgent: "bg-red-500",
-};
-
-export const getPriorityTone = (priority: NotificationPriority): string => PRIORITY_TONE[priority];
-
-export const getPriorityBorder = (priority: NotificationPriority): string => PRIORITY_BORDER[priority];
-
-export const getPriorityIndicator = (priority: NotificationPriority): string => PRIORITY_INDICATOR[priority];
-
-export const typeIconMap: Record<NotificationType, string> = {
-  work_order: "🔧",
-  work_request: "📋",
-  maintenance: "⚙️",
-  meter_reading: "📊",
-  asset_alert: "⚠️",
-  system: "ℹ️",
-  approval: "✅",
-  reminder: "⏰",
-  warranty: "🛡️",
-};
-
-export const getNotificationEmoji = (type: NotificationType): string => typeIconMap[type];

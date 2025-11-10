@@ -1,11 +1,24 @@
-import { useMemo, useCallback } from "react";
+import { useCallback, useMemo } from "react";
+import { useToast } from "@/components/ui/components/Toast/useToast";
 import type { NotificationFilters } from "../types";
 import { filterNotifications, groupNotificationsByDate } from "../utils/notificationUtils";
 import { useNotificationContext } from "./useNotificationContext";
-import { useToast } from "@/components/ui/components/Toast/useToast";
 
 export const useNotifications = (filters?: NotificationFilters) => {
-  const { notifications, unreadCount, ...actions } = useNotificationContext();
+  const {
+    notifications,
+    unreadCount,
+    refresh,
+    createNotification,
+    markAsRead: markAsReadBase,
+    markAllAsRead: markAllAsReadBase,
+    deleteNotification: deleteNotificationBase,
+    deleteNotifications,
+    archiveNotification,
+    clearAll: clearAllBase,
+    getNotificationById,
+  } = useNotificationContext();
+
   const { addToast } = useToast();
 
   const filteredNotifications = useMemo(() => {
@@ -26,12 +39,15 @@ export const useNotifications = (filters?: NotificationFilters) => {
     [filteredNotifications],
   );
 
-  const handleMarkAsRead = useCallback((id: string) => {
-    actions.markAsRead(id);
-  }, [actions]);
+  const markAsRead = useCallback(
+    (id: string) => {
+      markAsReadBase(id);
+    },
+    [markAsReadBase],
+  );
 
-  const handleMarkAllAsRead = useCallback(() => {
-    const count = actions.markAllAsRead();
+  const markAllAsRead = useCallback(() => {
+    const count = markAllAsReadBase();
     if (count > 0) {
       addToast({
         title: "Notifications Marked as Read",
@@ -40,29 +56,42 @@ export const useNotifications = (filters?: NotificationFilters) => {
         duration: 3000,
       });
     }
-  }, [actions, addToast]);
+    return count;
+  }, [addToast, markAllAsReadBase]);
 
-  const handleDelete = useCallback((id: string) => {
-    const removed = actions.deleteNotification(id);
-    if (removed) {
-      addToast({
-        title: "Notification Deleted",
-        variant: "success",
-        duration: 3000,
-      });
-    }
-  }, [actions, addToast]);
+  const deleteNotification = useCallback(
+    (id: string) => {
+      const removed = deleteNotificationBase(id);
+      if (removed) {
+        addToast({
+          title: "Notification Deleted",
+          variant: "success",
+          duration: 3000,
+        });
+      }
+      return removed;
+    },
+    [addToast, deleteNotificationBase],
+  );
 
-  const handleClearAll = useCallback(() => {
-    if (window.confirm("Are you sure you want to clear all notifications? This action cannot be undone.")) {
-      actions.clearAll();
-      addToast({
-        title: "All Notifications Cleared",
-        variant: "success",
-        duration: 3000,
-      });
+  const clearAll = useCallback(() => {
+    const confirmed =
+      typeof window === "undefined"
+        ? true
+        : window.confirm("Are you sure you want to clear all notifications? This action cannot be undone.");
+
+    if (!confirmed) {
+      return false;
     }
-  }, [actions, addToast]);
+
+    clearAllBase();
+    addToast({
+      title: "All Notifications Cleared",
+      variant: "success",
+      duration: 3000,
+    });
+    return true;
+  }, [addToast, clearAllBase]);
 
   return {
     notifications,
@@ -70,10 +99,14 @@ export const useNotifications = (filters?: NotificationFilters) => {
     groupedNotifications,
     unreadCount,
     filteredUnreadCount,
-    handleMarkAsRead,
-    handleMarkAllAsRead,
-    handleDelete,
-    handleClearAll,
-    ...actions,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAll,
+    refresh,
+    createNotification,
+    deleteNotifications,
+    archiveNotification,
+    getNotificationById,
   };
 };

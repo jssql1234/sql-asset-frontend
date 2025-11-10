@@ -1,5 +1,3 @@
-export type NotificationPriority = "low" | "medium" | "high" | "urgent";
-
 export type NotificationStatus = "unread" | "read" | "archived";
 
 export type NotificationType =
@@ -16,7 +14,6 @@ export type NotificationType =
 export interface Notification {
 	id: string;
 	type: NotificationType;
-	priority: NotificationPriority;
 	status: NotificationStatus;
 	title: string;
 	message: string;
@@ -39,7 +36,6 @@ export interface NotificationGroup {
 export interface NotificationFilters {
 	search?: string;
 	type?: NotificationType | "";
-	priority?: NotificationPriority | "";
 	status?: NotificationStatus | "";
 	dateFrom?: string;
 	dateTo?: string;
@@ -47,7 +43,6 @@ export interface NotificationFilters {
 
 export interface CreateNotificationData {
 	type: NotificationType;
-	priority: NotificationPriority;
 	title: string;
 	message: string;
 	sourceModule: string;

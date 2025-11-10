@@ -3,8 +3,8 @@ import { notificationService } from "../services/notificationService";
 import type { CreateNotificationData, Notification } from "../types";
 
 export interface NotificationContextValue {
-  notifications: readonly Notification[];
-  unreadCount: number;
+  readonly notifications: readonly Notification[];
+  readonly unreadCount: number;
   refresh: () => void;
   createNotification: (input: CreateNotificationData) => Notification;
   markAsRead: (id: string) => boolean;
@@ -16,7 +16,7 @@ export interface NotificationContextValue {
   getNotificationById: (id: string) => Notification | undefined;
 }
 
-export const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextValue | undefined>(undefined);
 
 interface NotificationProviderProps {
   readonly children: ReactNode;
@@ -44,8 +44,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   }, []);
 
   const createNotification = useCallback(
-    (input: Parameters<typeof notificationService.createNotification>[0]) =>
-      notificationService.createNotification(input),
+    (input: CreateNotificationData) => notificationService.createNotification(input),
     [],
   );
 
@@ -100,15 +99,15 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     ],
   );
 
-  return createElement(NotificationContext, { value }, children);
+  return createElement(NotificationContext.Provider, { value }, children);
 };
 
 export const useNotificationContext = (): NotificationContextValue => {
-  const value = use(NotificationContext);
+  const context = use(NotificationContext);
 
-  if (!value) {
+  if (!context) {
     throw new Error("useNotificationContext must be used within a NotificationProvider");
   }
 
-  return value;
+  return context;
 };

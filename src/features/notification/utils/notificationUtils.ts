@@ -170,6 +170,7 @@ export const typeIconMap: Record<NotificationType, string> = {
   system: "ℹ️",
   approval: "✅",
   reminder: "⏰",
+  warranty: "🛡️",
 };
 
 export const getNotificationEmoji = (type: NotificationType): string => typeIconMap[type];

@@ -44,14 +44,20 @@ export const NotificationBell = () => {
   }, [isOpen]);
 
   const handleNotificationClick = (notification: Notification) => {
-    console.log("Notification clicked:", notification);
     markAsRead(notification.id);
     if (notification.actionUrl) {
       // For work order notifications, pass the work order ID to open detail view
       if (notification.type === "work_order" && notification.sourceId) {
-        console.log("Navigating to work order with ID:", notification.sourceId);
         void navigate(notification.actionUrl, {
           state: { workOrderId: notification.sourceId, openDetail: true }
+        });
+      } else if (notification.type === "warranty") {
+        // For warranty notifications, navigate to coverage page claim tab with prefilled data
+        void navigate("/insurance?tab=claims", {
+          state: { 
+            openClaimForm: true,
+            warrantyData: notification.metadata
+          }
         });
       } else {
         void navigate(notification.actionUrl);

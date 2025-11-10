@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
@@ -13,6 +14,7 @@ import { useCoverageModals } from "@/features/coverage/hooks/useCoverageModals";
 import { useGetClaimSummary, useCreateClaim, useUpdateClaim, useDeleteClaim } from "@/features/coverage/hooks/useCoverageService";
 
 const ClaimPage = () => {
+  const location = useLocation();
   const { insurances, warranties, claims } = useCoverageContext();
   const {
     modals,
@@ -26,6 +28,22 @@ const ClaimPage = () => {
   const { data: claimSummary = EMPTY_CLAIM_SUMMARY } = useGetClaimSummary();
 
   const [claimToDelete, setClaimToDelete] = useState<CoverageClaim | null>(null);
+  const [warrantyClaimData, setWarrantyClaimData] = useState<Record<string, unknown> | null>(null);
+  
+  // Track if we've already processed a warranty notification to prevent reopening modal
+  const processedWarrantyRef = useRef(false);
+
+  // Handle navigation state from warranty notifications
+  useEffect(() => {
+    const state = location.state as { openClaimForm?: boolean; warrantyData?: Record<string, unknown> } | null;
+    if (state?.openClaimForm && state.warrantyData && !processedWarrantyRef.current) {
+      setWarrantyClaimData(state.warrantyData);
+      openClaimForm();
+      processedWarrantyRef.current = true;
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, openClaimForm]);
 
   const createClaim = useCreateClaim(closeClaimForm);
   const updateClaim = useUpdateClaim(closeClaimForm);
@@ -97,11 +115,13 @@ const ClaimPage = () => {
             openClaimForm(modals.claimEdit ?? undefined);
           } else {
             closeClaimForm();
+            setWarrantyClaimData(null); // Clear warranty data when closing
           }
         }}
         policies={insurances}
         warranties={warranties}
         claim={modals.claimEdit ?? undefined}
+        warrantyPrefillData={warrantyClaimData}
         onCreate={handleCreateClaim}
         onUpdate={handleUpdateClaim}
       />

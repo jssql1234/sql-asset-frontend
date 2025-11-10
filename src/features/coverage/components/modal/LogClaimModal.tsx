@@ -15,6 +15,7 @@ interface LogClaimModalProps {
   policies?: CoverageInsurance[];
   warranties?: CoverageWarranty[];
   claim?: CoverageClaim;
+  warrantyPrefillData?: Record<string, unknown> | null;
   onCreate?: (data: CoverageClaimPayload) => void;
   onUpdate?: (id: string, data: CoverageClaimPayload) => void;
 }
@@ -28,6 +29,7 @@ export const LogClaimModal = ({
   policies,
   warranties,
   claim,
+  warrantyPrefillData,
   onCreate,
   onUpdate,
 }: LogClaimModalProps) => {
@@ -54,6 +56,9 @@ export const LogClaimModal = ({
   );
 
   const [selectedAssetCategory, setSelectedAssetCategory] = useState("all");
+  
+  // Track workOrderId for claims created from warranty notifications
+  const [workOrderId, setWorkOrderId] = useState<string | undefined>(claim?.workOrderId);
   
   type ClaimFormState = Omit<CoverageClaimPayload, "assets">;
   type ClaimField = keyof ClaimFormState | "assets";
@@ -112,23 +117,57 @@ export const LogClaimModal = ({
     if (open) {
       const today = new Date();
 
-      setClaimType(claim?.type ?? "Insurance");
-      setClaimStatus(claim?.status ?? "Filed");
-      setReferenceId(claim?.referenceId ?? "");
+      // Check if we have warranty prefill data from notification
+      if (warrantyPrefillData && !claim) {
+        // Set claim type to Warranty
+        setClaimType("Warranty");
+        setClaimStatus("Filed");
+        
+        // Set the warranty reference ID
+        const warrantyId = warrantyPrefillData.warrantyId as string;
+        const assetIds = warrantyPrefillData.assetIds as string[];
+        const woId = warrantyPrefillData.workOrderId as string;
+        const workOrderDescription = warrantyPrefillData.workOrderDescription as string;
+        
+        setReferenceId(warrantyId);
+        setWorkOrderId(woId); // Store work order ID for claim submission
 
-      setClaimData({
-        claimNumber: claim?.claimNumber ?? "",
-        amount: claim?.amount ?? 0,
-        dateFiled: claim?.dateFiled ?? today.toISOString(),
-        description: claim?.description ?? "",
-      });
-      
-      setAmountInput(claim?.amount.toString() ?? "");
-      setSelectedAssetIds(claim?.assets.map((a) => a.id) ?? []);
-      setSelectedAssetCategory("all");
-      setFieldErrors({});
+        // Prefill description with work order info
+        const description = workOrderDescription 
+          ? `${workOrderDescription} (From Work Order ${woId})`
+          : `Warranty claim from Work Order ${woId}`;
+
+        setClaimData({
+          claimNumber: "", // User needs to fill this
+          amount: 0, // User needs to fill this
+          dateFiled: today.toISOString(),
+          description: description,
+        });
+        
+        setAmountInput("");
+        setSelectedAssetIds(assetIds);
+        setSelectedAssetCategory("all");
+        setFieldErrors({});
+      } else {
+        // Normal claim edit or create mode
+        setClaimType(claim?.type ?? "Insurance");
+        setClaimStatus(claim?.status ?? "Filed");
+        setReferenceId(claim?.referenceId ?? "");
+
+        setClaimData({
+          claimNumber: claim?.claimNumber ?? "",
+          amount: claim?.amount ?? 0,
+          dateFiled: claim?.dateFiled ?? today.toISOString(),
+          description: claim?.description ?? "",
+        });
+        
+        setAmountInput(claim?.amount.toString() ?? "");
+        setSelectedAssetIds(claim?.assets.map((a) => a.id) ?? []);
+        setSelectedAssetCategory("all");
+        setFieldErrors({});
+      }
     }
-  }, [claim, open]);
+  }, [claim, open, warrantyPrefillData]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -143,9 +182,8 @@ export const LogClaimModal = ({
     const reference = references.find(ref => ref.id === referenceId);
     const referenceName = reference?.name ?? "";
     
-    const claimAmount = claimType === "Insurance" 
-      ? (Number.isFinite(claimData.amount) ? claimData.amount : 0) 
-      : (isEditing && claim?.amount ? claim.amount : 0);
+    // Use the amount from claimData for both Insurance and Warranty types
+    const claimAmount = Number.isFinite(claimData.amount) ? claimData.amount : 0;
 
     const formData: CoverageClaimPayload = {
       claimNumber: claimData.claimNumber,
@@ -156,7 +194,7 @@ export const LogClaimModal = ({
       amount: claimAmount,
       status: claimStatus,
       dateFiled: claimData.dateFiled,
-      workOrderId: claim?.workOrderId,
+      workOrderId: workOrderId, // Use the state variable that gets set from warranty notification
       description: claimData.description,
     };
 

@@ -89,7 +89,7 @@ const baseClaimFields = {
       name: z.string(),
     })
   ).min(1, "Select at least one asset"),
-  amount: z.number().min(0.01, "Claim amount must be greater than zero"),
+  amount: z.number().min(0, "Claim amount cannot be negative"),
   status: z.enum(["Filed", "Rejected", "Settled", "Approved"]),
   dateFiled: z.iso.datetime(),
   workOrderId: z.string().optional(),

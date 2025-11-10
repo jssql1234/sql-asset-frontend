@@ -10,7 +10,8 @@ export type NotificationType =
 	| "asset_alert"
 	| "system"
 	| "approval"
-	| "reminder";
+	| "reminder"
+	| "warranty";
 
 export interface Notification {
 	id: string;

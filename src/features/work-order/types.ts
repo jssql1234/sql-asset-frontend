@@ -14,8 +14,6 @@ export type MaintenanceStatus =
 
 export type ServiceBy = "In-House" | "Outsourced";
 
-export type WarrantyStatus = "No Warranty" | "Claimable" | "Claimed";
-
 export interface AssetCostAllocation {
   assetId: string;
   assetCode: string;
@@ -49,8 +47,6 @@ export interface WorkOrder {
   notes?: string;
   partsUsed?: PartUsed[];
   logs?: MaintenanceLog[];
-  warrantyId?: string;
-  warrantyStatus?: WarrantyStatus;
 }
 
 export interface PartUsed {
@@ -111,8 +107,6 @@ export interface WorkOrderFormData {
   costAllocations?: AssetCostAllocation[];
   notes?: string;
   partsUsed?: PartUsed[];
-  warrantyId?: string;
-  warrantyStatus?: WarrantyStatus;
 }
 
 export const DEFAULT_WORK_ORDER_FILTERS: WorkOrderFilters = {

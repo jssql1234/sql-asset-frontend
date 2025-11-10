@@ -1,5 +1,5 @@
-import type { WorkOrder, Warranty } from '../types';
-import { MOCK_WORK_ORDERS, MOCK_WARRANTIES } from '../mockData';
+import type { WorkOrder } from '../types';
+import { MOCK_WORK_ORDERS } from '../mockData';
 
 // Mock database - in a real application, this would be replaced with actual API calls
 let workOrdersStore: WorkOrder[] = [];
@@ -94,56 +94,4 @@ export const deleteWorkOrder = (id: string): Promise<void> => {
   saveWorkOrders(workOrdersStore);
   
   return Promise.resolve();
-};
-
-// Check warranty coverage for assets
-export const checkWarrantyCoverage = async (
-  assetIds: string[]
-): Promise<{ success: boolean; data: Warranty | null; message?: string }> => {
-  // Simulate network delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
-
-  try {
-    if (!assetIds || assetIds.length === 0) {
-      return {
-        success: false,
-        data: null,
-        message: "No assets provided for warranty check",
-      };
-    }
-
-    // Find warranties that cover all selected assets
-    const matchingWarranty = MOCK_WARRANTIES.find((warranty) => {
-      const allAssetsCovered = assetIds.every((assetId) =>
-        warranty.assetIds.includes(assetId)
-      );
-
-      const currentDate = new Date();
-      const endDate = new Date(warranty.endDate);
-      const isValid = endDate >= currentDate;
-
-      return allAssetsCovered && isValid;
-    });
-
-    if (matchingWarranty) {
-      return {
-        success: true,
-        data: matchingWarranty,
-        message: "Warranty coverage found for selected assets",
-      };
-    } else {
-      return {
-        success: true,
-        data: null,
-        message: "No warranty coverage found for selected assets",
-      };
-    }
-  } catch (error) {
-    console.error("Error checking warranty coverage:", error);
-    return {
-      success: false,
-      data: null,
-      message: "Failed to check warranty coverage. Please try again.",
-    };
-  }
 };

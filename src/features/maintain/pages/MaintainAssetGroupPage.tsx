@@ -11,10 +11,13 @@ import { useAssetGroups } from '../hooks/useAssetGroups';
 import { ExportFile } from '@/assets/icons';
 import type { AssetGroup } from '../types/assetGroups';
 import { Button } from '@/components/ui/components';
+import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 
 const MaintainAssetGroupPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('pdf');
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>([]);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [assetGroupsToDelete, setAssetGroupsToDelete] = useState<AssetGroup | null>(null);
 
   const exportOptions: SelectDropdownOption[] = [
     { value: 'pdf', label: 'PDF' },
@@ -56,10 +59,25 @@ const MaintainAssetGroupPage: React.FC = () => {
     exportData(selectedFormat, visibleColumnIds);
   };
 
-  const handleDeleteSingle = useCallback((assetGroup: AssetGroup) => {
-    handleDeleteMultipleAssetGroups([assetGroup.id]);
-  }, [handleDeleteMultipleAssetGroups]);
+  const handleDeleteClick = (assetGroup: AssetGroup) => {
+    setAssetGroupsToDelete(assetGroup);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleConfirmDelete = () => {
+    if (assetGroupsToDelete) {
+      handleDeleteMultipleAssetGroups([assetGroupsToDelete.id]);
+    }
+    setDeleteDialogOpen(false);
+    setAssetGroupsToDelete(null);
+  };
+  
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setAssetGroupsToDelete(null);
+  };
+
+  
   return (
     <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -110,7 +128,7 @@ const MaintainAssetGroupPage: React.FC = () => {
             assetCounts={assetGroupAssetCounts}
             onAddAssetGroup={handleAddAssetGroup}
             onEditAssetGroup={handleEditAssetGroup}
-            onDeleteSelected={handleDeleteSingle} // 
+            onDeleteSelected={handleDeleteClick} 
             onVisibleColumnsChange={handleVisibleColumnsChange}
             renderToolbar={({ columnVisibility, actions }) => (
               <div className="flex flex-col gap-4">
@@ -148,6 +166,14 @@ const MaintainAssetGroupPage: React.FC = () => {
           validationErrors={formErrors}
           existingAssetGroups={assetGroups}
           clearValidationErrors={clearFormErrors}
+        />
+
+        <DeleteConfirmationDialog
+          isOpen={deleteDialogOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title="Delete Asset Group"
+          description={`Are you sure you want to delete "${assetGroupsToDelete?.name}"? This action cannot be undone.`}
         />
       </div>
     </AppLayout>

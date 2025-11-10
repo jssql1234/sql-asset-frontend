@@ -455,10 +455,6 @@ export function useAssetGroups() {
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete ${String(ids.length)} selected asset group(s)?`)) {
-      return;
-    }
-
     try {
       deleteMultipleAssetGroups(ids);
       addToast({

@@ -59,7 +59,7 @@ export const UserTable: React.FC<UserTableProps> = ({
     );
   }, [users, searchTerm, groups]);
 
-  return (
+ return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 mb-2">
         <TableColumnVisibility
@@ -79,12 +79,20 @@ export const UserTable: React.FC<UserTableProps> = ({
         />
       </div>
 
-      <DataTableExtended
-        columns={displayedColumns}
-        data={filteredUsers}
-        showPagination
-        rowActions={rowActions}
-      />
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
+        <DataTableExtended
+          columns={displayedColumns}
+          data={filteredUsers}
+          showPagination
+          rowActions={rowActions}
+        />
+      </div>
     </div>
   );
 };

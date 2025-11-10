@@ -74,11 +74,12 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
     },
   ], [assetCounts]);
 
-  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns,  } = useTableColumns<AssetGroup, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: [],
-    onVisibleColumnsChange,
-  });
+  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
+    useTableColumns<AssetGroup, unknown>({
+      columns: columnDefs,
+      lockedColumnIds: [],
+      onVisibleColumnsChange,
+    });
 
   const rowActions: RowAction<AssetGroup>[] = useMemo(() => [
     { type: 'edit', onClick: onEditAssetGroup },
@@ -93,7 +94,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
     />
   );
 
-  const actionsElement = null; // 可通过 renderToolbar 传入自定义顶部按钮
+  const actionsElement = null;
 
   return (
     <div className="space-y-4">
@@ -105,12 +106,20 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
         </div>
       )}
 
-      <DataTableExtended
-        columns={displayedColumns}
-        data={assetGroups}
-        showPagination
-        rowActions={rowActions}
-      />
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
+        <DataTableExtended
+          columns={displayedColumns}
+          data={assetGroups}
+          showPagination
+          rowActions={rowActions}
+        />
+    </div>
     </div>
   );
-};
+};  

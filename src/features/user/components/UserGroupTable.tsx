@@ -74,12 +74,20 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
         />
       </div>
 
-      <DataTableExtended
-        columns={displayedColumns}
-        data={filteredGroups}
-        showPagination
-        rowActions={rowActions}
-      />
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
+        <DataTableExtended
+          columns={displayedColumns}
+          data={filteredGroups}
+          showPagination
+          rowActions={rowActions} 
+        />
+      </div>
     </div>
   );
 };

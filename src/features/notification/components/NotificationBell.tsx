@@ -152,7 +152,10 @@ export const NotificationBell = () => {
                     onClick={() => {
                       handleNotificationClick(notification);
                     }}
-                    className="group flex gap-3 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-gray-100"
+                    className={cn(
+                      "group flex gap-3 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-gray-100",
+                      notification.status === "unread" && "bg-yellow-50/50 border-l-4 border-yellow-200/50 shadow-sm"
+                    )}
                   >
                     {/* Icon */}
                     <div className="flex-shrink-0 pt-1">

@@ -70,7 +70,7 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
       className={cn(
         "relative flex cursor-pointer gap-4 rounded-lg border p-4 transition-all hover:border-primary/30 hover:shadow-md",
         notification.status === "unread"
-          ? "bg-primaryContainer/10 border-primary/20"
+          ? "bg-yellow-50/50 border-yellow-200/50 shadow-sm"
           : "bg-surface border-outlineVariant",
       )}
       onClick={handleNavigate}

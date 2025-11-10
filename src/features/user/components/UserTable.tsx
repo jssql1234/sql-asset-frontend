@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { DataTableExtended as DataTable } from "@/components/DataTableExtended";
-import { Button, Card } from '@/components/ui/components';
+import React, { useMemo } from 'react';
+import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
+import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import Search from '@/components/Search';
-import { Edit, Delete } from '@/assets/icons';
 import type { User } from '@/types/user';
 import type { ColumnDef } from '@tanstack/react-table';
-import { TableColumnVisibility } from '@/components/ui/components/Table';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 
 interface UserTableProps {
   users: User[];
@@ -20,136 +19,72 @@ export const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const columns: ColumnDef<User>[] = useMemo(() => [
+    { id: 'name', accessorKey: 'name', header: 'Name' },
+    { id: 'email', accessorKey: 'email', header: 'Email' },
+    { id: 'phone', accessorKey: 'phone', header: 'Phone' },
+    { id: 'position', accessorKey: 'position', header: 'Position' },
+    { id: 'department', accessorKey: 'department', header: 'Department' },
+    { id: 'location', accessorKey: 'location', header: 'Location' },
+    {
+      id: 'groupId',
+      accessorFn: (row) => groups.find(g => g.id === row.groupId)?.name ?? row.groupId,
+      header: 'User Group',
+    },
+  ], [groups]);
 
-  // Filter users based on search term
+  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
+    useTableColumns<User, unknown>({
+      columns,
+      lockedColumnIds: [],
+    });
+
+  const rowActions: RowAction<User>[] = useMemo(() => [
+    { type: 'edit', onClick: onEdit },
+    { type: 'delete', onClick: onDelete },
+  ], [onEdit, onDelete]);
+
+  const [searchTerm, setSearchTerm] = React.useState('');
+
   const filteredUsers = useMemo(() => {
     if (!searchTerm.trim()) return users;
-
     const term = searchTerm.toLowerCase().trim();
-    return users.filter(user =>
-      user.name.toLowerCase().includes(term) ||
-      user.email.toLowerCase().includes(term) ||
-      (user.position?.toLowerCase().includes(term) ?? false) ||
-      (user.department?.toLowerCase().includes(term) ?? false) ||
-      (user.location?.toLowerCase().includes(term) ?? false) ||
-      (groups.find(g => g.id === user.groupId)?.name.toLowerCase().includes(term) ?? false)
+    return users.filter(u =>
+      u.name.toLowerCase().includes(term) ||
+      u.email.toLowerCase().includes(term) ||
+      (u.position?.toLowerCase().includes(term) ?? false) ||
+      (u.department?.toLowerCase().includes(term) ?? false) ||
+      (u.location?.toLowerCase().includes(term) ?? false) ||
+      (groups.find(g => g.id === u.groupId)?.name.toLowerCase().includes(term) ?? false)
     );
   }, [users, searchTerm, groups]);
 
-  const columns: ColumnDef<User>[] = [
-    {
-      id: 'name',
-      accessorKey: 'name',
-      header: 'Name',
-      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      enableColumnFilter: false,
-    },
-    {
-      id: 'email',
-      accessorKey: 'email',
-      header: 'Email',
-      cell: ({ row }) => <span>{row.original.email}</span>,
-      enableColumnFilter: false,
-    },
-    {
-      id: 'phone',
-      accessorKey: 'phone',
-      header: 'Phone',
-      cell: ({ row }) => <span>{row.original.phone ?? '-'}</span>,
-      enableColumnFilter: false,
-    },
-    {
-      id: 'position',
-      accessorKey: 'position',
-      header: 'Position',
-      cell: ({ row }) => <span>{row.original.position ?? '-'}</span>,
-      enableColumnFilter: false,
-    },
-    {
-      id: 'department',
-      accessorKey: 'department',
-      header: 'Department',
-      cell: ({ row }) => <span>{row.original.department ?? '-'}</span>,
-    },
-    {
-      id: 'location',
-      accessorKey: 'location',
-      header: 'Location',
-      cell: ({ row }) => <span>{row.original.location ?? '-'}</span>,
-    },
-    {
-      id: 'groupId',
-      accessorFn: (row) => {
-        const group = groups.find(g => g.id === row.groupId);
-        return group?.name ?? row.groupId;
-      },
-      header: 'User Group',
-      cell: ({ row }) => {
-        const group = groups.find(g => g.id === row.original.groupId);
-        return <span>{group?.name ?? row.original.groupId}</span>;
-      },
-    },
-  ];
-
-  const actionCol: ColumnDef<User>[] = [
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              onEdit(row.original);
-            }}
-            className="h-8 w-8 p-0"
-          >
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              onDelete(row.original);
-            }}
-            className="h-8 w-8 p-0 text-error hover:text-error hover:bg-error/10"
-          >
-            <Delete className="h-4 w-4" />
-          </Button>
-        </div>
-      ),
-    },
-  ];
-    
-  const [visibleColumns, setVisibleColumns] = useState(columns);
-
   return (
     <div className="space-y-4">
-      <Search
-        searchLabel="Search Users"
-        searchPlaceholder="Search by name, email, position, department, location, or group"
-        searchValue={searchTerm}
-        onSearch={setSearchTerm}
-        live={true}
-        className="w-full"
-      />
-      <Card className="p-3 space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <TableColumnVisibility
-            columns={columns}
-            visibleColumns={visibleColumns.concat(actionCol)}
-            setVisibleColumns={setVisibleColumns}
-          />
-        </div>
-        <DataTable
-          columns={visibleColumns.concat(actionCol)}
-          data={filteredUsers}
-          showPagination={true}
-          className="w-full"
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <TableColumnVisibility
+          columns={toggleableColumns}
+          visibleColumns={visibleColumns}
+          setVisibleColumns={setVisibleColumns}
         />
-      </Card>
+        <Search
+          searchLabel="Search Users"
+          searchPlaceholder="Search by name, email, or group"
+          searchValue={searchTerm}
+          onSearch={setSearchTerm}
+          live
+          className="w-80"
+          inputClassName="h-10 w-full"
+          showLiveSearchIcon
+        />
+      </div>
+
+      <DataTableExtended
+        columns={displayedColumns}
+        data={filteredUsers}
+        showPagination
+        rowActions={rowActions}
+      />
     </div>
   );
 };

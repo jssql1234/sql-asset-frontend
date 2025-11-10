@@ -1,4 +1,5 @@
-import { lazy, Suspense, useState, useMemo } from "react";
+import { lazy, Suspense, useState, useMemo, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import { CoverageProvider } from "@/features/coverage/hooks/useCoverageContext";
@@ -10,6 +11,9 @@ const WarrantyPage = lazy(() => import("@/features/coverage/pages/WarrantyPage")
 const ClaimPage = lazy(() => import("@/features/coverage/pages/ClaimPage"));
 
 const CoverageMainPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get("tab");
+  
   const [modals, setModals] = useState<CoverageModalsState>({
     insuranceForm: false,
     insuranceEdit: null,
@@ -23,6 +27,21 @@ const CoverageMainPage = () => {
     claimForWorkOrder: null,
     claimDetails: null,
   });
+
+  // Determine initial tab based on URL parameter
+  const defaultTab = tabFromUrl === "claims" || tabFromUrl === "warranties" 
+    ? tabFromUrl 
+    : "insurances";
+
+  // Handle tab change to update URL
+  const handleTabChange = useCallback((value: string) => {
+    if (value === "insurances") {
+      // Remove tab param for default tab
+      setSearchParams({});
+    } else {
+      setSearchParams({ tab: value });
+    }
+  }, [setSearchParams]);
 
   const tabs = useMemo(() => [
     {
@@ -52,7 +71,12 @@ const CoverageMainPage = () => {
     <AppLayout>
       <CoverageProvider modals={modals} setModals={setModals}>
         <div className="flex flex-col gap-2">
-          <Tabs tabs={tabs} defaultValue="insurances" contentClassName="mt-6" />
+          <Tabs 
+            tabs={tabs} 
+            defaultValue={defaultTab} 
+            onValueChange={handleTabChange}
+            contentClassName="mt-6" 
+          />
         </div>
       </CoverageProvider>
     </AppLayout>

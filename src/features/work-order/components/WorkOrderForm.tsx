@@ -12,7 +12,6 @@ import type {
   MaintenanceStatus,
   ServiceBy,
   AssetCostAllocation,
-  Warranty,
   PartUsed,
 } from "../types";
 import {
@@ -23,9 +22,8 @@ import {
   STATUS_OPTIONS,
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
-import { WarrantyCheckDialog } from "./WarrantyCheckDialog";
-import { checkWarrantyCoverage as checkWarrantyCoverageAPI } from "../services/workOrderService";
 import { PartsUsedSection } from "./PartsUsedSection";
+import { checkAndNotifyWarranty } from "../services/warrantyNotificationService";
 
 interface WorkOrderFormProps {
   isOpen: boolean;
@@ -78,11 +76,6 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   const [assigneeOptions, setAssigneeOptions] =
     useState<Array<{ id: string; name: string }>>(MOCK_TECHNICIANS);
   const [costAllocations, setCostAllocations] = useState<AssetCostAllocation[]>([]);
-
-  // Warranty checking states
-  const [matchedWarranty, setMatchedWarranty] = useState<Warranty | null>(null);
-  const [showWarrantyDialog, setShowWarrantyDialog] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
 
   // Parts management states
   const [partsUsed, setPartsUsed] = useState<PartUsed[]>([]);
@@ -345,48 +338,11 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
       return;
     }
 
-    // Check warranty coverage before submitting (only in create mode)
-    if (mode === "create" && selectedAssets.length > 0) {
-      checkWarrantyCoverageAsync();
-    } else {
-      // No warranty check needed in edit mode - proceed with submission
-      submitWorkOrder(null);
-    }
+    // Submit the work order
+    submitWorkOrder();
   };
 
-  // Async function to check warranty coverage using API
-  const checkWarrantyCoverageAsync = async () => {
-    setIsProcessing(true);
-    
-    try {
-      // Call the warranty service API
-      const response = await checkWarrantyCoverageAPI(selectedAssets);
-      
-      if (response.success && response.data) {
-        // Found warranty coverage - show dialog
-        setMatchedWarranty(response.data);
-        setShowWarrantyDialog(true);
-      } else {
-        // No warranty found - proceed with submission
-        submitWorkOrder(null);
-      }
-    } catch (error) {
-      console.error("Error checking warranty:", error);
-      // On error, proceed without warranty (user can manually check later)
-      addToast({
-        title: "Warranty Check Failed",
-        description: "Could not verify warranty coverage. Work order will be created without warranty information.",
-        variant: "warning",
-        duration: 5000,
-      });
-      submitWorkOrder(null);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const submitWorkOrder = (warranty: Warranty | null = matchedWarranty) => {
-
+  const submitWorkOrder = () => {
     // Include cost allocations and parts in form data
     const submitData: WorkOrderFormData = {
       ...formData,
@@ -395,11 +351,22 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
           ? costAllocations
           : undefined,
       partsUsed: partsUsed.length > 0 ? partsUsed : undefined,
-      warrantyId: warranty?.id,
-      warrantyStatus: warranty ? ("Claimable" as const) : ("No Warranty" as const),
     };
 
     onSubmit(submitData);
+
+    // Check for warranty coverage and create notifications (only in create mode)
+    console.log("Warranty check - mode:", mode, "selectedAssets:", selectedAssets);
+    if (mode === "create" && selectedAssets.length > 0) {
+      try {
+        // Generate a mock work order ID for the notification
+        const mockWorkOrderId = `WO-${String(Date.now())}`;
+        checkAndNotifyWarranty(selectedAssets, mockWorkOrderId, formData.description);
+      } catch (error) {
+        console.error("Error checking warranty coverage:", error);
+        // Don't block work order creation if warranty check fails
+      }
+    }
 
     // Show success toast
     addToast({
@@ -1100,40 +1067,15 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
               // Create/Edit mode - show submit button only
               <Button
                 type="submit"
-                disabled={isProcessing}
                 className="px-4 py-2 rounded bg-primary text-onPrimary hover:bg-primary/90 transition-colors label-large disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isProcessing ? (
-                  <>
-                    <div
-                      className={
-                        "w-5 h-5 flex-shrink-0 mr-3 text-onSurface animate-spin rounded-full border-2 border-current border-t-transparent"
-                      }
-                    />
-                    Checking Warranty...
-                  </>
-                ) : currentMode === "edit" ? (
-                  "Save Changes"
-                ) : (
-                  "Create Work Order"
-                )}
+                {currentMode === "edit" ? "Save Changes" : "Create Work Order"}
               </Button>
             ): (<></>
             )}
           </div>
         </form>
       </DialogContent>
-
-      {/* Warranty Check Dialog */}
-      <WarrantyCheckDialog
-        isOpen={showWarrantyDialog}
-        onClose={() => setShowWarrantyDialog(false)}
-        onConfirm={() => {
-          setShowWarrantyDialog(false);
-          submitWorkOrder();
-        }}
-        warranty={matchedWarranty}
-      />
     </Dialog>
   );
 };

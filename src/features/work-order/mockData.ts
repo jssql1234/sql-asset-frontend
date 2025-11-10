@@ -1,50 +1,15 @@
 import type {
   WorkOrder,
   WorkOrderSummary,
-  Warranty,
 } from "./types";
-
-// Mock Warranties
-export const MOCK_WARRANTIES: Warranty[] = [
-  {
-    id: "WAR-2024-001",
-    assetIds: ["AST-001", "AST-009"], // Excavators
-    startDate: "2024-01-15",
-    endDate: "2026-01-15",
-  },
-  {
-    id: "WAR-2024-002",
-    assetIds: ["AST-003", "AST-008", "AST-015"], // Cranes
-    startDate: "2024-03-20",
-    endDate: "2026-03-20",
-  },
-  {
-    id: "WAR-2024-003",
-    assetIds: ["AST-004", "AST-011", "AST-018"], // Generators
-    startDate: "2024-06-01",
-    endDate: "2027-06-01",
-  },
-  {
-    id: "WAR-2024-004",
-    assetIds: ["AST-004"], // Generator Cummins 500kVA
-    startDate: "2024-02-10",
-    endDate: "2026-02-10",
-  },
-  {
-    id: "WAR-2024-005",
-    assetIds: ["AST-006", "AST-013", "AST-020"], // Compressors
-    startDate: "2024-04-15",
-    endDate: "2025-04-15"
-  },
-];
 
 // Mock Work Orders
 export const MOCK_WORK_ORDERS: WorkOrder[] = [
   {
     id: "WO-001",
-    assetId: "AST-001",
-    assetName: "Excavator CAT 320D",
-    assetCode: "EXC-001",
+    assetId: "GEN-003",
+    assetName: "Generator C3",
+    assetCode: "GEN-003",
     jobTitle: "Track Alignment & Tension Adjustment",
     description: "Adjust track tension and alignment due to uneven wear",
     type: "Corrective",
@@ -60,7 +25,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 3500.0,
     actualCost: 3200.0,
     progress: 65,
-    warrantyStatus: "Claimable",
     notes: "Track tension was significantly off. Replaced damaged links and adjusted alignment.",
     partsUsed: [
       {
@@ -82,9 +46,9 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-002",
-    assetId: "AST-006",
-    assetName: "Compressor Atlas Copco XAS 185",
-    assetCode: "CMP-006",
+    assetId: "AC-004",
+    assetName: "Air Compressor D4",
+    assetCode: "AC-004",
     jobTitle: "Air Filter Replacement",
     description: "Routine air filter replacement as per maintenance schedule",
     type: "Preventive",
@@ -98,7 +62,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 800.0,
     actualCost: 750.0,
     progress: 100,
-    warrantyStatus: "No Warranty",
     partsUsed: [
       {
         id: "P-002",
@@ -111,9 +74,9 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
   },
   {
     id: "WO-003",
-    assetId: "AST-003",
-    assetName: "Crane Liebherr LTM 1060",
-    assetCode: "CRN-003",
+    assetId: "HP-005",
+    assetName: "Hydraulic Press E5",
+    assetCode: "HP-005",
     jobTitle: "Hydraulic Hose Replacement - Emergency",
     description: "Emergency replacement of burst hydraulic hose",
     type: "Emergency",
@@ -127,13 +90,12 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     estimatedCost: 8000.0,
     actualCost: 8500.0,
     progress: 100,
-    warrantyStatus: "Claimable",
   },
   {
     id: "WO-004",
-    assetId: "AST-007",
-    assetName: "Welding Machine Lincoln Electric",
-    assetCode: "WLD-007",
+    assetId: "QC-007",
+    assetName: "Quality Scanner G7",
+    assetCode: "QC-007",
     jobTitle: "Calibration Service",
     description: "Annual calibration and certification",
     type: "Upgrade/Modify",
@@ -144,13 +106,12 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     scheduledDate: "2025-10-08",
     estimatedCost: 1200.0,
     progress: 0,
-    warrantyStatus: "No Warranty",
   },
   {
     id: "WO-005",
-    assetId: "AST-004",
-    assetName: "Generator Cummins 500kVA",
-    assetCode: "GEN-004",
+    assetId: "TM-008",
+    assetName: "Testing Machine H8",
+    assetCode: "TM-008",
     jobTitle: "Control Panel Repair",
     description: "Repair faulty control panel under warranty",
     type: "Corrective",
@@ -161,8 +122,6 @@ export const MOCK_WORK_ORDERS: WorkOrder[] = [
     scheduledDate: "2025-10-05",
     estimatedCost: 0.0,
     progress: 0,
-    warrantyId: "WAR-2024-004",
-    warrantyStatus: "Claimed",
   },
 ];
 
@@ -175,29 +134,24 @@ export const MOCK_WORK_ORDER_SUMMARY: WorkOrderSummary = {
   totalCost: 156400.0,
 };
 
-// Mock Assets for dropdowns
+// Mock Assets for dropdowns 
 export const MOCK_ASSETS = [
-  { id: "AST-001", name: "Excavator CAT 320D", code: "EXC-001" },
-  { id: "AST-002", name: "Bulldozer Komatsu D65", code: "BLD-002" },
-  { id: "AST-003", name: "Crane Liebherr LTM 1060", code: "CRN-003" },
-  { id: "AST-004", name: "Generator Cummins 500kVA", code: "GEN-004" },
-  { id: "AST-005", name: "Forklift Toyota 8FG25", code: "FRK-005" },
-  { id: "AST-006", name: "Compressor Atlas Copco XAS 185", code: "CMP-006" },
-  { id: "AST-007", name: "Welding Machine Lincoln Electric", code: "WLD-007" },
-  { id: "AST-008", name: "Tower Crane Potain MD 365", code: "CRN-008" },
-  { id: "AST-009", name: "Bulldozer CAT D6T", code: "BLD-009" },
-  { id: "AST-010", name: "Excavator Hitachi ZX350", code: "EXC-010" },
-  { id: "AST-011", name: "Generator Perkins 250kVA", code: "GEN-011" },
-  { id: "AST-012", name: "Forklift Hyster H50FT", code: "FRK-012" },
-  { id: "AST-013", name: "Compressor Ingersoll Rand", code: "CMP-013" },
-  { id: "AST-014", name: "Welding Machine ESAB Rebel", code: "WLD-014" },
-  { id: "AST-015", name: "Tower Crane Liebherr 200 EC", code: "CRN-015" },
-  { id: "AST-016", name: "Excavator Volvo EC220E", code: "EXC-016" },
-  { id: "AST-017", name: "Bulldozer John Deere 750K", code: "BLD-017" },
-  { id: "AST-018", name: "Generator Caterpillar C15", code: "GEN-018" },
-  { id: "AST-019", name: "Forklift Yale GDP050VX", code: "FRK-019" },
-  { id: "AST-020", name: "Compressor Sullair 185", code: "CMP-020" },
-  { id: "AST-021", name: "Welding Machine Miller Millermatic", code: "WLD-021" },
+  { id: "CBT-001", name: "Conveyor Belt A1", code: "CBT-001" },
+  { id: "PMP-002", name: "Pump System B2", code: "PMP-002" },
+  { id: "GEN-003", name: "Generator C3", code: "GEN-003" },
+  { id: "AC-004", name: "Air Compressor D4", code: "AC-004" },
+  { id: "HP-005", name: "Hydraulic Press E5", code: "HP-005" },
+  { id: "CS-006", name: "Cooling System F6", code: "CS-006" },
+  { id: "QC-007", name: "Quality Scanner G7", code: "QC-007" },
+  { id: "TM-008", name: "Testing Machine H8", code: "TM-008" },
+  { id: "WR-009", name: "Welding Robot I9", code: "WR-009" },
+  { id: "DM-010", name: "Diagnostic Machine J10", code: "DM-010" },
+  { id: "WR-011", name: "Welding Robot K11", code: "WR-011" },
+  { id: "DM-012", name: "Diagnostic Machine L12", code: "DM-012" },
+  { id: "CR-013", name: "Calibration Robot M13", code: "CR-013" },
+  { id: "TM-014", name: "Tooling Machine N14", code: "TM-014" },
+  { id: "SM-015", name: "Soldering Machine O15", code: "SM-015" },
+  { id: "PM-016", name: "Precision Machine P16", code: "PM-016" },
 ];
 
 // Mock Technicians

@@ -22,13 +22,6 @@ export const SERVICE_BY_OPTIONS = [
   { value: "Outsourced" as const, label: "Outsourced" },
 ] as const;
 
-// Warranty Status Options
-export const WARRANTY_STATUS_OPTIONS = [
-  { value: "No Warranty" as const, label: "No Warranty" },
-  { value: "Claimable" as const, label: "Claimable" },
-  { value: "Claimed" as const, label: "Claimed" },
-] as const;
-
 // Status variant mapping for badges
 export const getStatusVariant = (status: MaintenanceStatus) => {
   const variantMap = {

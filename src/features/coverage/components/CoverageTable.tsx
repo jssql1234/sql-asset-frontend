@@ -186,12 +186,20 @@ const InsurancesVariantTable = ({
           <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search policies..." live={true} />
         </div>
       </div>
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
       <DataTableExtended<CoverageInsurance, unknown>
         columns={visibleColumns}
         data={filteredPolicies}
         showPagination
         rowActions={rowActions}
       />
+    </div>
     </div>
   );
 };

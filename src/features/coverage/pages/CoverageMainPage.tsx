@@ -72,7 +72,7 @@ const CoverageMainPage = () => {
       <CoverageProvider modals={modals} setModals={setModals}>
         <div className="flex flex-col gap-2">
           <Tabs 
-            key={defaultTab}  // Force re-mount when tab changes to use new defaultValue
+            key={defaultTab /* Force re-mount when tab changes to use new defaultValue */}
             tabs={tabs} 
             defaultValue={defaultTab} 
             onValueChange={handleTabChange}

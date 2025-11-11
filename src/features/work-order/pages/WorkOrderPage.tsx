@@ -192,13 +192,16 @@ const WorkOrdersPage: React.FC = () => {
 
   // Handle navigation from notifications
   useEffect(() => {
-    const state = location.state as { 
-      workOrderId?: string; 
+    const state = location.state as {
+      workOrderId?: string;
       openDetail?: boolean;
       openWorkOrderForm?: boolean;
+      claimId?: string;
       claimData?: Record<string, unknown>;
       notificationId?: string;
     } | null;
+
+    let isActive = true;
 
     const clearNavigationState = () => {
       void navigate(`${location.pathname}${location.search}`, { replace: true });
@@ -206,7 +209,7 @@ const WorkOrdersPage: React.FC = () => {
 
     // Handle work order detail view
     if (state?.openDetail && state.workOrderId) {
-      const workOrder = workOrders.find(wo => wo.id === state.workOrderId);
+      const workOrder = workOrders.find((wo) => wo.id === state.workOrderId);
 
       if (workOrder) {
         setModalMode("view");
@@ -217,17 +220,60 @@ const WorkOrdersPage: React.FC = () => {
       clearNavigationState();
     }
 
-    // Handle claim notification - open work order form with prefilled data
-    if (state?.openWorkOrderForm && state.claimData) {
-      const stateNotificationId = state.notificationId ?? "__work-order-claim__";
-      setClaimPrefillData(state.claimData);
-      setNotificationId(state.notificationId ?? stateNotificationId);
+    const handleClaimNotification = async () => {
+      if (!state?.openWorkOrderForm) {
+        return;
+      }
+
+      const notificationIdentifier = state.notificationId ?? "__work-order-claim__";
+      let latestClaimData: Record<string, unknown> | null = null;
+
+      const claimIdFromState = state.claimId ?? (state.claimData?.claimId as string | undefined);
+
+      if (claimIdFromState) {
+        try {
+          const { getClaimById } = await import("@/features/coverage/services/coverageService");
+          const claim = await getClaimById(claimIdFromState);
+
+          if (claim) {
+            latestClaimData = {
+              claimId: claim.id,
+              claimNumber: claim.claimNumber,
+              claimType: claim.type,
+              description: claim.description,
+              assets: claim.assets,
+              amount: claim.amount,
+              status: claim.status,
+              workOrderId: claim.workOrderId,
+            };
+          }
+        } catch (error) {
+          console.error("Failed to load claim data for notification:", error);
+        }
+      }
+
+      if (!latestClaimData && state.claimData) {
+        latestClaimData = state.claimData;
+      }
+
+      if (!isActive) {
+        return;
+      }
+
+      setClaimPrefillData(latestClaimData);
+      setNotificationId(state.notificationId ?? notificationIdentifier);
       setModalMode("create");
       setSelectedWorkOrder(null);
       setIsModalOpen(true);
 
       clearNavigationState();
-    }
+    };
+
+    void handleClaimNotification();
+
+    return () => {
+      isActive = false;
+    };
   }, [location, navigate, workOrders]);
 
   // Tabs configuration

@@ -280,6 +280,11 @@ export const fetchClaims = (): Promise<CoverageClaim[]> => {
   return Promise.resolve([...claimsStore]);
 };
 
+export const getClaimById = (id: string): Promise<CoverageClaim | null> => {
+  const claim = claimsStore.find((item) => item.id === id) ?? null;
+  return Promise.resolve(claim ? { ...claim } : null);
+};
+
 export const createClaim = (data: CoverageClaimPayload, skipNotification?: boolean): Promise<CoverageClaim> => {
   const id = `CLM-${String(nextClaimId++).padStart(3, '0')}`;
   const amount = Number.isFinite(data.amount) ? data.amount : 0;

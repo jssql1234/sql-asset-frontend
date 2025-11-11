@@ -107,7 +107,7 @@ const MaintainCustomerPage: React.FC = () => {
   };
 
   return (
-    <AppLayout breadcrumbs={[{ label: 'Tools' }, { label: 'Maintain Customer' }]}>
+    <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <div className="flex items-center justify-between">
           <TabHeader title="Customer Management" subtitle="Manage customer information and relationships" />

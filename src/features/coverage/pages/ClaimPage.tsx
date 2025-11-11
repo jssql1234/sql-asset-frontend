@@ -99,12 +99,12 @@ const ClaimPage = () => {
           coverage: latestWarranty?.coverage ?? warrantyMetadata?.coverage,
           expiryDate: latestWarranty?.expiryDate ?? warrantyMetadata?.expiryDate,
           assetIds:
-            latestWarranty?.assetsCovered.map((asset) => asset.id) ??
             warrantyMetadata?.assetIds ??
+            latestWarranty?.assetsCovered.map((asset) => asset.id) ??
             [],
           assets:
-            latestWarranty?.assetsCovered ??
             warrantyMetadata?.assets ??
+            latestWarranty?.assetsCovered ??
             [],
         };
 
@@ -139,12 +139,12 @@ const ClaimPage = () => {
           policyNumber: latestInsurance?.policyNumber ?? insuranceMetadata?.policyNumber,
           expiryDate: latestInsurance?.expiryDate ?? insuranceMetadata?.expiryDate,
           assetIds:
-            latestInsurance?.assetsCovered.map((asset) => asset.id) ??
             insuranceMetadata?.assetIds ??
+            latestInsurance?.assetsCovered.map((asset) => asset.id) ??
             [],
           assets:
-            latestInsurance?.assetsCovered ??
             insuranceMetadata?.assets ??
+            latestInsurance?.assetsCovered ??
             [],
           remainingCoverage: latestInsurance?.remainingCoverage ?? insuranceMetadata?.remainingCoverage,
         };

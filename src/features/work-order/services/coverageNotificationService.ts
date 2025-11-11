@@ -85,6 +85,12 @@ export const checkAndNotifyCoverage = (
           return asset?.name ?? id;
         });
 
+        // Get asset objects for prefilling the claim form
+        const assetObjects = coveredAssets.map((id) => {
+          const asset = warranty.assetsCovered.find((a) => a.id === id);
+          return asset ?? { id, name: id };
+        });
+
         notificationService.createNotification({
           type: "warranty",
           title: `Warranty Available for Work Order ${workOrderId}`,
@@ -97,6 +103,7 @@ export const checkAndNotifyCoverage = (
             warrantyId: warranty.id,
             warrantyName: warranty.name,
             assetIds: coveredAssets,
+            assets: assetObjects,
             expiryDate: warranty.expiryDate,
             workOrderId: workOrderId,
             workOrderDescription: workOrderDescription ?? "",
@@ -126,6 +133,12 @@ export const checkAndNotifyCoverage = (
           return asset?.name ?? id;
         });
 
+        // Get asset objects for prefilling the claim form
+        const assetObjects = coveredAssets.map((id) => {
+          const asset = insurance.assetsCovered.find((a) => a.id === id);
+          return asset ?? { id, name: id };
+        });
+
         notificationService.createNotification({
           type: "insurance",
           title: `Insurance Coverage Available for Work Order ${workOrderId}`,
@@ -139,6 +152,7 @@ export const checkAndNotifyCoverage = (
             insuranceName: insurance.name,
             policyNumber: insurance.policyNumber,
             assetIds: coveredAssets,
+            assets: assetObjects,
             expiryDate: insurance.expiryDate,
             remainingCoverage: insurance.remainingCoverage,
             workOrderId: workOrderId,

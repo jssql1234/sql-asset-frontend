@@ -47,7 +47,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
   ];
 
   return (
-    <Card className="p-6 shadow-sm">
+    <Card className="p-6 shadow-sm ">
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>
@@ -97,11 +97,12 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         </div>
 
         {/* Manage Payment Button */}
+        <br></br>
         <div className="flex flex-col justify-end">
           <Button
             variant="primary"
             disabled={!isManagePaymentEnabled || isReadonly}
-            className="px-6 py-4 w-full"
+            className="px-6 py-4 w-50"
             onClick={onManagePaymentClick}
           >
             Manage Payment

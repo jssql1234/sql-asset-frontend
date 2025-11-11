@@ -3,6 +3,8 @@ import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { FinancialYearGroup } from "../services/hpPaymentService";
+import { Input } from "@/components/ui/components/Input";
+
 
 interface HPPaymentScheduleTableProps {
   financialYearGroups: FinancialYearGroup[];
@@ -16,6 +18,8 @@ interface HPPaymentScheduleTableProps {
   depositAmount: number;
   expandedYears: Set<number>;
   onToggleYearExpansion: (ya: number) => void;
+  isEditMode: boolean;
+  updatePaymentSchedule: (ya: number, month: number, newAmount: number) => void;
 }
 
 type TableRowData = {
@@ -37,6 +41,8 @@ export const HPPaymentScheduleTable: React.FC<HPPaymentScheduleTableProps> = ({
   depositAmount,
   expandedYears,
   onToggleYearExpansion,
+  isEditMode,
+  updatePaymentSchedule,
 }) => {
   // Transform data for DataTableExtended
   const tableData = useMemo(() => {
@@ -197,9 +203,26 @@ export const HPPaymentScheduleTable: React.FC<HPPaymentScheduleTableProps> = ({
     {
       id: "totalInstalmentAmount",
       header: "Total Instalment Amount",
-      cell: ({ row }) => {
-        if (typeof row.original.totalInstalmentAmount === "number") {
-          return `RM ${row.original.totalInstalmentAmount.toFixed(2)}`;
+      cell: ({ row }) => {        
+        const { type, totalInstalmentAmount, ya, month } = row.original;
+
+        if (type === "detail" && isEditMode) {
+          return (
+            <Input
+              key={`input-${ya}-${month}-${isEditMode}`}
+              type="number"
+              className="w-24"
+              defaultValue={totalInstalmentAmount.toFixed(2)}
+              onBlur={(e) => {
+                const newAmount = parseFloat(e.target.value);
+                if (!isNaN(newAmount) && newAmount >= 0) {
+                  updatePaymentSchedule(row.original.ya as number, row.original.month as number, newAmount);
+                }
+              }}
+            />
+          );
+        } else if (typeof totalInstalmentAmount === "number") {
+          return `RM ${totalInstalmentAmount.toFixed(2)}`;
         }
         return "";
       },
@@ -221,11 +244,12 @@ export const HPPaymentScheduleTable: React.FC<HPPaymentScheduleTableProps> = ({
       enableSorting: false,
       enableColumnFilter: false,
     },
-  ], [expandedYears, onToggleYearExpansion]);
-
+  ], [expandedYears, onToggleYearExpansion, isEditMode, updatePaymentSchedule]);
+  
   return (
     <DataTableExtended
       columns={columns}
+      key={`hp-payment-schedule-table-${isEditMode}`}
       data={tableData}
       showPagination={false}
     />

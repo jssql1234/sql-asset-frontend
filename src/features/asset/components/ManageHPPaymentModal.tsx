@@ -26,6 +26,7 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
     totals,
     expandedYears,
     paymentSchedule,
+    updatePaymentSchedule,
     isEarlySettlementOpen,
     toggleEditMode,
     toggleYearExpansion,
@@ -76,10 +77,12 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
               {/* Payment Schedule Table */}
               <div style={{ overflowY: 'auto' }}>
                 <HPPaymentScheduleTable 
+                  isEditMode={isEditMode}
                   financialYearGroups={financialYearGroups}
                   totals={totals}
                   depositAmount={paymentProps.depositAmount}
                   expandedYears={expandedYears}
+                  updatePaymentSchedule={updatePaymentSchedule}
                   onToggleYearExpansion={toggleYearExpansion}
                 />
               </div>

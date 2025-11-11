@@ -101,7 +101,7 @@ const MaintainLocationPage: React.FC = () => {
   };
 
   return (
-    <AppLayout breadcrumbs={[{ label: 'Tools' }, { label: 'Maintain Location' }]}>
+    <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <div className="flex items-center justify-between">
           <TabHeader title="Location Management" subtitle="Manage locations and related information" />
@@ -132,7 +132,8 @@ const MaintainLocationPage: React.FC = () => {
               searchPlaceholder="Search locations..."
               onSearch={(value) => updateFilters({ ...filters, search: value })}
               live
-              className="max-w-md"
+              className="w-80"
+              inputClassName="h-10 w-full"
             />
           </div>
         </div>

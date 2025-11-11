@@ -119,7 +119,8 @@ const MaintainDepartmentPage: React.FC = () => {
               searchPlaceholder="Search departments..."
               onSearch={(value) => updateFilters({ ...filters, search: value })}
               live
-              className="max-w-md"
+              className="w-80"
+              inputClassName="h-10 w-full"
             />
           </div>
         </div>

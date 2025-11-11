@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
@@ -34,9 +34,6 @@ const WorkOrdersPage: React.FC = () => {
   }>({});
   const [claimPrefillData, setClaimPrefillData] = useState<Record<string, unknown> | null>(null);
   const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
-  
-  // Track if we've already processed a claim notification to prevent reopening modal
-  const processedClaimRef = useRef(false);
 
   // Delete confirmation state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -191,6 +188,8 @@ const WorkOrdersPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const navigate = useNavigate();
+
   // Handle navigation from notifications
   useEffect(() => {
     const state = location.state as { 
@@ -200,6 +199,10 @@ const WorkOrdersPage: React.FC = () => {
       claimData?: Record<string, unknown>;
       notificationId?: string;
     } | null;
+
+    const clearNavigationState = () => {
+      void navigate(`${location.pathname}${location.search}`, { replace: true });
+    };
 
     // Handle work order detail view
     if (state?.openDetail && state.workOrderId) {
@@ -211,22 +214,21 @@ const WorkOrdersPage: React.FC = () => {
         setIsModalOpen(true);
       }
 
-      // Clear the state to prevent reopening on component updates
-      window.history.replaceState({}, document.title);
+      clearNavigationState();
     }
 
     // Handle claim notification - open work order form with prefilled data
-    if (state?.openWorkOrderForm && state.claimData && !processedClaimRef.current) {
+    if (state?.openWorkOrderForm && state.claimData) {
+      const stateNotificationId = state.notificationId ?? "__work-order-claim__";
       setClaimPrefillData(state.claimData);
-      setNotificationId(state.notificationId);
+      setNotificationId(state.notificationId ?? stateNotificationId);
       setModalMode("create");
       setSelectedWorkOrder(null);
       setIsModalOpen(true);
-      processedClaimRef.current = true;
-      // Clear the navigation state
-      window.history.replaceState({}, document.title);
+
+      clearNavigationState();
     }
-  }, [location.state, workOrders]);
+  }, [location, navigate, workOrders]);
 
   // Tabs configuration
   const tabs = [

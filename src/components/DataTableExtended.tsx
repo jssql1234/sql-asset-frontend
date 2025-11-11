@@ -429,13 +429,23 @@ export function DataTableExtended<TData, TValue>({
   
   const [columnOrder, setColumnOrder] = useState<string[]>(() => {
     const columnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
-    // Ensure selection column is first in initial order
+    // Ensure selection column is first and row-actions column is last in initial order
     const selectionIndex = columnIds.indexOf('select');
+    const actionsIndex = columnIds.indexOf('row-actions');
+    
+    const ordered = [...columnIds];
+    
     if (selectionIndex > 0) {
-      const [selectionColumn] = columnIds.splice(selectionIndex, 1);
-      return [selectionColumn, ...columnIds];
+      const [selectionColumn] = ordered.splice(selectionIndex, 1);
+      ordered.unshift(selectionColumn);
     }
-    return columnIds;
+    
+    if (actionsIndex >= 0 && actionsIndex < ordered.length - 1) {
+      const [actionsColumn] = ordered.splice(actionsIndex, 1);
+      ordered.push(actionsColumn);
+    }
+    
+    return ordered;
   });
 
   // DnD state
@@ -481,8 +491,8 @@ export function DataTableExtended<TData, TValue>({
 
     if (active.id !== over?.id && over?.id) {
       setColumnOrder((previousOrder) => {
-        // Prevent selection column from being moved
-        if (active.id === 'select' || over.id === 'select') {
+        // Prevent selection and row-actions columns from being moved
+        if (active.id === 'select' || over.id === 'select' || active.id === 'row-actions' || over.id === 'row-actions') {
           return previousOrder;
         }
 
@@ -499,7 +509,14 @@ export function DataTableExtended<TData, TValue>({
         const selectionIndex = newOrder.indexOf('select');
         if (selectionIndex > 0) {
           const [selectionColumn] = newOrder.splice(selectionIndex, 1);
-          return [selectionColumn, ...newOrder];
+          newOrder.unshift(selectionColumn);
+        }
+
+        // Ensure row-actions column stays last
+        const actionsIndex = newOrder.indexOf('row-actions');
+        if (actionsIndex >= 0 && actionsIndex < newOrder.length - 1) {
+          const [actionsColumn] = newOrder.splice(actionsIndex, 1);
+          newOrder.push(actionsColumn);
         }
 
         return newOrder;
@@ -639,31 +656,46 @@ export function DataTableExtended<TData, TValue>({
     const effectiveColumnIds = effectiveColumns.map((col, index) => resolveColumnId(col, index));
 
     setColumnOrder((previousOrder) => {
-      // Ensure selection column is always first
+      // Ensure selection column is always first and row-actions column is always last
       const selectionColumnId = effectiveColumnIds.find(id => id === 'select');
-      const otherColumnIds = effectiveColumnIds.filter(id => id !== 'select');
+      const actionsColumnId = effectiveColumnIds.find(id => id === 'row-actions');
+      const otherColumnIds = effectiveColumnIds.filter(id => id !== 'select' && id !== 'row-actions');
       
       // Check if we have a significant change that warrants a complete reset
       // (e.g., switching between batch and asset modes)
       const hasSelectionColumnInPrevious = previousOrder.includes('select');
       const currentHasSelectionColumn = !!selectionColumnId;
+      const hasActionsColumnInPrevious = previousOrder.includes('row-actions');
+      const currentHasActionsColumn = !!actionsColumnId;
       const columnCountChanged = effectiveColumnIds.length !== previousOrder.length;
       
-      // If selection column status changed or column count changed significantly, reset order
+      // If special columns status changed or column count changed significantly, reset order
       if ((hasSelectionColumnInPrevious !== currentHasSelectionColumn) || 
+          (hasActionsColumnInPrevious !== currentHasActionsColumn) ||
           columnCountChanged) {
-        // Complete reset: selection first, then other columns in their natural order
-        return selectionColumnId 
-          ? [selectionColumnId, ...otherColumnIds]
-          : [...otherColumnIds];
+        // Complete reset: selection first, other columns, actions last
+        const resetOrder = [...otherColumnIds];
+        if (selectionColumnId) {
+          resetOrder.unshift(selectionColumnId);
+        }
+        if (actionsColumnId) {
+          resetOrder.push(actionsColumnId);
+        }
+        return resetOrder;
       }
       
       // Otherwise, try to preserve order
-      const filtered = previousOrder.filter((id) => effectiveColumnIds.includes(id) && id !== 'select');
+      const filtered = previousOrder.filter((id) => effectiveColumnIds.includes(id) && id !== 'select' && id !== 'row-actions');
       const additions = otherColumnIds.filter((id) => !filtered.includes(id));
-      const nextOrder = selectionColumnId 
-        ? [selectionColumnId, ...filtered, ...additions]
-        : [...filtered, ...additions];
+      const baseOrder = [...filtered, ...additions];
+      
+      const nextOrder = [...baseOrder];
+      if (selectionColumnId) {
+        nextOrder.unshift(selectionColumnId);
+      }
+      if (actionsColumnId) {
+        nextOrder.push(actionsColumnId);
+      }
 
       const sameLength = nextOrder.length === previousOrder.length;
       if (sameLength && nextOrder.every((id, idx) => id === previousOrder[idx])) {

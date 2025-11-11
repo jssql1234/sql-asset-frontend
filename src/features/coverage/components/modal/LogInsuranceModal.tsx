@@ -134,14 +134,14 @@ export const LogInsuranceModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[1000px] max-h-[90vh] overflow-hidden">
+      <DialogContent className="w-[1000px] max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>{isEditing ? "Edit Insurance Policy" : "Add Insurance Policy"}</DialogTitle>
           <DialogDescription>Capture policy coverage details, premiums, and associated assets.</DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-6 overflow-y-auto pr-2">
-          <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+        <form className="flex flex-col flex-1 overflow-hidden" onSubmit={handleSubmit}>
+          <div className="flex flex-col gap-6 overflow-y-auto pr-2 flex-1">
             <div className="space-y-4">
               <h3 className="title-small font-semibold text-onSurface">Policy Details</h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -374,12 +374,12 @@ export const LogInsuranceModal = ({
               </div>
             </div>
 
-            <DialogFooter className="flex justify-end">
+            <DialogFooter className="flex justify-end sticky bottom-0 bg-surface pt-4">
               <Button variant="outline" onClick={() => { onOpenChange(false) }}>Cancel</Button>
               <Button type="submit">{isEditing ? "Update insurance" : "Add insurance"}</Button>
             </DialogFooter>
-          </form>
-        </div>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

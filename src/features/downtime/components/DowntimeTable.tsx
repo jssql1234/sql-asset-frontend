@@ -155,13 +155,21 @@ export function DowntimeTable({
           <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder="Search incidents..." live={true} />
         </div>
       </div>
-      
-      <DataTableExtended 
-        columns={visibleColumns} 
-        data={filteredIncidents} 
-        showPagination={true} 
-        rowActions={rowActions}
-      />
+
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
+        <DataTableExtended 
+          columns={visibleColumns} 
+          data={filteredIncidents} 
+          showPagination={true} 
+          rowActions={rowActions}
+        />
+      </div>
     </div>
   );
 };

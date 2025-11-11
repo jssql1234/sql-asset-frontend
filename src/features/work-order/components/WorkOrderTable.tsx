@@ -204,14 +204,20 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
     
     return actions;
   }, [onViewDetails, onEditWorkOrder, onDeleteWorkOrder]);
+return (
+    <div
+      className="flex flex-col gap-4 overflow-x-auto transition-[max-width] duration-100 ease-linear"
+      style={{
+        maxWidth: `calc(100vw - ${sidebarWidth} - 3rem)`,
+      }}
+    >
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
 
-  return (
-      <div
-        className="flex flex-col gap-4 overflow-x-auto transition-[max-width] duration-100 ease-linear"
-        style={{
-          maxWidth: `calc(100vw - ${sidebarWidth} - 3rem)`,
-        }}
-      >
+      <div data-table-container>
         <DataTableExtended
           columns={columns}
           data={filteredWorkOrders}
@@ -219,6 +225,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
           rowActions={rowActions}
         />
       </div>
+    </div>
   );
 };
 

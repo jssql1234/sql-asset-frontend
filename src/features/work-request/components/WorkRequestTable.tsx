@@ -121,8 +121,15 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     });
   }, [workRequests]);
 
-  return (
-    <div className="flex flex-col gap-4">
+return (
+  <>
+    <style>{`
+      [data-table-container] th:last-child {
+        background-color: var(--color-surface-container);
+      }
+    `}</style>
+
+    <div data-table-container className="flex flex-col gap-4">
       <DataTableExtended
         columns={columns}
         data={sortedWorkRequests}
@@ -130,7 +137,8 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
         rowActions={rowActions}
       />
     </div>
-  );
+  </>
+);
 };
 
 export default WorkRequestTable;

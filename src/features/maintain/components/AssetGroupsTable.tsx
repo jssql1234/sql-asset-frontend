@@ -1,67 +1,39 @@
-import { useMemo, useCallback } from 'react';
-import { DataTableExtended } from '@/components/DataTableExtended';
+import React, { useMemo } from 'react';
+import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { Button, Card } from '@/components/ui/components';
 import { Badge } from '@/components/ui/components/Badge';
-import { Plus, Edit, Delete } from '@/assets/icons';
 import type { AssetGroup } from '../types/assetGroups';
 import type { ColumnDef } from '@tanstack/react-table';
 import { formatAssetGroupDate } from '../utils/assetGroupUtils';
 import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
-import { useTableSelectionSync } from '@/components/DataTableExtended/hooks/useTableSelectionSync';
 
 interface AssetGroupsTableProps {
   assetGroups: AssetGroup[];
-  selectedIds: string[];
   assetCounts: Record<string, number>;
-  onSelectAssetGroup: (id: string) => void;
   onAddAssetGroup: () => void;
   onEditAssetGroup: (assetGroup: AssetGroup) => void;
-  onDeleteSelected: () => void;
-  hasSingleSelection: boolean;
+  onDeleteSelected: (assetGroup: AssetGroup) => void;
   onVisibleColumnsChange?: (visible: ColumnDef<AssetGroup>[]) => void;
+  renderToolbar?: (params: {
+    columnVisibility: React.ReactNode;
+    actions: React.ReactNode;
+  }) => React.ReactNode;
 }
 
 export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
   assetGroups,
-  selectedIds,
   assetCounts,
-  onSelectAssetGroup,
-  onAddAssetGroup,
   onEditAssetGroup,
   onDeleteSelected,
-  hasSingleSelection,
   onVisibleColumnsChange,
+  renderToolbar,
 }) => {
-  const columnDefs: ColumnDef<AssetGroup>[] = useMemo(() => ([
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <input
-          type="checkbox"
-          checked={table.getIsAllRowsSelected()}
-          onChange={table.getToggleAllRowsSelectedHandler()}
-          className="rounded border-outlineVariant text-primary focus:ring-primary"
-        />
-      ),
-      cell: ({ row }) => (
-        <input
-          type="checkbox"
-          checked={row.getIsSelected()}
-          onChange={row.getToggleSelectedHandler()}
-          className="rounded border-outlineVariant text-primary focus:ring-primary"
-        />
-      ),
-      enableSorting: false,
-    },
+  const columnDefs: ColumnDef<AssetGroup>[] = useMemo(() => [
     {
       id: 'assetGroupCode',
       accessorKey: 'id',
       header: 'Asset Group Code',
-      cell: ({ row }) => (
-        <span className="font-mono text-sm font-medium">{row.original.id}</span>
-      ),
-      enableColumnFilter: false,
+      cell: ({ row }) => <span className="font-mono text-sm font-medium">{row.original.id}</span>,
     },
     {
       id: 'name',
@@ -75,7 +47,6 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           </div>
         </div>
       ),
-      enableColumnFilter: false,
     },
     {
       id: 'assetCount',
@@ -90,7 +61,6 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
       ),
       enableSorting: true,
       sortingFn: 'basic',
-      enableColumnFilter: false,
     },
     {
       id: 'createdAt',
@@ -101,111 +71,55 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
           {formatAssetGroupDate(row.original.createdAt) || '-'}
         </span>
       ),
-      enableColumnFilter: false,
-    }
-  ]), [assetCounts]);
+    },
+  ], [assetCounts]);
 
-  const {
-    toggleableColumns,
-    visibleColumns,
-    setVisibleColumns,
-    displayedColumns,
-    handleColumnOrderChange,
-  } = useTableColumns<AssetGroup, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: ['select'],
-    onVisibleColumnsChange,
-  });
+  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
+    useTableColumns<AssetGroup, unknown>({
+      columns: columnDefs,
+      lockedColumnIds: [],
+      onVisibleColumnsChange,
+    });
 
-  const getAssetGroupId = useCallback((group: AssetGroup) => group.id, []);
+  const rowActions: RowAction<AssetGroup>[] = useMemo(() => [
+    { type: 'edit', onClick: onEditAssetGroup },
+    { type: 'delete', onClick: onDeleteSelected },
+  ], [onEditAssetGroup, onDeleteSelected]);
 
-  const {
-    rowSelection,
-    handleRowSelectionChange,
-    selectedCount,
-    hasSelection,
-    singleSelectedItem,
-    clearSelection,
-  } = useTableSelectionSync({
-    data: assetGroups,
-    selectedIds,
-    getRowId: getAssetGroupId,
-    onToggleSelection: onSelectAssetGroup,
-  });
+  const columnVisibilityElement = (
+    <TableColumnVisibility
+      columns={toggleableColumns}
+      visibleColumns={visibleColumns}
+      setVisibleColumns={setVisibleColumns}
+    />
+  );
 
-  const selectedAssetGroupForEdit = hasSingleSelection ? singleSelectedItem : undefined;
-
-  const canDeleteSelected = hasSelection && selectedIds.every(id => (assetCounts[id] ?? 0) === 0);
+  const actionsElement = null;
 
   return (
-    <Card className="p-3 space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <TableColumnVisibility
-            columns={toggleableColumns}
-            visibleColumns={visibleColumns}
-            setVisibleColumns={setVisibleColumns}
-          />
+    <div className="space-y-4">
+      {renderToolbar ? (
+        renderToolbar({ columnVisibility: columnVisibilityElement, actions: actionsElement })
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div>{columnVisibilityElement}</div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            onClick={onAddAssetGroup}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add
-          </Button>
-          {hasSelection && (
-            <>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => { if (selectedAssetGroupForEdit) onEditAssetGroup(selectedAssetGroupForEdit); }}
-                disabled={!selectedAssetGroupForEdit}
-                className="flex items-center gap-2"
-              >
-                <Edit className="h-4 w-4" />
-                Edit
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={onDeleteSelected}
-                className="flex items-center gap-2"
-                disabled={!canDeleteSelected}
-              >
-                <Delete className="h-4 w-4" />
-                Delete Selected
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={clearSelection}
-              >
-                Clear Selection
-              </Button>
-              <div className="body-small text-onSurfaceVariant">
-                {selectedCount} selected
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      )}
 
-      <DataTableExtended
-        columns={displayedColumns}
-        data={assetGroups}
-        showPagination
-        enableRowClickSelection
-        onRowSelectionChange={handleRowSelectionChange}
-        rowSelection={rowSelection}
-        onColumnOrderChange={handleColumnOrderChange}
-      />
-    </Card>
+      <style>{`
+        [data-table-container] th:last-child {
+          background-color: var(--color-surface-container);
+        }
+      `}</style>
+
+      <div data-table-container>
+        <DataTableExtended
+          columns={displayedColumns}
+          data={assetGroups}
+          showPagination
+          rowActions={rowActions}
+        />
+    </div>
+    </div>
   );
-};
+};  

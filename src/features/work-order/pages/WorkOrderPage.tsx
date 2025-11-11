@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
@@ -9,9 +10,11 @@ import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { MOCK_WORK_ORDERS, MOCK_WORK_ORDER_SUMMARY } from "../mockData";
 import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
 import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
+import { COVERAGE_QUERY_KEYS } from "@/features/coverage/hooks/useCoverageService";
 
 const WorkOrdersPage: React.FC = () => {
   const location = useLocation();
+  const queryClient = useQueryClient();
   
   // State
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(MOCK_WORK_ORDERS);
@@ -132,9 +135,13 @@ const WorkOrdersPage: React.FC = () => {
 
   // Form submission handlers
   const handleSubmitCreateWorkOrder = (formData: WorkOrderFormData) => {
+    const claimIdFromPrefill =
+      (claimPrefillData?.claimId as string | undefined) ??
+      (claimPrefillData?.id as string | undefined);
+
     // Generate new work order
     const newWorkOrder: WorkOrder = {
-      id: `WO-${Date.now()}`,
+      id: `WO-${String(Date.now())}`,
       assetId: formData.assetId,
       assetName: formData.assetName,
       assetCode: formData.assetId, // Simplified for now
@@ -159,10 +166,44 @@ const WorkOrdersPage: React.FC = () => {
     // Add to work orders list
     setWorkOrders((prev) => [...prev, newWorkOrder]);
 
-    // Delete the claim notification if it exists
-    if (notificationId) {
+    if (notificationId || claimIdFromPrefill) {
       void import("@/features/notification/services/notificationService").then(({ notificationService }) => {
-        notificationService.deleteNotification(notificationId);
+        const notificationIds = new Set<string>();
+
+        if (notificationId) {
+          notificationIds.add(notificationId);
+        }
+
+        if (claimIdFromPrefill) {
+          const relatedNotifications = notificationService
+            .getSnapshot()
+            .filter((notification) => {
+              if (notification.type !== "claim") {
+                return false;
+              }
+
+              if (notification.sourceId === claimIdFromPrefill) {
+                return true;
+              }
+
+              const metadata = notification.metadata as { claimId?: string } | null | undefined;
+              return metadata?.claimId === claimIdFromPrefill;
+            })
+            .map((notification) => notification.id);
+
+          relatedNotifications.forEach((id) => notificationIds.add(id));
+        }
+
+        if (notificationIds.size > 0) {
+          notificationService.deleteMultipleNotifications(Array.from(notificationIds));
+        }
+      });
+    }
+
+    if (claimIdFromPrefill) {
+      void import("@/features/coverage/services/coverageService").then(async ({ linkWorkOrderToClaim }) => {
+        await linkWorkOrderToClaim(claimIdFromPrefill, newWorkOrder.id);
+        await queryClient.invalidateQueries({ queryKey: COVERAGE_QUERY_KEYS.claims });
       });
     }
 
@@ -216,7 +257,6 @@ const WorkOrdersPage: React.FC = () => {
         setSelectedWorkOrder(workOrder);
         setIsModalOpen(true);
       }
-
       clearNavigationState();
     }
 

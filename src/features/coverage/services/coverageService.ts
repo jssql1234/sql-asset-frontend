@@ -285,6 +285,23 @@ export const getClaimById = (id: string): Promise<CoverageClaim | null> => {
   return Promise.resolve(claim ? { ...claim } : null);
 };
 
+export const linkWorkOrderToClaim = (claimId: string, workOrderId: string): Promise<CoverageClaim | null> => {
+  const claimIndex = claimsStore.findIndex((claim) => claim.id === claimId);
+
+  if (claimIndex === -1) {
+    return Promise.resolve(null);
+  }
+
+  const updatedClaim: CoverageClaim = {
+    ...claimsStore[claimIndex],
+    workOrderId,
+  };
+
+  claimsStore[claimIndex] = updatedClaim;
+
+  return Promise.resolve(updatedClaim);
+};
+
 export const createClaim = (data: CoverageClaimPayload, skipNotification?: boolean): Promise<CoverageClaim> => {
   const id = `CLM-${String(nextClaimId++).padStart(3, '0')}`;
   const amount = Number.isFinite(data.amount) ? data.amount : 0;

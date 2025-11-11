@@ -12,6 +12,7 @@ import { SerialNumberTab } from "./SerialNumberTab";
 import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
 import { AllowanceTab } from "./AllowanceTab";
 import { HirePurchaseTab } from "./HirePurchaseTab";
+import { ManageHPPaymentModal } from "./ManageHPPaymentModal";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
@@ -395,6 +396,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole, listModeHint } = props;
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const [showDetachModal, setShowDetachModal] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingData, setPendingData] = useState<CreateAssetFormData | null>(null);
   const { hasPermission } = usePermissions();
@@ -777,7 +779,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
+          content: (
+            <HirePurchaseTab
+              {...commonTabProps}
+              onManagePaymentClick={() => setIsPaymentModalOpen(true)}
+            />
+          ),
         },
       ]
     : effectiveUserRole === 'admin'
@@ -790,7 +797,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
+          content: (
+            <HirePurchaseTab
+              {...commonTabProps}
+              onManagePaymentClick={() => setIsPaymentModalOpen(true)}
+            />
+          ),
         },
         {
           label: "Depreciation",
@@ -832,7 +844,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
+          content: (
+            <HirePurchaseTab
+              {...commonTabProps}
+              onManagePaymentClick={() => setIsPaymentModalOpen(true)}
+            />
+          ),
         },
         {
           label: "Depreciation",
@@ -1369,6 +1386,21 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             onConfirm={handleBatchConfirmDetach}
           />
         )}
+
+        {/* HP Payment Management Modal is now here. It only renders when open to prevent unnecessary calculations. */}
+        {isPaymentModalOpen ? (
+            <ManageHPPaymentModal
+              isOpen={isPaymentModalOpen}
+              onClose={() => setIsPaymentModalOpen(false)}
+              depositAmount={parseFloat(activeWatch("hpDeposit") ?? '0') || 0}
+              interestRate={activeWatch("hpInterest") ?? 0}
+              numberOfInstalments={parseInt(activeWatch("hpInstalment") ?? '0') || 0}
+              totalCost={parseFloat(activeWatch("cost") ?? '0') || 0}
+              startDate={activeWatch("hpStartDate") ?? ''}
+            />
+        ) : null}
+
+
 
         {/* Mode Confirmation Modal */}
         {/* This block is removed as per the edit hint */}

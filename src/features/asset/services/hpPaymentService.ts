@@ -41,30 +41,27 @@ export interface LoadPaymentScheduleParams {
   startDate: string;
 }
 
-
+/**
+ * Mock service for HP payment calculations
+ * TODO: Replace with actual backend API calls when available
+ */
 export const hpPaymentService = {
+
   loadPaymentSchedule(params: LoadPaymentScheduleParams): Promise<HPPaymentData> {
     const { depositAmount, interestRate, numberOfInstalments, totalCost, startDate } = params;
 
     // TODO: Get from global settings when implemented
     const financialStartDate = "01-01"; // Default to Jan 1st as financial year start
 
-    // Calculation based on flat-rate interest for Hire Purchase
+    // Mock calculation - simplified amortization formula
+    // TODO: Replace with actual backend calculation logic
     const financedAmount = totalCost - depositAmount;
-    const termInYears = numberOfInstalments / 12;
+    const monthlyInterestRate = interestRate / 100 / 12;
 
-    // 1. Calculate total interest using flat rate
-    const totalInterest = financedAmount * (interestRate / 100) * termInYears;
+    // Simple monthly payment calculation (approximate)
+    const monthlyPayment = financedAmount * (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfInstalments)) /
+                          (Math.pow(1 + monthlyInterestRate, numberOfInstalments) - 1);
 
-    // 2. Calculate total amount to be repaid
-    const totalRepayment = financedAmount + totalInterest;
-
-    // 3. Calculate the constant monthly instalment
-    const monthlyInstalment = totalRepayment / numberOfInstalments;
-
-    // 4. Calculate the Sum of Digits for the Rule of 78s
-    const sumOfDigits = (numberOfInstalments * (numberOfInstalments + 1)) / 2;
-    
     const paymentSchedule: PaymentRow[] = [];
     let outstandingPrincipal = financedAmount;
 
@@ -74,12 +71,10 @@ export const hpPaymentService = {
     const fsdMonthIndex = fsdMonth - 1; // Convert to 0-based
 
     for (let i = 1; i <= numberOfInstalments; i++) {
-      // Calculate interest for the current month using the Rule of 78s
-      const remainingInstalments = numberOfInstalments - (i - 1);
-      const interestForMonth = totalInterest * (remainingInstalments / sumOfDigits);
-      const principalForMonth = monthlyInstalment - interestForMonth;
+      const interestAmount = outstandingPrincipal * monthlyInterestRate;
+      const principalAmount = monthlyPayment - interestAmount;
+      outstandingPrincipal -= principalAmount;
 
-      outstandingPrincipal -= principalForMonth;
       // Calculate financial year and month for this instalment
       const instalmentDate = new Date(startDateObj);
       instalmentDate.setMonth(startDateObj.getMonth() + (i - 1));
@@ -101,9 +96,9 @@ export const hpPaymentService = {
         ya: financialYear,
         month: financialMonth,
         instalmentNumber: i,
-        principalAmount: Math.round(principalForMonth * 100) / 100,
-        interestAmount: Math.round(interestForMonth * 100) / 100,
-        totalInstalmentAmount: Math.round(monthlyInstalment * 100) / 100,
+        principalAmount: Math.round(principalAmount * 100) / 100,
+        interestAmount: Math.round(interestAmount * 100) / 100,
+        totalInstalmentAmount: Math.round(monthlyPayment * 100) / 100,
         outstandingPrincipal: Math.round(Math.max(0, outstandingPrincipal) * 100) / 100,
       });
     }
@@ -167,20 +162,37 @@ export const hpPaymentService = {
    */
   calculateEarlySettlement(
     originalSchedule: PaymentRow[],
-    settlementMonth: number
+    settlementMonth: number, // This is the instalmentNumber (1-based)
+    settlementInterestAmount: number
   ): Promise<PaymentRow[]> {
-    // Mock early settlement calculation
-    const newSchedule = [...originalSchedule];
+    // Create a deep copy to avoid modifying the original schedule
+    const newSchedule = JSON.parse(JSON.stringify(originalSchedule));
+    const settlementIndex = settlementMonth - 1;
 
-    // Zero out payments after settlement month
+    if (settlementIndex < 0 || settlementIndex >= newSchedule.length) {
+      return Promise.reject(new Error("Invalid settlement month"));
+    }
+
+    // Find the total principal unpaid. This is the outstanding principal from the month *before* settlement.
+    // If settling in the first month, it's the total of all principal amounts.
+    const totalPrincipalUnpaid = settlementIndex === 0
+      ? newSchedule.reduce((sum: number, row: PaymentRow) => sum + row.principalAmount, 0)
+      : newSchedule[settlementIndex - 1].outstandingPrincipal;
+
+    // Update the settlement month's payment details
+    const settlementRow = newSchedule[settlementIndex];
+    settlementRow.principalAmount = totalPrincipalUnpaid;
+    settlementRow.interestAmount = settlementInterestAmount;
+    settlementRow.totalInstalmentAmount = totalPrincipalUnpaid + settlementInterestAmount;
+    settlementRow.outstandingPrincipal = 0;
+
+    // Zero out all payments for the months following the settlement
     for (let i = settlementMonth; i < newSchedule.length; i++) {
-      newSchedule[i] = {
-        ...newSchedule[i],
-        principalAmount: 0,
-        interestAmount: 0,
-        totalInstalmentAmount: 0,
-        outstandingPrincipal: 0,
-      };
+      const futureRow = newSchedule[i];
+      futureRow.principalAmount = 0;
+      futureRow.interestAmount = 0;
+      futureRow.totalInstalmentAmount = 0;
+      futureRow.outstandingPrincipal = 0;
     }
 
     return Promise.resolve(newSchedule);

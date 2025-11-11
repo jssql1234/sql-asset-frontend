@@ -1,4 +1,3 @@
-import React, { useState } from "react";
 import { Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { Button } from "@/components/ui/components";
@@ -6,17 +5,17 @@ import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control } from "react-hook-form";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
 import { SearchableDropdown } from "@/components/SearchableDropdown";
-import { usePermissions } from "@/hooks/usePermissions";
-import { ManageHPPaymentModal } from "./ManageHPPaymentModal";
+import { usePermissions } from "@/hooks/usePermissions"; 
 
 interface HirePurchaseTabProps {
   register: UseFormRegister<CreateAssetFormData>;
   setValue: UseFormSetValue<CreateAssetFormData>;
   watch: UseFormWatch<CreateAssetFormData>;
   control: Control<CreateAssetFormData>;
+  onManagePaymentClick: () => void;
 }
 
-const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, watch }) => {
+const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, watch, onManagePaymentClick }) => {
   const hpInstalmentValue = watch("hpInstalment", "");
   const hpStartDate = watch("hpStartDate", "");
   const hpDeposit = watch("hpDeposit", "");
@@ -27,9 +26,6 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
   const isReadonly = isAdmin ? false : isTaxAgent;
   const isHpEnabled = !!hpStartDate; // Enable other fields only if HP Start Date is filled
-
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Check if all required fields are present for Manage Payment button
   const isManagePaymentEnabled = !!(
@@ -106,27 +102,12 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
             variant="primary"
             disabled={!isManagePaymentEnabled || isReadonly}
             className="px-6 py-4 w-full"
-            onClick={() => {
-              setIsModalOpen(true);
-            }}
+            onClick={onManagePaymentClick}
           >
             Manage Payment
           </Button>
         </div>
       </div>
-
-      {/* HP Payment Management Modal */}
-      <ManageHPPaymentModal
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-        }}
-        depositAmount={parseFloat(hpDeposit ?? '0') || 0}
-        interestRate={hpInterest ?? 0}
-        numberOfInstalments={parseInt(hpInstalmentValue ?? '0') || 0}
-        totalCost={parseFloat(cost ?? '0') || 0}
-        startDate={hpStartDate ?? ''}
-      />
     </Card>
   );
 };

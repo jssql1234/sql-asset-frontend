@@ -20,6 +20,7 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
   ...paymentProps
 }) => {
   const {
+    isLoading,
     isEditMode,
     financialYearGroups,
     totals,
@@ -42,40 +43,48 @@ const ManageHPPaymentModal: React.FC<ManageHPPaymentModalProps> = ({
           <DialogTitle>Manage HP Payment</DialogTitle>
         </DialogHeader>
         <div className="p-6 pt-2 flex flex-col" style={{ overflow: 'auto', maxHeight: '600px' }}>
-          {/* Action Buttons - Sticky container */}
-          <div className="sticky top-0 pb-2 mb-2 z-10">
-            <div className="flex gap-2">
-              {!isEditMode && (
-                <Button onClick={toggleEditMode} variant="outline">
-                  Edit
-                </Button>
-              )}
-              {isEditMode && (
-                <>
-                  <Button onClick={openEarlySettlement} variant="outline">
-                    Early Settlement
-                  </Button>
-                  <Button onClick={resetPaymentSchedule} variant="outline">
-                    Reset
-                  </Button>
-                  <Button onClick={savePaymentSchedule} variant="default">
-                    Save
-                  </Button>
-                </>
-              )}
+          {isLoading ? (
+            <div className="flex justify-center items-center h-64">
+              <p>Loading Schedule...</p>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Action Buttons - Sticky container */}
+              <div className="sticky top-0 pb-2 mb-2 z-10 bg-surface">
+                <div className="flex gap-2">
+                  {!isEditMode && (
+                    <Button onClick={toggleEditMode} variant="outline">
+                      Edit
+                    </Button>
+                  )}
+                  {isEditMode && (
+                    <>
+                      <Button onClick={openEarlySettlement} variant="outline">
+                        Early Settlement
+                      </Button>
+                      <Button onClick={resetPaymentSchedule} variant="outline">
+                        Reset
+                      </Button>
+                      <Button onClick={savePaymentSchedule} variant="default">
+                        Save
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
 
-          {/* Payment Schedule Table */}
-          <div style={{ overflowY: 'auto' }}>
-            <HPPaymentScheduleTable
-              financialYearGroups={financialYearGroups}
-              totals={totals}
-              depositAmount={paymentProps.depositAmount}
-              expandedYears={expandedYears}
-              onToggleYearExpansion={toggleYearExpansion}
-            />
-          </div>
+              {/* Payment Schedule Table */}
+              <div style={{ overflowY: 'auto' }}>
+                <HPPaymentScheduleTable 
+                  financialYearGroups={financialYearGroups}
+                  totals={totals}
+                  depositAmount={paymentProps.depositAmount}
+                  expandedYears={expandedYears}
+                  onToggleYearExpansion={toggleYearExpansion}
+                />
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
 

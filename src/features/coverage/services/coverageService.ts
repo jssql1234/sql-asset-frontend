@@ -292,6 +292,28 @@ export const createClaim = (data: CoverageClaimPayload): Promise<CoverageClaim> 
   
   claimsStore.unshift(newClaim);
   
+  // Create notification for the claim
+  void import("@/features/notification/services/notificationService").then(({ notificationService }) => {
+    const assetNames = newClaim.assets.map(asset => asset.name).join(", ");
+    notificationService.createNotification({
+      type: "claim",
+      title: `${newClaim.type} Claim Filed`,
+      message: `Claim ${newClaim.claimNumber} has been filed for ${assetNames}. Create a work order to address this claim.`,
+      sourceModule: "coverage",
+      sourceId: newClaim.id,
+      actionUrl: "/work-orders",
+      actionLabel: "Create Work Order",
+      metadata: {
+        claimId: newClaim.id,
+        claimNumber: newClaim.claimNumber,
+        claimType: newClaim.type,
+        assets: newClaim.assets,
+        description: newClaim.description,
+        amount: newClaim.amount,
+      },
+    });
+  });
+  
   // Update insurance remaining coverage and totalClaimed - only for Aggregate type and Settled status
   if (newClaim.type === "Insurance" && newClaim.status === "Settled") {
     const insuranceIndex = insurancesStore.findIndex(ins => ins.id === newClaim.referenceId);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
@@ -32,6 +32,11 @@ const WorkOrdersPage: React.FC = () => {
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
   }>({});
+  const [claimPrefillData, setClaimPrefillData] = useState<Record<string, unknown> | null>(null);
+  const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
+  
+  // Track if we've already processed a claim notification to prevent reopening modal
+  const processedClaimRef = useRef(false);
 
   // Delete confirmation state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -152,14 +157,22 @@ const WorkOrdersPage: React.FC = () => {
       actualCost: formData.actualCost,
       notes: formData.notes,
       progress: 0,
-      warrantyId: formData.warrantyId,
     };
 
     // Add to work orders list
     setWorkOrders((prev) => [...prev, newWorkOrder]);
 
+    // Delete the claim notification if it exists
+    if (notificationId) {
+      void import("@/features/notification/services/notificationService").then(({ notificationService }) => {
+        notificationService.deleteNotification(notificationId);
+      });
+    }
+
     setIsModalOpen(false);
     setPrefilledDates({});
+    setClaimPrefillData(null);
+    setNotificationId(undefined);
   };
 
   const handleSubmitEditWorkOrder = (formData: WorkOrderFormData) => {
@@ -180,8 +193,15 @@ const WorkOrdersPage: React.FC = () => {
 
   // Handle navigation from notifications
   useEffect(() => {
-    const state = location.state as { workOrderId?: string; openDetail?: boolean } | null;
+    const state = location.state as { 
+      workOrderId?: string; 
+      openDetail?: boolean;
+      openWorkOrderForm?: boolean;
+      claimData?: Record<string, unknown>;
+      notificationId?: string;
+    } | null;
 
+    // Handle work order detail view
     if (state?.openDetail && state.workOrderId) {
       const workOrder = workOrders.find(wo => wo.id === state.workOrderId);
 
@@ -192,6 +212,18 @@ const WorkOrdersPage: React.FC = () => {
       }
 
       // Clear the state to prevent reopening on component updates
+      window.history.replaceState({}, document.title);
+    }
+
+    // Handle claim notification - open work order form with prefilled data
+    if (state?.openWorkOrderForm && state.claimData && !processedClaimRef.current) {
+      setClaimPrefillData(state.claimData);
+      setNotificationId(state.notificationId);
+      setModalMode("create");
+      setSelectedWorkOrder(null);
+      setIsModalOpen(true);
+      processedClaimRef.current = true;
+      // Clear the navigation state
       window.history.replaceState({}, document.title);
     }
   }, [location.state, workOrders]);
@@ -240,6 +272,8 @@ const WorkOrdersPage: React.FC = () => {
           setIsModalOpen(false);
           setSelectedWorkOrder(null);
           setPrefilledDates({});
+          setClaimPrefillData(null);
+          setNotificationId(undefined);
         }}
         onSubmit={(formData) => {
           if (selectedWorkOrder) {
@@ -250,6 +284,7 @@ const WorkOrdersPage: React.FC = () => {
         }}
         workOrder={selectedWorkOrder}
         prefilledDates={prefilledDates}
+        claimPrefillData={claimPrefillData}
         mode={modalMode}
       />
 

@@ -39,6 +39,18 @@ export const navigateForNotification = (
     return;
   }
 
+  if (notification.type === "claim" && notification.sourceId) {
+    void navigate("/work-orders", {
+      state: {
+        openWorkOrderForm: true,
+        claimData: notification.metadata,
+        notificationId: notification.id,
+      },
+    });
+    options?.onNavigate?.();
+    return;
+  }
+
   void navigate(notification.actionUrl);
   options?.onNavigate?.();
 };

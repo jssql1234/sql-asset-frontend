@@ -6,7 +6,7 @@ import { usePermissions } from "./hooks/usePermissions";
 
 const AssetMainPage = lazy(() => import("./features/asset/pages/AssetMainPage"));
 const ProcessCAPage = lazy(() => import("./features/asset/pages/ProcessCAPage"));
-const DashboardPage = lazy(() => import("./features/asset/pages/DashboardPage"));
+const DashboardPage = lazy(() => import("./features/dashboard/pages/DashboardPage"));
 const WorkOrdersPage = lazy(() => import("./features/work-order/pages/WorkOrderPage"));
 const WorkRequestPage = lazy(() => import("./features/work-request/pages/WorkRequestPage"));
 const DowntimeTrackingPage = lazy(() => import("./features/downtime/pages/DowntimeTrackingPage"));

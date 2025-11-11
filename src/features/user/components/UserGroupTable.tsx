@@ -55,24 +55,26 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
   }, [groups, searchTerm]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 mb-2">
+  <div className="relative">
+    <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="relative top-2">
         <TableColumnVisibility
           columns={toggleableColumns}
           visibleColumns={visibleColumns}
           setVisibleColumns={setVisibleColumns}
         />
-        <Search
-          searchLabel="Search Groups"
-          searchPlaceholder="Search by ID, name, or description"
-          searchValue={searchTerm}
-          onSearch={setSearchTerm}
-          live
-          className="w-80"
-          inputClassName="h-10 w-full"
-          showLiveSearchIcon
-        />
       </div>
+
+      <Search
+        searchPlaceholder="Search by ID, name, or description"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        live
+        className="w-80"
+        inputClassName="h-10 w-full"
+        showLiveSearchIcon
+      />
+    </div>
 
       <style>{`
         [data-table-container] th:last-child {

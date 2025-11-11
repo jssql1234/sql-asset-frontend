@@ -141,17 +141,39 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
     ...(groupByBatch && { aggregationFn: 'sum' as const }),
   });
 
-  // Quantity (excluded in batch mode)
-  if (!groupByBatch) {
+  // Quantity - shows individual asset qty in asset mode, batch count in batch mode
+  if (groupByBatch) {
+    // In batch mode: show count of assets in the batch
     columns.push({
       id: "qty",
       accessorKey: "qty",
+      header: "Quantity",
+      meta: { label: "Quantity" },
+      cell: ({ row }) => {
+        if (row.getIsGrouped()) {
+          const leafRows = row.getLeafRows();
+          return leafRows.length.toString();
+        }
+        const value = Number(row.getValue('qty') || 0);
+        return Number.isFinite(value) ? value.toLocaleString() : '-';
+      },
+      enableSorting: true,
+      enableColumnFilter: false,
+      aggregationFn: (_columnId, leafRows) => {
+        return leafRows.length;
+      },
+    });
+  } else {
+    // In asset mode: show quantityPerUnit (units per asset)
+    columns.push({
+      id: "quantityPerUnit",
+      accessorKey: "quantityPerUnit",
       header: "Qty",
       meta: { label: "Qty" },
-    cell: ({ getValue }) => {
-      const value = Number(getValue() || 0);
-      return Number.isFinite(value) ? value.toLocaleString() : '-';
-    },
+      cell: ({ getValue }) => {
+        const value = Number(getValue() || 0);
+        return Number.isFinite(value) ? value.toLocaleString() : '-';
+      },
       enableSorting: true,
       enableColumnFilter: false,
     });
@@ -235,6 +257,7 @@ const mapFormDataToAsset = (data: CreateAssetFormData): Asset => ({
   purchaseDate: data.purchaseDate ?? "",
   cost: Number(data.cost ?? "0"),
   qty: data.quantity,
+  quantityPerUnit: data.quantityPerUnit,
   active: !data.inactive,
 });
 
@@ -814,6 +837,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         </div>
       ) : view === 'create' ? (
         <AssetForm
+          listModeHint={groupByBatch ? 'batch' : 'normal'}
           editingAsset={null}
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}
@@ -829,6 +853,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         />
       ) : (
         <AssetForm
+          listModeHint={groupByBatch ? 'batch' : 'normal'}
           editingAsset={editingAsset}
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}

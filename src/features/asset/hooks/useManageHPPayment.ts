@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import type { PaymentRow, FinancialYearGroup } from '../services/hpPaymentService';
+import { useState, useEffect, useCallback } from 'react';
+import { hpPaymentService, type PaymentRow, type FinancialYearGroup, type HPPaymentTotals } from '../services/hpPaymentService';
 
 export interface UseManageHPPaymentProps {
   depositAmount: number;
@@ -9,149 +9,120 @@ export interface UseManageHPPaymentProps {
   startDate: string;
 }
 
-export const useManageHPPayment = ({
-  depositAmount,
-  interestRate,
-  numberOfInstalments,
-  totalCost,
-  startDate,
-}: UseManageHPPaymentProps) => {
+export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentRow[]>([]);
   const [originalPaymentSchedule, setOriginalPaymentSchedule] = useState<PaymentRow[]>([]);
   const [financialYearGroups, setFinancialYearGroups] = useState<FinancialYearGroup[]>([]);
-  const [totals, setTotals] = useState<{ totalInstalments: number; totalPrincipal: number; totalInterest: number; totalInstalmentAmount: number; totalPaymentMade: number } | null>(null);
+  const [totals, setTotals] = useState<HPPaymentTotals | null>(null);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(() => new Set()); // Track expanded YA groups
   const [isEarlySettlementOpen, setIsEarlySettlementOpen] = useState(false);
+  const { depositAmount, interestRate, numberOfInstalments, totalCost, startDate } = props;
+
+  // Reusable function to process the schedule for display
+  const processScheduleForDisplay = useCallback((schedule: PaymentRow[], deposit: number) => {
+    const groups = schedule.reduce((acc: FinancialYearGroup[], row) => {
+      let group = acc.find(g => g.ya === row.ya);
+      if (!group) {
+        group = { ya: row.ya, months: [] };
+        acc.push(group);
+      }
+      group.months.push(row);
+      return acc;
+    }, []);
+
+    const newTotals: HPPaymentTotals = {
+      totalInstalments: schedule.filter(r => r.totalInstalmentAmount > 0).length,
+      totalPrincipal: schedule.reduce((sum, row) => sum + row.principalAmount, 0),
+      totalInterest: schedule.reduce((sum, row) => sum + row.interestAmount, 0),
+      totalInstalmentAmount: schedule.reduce((sum, row) => sum + row.totalInstalmentAmount, 0),
+      totalPaymentMade: schedule.reduce((sum, row) => sum + row.totalInstalmentAmount, 0) + deposit,
+    };
+
+    setFinancialYearGroups(groups);
+    setTotals(newTotals);
+  }, []);
 
   // Load payment schedule when data changes
   useEffect(() => {
-    const calculateFallbackSchedule = (): PaymentRow[] => {
-      const financedAmount = totalCost - depositAmount;
-      const monthlyInterestRate = interestRate / 100 / 12;
-      const monthlyPayment = financedAmount * (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, numberOfInstalments)) / (Math.pow(1 + monthlyInterestRate, numberOfInstalments) - 1);
-
-      const schedule: PaymentRow[] = [];
-      let outstandingPrincipal = financedAmount;
-      let currentYear = new Date(startDate).getFullYear();
-      let instalmentInYear = 1;
-
-      for (let i = 1; i <= numberOfInstalments; i++) {
-        const interestAmount = outstandingPrincipal * monthlyInterestRate;
-        const principalAmount = monthlyPayment - interestAmount;
-        outstandingPrincipal -= principalAmount;
-
-        // Check if we need to move to next year (every 12 months)
-        if (i > 1 && (i - 1) % 12 === 0) {
-          currentYear++;
-          instalmentInYear = 1;
-        }
-
-        schedule.push({
-          ya: currentYear,
-          month: instalmentInYear, // Fallback: use instalment number as month
-          instalmentNumber: i,
-          principalAmount: Math.round(principalAmount * 100) / 100,
-          interestAmount: Math.round(interestAmount * 100) / 100,
-          totalInstalmentAmount: Math.round(monthlyPayment * 100) / 100,
-          outstandingPrincipal: Math.round(Math.max(0, outstandingPrincipal) * 100) / 100,
-        });
-
-        instalmentInYear++;
-      }
-
-      return schedule;
-    };
-
-    const loadPaymentSchedule = async () => {
-      try {
-        const { hpPaymentService } = await import('../services/hpPaymentService');
-        const data = await hpPaymentService.loadPaymentSchedule({
-          depositAmount,
-          interestRate,
-          numberOfInstalments,
-          totalCost,
-          startDate,
-        });
-
+    // Only run if the modal is open and has valid data
+    if (numberOfInstalments > 0 && totalCost > 0 && startDate) {
+      setIsLoading(true);
+      hpPaymentService.loadPaymentSchedule({ depositAmount, interestRate, numberOfInstalments, totalCost, startDate }).then(data => {
         setPaymentSchedule(data.paymentSchedule);
-        setOriginalPaymentSchedule([...data.paymentSchedule]);
-        setFinancialYearGroups(data.financialYearGroups);
-        setTotals(data.totals);
-      } catch (error) {
-        console.error('Failed to load payment schedule:', error);
-        // Fallback to basic calculation if service fails
-        const schedule = calculateFallbackSchedule();
-        setPaymentSchedule(schedule);
-        setOriginalPaymentSchedule([...schedule]);
-
-        // Calculate fallback totals
-        const fallbackTotals = {
-          totalInstalments: schedule.length,
-          totalPrincipal: schedule.reduce((sum, row) => sum + row.principalAmount, 0),
-          totalInterest: schedule.reduce((sum, row) => sum + row.interestAmount, 0),
-          totalInstalmentAmount: schedule.reduce((sum, row) => sum + row.totalInstalmentAmount, 0),
-          totalPaymentMade: schedule.reduce((sum, row) => sum + row.totalInstalmentAmount, 0) + depositAmount,
-        };
-        setTotals(fallbackTotals);
-      }
-    };
-
-    if (depositAmount && interestRate && numberOfInstalments && totalCost && startDate) {
-      void loadPaymentSchedule();
+        setOriginalPaymentSchedule(data.paymentSchedule);
+        processScheduleForDisplay(data.paymentSchedule, data.depositAmount);
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
+      });
+    } else {
+      setIsLoading(false);
     }
   }, [depositAmount, interestRate, numberOfInstalments, totalCost, startDate]);
 
   const toggleEditMode = () => {
-    setIsEditMode(!isEditMode);
+    setIsEditMode(prev => !prev);
   };
 
   const resetPaymentSchedule = () => {
-    setPaymentSchedule([...originalPaymentSchedule]);
+    setPaymentSchedule(originalPaymentSchedule);
+    processScheduleForDisplay(originalPaymentSchedule, depositAmount);
     setIsEditMode(false);
   };
 
   const toggleYearExpansion = (ya: number) => {
-    const newExpanded = new Set(expandedYears);
-    if (newExpanded.has(ya)) {
-      newExpanded.delete(ya);
-    } else {
-      newExpanded.add(ya);
+    setExpandedYears(prev => {
+      const newSet = new Set(prev);
+      newSet.has(ya) ? newSet.delete(ya) : newSet.add(ya);
+      return newSet;
+    });
+  };
+
+  const openEarlySettlement = () => setIsEarlySettlementOpen(true);
+
+  const closeEarlySettlement = () => setIsEarlySettlementOpen(false);
+
+  const applyEarlySettlement = async (settlementMonth: number, interestAmount: number) => {
+    try {
+      // Calculate the new schedule based on the original, last-saved schedule
+      const settledSchedule = await hpPaymentService.calculateEarlySettlement(
+        originalPaymentSchedule,
+        settlementMonth,
+        interestAmount
+      );
+      
+      // Update the displayed schedule to show the result
+      setPaymentSchedule(settledSchedule);
+      processScheduleForDisplay(settledSchedule, depositAmount);
+
+    } catch (error) {
+      console.error('Error calculating early settlement:', error);
+      alert((error as Error).message);
     }
-    setExpandedYears(newExpanded);
-  };
-
-  const openEarlySettlement = () => {
-    setIsEarlySettlementOpen(true);
-  };
-
-  const closeEarlySettlement = () => {
     setIsEarlySettlementOpen(false);
   };
 
-  const applyEarlySettlement = (settlementMonth: number, interestAmount: number) => {
-    // Apply early settlement logic
-    const newSchedule = [...paymentSchedule];
-    for (let i = settlementMonth; i < newSchedule.length; i++) {
-      newSchedule[i] = {
-        ...newSchedule[i],
-        principalAmount: 0,
-        interestAmount: 0,
-        totalInstalmentAmount: 0,
-        outstandingPrincipal: 0,
-      };
+  const savePaymentSchedule = async () => {
+    try {
+      const result = await hpPaymentService.savePaymentSchedule(paymentSchedule);
+      if (result.success) {
+        // The displayed schedule is now the new "original"
+        setOriginalPaymentSchedule(paymentSchedule);
+        setIsEditMode(false);
+        alert(result.message);
+      } else {
+        alert('Failed to save schedule.');
+      }
+    } catch (error) {
+      console.error('Error saving schedule:', error);
+      alert('An error occurred while saving.');
     }
-    setPaymentSchedule(newSchedule);
-    setIsEarlySettlementOpen(false);
-  };
-
-  const savePaymentSchedule = () => {
-    // TODO: Implement save functionality
-    console.log('Saving payment schedule:', paymentSchedule);
-    setIsEditMode(false);
   };
 
   return {
+    isLoading,
     isEditMode,
     paymentSchedule,
     financialYearGroups,

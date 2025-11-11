@@ -11,6 +11,7 @@ export const mockAssets: Asset[] = [
     purchaseDate: "2021-01-01",
     cost: 21500,
     qty: 1,
+    quantityPerUnit: 1,
     active: true,
   },
   {
@@ -23,6 +24,7 @@ export const mockAssets: Asset[] = [
     purchaseDate: "2021-05-15",
     cost: 64500,
     qty: 1,
+    quantityPerUnit: 1,
     active: true,
   },
   {
@@ -35,6 +37,7 @@ export const mockAssets: Asset[] = [
     purchaseDate: "2021-05-15",
     cost: 64500,
     qty: 1,
+    quantityPerUnit: 1,
     active: true,
   },
   {
@@ -47,6 +50,7 @@ export const mockAssets: Asset[] = [
     purchaseDate: "2021-05-15",
     cost: 64500,
     qty: 1,
+    quantityPerUnit: 1,
     active: true,
   },
 ];

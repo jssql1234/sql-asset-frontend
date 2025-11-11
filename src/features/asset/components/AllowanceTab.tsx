@@ -44,7 +44,7 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
   const subClassValue = watch("subClass", "");
   const cost = watch("cost");
   const quantityPerUnit = watch("quantityPerUnit");
-
+  const manualQE = watch("manualQE", false); 
   // Watched values for QE calculation
   const isMotorVehicle = watch("extraCheckbox");
   const isCommercial = watch("extraCommercial");
@@ -153,6 +153,7 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
 
   // Auto-select subclass if there's only one option (no subclasses)
   useEffect(() => {
+    if (manualQE) return;
     if (caAssetGroupValue && allowanceClassValue && !hasSubclasses) {
       const group = ALLOWANCE_GROUPS[caAssetGroupValue];
       const allowanceClass = group.classes[allowanceClassValue];
@@ -254,11 +255,11 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
         <div>
           <label className="block text-sm font-medium text-onSurface">IA Rate</label>
-          <Input {...register("iaRate")} readOnly disabled />
+          <Input {...register("iaRate")} readOnly={!watch("aca")} disabled={!watch("aca") || isReadonly} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">AA Rate</label>
-          <Input {...register("aaRate")} readOnly disabled />
+          <Input {...register("aaRate")} readOnly={!watch("aca")} disabled={!watch("aca") || isReadonly} />
         </div>
         <div className="flex items-center gap-2 mt-7">
           <Option type="checkbox" {...register("aca")} checked={watch("aca")} disabled={isReadonly} />
@@ -316,9 +317,25 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-        <div>
-          <label className="block text-sm font-medium text-onSurface">Qualifying Expenditure (QE)</label>
-          <Input {...register("qeValue")} readOnly disabled />
+        <div className="flex flex-col">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-onSurface">Qualifying Expenditure (QE)</label>
+            <div className="flex items-center gap-2">
+              <Option 
+                type="checkbox" 
+                {...register("manualQE")} 
+                checked={manualQE} 
+                disabled={isReadonly}
+              />
+              <label className="text-sm text-onSurfaceVariant">Manual Q</label>
+            </div>
+          </div>
+          <Input 
+            {...register("qeValue")} 
+            readOnly={!manualQE} 
+            disabled={!manualQE}
+            className={`${!manualQE ? 'bg-surfaceContainerHighest' : 'bg-white'}`}
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Controlled Transfer B/F RE</label>

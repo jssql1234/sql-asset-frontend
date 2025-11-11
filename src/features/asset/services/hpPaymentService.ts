@@ -46,10 +46,7 @@ export interface LoadPaymentScheduleParams {
  * TODO: Replace with actual backend API calls when available
  */
 export const hpPaymentService = {
-  /**
-   * Load payment schedule data
-   * Currently uses simplified calculations - will be replaced with backend API
-   */
+
   loadPaymentSchedule(params: LoadPaymentScheduleParams): Promise<HPPaymentData> {
     const { depositAmount, interestRate, numberOfInstalments, totalCost, startDate } = params;
 
@@ -165,20 +162,37 @@ export const hpPaymentService = {
    */
   calculateEarlySettlement(
     originalSchedule: PaymentRow[],
-    settlementMonth: number
+    settlementMonth: number, // This is the instalmentNumber (1-based)
+    settlementInterestAmount: number
   ): Promise<PaymentRow[]> {
-    // Mock early settlement calculation
-    const newSchedule = [...originalSchedule];
+    // Create a deep copy to avoid modifying the original schedule
+    const newSchedule = JSON.parse(JSON.stringify(originalSchedule));
+    const settlementIndex = settlementMonth - 1;
 
-    // Zero out payments after settlement month
+    if (settlementIndex < 0 || settlementIndex >= newSchedule.length) {
+      return Promise.reject(new Error("Invalid settlement month"));
+    }
+
+    // Find the total principal unpaid. This is the outstanding principal from the month *before* settlement.
+    // If settling in the first month, it's the total of all principal amounts.
+    const totalPrincipalUnpaid = settlementIndex === 0
+      ? newSchedule.reduce((sum: number, row: PaymentRow) => sum + row.principalAmount, 0)
+      : newSchedule[settlementIndex - 1].outstandingPrincipal;
+
+    // Update the settlement month's payment details
+    const settlementRow = newSchedule[settlementIndex];
+    settlementRow.principalAmount = totalPrincipalUnpaid;
+    settlementRow.interestAmount = settlementInterestAmount;
+    settlementRow.totalInstalmentAmount = totalPrincipalUnpaid + settlementInterestAmount;
+    settlementRow.outstandingPrincipal = 0;
+
+    // Zero out all payments for the months following the settlement
     for (let i = settlementMonth; i < newSchedule.length; i++) {
-      newSchedule[i] = {
-        ...newSchedule[i],
-        principalAmount: 0,
-        interestAmount: 0,
-        totalInstalmentAmount: 0,
-        outstandingPrincipal: 0,
-      };
+      const futureRow = newSchedule[i];
+      futureRow.principalAmount = 0;
+      futureRow.interestAmount = 0;
+      futureRow.totalInstalmentAmount = 0;
+      futureRow.outstandingPrincipal = 0;
     }
 
     return Promise.resolve(newSchedule);

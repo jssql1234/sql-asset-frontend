@@ -12,6 +12,7 @@ import { SerialNumberTab } from "./SerialNumberTab";
 import { DepreciationTab, type DepreciationScheduleViewState } from "./DepreciationTab";
 import { AllowanceTab } from "./AllowanceTab";
 import { HirePurchaseTab } from "./HirePurchaseTab";
+import { ManageHPPaymentModal } from "./ManageHPPaymentModal";
 import type { UseFormRegister, UseFormSetValue, UseFormWatch, Control, FieldErrors } from "react-hook-form";
 import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
@@ -48,6 +49,7 @@ interface AssetFormProps {
   selectedTaxYear?: string;
   taxYearOptions?: SelectDropdownOption[];
   userRole?: 'taxAgent' | 'admin' | 'normal';
+  listModeHint?: 'normal' | 'batch';
 }
 
 interface AssetFormRef {
@@ -391,9 +393,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const initialModeFromState = (location.state as LocationState | undefined)?.initialMode;
   const listModeFromState = (location.state as LocationState | undefined)?.listMode;
 
-  const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole } = props;
+  const { onSuccess, onBack, editingAsset, selectedTaxYear, taxYearOptions, userRole, listModeHint } = props;
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const [showDetachModal, setShowDetachModal] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingData, setPendingData] = useState<CreateAssetFormData | null>(null);
   const { hasPermission } = usePermissions();
@@ -412,21 +415,27 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // This must be computed immediately, not in useMemo/useState, to prevent flicker
   // For edit mode: use editingAsset.batchId (available immediately as prop)
   // For creation mode: use initialModeFromState from location.state
-  const computedMode: 'normal' | 'batch' = editingAsset 
-    ? (editingAsset.batchId ? 'batch' : 'normal')
-    : (initialModeFromState ?? 'normal');
+  const sessionMode = useMemo<'normal' | 'batch' | null>(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+    const stored = sessionStorage.getItem('assetListMode');
+    if (stored === 'batch') return 'batch';
+    if (stored === 'asset') return 'normal';
+    return null;
+  }, []);
 
   // Use state for manual mode switching (toggle button), but initialize from computedMode
-  const [currentMode, setCurrentMode] = useState<'normal' | 'batch'>(computedMode);
-
+  const computedMode: 'normal' | 'batch' = editingAsset
+  ? (listModeFromState ?? listModeHint ?? sessionMode ?? (editingAsset.batchId ? 'batch' : 'normal'))
+  : (initialModeFromState ?? listModeHint ?? sessionMode ?? 'normal');
   // Use computedMode directly for rendering in creation mode (no state dependency)
-  // In edit mode, use currentMode (synced in effect)
+  // In edit mode, use currentMode (synced in effect)  
+  const [currentMode, setCurrentMode] = useState<'normal' | 'batch'>(computedMode);
   const effectiveMode = editingAsset ? currentMode : computedMode;
-
   // Determine which mode to use for onBack callback
   // Priority: listModeFromState (edit mode) > initialModeFromState (create mode) > effectiveMode (fallback)
-  const backMode = listModeFromState ?? initialModeFromState ?? effectiveMode;
-
+  const backMode = listModeFromState ?? initialModeFromState ?? listModeHint ?? sessionMode ?? effectiveMode;
   // Batch hooks here - use effectiveMode for correct behavior
   const { data: batchAssets } = useGetBatchAssets(effectiveMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
   const { data: originalQuantity } = useGetBatchQuantity(effectiveMode === 'batch' && editingAsset?.batchId ? editingAsset.batchId : '');
@@ -442,15 +451,9 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   }, [effectiveUserRole]);
 
   // Compute initial active tab synchronously for first render
-  const getInitialActiveTab = useCallback(() => {
-    if (editingAsset) {
-      const isBatchEdit = !!editingAsset.batchId;
-      return isBatchEdit ? 'allocation' : getDefaultActiveTab();
-    } else {
-      // Creation mode
-      return initialModeFromState === 'batch' ? 'allocation' : getDefaultActiveTab();
-    }
-  }, [editingAsset, initialModeFromState, getDefaultActiveTab]);
+  const getInitialActiveTab = useCallback(() => (
+    computedMode === 'batch' ? 'allocation' : getDefaultActiveTab()
+  ), [computedMode, getDefaultActiveTab]);
 
   const [activeTab, setActiveTab] = useState<'allowance' | 'hire-purchase' | 'depreciation' | 'allocation' | 'serial-no' | 'warranty'>(() => getInitialActiveTab());
 
@@ -532,14 +535,14 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // This effect runs on mount and when editingAsset or initialModeFromState changes
   useEffect(() => {
     if (editingAsset) {
-      const isBatchEdit = !!editingAsset.batchId;
-      const targetMode: 'normal' | 'batch' = isBatchEdit ? 'batch' : 'normal';
+      const targetMode: 'normal' | 'batch' = computedMode;
       setCurrentMode(targetMode);
-
-      const targetReset = targetMode === 'normal' ? normalForm.reset : batchForm.reset;
+      
+      const isBatchContext = targetMode === 'batch';
+      const targetReset = isBatchContext ? batchForm.reset : normalForm.reset;
 
       targetReset({
-        code: editingAsset.id,
+        code: isBatchContext ? (editingAsset.batchId || editingAsset.id) : editingAsset.id,
         batchID: editingAsset.batchId || '',
         assetName: editingAsset.name,
         assetGroup: editingAsset.group,
@@ -548,7 +551,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         purchaseDate: editingAsset.purchaseDate,
         cost: editingAsset.cost.toString(),
         quantity: editingAsset.qty || 1,
-        quantityPerUnit: 1,
+        quantityPerUnit: editingAsset.quantityPerUnit || 1,
         inactive: !editingAsset.active,
         // Keep defaults for other fields
         depreciationMethod: "Straight Line",
@@ -776,7 +779,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
+          content: (
+            <HirePurchaseTab
+              {...commonTabProps}
+              onManagePaymentClick={() => setIsPaymentModalOpen(true)}
+            />
+          ),
         },
       ]
     : effectiveUserRole === 'admin'
@@ -789,7 +797,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
+          content: (
+            <HirePurchaseTab
+              {...commonTabProps}
+              onManagePaymentClick={() => setIsPaymentModalOpen(true)}
+            />
+          ),
         },
         {
           label: "Depreciation",
@@ -831,7 +844,12 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         {
           label: "Hire Purchase",
           value: "hire-purchase",
-          content: <HirePurchaseTab {...commonTabProps} />,
+          content: (
+            <HirePurchaseTab
+              {...commonTabProps}
+              onManagePaymentClick={() => setIsPaymentModalOpen(true)}
+            />
+          ),
         },
         {
           label: "Depreciation",
@@ -904,6 +922,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           purchaseDate: '',
           cost: Number(data.cost ?? '0') || 0,
           qty: 1,
+          quantityPerUnit: data.quantityPerUnit || 1,
           active: !data.inactive,
         });
       }
@@ -921,6 +940,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         cost: Number(data.cost ?? '0') || 0,
         active: !data.inactive,
         qty: 1,
+        quantityPerUnit: data.quantityPerUnit || 1,
       };
 
       const updatePayloads = batchAssets.map(asset => ({ id: asset.id, ...updatePartial }));
@@ -1063,13 +1083,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           <TabHeader 
             title={title}
             subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}
-            actions={[
-              {
-                label: "Back",
-                onAction: () => onBack?.(backMode),
-                variant: "outline",
-                size: "default",
-              },
+            actions={[ 
               ...(modeToggleAction ? [modeToggleAction] : []),
             ]}
           />
@@ -1087,7 +1101,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                className="space-y-6"
              >
               {/* Main Form Fields */}
-              <Card className="p-6">
+              
                 {/* Inactive Status Section - Compact */}
                 <div className="flex justify-end mb-6">
                   <Card className="px-3 py-1 m-0 bg-surfaceContainerLowest">
@@ -1272,7 +1286,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
 
                 {/* Dates - hidden in batch mode */}
                 {effectiveMode !== 'batch' && (
-                  <div className={`grid grid-cols-1 gap-4 ${activeTab === "depreciation" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
+                  <div className={`grid grid-cols-1 gap-3 ${activeTab === "depreciation" ? "md:grid-cols-2" : "md:grid-cols-3"}`}>
                     <div>
                       <label className="text-sm font-medium text-onSurface mb-2 flex items-center gap-1">
                         Purchase Date
@@ -1339,8 +1353,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                     </div>
                   </div>
                 )}
-              </Card>
-
+              
               {/* Tabs */}
               <Tabs
                 key={`tabs-${effectiveMode}-${String(layoutKey)}`}
@@ -1374,6 +1387,21 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           />
         )}
 
+        {/* HP Payment Management Modal is now here. It only renders when open to prevent unnecessary calculations. */}
+        {isPaymentModalOpen ? (
+            <ManageHPPaymentModal
+              isOpen={isPaymentModalOpen}
+              onClose={() => setIsPaymentModalOpen(false)}
+              depositAmount={parseFloat(activeWatch("hpDeposit") ?? '0') || 0}
+              interestRate={activeWatch("hpInterest") ?? 0}
+              numberOfInstalments={parseInt(activeWatch("hpInstalment") ?? '0') || 0}
+              totalCost={parseFloat(activeWatch("cost") ?? '0') || 0}
+              startDate={activeWatch("hpStartDate") ?? ''}
+            />
+        ) : null}
+
+
+
         {/* Mode Confirmation Modal */}
         {/* This block is removed as per the edit hint */}
       </div>
@@ -1384,7 +1412,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             variant="outline"
             onClick={() => onBack?.(backMode)}
           >
-            Cancel
+            Back
           </Button>
           <Button 
             type="submit" 

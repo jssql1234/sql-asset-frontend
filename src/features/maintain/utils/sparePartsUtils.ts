@@ -71,9 +71,9 @@ export function generateSparePartId(existingParts: SparePart[]): string {
  * Format currency value
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('ms-MY', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'MYR',
     minimumFractionDigits: 2,
   }).format(amount);
 }

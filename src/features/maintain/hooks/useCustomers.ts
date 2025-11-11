@@ -205,7 +205,7 @@ export function useCustomers() {
           description: `Customer "${formData.name}" has been updated successfully.`,
           variant: 'success',
           duration: 5000,
-        });
+        }); 
       } else {
         addCustomer(formData);
         addToast({
@@ -222,6 +222,25 @@ export function useCustomers() {
         variant: 'error',
       });
       throw error;
+    }
+  };
+
+  const handleDeleteCustomer = (code: string) => {
+    if (!code) return;
+
+    try {
+      deleteMultipleCustomers([code]);
+      addToast({
+        title: 'Success',
+        description: 'Customer deleted successfully!',
+        variant: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred during deletion.',
+        variant: 'error',
+      });
     }
   };
 
@@ -263,6 +282,7 @@ export function useCustomers() {
     toggleCustomerSelection,
     handleAddCustomer,
     handleEditCustomer,
+    handleDeleteCustomer,
     handleDeleteMultipleCustomers,
     handleSaveCustomer,
 

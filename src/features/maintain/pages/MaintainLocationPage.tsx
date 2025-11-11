@@ -23,7 +23,7 @@ const columnDefs = [
     id: 'locationId',
     accessorKey: 'id',
     header: 'Location ID',
-    cell: ({ row }: any) => <span className="font-mono text-sm font-medium">{row.original.id}</span>,
+    cell: ({ row }: any) => <span className="font-normal">{row.original.id}</span>,
     enableColumnFilter: false,
   },
   {
@@ -58,8 +58,9 @@ const MaintainLocationPage: React.FC = () => {
     filters,
     editingLocation,
     updateFilters,
-    handleDeleteMultipleLocations,
     handleSaveLocation,
+    handleEditLocation,
+    handleDeleteLocation,
   } = useLocations();
 
   const {
@@ -78,6 +79,7 @@ const MaintainLocationPage: React.FC = () => {
   const [locationToDelete, setLocationToDelete] = useState<Location | null>(null);
 
   const handleEditLocationClick = (location: Location) => {
+    handleEditLocation(location);
     setSelectedLocation(location);
     setModals((prev) => ({ ...prev, editLocation: true }));
   };
@@ -88,7 +90,7 @@ const MaintainLocationPage: React.FC = () => {
 
   const handleConfirmDelete = () => {
     if (locationToDelete) {
-      handleDeleteMultipleLocations([locationToDelete.id]);
+      handleDeleteLocation(locationToDelete.id);
       setLocationToDelete(null);
     }
   };
@@ -99,14 +101,14 @@ const MaintainLocationPage: React.FC = () => {
     setModals((prev) => ({ ...prev, [modalKey]: false }));
     if (modalKey === "editLocation") setSelectedLocation(null);
   };
-
+ 
   return (
     <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
         <div className="flex items-center justify-between">
           <TabHeader title="Location Management" subtitle="Manage locations and related information" />
           <Button
-            size="sm"
+            type="button"
             onClick={() => {
               setSelectedLocation(null);
               setModals((prev) => ({ ...prev, editLocation: true }));
@@ -119,13 +121,15 @@ const MaintainLocationPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 justify-between">
-          <div className="flex items-center gap-2">
-            <TableColumnVisibility
-              columns={toggleableColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
-            />
-          </div>
+            <div className="relative">
+              <div className="relative top-2">
+                <TableColumnVisibility
+                  columns={toggleableColumns}
+                  visibleColumns={visibleColumns}
+                  setVisibleColumns={setVisibleColumns}
+                />
+              </div>
+            </div>
           <div className="flex-1 flex justify-end">
             <Search
               searchValue={filters.search ?? ""}

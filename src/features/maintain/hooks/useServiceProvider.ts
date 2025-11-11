@@ -14,6 +14,8 @@ import {
 
 import { useToast } from '@/components/ui/components/Toast';
 
+const SERVICE_PROVIDERS_STORAGE_KEY = 'maintain_service_providers';
+const SERVICE_PROVIDER_TYPES_STORAGE_KEY = 'maintain_service_provider_types';
 
 const mockServiceProviderTypes: ServiceProviderTypeOption[] = [
   { id: 'TSP', name: 'IT Support' },
@@ -69,19 +71,50 @@ const mockServiceProviders: ServiceProvider[] = [
   },
 ];
 
-
-  export function useServiceProvider() {
-  const [serviceProvider, setServiceProvider] = useState<ServiceProvider[]>(mockServiceProviders);
-  const [filteredServiceProvider, setFilteredServiceProvider] = useState<ServiceProvider[]>(mockServiceProviders);
+export function useServiceProvider() {
+  const [serviceProvider, setServiceProvider] = useState<ServiceProvider[]>([]);
+  const [filteredServiceProvider, setFilteredServiceProvider] = useState<ServiceProvider[]>([]);
   const [selectedServiceProvider, setSelectedServiceProvider] = useState<string[]>([]);
   const [filters, setFilters] = useState<ServiceProviderFilters>({
     search: '',
     code: '',
   });
-  const [serviceProviderTypes] = useState<ServiceProviderTypeOption[]>(mockServiceProviderTypes);
+  const [serviceProviderTypes, setServiceProviderTypes] = useState<ServiceProviderTypeOption[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingServiceProvider, setEditingServiceProvider] = useState<ServiceProvider | null>(null);
+
   const { addToast } = useToast();
+
+  useEffect(() => {
+    try {
+      const storedProviders = typeof window !== 'undefined'
+        ? window.localStorage.getItem(SERVICE_PROVIDERS_STORAGE_KEY)
+        : null;
+
+      const storedTypes = typeof window !== 'undefined'
+        ? window.localStorage.getItem(SERVICE_PROVIDER_TYPES_STORAGE_KEY)
+        : null;
+
+      const initialProviders: ServiceProvider[] = storedProviders
+        ? JSON.parse(storedProviders)
+        : mockServiceProviders;
+
+      const initialTypes: ServiceProviderTypeOption[] = storedTypes
+        ? JSON.parse(storedTypes)
+        : mockServiceProviderTypes;
+
+      setServiceProvider(initialProviders);
+      setServiceProviderTypes(initialTypes);
+
+      const filtered = filterServiceProvider(initialProviders, filters.search, filters.code, initialTypes);
+      setFilteredServiceProvider(filtered);
+    } catch (err) {
+      console.error('Failed to load service providers from localStorage', err);
+      setServiceProvider(mockServiceProviders);
+      setServiceProviderTypes(mockServiceProviderTypes);
+      setFilteredServiceProvider(mockServiceProviders);
+    }
+  }, []);
 
   useEffect(() => {
     const filtered = filterServiceProvider(serviceProvider, filters.search, filters.code, serviceProviderTypes);
@@ -92,48 +125,56 @@ const mockServiceProviders: ServiceProvider[] = [
     setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 
+  const persistServiceProviders = useCallback((providers: ServiceProvider[]) => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(SERVICE_PROVIDERS_STORAGE_KEY, JSON.stringify(providers));
+    }
+  }, []);
+
   const isDuplicateId = useCallback((id: string, ignoreId?: string) => {
-    return serviceProvider.some(serviceProvider => serviceProvider.id === id && serviceProvider.id !== ignoreId);
+    return serviceProvider.some(sp => sp.id === id && sp.id !== ignoreId);
   }, [serviceProvider]);
 
   const addServiceProvider = useCallback((formData: ServiceProviderFormData) => {
     const validationErrors = validateServiceProviderForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      throw new Error('Validation failed');
-    }
+    if (Object.keys(validationErrors).length > 0) throw new Error('Validation failed');
+    if (isDuplicateId(formData.id)) throw new Error('Service Provider ID already exists');
 
-    if (isDuplicateId(formData.id)) {
-      throw new Error('Service Provider ID already exists');
-    }
+    const newProvider = createServiceProviderFromForm(formData);
 
-    const newServiceProvider = createServiceProviderFromForm(formData);
-    setServiceProvider(prev => [...prev, newServiceProvider]);
-    return newServiceProvider;
-  }, [serviceProvider, isDuplicateId]);
+    setServiceProvider(prev => {
+      const next = [...prev, newProvider];
+      persistServiceProviders(next);
+      return next;
+    });
+
+    return newProvider;
+  }, [isDuplicateId, persistServiceProviders]);
 
   const updateServiceProvider = useCallback((formData: ServiceProviderFormData) => {
     const validationErrors = validateServiceProviderForm(formData);
-    if (Object.keys(validationErrors).length > 0) {
-      throw new Error('Validation failed');
-    }
+    if (Object.keys(validationErrors).length > 0) throw new Error('Validation failed');
 
-    setServiceProvider(prevServiceProvider => 
-      prevServiceProvider.map(serviceProvider =>
-        serviceProvider.id === formData.id
-          ? createServiceProviderFromForm(formData)
-          : serviceProvider,
-      )
-    );
-  }, []);
+    setServiceProvider(prev => {
+      const next = prev.map(sp => sp.id === formData.id ? createServiceProviderFromForm(formData) : sp);
+      persistServiceProviders(next);
+      return next;
+    });
+  }, [persistServiceProviders]);
 
   const deleteMultipleServiceProvider = useCallback((ids: string[]) => {
-    setServiceProvider(prev => prev.filter(serviceProvider => !ids.includes(serviceProvider.id)));
+    setServiceProvider(prev => {
+      const next = prev.filter(sp => !ids.includes(sp.id));
+      persistServiceProviders(next);
+      return next;
+    });
+
     setSelectedServiceProvider(prev => prev.filter(id => !ids.includes(id)));
-  }, []);
+  }, [persistServiceProviders]);
 
   const toggleServiceProviderSelection = useCallback((id: string) => {
     setSelectedServiceProvider(prev =>
-      prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id],
+      prev.includes(id) ? prev.filter(selectedId => selectedId !== id) : [...prev, id]
     );
   }, []);
 
@@ -142,8 +183,8 @@ const mockServiceProviders: ServiceProvider[] = [
     setIsModalOpen(true);
   };
 
-  const handleEditServiceProvider = (serviceProvider: ServiceProvider) => {
-    setEditingServiceProvider(serviceProvider);
+  const handleEditServiceProvider = (provider: ServiceProvider) => {
+    setEditingServiceProvider(provider);
     setIsModalOpen(true);
   };
 
@@ -153,7 +194,7 @@ const mockServiceProviders: ServiceProvider[] = [
         updateServiceProvider(formData);
         addToast({
           title: 'Success',
-          description: `Service Provider "${formData.name}" has been updated successfully.`,
+          description: `Service Provider "${formData.name}" updated successfully.`,
           variant: 'success',
           duration: 5000,
         });
@@ -161,7 +202,7 @@ const mockServiceProviders: ServiceProvider[] = [
         addServiceProvider(formData);
         addToast({
           title: 'Success',
-          description: `Service Provider "${formData.name}" has been created successfully.`,
+          description: `Service Provider "${formData.name}" created successfully.`,
           variant: 'success',
           duration: 5000,
         });
@@ -169,10 +210,29 @@ const mockServiceProviders: ServiceProvider[] = [
     } catch (error) {
       addToast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'An error occurred while saving the service provider.',
+        description: error instanceof Error ? error.message : 'An error occurred while saving.',
         variant: 'error',
       });
       throw error;
+    }
+  };
+
+  const handleDeleteServiceProvider = (id: string) => {
+    if (!id) return;
+
+    try {
+      deleteMultipleServiceProvider([id]);
+      addToast({
+        title: 'Success',
+        description: 'Service provider deleted successfully!',
+        variant: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Error deleting service provider',
+        variant: 'error',
+      });
     }
   };
 
@@ -190,7 +250,7 @@ const mockServiceProviders: ServiceProvider[] = [
       } catch (error) {
         addToast({
           title: 'Error',
-          description: error instanceof Error ? error.message : 'An error occurred while deleting the service provider.',
+          description: error instanceof Error ? error.message : 'Error deleting service providers',
           variant: 'error',
         });
       }
@@ -211,6 +271,7 @@ const mockServiceProviders: ServiceProvider[] = [
     toggleServiceProviderSelection,
     handleAddServiceProvider,
     handleEditServiceProvider,
+    handleDeleteServiceProvider,
     handleDeleteMultipleServiceProvider,
     handleSaveServiceProvider,
   };

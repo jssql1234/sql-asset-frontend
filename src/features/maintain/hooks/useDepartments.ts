@@ -292,6 +292,25 @@ export function useDepartments() {
     }
   };
 
+  const handleDeleteDepartment = (id: string) => {
+    if (!id) return;
+
+    try {
+      deleteMultipleDepartments([id]);  // or deleteDepartment(id)
+      addToast({
+        title: 'Success',
+        description: 'Department deleted successfully!',
+        variant: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while deleting the department.',
+        variant: 'error',
+      });
+    }
+  };
+
   const handleDeleteMultipleDepartments = (ids: string[]) => {
     if (ids.length === 0) {
       return;
@@ -329,6 +348,7 @@ export function useDepartments() {
     toggleDepartmentSelection,
     handleAddDepartment,
     handleEditDepartment,
+    handleDeleteDepartment,
     handleDeleteMultipleDepartments,
     handleSaveDepartment,
 

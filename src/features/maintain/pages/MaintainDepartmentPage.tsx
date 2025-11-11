@@ -10,12 +10,17 @@ import { Plus } from '@/assets/icons';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 import type { Department } from '../types/departments';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const columnDefs = [
   {
     id: 'departmentId',
     accessorKey: 'id',
     header: 'Department ID',
+    cell: ({ row }: any) => (
+      <span className="font-normal">{row.original.id}</span>
+    ),
+    enableColumnFilter: false,
   },
   {
     id: 'name',
@@ -29,15 +34,17 @@ const columnDefs = [
     ),
   },
   {
-    id: 'manager',
-    accessorKey: 'manager',
-    header: 'Manager',
-    cell: ({ row }: any) => <span className="text-sm text-onSurface">{row.original.manager || 'Not assigned'}</span>,
-  },
-  {
     id: 'contact',
     header: 'Contact',
-    cell: ({ row }: any) => <span className="text-sm text-onSurfaceVariant">{row.original.contact || 'No contact info'}</span>,
+    cell: ({ row }: any) => {
+      const { manager, contact } = row.original;
+      const info = [manager, contact].filter(Boolean).join(' • ');
+      return (
+        <div className="text-sm text-onSurfaceVariant">
+          {info || 'No contact info'}
+        </div>
+      );
+    },
   },
   {
     id: 'description',
@@ -55,7 +62,8 @@ const MaintainDepartmentPage: React.FC = () => {
     editingDepartment,
     updateFilters,
     handleSaveDepartment,
-    handleDeleteMultipleDepartments,
+    handleEditDepartment,
+    handleDeleteDepartment,
   } = useDepartments();
 
   const {
@@ -71,8 +79,9 @@ const MaintainDepartmentPage: React.FC = () => {
 
   const [modals, setModals] = useState({ editDepartment: false });
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
-
+  const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
   const handleEditClick = (department: Department) => {
+    handleEditDepartment(department);
     setSelectedDepartment(department);
     setModals({ editDepartment: true });
   };
@@ -88,8 +97,17 @@ const MaintainDepartmentPage: React.FC = () => {
   };
 
   const handleDeleteClick = (department: Department) => {
-    handleDeleteMultipleDepartments([department.id]);
+    setDepartmentToDelete(department);
   };
+
+  const handleConfirmDelete = () => {
+    if (departmentToDelete) {
+      handleDeleteDepartment(departmentToDelete.id);
+      setDepartmentToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => setDepartmentToDelete(null);
 
   return (
     <AppLayout>
@@ -99,20 +117,22 @@ const MaintainDepartmentPage: React.FC = () => {
             title="Department Management"
             subtitle="Manage department information and configurations"
           />
-          <Button size="sm" onClick={handleAddClick} className="flex items-center gap-2">
+          <Button type="button" onClick={handleAddClick} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add Department
           </Button>
         </div>
 
         <div className="flex items-center gap-2 justify-between">
-          <div className="flex items-center gap-2">
-            <TableColumnVisibility
-              columns={toggleableColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
-            />
-          </div>
+            <div className="relative">
+              <div className="relative top-2">
+                <TableColumnVisibility
+                  columns={toggleableColumns}
+                  visibleColumns={visibleColumns}
+                  setVisibleColumns={setVisibleColumns}
+                />
+              </div>
+            </div>
           <div className="flex-1 flex justify-end">
             <Search
               searchValue={filters.search ?? ""}
@@ -142,6 +162,18 @@ const MaintainDepartmentPage: React.FC = () => {
           editingDepartment={selectedDepartment ?? editingDepartment}
           existingDepartments={departments}
           departmentTypes={departmentTypes}
+        />
+
+        <DeleteConfirmationDialog
+          isOpen={!!departmentToDelete}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title="Delete department?"
+          description="This will permanently remove the department. This action cannot be undone."
+          confirmButtonText="Delete Department"
+          itemIds={departmentToDelete ? [departmentToDelete.id] : []}
+          itemNames={departmentToDelete ? [departmentToDelete.name] : []}
+          itemCount={departmentToDelete ? 1 : 0}
         />
       </div>
     </AppLayout>

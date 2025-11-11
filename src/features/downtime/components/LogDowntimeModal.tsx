@@ -289,7 +289,7 @@ export function LogDowntimeModal({ open, onClose, incident }: LogDowntimeModalPr
                 value={formData.status === "Resolved" ? formData.resolutionNotes ?? "" : formData.description ?? ""}
                 onChange={formData.status === "Resolved" ? handleResolutionNotesChange : handleDescriptionChange}
                 placeholder={formData.status === "Resolved" ? "Describe the resolution..." : "Describe the issue..."}
-                className="min-h-[90px]"
+                className="max-h-[90px] overflow-y-auto resize-none"
               />
               {formData.status === "Resolved"
                 ? errors.resolutionNotes ? <span className="text-sm text-error">{errors.resolutionNotes}</span> : null

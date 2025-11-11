@@ -2,6 +2,7 @@ import React from 'react';
 import { Input } from '@/components/ui/components/Input';
 import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
+import { SemiDatePicker } from '@/components/ui/components';  
 
 interface AgricultureDisposalFormProps {
   data: {
@@ -36,6 +37,16 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
 
   const handleCheckboxChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(field, e.target.checked);
+  };
+
+  const handleDateChange = (field: string) => (date: string | Date | Date[] | string[] | undefined) => {
+    let isoDate = '';
+    if (date instanceof Date) {
+      isoDate = date.toISOString();
+    } else if (typeof date === 'string') {
+      isoDate = date;
+    }
+    onChange(field, isoDate);
   };
 
   const isNextDisabled = !data.disposalDate;
@@ -81,7 +92,7 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
           <label htmlFor="agriculture-acquire-date" className="block text-sm font-medium text-onBackground">
             Acquire Date
           </label>
-          <Input
+            <Input
             id="agriculture-acquire-date"
             type="date"
             value={data.acquireDate}
@@ -94,13 +105,12 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
           <label htmlFor="agriculture-disposal-date" className="block text-sm font-medium text-onBackground">
             Disposal Date <span className="text-error">*</span>
           </label>
-          <Input
-            id="agriculture-disposal-date"
-            type="date"
-            value={data.disposalDate}
-            onChange={handleInputChange('disposalDate')}
+          <SemiDatePicker
+            value={data.disposalDate ? new Date(data.disposalDate) : null}
+            onChange={handleDateChange('disposalDate')}
+            inputType="date"
             disabled={disabled}
-            required
+            className="w-full"
           />
         </div>
       </div>
@@ -181,6 +191,25 @@ const AgricultureDisposalForm: React.FC<AgricultureDisposalFormProps> = ({
           </label>
         </div>
       </div>
+
+
+
+      {/* Warning Messages */}
+      {data.assetScrapped && (
+        <div className="bg-warningContainer border border-warning rounded-md p-4">
+           <div className="text-onWarningContainer text-sm">
+              <strong>Note:</strong> Asset scrapped - disposal value is set to 0.
+           </div>
+        </div>
+      )}
+
+      {data.controlledDisposal && (
+        <div className="bg-primaryContainer border border-primary rounded-md p-4">
+            <div className="text-onPrimaryContainer text-sm">
+                Special rules apply for controlled disposal transactions.
+            </div>
+       </div>
+      )}
 
       {/* Allowance Group - Display Only */}
       {data.allowanceApportionment && (

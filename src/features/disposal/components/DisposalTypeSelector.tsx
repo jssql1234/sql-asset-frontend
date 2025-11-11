@@ -28,6 +28,10 @@ const DisposalTypeSelector: React.FC<DisposalTypeSelectorProps> = ({
       value: 'agriculture',
       label: 'Agriculture Disposal',
     },
+    {
+      value: 'forest',
+      label: 'Forest Disposal',
+    },
   ];
 
   const isNextDisabled = !selectedDisposalType;

@@ -23,7 +23,7 @@ import {
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 import { PartsUsedSection } from "./PartsUsedSection";
-import { checkAndNotifyWarranty } from "../services/warrantyNotificationService";
+import { checkAndNotifyCoverage } from "../services/coverageNotificationService";
 
 interface WorkOrderFormProps {
   isOpen: boolean;
@@ -386,12 +386,11 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     onSubmit(submitData);
 
     // Check for warranty coverage and create notifications (only in create mode and not from claim)
-    console.log("Warranty check - mode:", mode, "selectedAssets:", selectedAssets, "claimPrefillData:", !!claimPrefillData);
     if (mode === "create" && selectedAssets.length > 0 && !claimPrefillData) {
       try {
         // Generate a mock work order ID for the notification
         const mockWorkOrderId = `WO-${String(Date.now())}`;
-        checkAndNotifyWarranty(selectedAssets, mockWorkOrderId, formData.description);
+        checkAndNotifyCoverage(selectedAssets, mockWorkOrderId, formData.description);
       } catch (error) {
         console.error("Error checking warranty coverage:", error);
         // Don't block work order creation if warranty check fails

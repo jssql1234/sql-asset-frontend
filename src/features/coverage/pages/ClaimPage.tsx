@@ -29,19 +29,40 @@ const ClaimPage = () => {
 
   const [claimToDelete, setClaimToDelete] = useState<CoverageClaim | null>(null);
   const [warrantyClaimData, setWarrantyClaimData] = useState<Record<string, unknown> | null>(null);
+  const [insuranceClaimData, setInsuranceClaimData] = useState<Record<string, unknown> | null>(null);
   const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
   
-  // Track if we've already processed a warranty notification to prevent reopening modal
+  // Track if we've already processed notifications to prevent reopening modal
   const processedWarrantyRef = useRef(false);
+  const processedInsuranceRef = useRef(false);
 
-  // Handle navigation state from warranty notifications
+  // Handle navigation state from warranty and insurance notifications
   useEffect(() => {
-    const state = location.state as { openClaimForm?: boolean; warrantyData?: Record<string, unknown>; notificationId?: string } | null;
+    const state = location.state as { 
+      openClaimForm?: boolean; 
+      warrantyData?: Record<string, unknown>; 
+      insuranceData?: Record<string, unknown>;
+      notificationId?: string 
+    } | null;
+    
+    // Handle warranty notification
     if (state?.openClaimForm && state.warrantyData && !processedWarrantyRef.current) {
       setWarrantyClaimData(state.warrantyData);
+      setInsuranceClaimData(null); // Clear insurance data
       setNotificationId(state.notificationId);
       openClaimForm();
       processedWarrantyRef.current = true;
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+    
+    // Handle insurance notification
+    if (state?.openClaimForm && state.insuranceData && !processedInsuranceRef.current) {
+      setInsuranceClaimData(state.insuranceData);
+      setWarrantyClaimData(null); // Clear warranty data
+      setNotificationId(state.notificationId);
+      openClaimForm();
+      processedInsuranceRef.current = true;
       // Clear the navigation state
       window.history.replaceState({}, document.title);
     }
@@ -118,12 +139,14 @@ const ClaimPage = () => {
           } else {
             closeClaimForm();
             setWarrantyClaimData(null); // Clear warranty data when closing
+            setInsuranceClaimData(null); // Clear insurance data when closing
           }
         }}
         policies={insurances}
         warranties={warranties}
         claim={modals.claimEdit ?? undefined}
         warrantyPrefillData={warrantyClaimData}
+        insurancePrefillData={insuranceClaimData}
         onCreate={handleCreateClaim}
         onUpdate={handleUpdateClaim}
       />

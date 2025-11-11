@@ -10,6 +10,7 @@ export type NotificationType =
 	| "approval"
 	| "reminder"
 	| "warranty"
+	| "insurance"
 	| "claim";
 
 export interface Notification {

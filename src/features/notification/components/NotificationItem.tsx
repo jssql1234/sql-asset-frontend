@@ -1,7 +1,7 @@
 import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, Bell, CheckCircle2, ClipboardList, FileText, Gauge, Info, Shield, Trash2, Wrench } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, ClipboardList, FileText, Gauge, Info, Shield, ShieldCheck, Trash2, Wrench } from "lucide-react";
 import { cn } from "@/utils/utils";
 import type { Notification } from "../types";
 import { formatRelativeTime } from "../utils/notificationUtils";
@@ -23,6 +23,7 @@ const TYPE_ICON_MAP: Record<Notification["type"], LucideIcon> = {
   approval: CheckCircle2,
   reminder: Bell,
   warranty: Shield,
+  insurance: ShieldCheck,
   claim: ClipboardList,
 };
 

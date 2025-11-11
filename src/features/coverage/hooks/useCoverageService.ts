@@ -257,7 +257,7 @@ export function useCreateClaim(onSuccess?: () => void, notificationId?: string) 
   const { addToast } = useToast();
 
   return useMutation<CoverageClaim, Error, CoverageClaimPayload>({
-    mutationFn: coverageService.createClaim,
+    mutationFn: (data) => coverageService.createClaim(data, !!notificationId),
     onSuccess: async (data) => {
       await invalidateCoverageQueries(queryClient);
 

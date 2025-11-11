@@ -39,6 +39,18 @@ export const navigateForNotification = (
     return;
   }
 
+  if (notification.type === "insurance") {
+    void navigate("/insurance?tab=claims", {
+      state: {
+        openClaimForm: true,
+        insuranceData: notification.metadata,
+        notificationId: notification.id,
+      },
+    });
+    options?.onNavigate?.();
+    return;
+  }
+
   if (notification.type === "claim" && notification.sourceId) {
     void navigate("/work-orders", {
       state: {

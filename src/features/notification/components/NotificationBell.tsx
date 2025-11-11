@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { Bell, BellRing } from "lucide-react";
-import { AlertTriangle, CheckCircle2, FileText, Gauge, Info, Shield, Wrench, ClipboardList } from "lucide-react";
+import { AlertTriangle, CheckCircle2, FileText, Gauge, Info, Shield, ShieldCheck, Wrench, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils/utils";
 import type { Notification, NotificationFilters } from "../types";
@@ -19,6 +19,7 @@ const TYPE_ICON_MAP: Record<Notification["type"], typeof Wrench> = {
   approval: CheckCircle2,
   reminder: Bell,
   warranty: Shield,
+  insurance: ShieldCheck,
   claim: ClipboardList,
 };
 

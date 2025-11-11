@@ -114,6 +114,7 @@ const ClaimPage = () => {
             {
               label: "Add Claim",
               onAction: () => {
+                setNotificationId(undefined); // Reset for manual claim creation
                 openClaimForm();
               },
             },

@@ -284,54 +284,103 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
         </h4>
         
         <div className="bg-white border border-outline rounded-xl p-6 shadow-sm">
-          <div className="space-y-1">
+          <div className="space-y-4">
             
-            <div className="pt-1">
-                  <div className="flex justify-between items-center">
-                    <span className="text-onSurface font-medium">Balancing Charge</span>
-                    <span className="font-bold text-lg text-red-600">0</span>
-                  </div>
+            
+            {disposalType !== 'forest' && calculationResults.balancingAllowance > 0 && (
+              <div className="pt-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-onSurface font-medium">Balancing Allowance</span>
+                  <span className="font-bold text-lg text-green-600">
+                    {formatCurrency(calculationResults.balancingAllowance)}
+                  </span>
                 </div>
+              </div>
+            )}
+
+            {/* Show Balancing Charge or Forest Charge */}
+            {(disposalType !== 'forest' && calculationResults.balancingCharge > 0) || (disposalType === 'forest' && calculationResults.clawbackAmount !== undefined && calculationResults.clawbackAmount > 0) ? (
+              <div className="pt-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-onSurface font-medium">
+                    {disposalType === 'forest' ? 'Forest Charge' : 'Balancing Charge'}
+                  </span>
+                  <span className="font-bold text-lg text-red-600">
+                    {formatCurrency(
+                      disposalType === 'forest' 
+                        ? (calculationResults.clawbackAmount ?? 0)
+                        : calculationResults.balancingCharge
+                    )}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="pt-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-onSurface font-medium">
+                    {disposalType === 'forest' ? 'Forest Charge' : 'Balancing Charge'}
+                  </span>
+                  <span className="font-bold text-lg text-red-400">
+                    {formatCurrency(0)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+           
 
             {/* Clawback Switch */}
             {onClawbackChange && (
               <div className="bg-surfaceContainer rounded-lg pt-4 space-y-4 border-t border-outline mt-6">
                 <div className="flex items-center space-x-3">
                   <Switch
-                    isChecked={isClawbackApplicable}
-                    onChange={onClawbackChange}
+                    isChecked={
+                      disposalType === 'forest'
+                        ? true // Always ON for forest
+                        : isClawbackApplicable
+                    }
+                    onChange={
+                      disposalType === 'forest'
+                        ? undefined 
+                        : onClawbackChange
+                    }
                     size="default"
+                    disabled={disposalType === 'forest'} 
                   />
                   <label className="font-medium text-onBackground">
-                    {disposalType === 'forest' 
-                      ? 'Clawback: LHDN will clawback all capital allowances' 
+                    {disposalType === 'forest'
+                      ? 'Clawback: LHDN will clawback all capital allowances (mandatory for forest disposal)'
                       : `Clawback: Asset disposed within ${disposalType === 'agriculture' ? '5' : '2'} years of acquisition`
                     }
                   </label>
                 </div>
 
-                {/* Spread Balancing Charge Switch - Now shows for all disposal types */}
+                {/* Spread Balancing Charge Switch */}
                 {onSpreadBalancingChargeChange && (
                   <div className="flex items-center space-x-3">
                     <Switch
                       isChecked={isSpreadBalancingCharge}
-                      disabled={!isClawbackApplicable}
+                      disabled={
+                        disposalType === 'forest'
+                          ? false // Allow spreading for forest
+                          : !isClawbackApplicable
+                      }
                       onChange={onSpreadBalancingChargeChange}
                       size="default"
                     />
-                    <label 
+                    <label
                       className={`font-medium ${
-                        isClawbackApplicable 
-                          ? 'text-onBackground cursor-pointer' 
+                        (disposalType === 'forest' || isClawbackApplicable)
+                          ? 'text-onBackground cursor-pointer'
                           : 'text-gray-400 cursor-not-allowed'
                       }`}
                     >
-                      Spread Balancing Charge over Years of Assessment
+                      Spread {disposalType === 'forest' ? 'Forest Charge' : 'Balancing Charge'} over Years of Assessment
                     </label>
                   </div>
                 )}
 
-                {/* Spread Details Table - Now shows for all disposal types when spread is enabled */}
+                {/* Spread Details Table */}
                 {isSpreadBalancingCharge && (
                   <div className="mt-4 pt-4 border-t border-outline">
                     <h5 className="text-sm font-semibold text-onBackground mb-3">Spread Details</h5>
@@ -346,7 +395,7 @@ const DisposalResults: React.FC<DisposalResultsProps> = ({
                               Annual Allowance
                             </th>
                             <th className="px-4 py-3 text-right font-medium text-onBackground border-b-2 border-outline">
-                              Balancing Charge
+                              {disposalType === 'forest' ? 'Forest Charge' : 'Balancing Charge'}
                             </th>
                           </tr>
                         </thead>

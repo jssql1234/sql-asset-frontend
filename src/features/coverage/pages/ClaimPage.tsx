@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
@@ -31,10 +31,12 @@ const ClaimPage = () => {
   const [warrantyClaimData, setWarrantyClaimData] = useState<Record<string, unknown> | null>(null);
   const [insuranceClaimData, setInsuranceClaimData] = useState<Record<string, unknown> | null>(null);
   const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
-  
-  // Track if we've already processed notifications to prevent reopening modal
-  const processedWarrantyRef = useRef(false);
-  const processedInsuranceRef = useRef(false);
+
+  // Track last handled notification ids so repeated clicks can reopen the modal
+  const lastWarrantyNotificationIdRef = useRef<string | undefined>(undefined);
+  const lastInsuranceNotificationIdRef = useRef<string | undefined>(undefined);
+
+  const navigate = useNavigate();
 
   // Handle navigation state from warranty and insurance notifications
   useEffect(() => {
@@ -45,28 +47,44 @@ const ClaimPage = () => {
       notificationId?: string 
     } | null;
     
+    const clearNavigationState = () => {
+      void navigate(`${location.pathname}${location.search}`, { replace: true });
+    };
+
     // Handle warranty notification
-    if (state?.openClaimForm && state.warrantyData && !processedWarrantyRef.current) {
-      setWarrantyClaimData(state.warrantyData);
-      setInsuranceClaimData(null); // Clear insurance data
-      setNotificationId(state.notificationId);
-      openClaimForm();
-      processedWarrantyRef.current = true;
-      // Clear the navigation state
-      window.history.replaceState({}, document.title);
+    if (state?.openClaimForm && state.warrantyData) {
+      const stateNotificationId = state.notificationId ?? "__warranty-claim__";
+      const alreadyHandled =
+        lastWarrantyNotificationIdRef.current === stateNotificationId && modals.claimForm;
+
+      if (!alreadyHandled) {
+        setWarrantyClaimData(state.warrantyData);
+        setInsuranceClaimData(null);
+        setNotificationId(state.notificationId);
+        openClaimForm();
+        lastWarrantyNotificationIdRef.current = stateNotificationId;
+      }
+
+      clearNavigationState();
     }
-    
+
     // Handle insurance notification
-    if (state?.openClaimForm && state.insuranceData && !processedInsuranceRef.current) {
-      setInsuranceClaimData(state.insuranceData);
-      setWarrantyClaimData(null); // Clear warranty data
-      setNotificationId(state.notificationId);
-      openClaimForm();
-      processedInsuranceRef.current = true;
-      // Clear the navigation state
-      window.history.replaceState({}, document.title);
+    if (state?.openClaimForm && state.insuranceData) {
+      const stateNotificationId = state.notificationId ?? "__insurance-claim__";
+      const alreadyHandled =
+        lastInsuranceNotificationIdRef.current === stateNotificationId && modals.claimForm;
+
+      if (!alreadyHandled) {
+        setInsuranceClaimData(state.insuranceData);
+        setWarrantyClaimData(null);
+        setNotificationId(state.notificationId);
+        openClaimForm();
+        lastInsuranceNotificationIdRef.current = stateNotificationId;
+      }
+
+      clearNavigationState();
     }
-  }, [location.state, openClaimForm]);
+  }, [location, modals.claimForm, navigate, openClaimForm]);
 
   const createClaim = useCreateClaim(closeClaimForm, notificationId);
   const updateClaim = useUpdateClaim(closeClaimForm);
@@ -141,6 +159,9 @@ const ClaimPage = () => {
             closeClaimForm();
             setWarrantyClaimData(null); // Clear warranty data when closing
             setInsuranceClaimData(null); // Clear insurance data when closing
+            lastWarrantyNotificationIdRef.current = undefined;
+            lastInsuranceNotificationIdRef.current = undefined;
+            setNotificationId(undefined);
           }
         }}
         policies={insurances}

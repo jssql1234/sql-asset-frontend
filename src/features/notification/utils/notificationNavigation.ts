@@ -31,7 +31,36 @@ export const navigateForNotification = (
     void navigate("/insurance?tab=claims", {
       state: {
         openClaimForm: true,
+        warrantyId: (notification.metadata as Record<string, unknown> | null | undefined)?.warrantyId,
         warrantyData: notification.metadata,
+        notificationId: notification.id,
+      },
+    });
+    options?.onNavigate?.();
+    return;
+  }
+
+  if (notification.type === "insurance") {
+    void navigate("/insurance?tab=claims", {
+      state: {
+        openClaimForm: true,
+        insuranceId: (notification.metadata as Record<string, unknown> | null | undefined)?.insuranceId,
+        insuranceData: notification.metadata,
+        notificationId: notification.id,
+      },
+    });
+    options?.onNavigate?.();
+    return;
+  }
+
+  if (notification.type === "claim" && notification.sourceId) {
+    void navigate("/work-orders", {
+      state: {
+        openWorkOrderForm: true,
+        claimId:
+          (notification.metadata as Record<string, unknown> | null | undefined)?.claimId ??
+          notification.sourceId,
+        claimData: notification.metadata,
         notificationId: notification.id,
       },
     });

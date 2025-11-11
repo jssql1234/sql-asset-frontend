@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
@@ -7,6 +7,7 @@ import type { CoverageClaim, CoverageInsurance, CoverageWarranty } from "@/featu
 import { formatCurrency, formatDate } from "@/features/coverage/services/coverageService";
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import Search from "@/components/Search";
+import { useNavigate } from "react-router-dom";
 
 interface InsurancesVariantProps {
   variant: "insurances";
@@ -322,6 +323,34 @@ const ClaimsVariantTable = ({
   const [internalSearchQuery, setInternalSearchQuery] = useState("");
   const searchQuery = externalSearchQuery ?? internalSearchQuery;
   const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+  const navigate = useNavigate();
+
+  const handleCreateWorkOrder = useCallback(
+    (claim: CoverageClaim) => {
+      const claimData: Record<string, unknown> = {
+        claimId: claim.id,
+        claimNumber: claim.claimNumber,
+        claimType: claim.type,
+        description: claim.description,
+        assets: claim.assets,
+        amount: claim.amount,
+        status: claim.status,
+        referenceName: claim.referenceName,
+        referenceId: claim.referenceId,
+        dateFiled: claim.dateFiled,
+        workOrderId: claim.workOrderId ?? null,
+      };
+
+      void navigate("/work-orders", {
+        state: {
+          openWorkOrderForm: true,
+          claimId: claim.id,
+          claimData,
+        },
+      });
+    },
+    [navigate],
+  );
 
   const filteredClaims = useMemo(() => {
     if (!searchQuery.trim()) return claims;
@@ -370,13 +399,8 @@ const ClaimsVariantTable = ({
         enableSorting: true,
         cell: ({ row }) => {
           const claim = row.original;
-          const isInsurance = claim.type === "Insurance";
           return (
-            <span className={`font-medium ${
-              isInsurance 
-                ? "text-blue-600 dark:text-blue-600" 
-                : "text-green-600 dark:text-green-600"
-            }`}>
+            <span className="font-medium">
               {claim.type}
             </span>
           );
@@ -453,10 +477,29 @@ const ClaimsVariantTable = ({
         accessorKey: "workOrderId",
         header: "Work Order",
         enableColumnFilter: false,
-        cell: ({ row }) => row.original.workOrderId ?? "—",
+        cell: ({ row }) => {
+          const claim = row.original;
+
+          if (claim.workOrderId) {
+            return claim.workOrderId;
+          }
+
+          return (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleCreateWorkOrder(claim);
+              }}
+              className="text-left text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 hover:underline"
+            >
+              Create work order
+            </button>
+          );
+        },
       },
     ],
-    []
+    [handleCreateWorkOrder]
   );
 
   const rowActions: RowAction<CoverageClaim>[] = useMemo(

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Tabs } from "@/components/ui/components";
 import WorkOrderTab from "./WorkOrderTab";
@@ -9,9 +10,11 @@ import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
 import { MOCK_WORK_ORDERS, MOCK_WORK_ORDER_SUMMARY } from "../mockData";
 import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
 import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
+import { COVERAGE_QUERY_KEYS } from "@/features/coverage/hooks/useCoverageService";
 
 const WorkOrdersPage: React.FC = () => {
   const location = useLocation();
+  const queryClient = useQueryClient();
   
   // State
   const [workOrders, setWorkOrders] = useState<WorkOrder[]>(MOCK_WORK_ORDERS);
@@ -32,6 +35,8 @@ const WorkOrdersPage: React.FC = () => {
     scheduledStartDateTime?: string;
     scheduledEndDateTime?: string;
   }>({});
+  const [claimPrefillData, setClaimPrefillData] = useState<Record<string, unknown> | null>(null);
+  const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
 
   // Delete confirmation state
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -130,9 +135,13 @@ const WorkOrdersPage: React.FC = () => {
 
   // Form submission handlers
   const handleSubmitCreateWorkOrder = (formData: WorkOrderFormData) => {
+    const claimIdFromPrefill =
+      (claimPrefillData?.claimId as string | undefined) ??
+      (claimPrefillData?.id as string | undefined);
+
     // Generate new work order
     const newWorkOrder: WorkOrder = {
-      id: `WO-${Date.now()}`,
+      id: `WO-${String(Date.now())}`,
       assetId: formData.assetId,
       assetName: formData.assetName,
       assetCode: formData.assetId, // Simplified for now
@@ -152,14 +161,56 @@ const WorkOrdersPage: React.FC = () => {
       actualCost: formData.actualCost,
       notes: formData.notes,
       progress: 0,
-      warrantyId: formData.warrantyId,
     };
 
     // Add to work orders list
     setWorkOrders((prev) => [...prev, newWorkOrder]);
 
+    if (notificationId || claimIdFromPrefill) {
+      void import("@/features/notification/services/notificationService").then(({ notificationService }) => {
+        const notificationIds = new Set<string>();
+
+        if (notificationId) {
+          notificationIds.add(notificationId);
+        }
+
+        if (claimIdFromPrefill) {
+          const relatedNotifications = notificationService
+            .getSnapshot()
+            .filter((notification) => {
+              if (notification.type !== "claim") {
+                return false;
+              }
+
+              if (notification.sourceId === claimIdFromPrefill) {
+                return true;
+              }
+
+              const metadata = notification.metadata as { claimId?: string } | null | undefined;
+              return metadata?.claimId === claimIdFromPrefill;
+            })
+            .map((notification) => notification.id);
+
+          relatedNotifications.forEach((id) => notificationIds.add(id));
+        }
+
+        if (notificationIds.size > 0) {
+          notificationService.deleteMultipleNotifications(Array.from(notificationIds));
+        }
+      });
+    }
+
+    if (claimIdFromPrefill) {
+      void import("@/features/coverage/services/coverageService").then(async ({ linkWorkOrderToClaim }) => {
+        await linkWorkOrderToClaim(claimIdFromPrefill, newWorkOrder.id);
+        await queryClient.invalidateQueries({ queryKey: COVERAGE_QUERY_KEYS.claims });
+      });
+    }
+
     setIsModalOpen(false);
     setPrefilledDates({});
+    setClaimPrefillData(null);
+    setNotificationId(undefined);
   };
 
   const handleSubmitEditWorkOrder = (formData: WorkOrderFormData) => {
@@ -178,23 +229,92 @@ const WorkOrdersPage: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const navigate = useNavigate();
+
   // Handle navigation from notifications
   useEffect(() => {
-    const state = location.state as { workOrderId?: string; openDetail?: boolean } | null;
+    const state = location.state as {
+      workOrderId?: string;
+      openDetail?: boolean;
+      openWorkOrderForm?: boolean;
+      claimId?: string;
+      claimData?: Record<string, unknown>;
+      notificationId?: string;
+    } | null;
 
+    let isActive = true;
+
+    const clearNavigationState = () => {
+      void navigate(`${location.pathname}${location.search}`, { replace: true });
+    };
+
+    // Handle work order detail view
     if (state?.openDetail && state.workOrderId) {
-      const workOrder = workOrders.find(wo => wo.id === state.workOrderId);
+      const workOrder = workOrders.find((wo) => wo.id === state.workOrderId);
 
       if (workOrder) {
         setModalMode("view");
         setSelectedWorkOrder(workOrder);
         setIsModalOpen(true);
       }
-
-      // Clear the state to prevent reopening on component updates
-      window.history.replaceState({}, document.title);
+      clearNavigationState();
     }
-  }, [location.state, workOrders]);
+
+    const handleClaimNotification = async () => {
+      if (!state?.openWorkOrderForm) {
+        return;
+      }
+
+      const notificationIdentifier = state.notificationId ?? "__work-order-claim__";
+      let latestClaimData: Record<string, unknown> | null = null;
+
+      const claimIdFromState = state.claimId ?? (state.claimData?.claimId as string | undefined);
+
+      if (claimIdFromState) {
+        try {
+          const { getClaimById } = await import("@/features/coverage/services/coverageService");
+          const claim = await getClaimById(claimIdFromState);
+
+          if (claim) {
+            latestClaimData = {
+              claimId: claim.id,
+              claimNumber: claim.claimNumber,
+              claimType: claim.type,
+              description: claim.description,
+              assets: claim.assets,
+              amount: claim.amount,
+              status: claim.status,
+              workOrderId: claim.workOrderId,
+            };
+          }
+        } catch (error) {
+          console.error("Failed to load claim data for notification:", error);
+        }
+      }
+
+      if (!latestClaimData && state.claimData) {
+        latestClaimData = state.claimData;
+      }
+
+      if (!isActive) {
+        return;
+      }
+
+      setClaimPrefillData(latestClaimData);
+      setNotificationId(state.notificationId ?? notificationIdentifier);
+      setModalMode("create");
+      setSelectedWorkOrder(null);
+      setIsModalOpen(true);
+
+      clearNavigationState();
+    };
+
+    void handleClaimNotification();
+
+    return () => {
+      isActive = false;
+    };
+  }, [location, navigate, workOrders]);
 
   // Tabs configuration
   const tabs = [
@@ -240,6 +360,8 @@ const WorkOrdersPage: React.FC = () => {
           setIsModalOpen(false);
           setSelectedWorkOrder(null);
           setPrefilledDates({});
+          setClaimPrefillData(null);
+          setNotificationId(undefined);
         }}
         onSubmit={(formData) => {
           if (selectedWorkOrder) {
@@ -250,6 +372,7 @@ const WorkOrdersPage: React.FC = () => {
         }}
         workOrder={selectedWorkOrder}
         prefilledDates={prefilledDates}
+        claimPrefillData={claimPrefillData}
         mode={modalMode}
       />
 

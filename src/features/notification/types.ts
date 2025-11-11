@@ -9,7 +9,9 @@ export type NotificationType =
 	| "system"
 	| "approval"
 	| "reminder"
-	| "warranty";
+	| "warranty"
+	| "insurance"
+	| "claim";
 
 export interface Notification {
 	id: string;

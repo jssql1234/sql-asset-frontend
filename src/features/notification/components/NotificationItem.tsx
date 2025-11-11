@@ -1,11 +1,11 @@
 import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import type { LucideIcon } from "lucide-react";
-import { AlertTriangle, Bell, CheckCircle2, FileText, Gauge, Info, Shield, Trash2, Wrench } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/utils/utils";
 import type { Notification } from "../types";
 import { formatRelativeTime } from "../utils/notificationUtils";
 import { navigateForNotification } from "../utils/notificationNavigation";
+import { NOTIFICATION_TYPE_ICONS } from "../constants";
 
 interface NotificationItemProps {
   notification: Notification;
@@ -13,21 +13,9 @@ interface NotificationItemProps {
   onDelete: (id: string) => void;
 }
 
-const TYPE_ICON_MAP: Record<Notification["type"], LucideIcon> = {
-  work_order: Wrench,
-  work_request: FileText,
-  maintenance: Wrench,
-  meter_reading: Gauge,
-  asset_alert: AlertTriangle,
-  system: Info,
-  approval: CheckCircle2,
-  reminder: Bell,
-  warranty: Shield,
-};
-
 export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: NotificationItemProps) => {
   const navigate = useNavigate();
-  const Icon = TYPE_ICON_MAP[notification.type];
+  const Icon = NOTIFICATION_TYPE_ICONS[notification.type];
 
   const handleNavigate = useCallback(() => {
     if (notification.status === "unread") {

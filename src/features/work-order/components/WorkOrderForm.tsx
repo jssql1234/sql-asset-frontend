@@ -23,7 +23,7 @@ import {
 } from "../mockData";
 import { CostDistribution } from "./CostDistribution";
 import { PartsUsedSection } from "./PartsUsedSection";
-import { checkAndNotifyWarranty } from "../services/warrantyNotificationService";
+import { checkAndNotifyCoverage } from "../services/coverageNotificationService";
 
 interface WorkOrderFormProps {
   isOpen: boolean;
@@ -36,6 +36,7 @@ interface WorkOrderFormProps {
     scheduledEndDateTime?: string;
   };
   mode?: "view" | "edit" | "create"; 
+  claimPrefillData?: Record<string, unknown> | null;
 }
 
 export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
@@ -45,6 +46,7 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
   workOrder = null,
   prefilledDates,
   mode = workOrder ? "edit" : "create",
+  claimPrefillData,
 }) => {
   const { addToast } = useToast();
 
@@ -204,6 +206,34 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
     }
   }, [prefilledDates, mode]);
 
+  // Handle claim prefill data (Create mode)
+  useEffect(() => {
+    if (mode === "create" && claimPrefillData) {
+      const assets = claimPrefillData.assets as { id: string; name: string }[] | undefined;
+      const description = claimPrefillData.description as string | undefined;
+      
+      if (assets && assets.length > 0) {
+        const assetIds = assets.map(a => a.id);
+        const assetNames = assets.map(a => a.name);
+        setSelectedAssets(assetIds);
+        
+        // Update form data with asset information
+        setFormData((prev) => ({
+          ...prev,
+          assetId: assetIds.join(","),
+          assetName: assetNames.join(", "),
+        }));
+      }
+      
+      if (description) {
+        setFormData((prev) => ({
+          ...prev,
+          description,
+        }));
+      }
+    }
+  }, [claimPrefillData, mode]);
+
   // Update assignee options based on service type
   useEffect(() => {
     if (formData.serviceBy === "In-House") {
@@ -355,13 +385,12 @@ export const WorkOrderForm: React.FC<WorkOrderFormProps> = ({
 
     onSubmit(submitData);
 
-    // Check for warranty coverage and create notifications (only in create mode)
-    console.log("Warranty check - mode:", mode, "selectedAssets:", selectedAssets);
-    if (mode === "create" && selectedAssets.length > 0) {
+    // Check for warranty coverage and create notifications (only in create mode and not from claim)
+    if (mode === "create" && selectedAssets.length > 0 && !claimPrefillData) {
       try {
         // Generate a mock work order ID for the notification
         const mockWorkOrderId = `WO-${String(Date.now())}`;
-        checkAndNotifyWarranty(selectedAssets, mockWorkOrderId, formData.description);
+        checkAndNotifyCoverage(selectedAssets, mockWorkOrderId, formData.description);
       } catch (error) {
         console.error("Error checking warranty coverage:", error);
         // Don't block work order creation if warranty check fails

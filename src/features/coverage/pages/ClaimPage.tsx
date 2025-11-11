@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import TabHeader from "@/components/TabHeader";
 import CoverageTable from "@/features/coverage/components/CoverageTable";
 import { ClaimSummaryCards } from "@/features/coverage/components/CoverageSummaryCards";
@@ -29,23 +29,136 @@ const ClaimPage = () => {
 
   const [claimToDelete, setClaimToDelete] = useState<CoverageClaim | null>(null);
   const [warrantyClaimData, setWarrantyClaimData] = useState<Record<string, unknown> | null>(null);
+  const [insuranceClaimData, setInsuranceClaimData] = useState<Record<string, unknown> | null>(null);
   const [notificationId, setNotificationId] = useState<string | undefined>(undefined);
-  
-  // Track if we've already processed a warranty notification to prevent reopening modal
-  const processedWarrantyRef = useRef(false);
 
-  // Handle navigation state from warranty notifications
+  // Track last handled notification ids so repeated clicks can reopen the modal
+  const lastWarrantyNotificationIdRef = useRef<string | undefined>(undefined);
+  const lastInsuranceNotificationIdRef = useRef<string | undefined>(undefined);
+
+  const navigate = useNavigate();
+
+  interface WarrantyNotificationData {
+    warrantyId?: string;
+    warrantyName?: string;
+    provider?: string;
+    coverage?: string;
+    expiryDate?: string;
+    assetIds?: string[];
+    assets?: { id: string; name: string }[];
+    workOrderId?: string;
+    workOrderDescription?: string;
+  }
+
+  interface InsuranceNotificationData {
+    insuranceId?: string;
+    insuranceName?: string;
+    provider?: string;
+    policyNumber?: string;
+    expiryDate?: string;
+    assetIds?: string[];
+    assets?: { id: string; name: string }[];
+    remainingCoverage?: number;
+    workOrderId?: string;
+    workOrderDescription?: string;
+  }
+
+  // Handle navigation state from warranty and insurance notifications
   useEffect(() => {
-    const state = location.state as { openClaimForm?: boolean; warrantyData?: Record<string, unknown>; notificationId?: string } | null;
-    if (state?.openClaimForm && state.warrantyData && !processedWarrantyRef.current) {
-      setWarrantyClaimData(state.warrantyData);
-      setNotificationId(state.notificationId);
-      openClaimForm();
-      processedWarrantyRef.current = true;
-      // Clear the navigation state
-      window.history.replaceState({}, document.title);
+    const state = location.state as {
+      openClaimForm?: boolean;
+      warrantyId?: string;
+      warrantyData?: Record<string, unknown>;
+      insuranceId?: string;
+      insuranceData?: Record<string, unknown>;
+      notificationId?: string;
+    } | null;
+
+    const clearNavigationState = () => {
+      void navigate(`${location.pathname}${location.search}`, { replace: true });
+    };
+
+    // Handle warranty notification
+    if (state?.openClaimForm && (state.warrantyData || state.warrantyId)) {
+      const stateNotificationId = state.notificationId ?? "__warranty-claim__";
+      const alreadyHandled =
+        lastWarrantyNotificationIdRef.current === stateNotificationId && modals.claimForm;
+
+      if (!alreadyHandled) {
+        const warrantyMetadata = state.warrantyData as WarrantyNotificationData | undefined;
+        const warrantyIdFromState = state.warrantyId ?? warrantyMetadata?.warrantyId;
+        const latestWarranty = warrantyIdFromState
+          ? warranties.find((item) => item.id === warrantyIdFromState)
+          : undefined;
+
+        const mergedWarrantyData: Record<string, unknown> = {
+          ...(warrantyMetadata ?? {}),
+          warrantyId: warrantyIdFromState ?? warrantyMetadata?.warrantyId,
+          warrantyName: latestWarranty?.name ?? warrantyMetadata?.warrantyName,
+          provider: latestWarranty?.provider ?? warrantyMetadata?.provider,
+          coverage: latestWarranty?.coverage ?? warrantyMetadata?.coverage,
+          expiryDate: latestWarranty?.expiryDate ?? warrantyMetadata?.expiryDate,
+          assetIds:
+            latestWarranty?.assetsCovered.map((asset) => asset.id) ??
+            warrantyMetadata?.assetIds ??
+            [],
+          assets:
+            latestWarranty?.assetsCovered ??
+            warrantyMetadata?.assets ??
+            [],
+        };
+
+        setWarrantyClaimData(mergedWarrantyData);
+        setInsuranceClaimData(null);
+        setNotificationId(state.notificationId);
+        openClaimForm();
+        lastWarrantyNotificationIdRef.current = stateNotificationId;
+      }
+
+      clearNavigationState();
     }
-  }, [location.state, openClaimForm]);
+
+    // Handle insurance notification
+    if (state?.openClaimForm && (state.insuranceData || state.insuranceId)) {
+      const stateNotificationId = state.notificationId ?? "__insurance-claim__";
+      const alreadyHandled =
+        lastInsuranceNotificationIdRef.current === stateNotificationId && modals.claimForm;
+
+      if (!alreadyHandled) {
+        const insuranceMetadata = state.insuranceData as InsuranceNotificationData | undefined;
+        const insuranceIdFromState = state.insuranceId ?? insuranceMetadata?.insuranceId;
+        const latestInsurance = insuranceIdFromState
+          ? insurances.find((item) => item.id === insuranceIdFromState)
+          : undefined;
+
+        const mergedInsuranceData: Record<string, unknown> = {
+          ...(insuranceMetadata ?? {}),
+          insuranceId: insuranceIdFromState ?? insuranceMetadata?.insuranceId,
+          insuranceName: latestInsurance?.name ?? insuranceMetadata?.insuranceName,
+          provider: latestInsurance?.provider ?? insuranceMetadata?.provider,
+          policyNumber: latestInsurance?.policyNumber ?? insuranceMetadata?.policyNumber,
+          expiryDate: latestInsurance?.expiryDate ?? insuranceMetadata?.expiryDate,
+          assetIds:
+            latestInsurance?.assetsCovered.map((asset) => asset.id) ??
+            insuranceMetadata?.assetIds ??
+            [],
+          assets:
+            latestInsurance?.assetsCovered ??
+            insuranceMetadata?.assets ??
+            [],
+          remainingCoverage: latestInsurance?.remainingCoverage ?? insuranceMetadata?.remainingCoverage,
+        };
+
+        setInsuranceClaimData(mergedInsuranceData);
+        setWarrantyClaimData(null);
+        setNotificationId(state.notificationId);
+        openClaimForm();
+        lastInsuranceNotificationIdRef.current = stateNotificationId;
+      }
+
+      clearNavigationState();
+    }
+  }, [insurances, location, modals.claimForm, navigate, openClaimForm, warranties]);
 
   const createClaim = useCreateClaim(closeClaimForm, notificationId);
   const updateClaim = useUpdateClaim(closeClaimForm);
@@ -93,6 +206,7 @@ const ClaimPage = () => {
             {
               label: "Add Claim",
               onAction: () => {
+                setNotificationId(undefined); // Reset for manual claim creation
                 openClaimForm();
               },
             },
@@ -118,12 +232,17 @@ const ClaimPage = () => {
           } else {
             closeClaimForm();
             setWarrantyClaimData(null); // Clear warranty data when closing
+            setInsuranceClaimData(null); // Clear insurance data when closing
+            lastWarrantyNotificationIdRef.current = undefined;
+            lastInsuranceNotificationIdRef.current = undefined;
+            setNotificationId(undefined);
           }
         }}
         policies={insurances}
         warranties={warranties}
         claim={modals.claimEdit ?? undefined}
         warrantyPrefillData={warrantyClaimData}
+        insurancePrefillData={insuranceClaimData}
         onCreate={handleCreateClaim}
         onUpdate={handleUpdateClaim}
       />

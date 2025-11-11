@@ -1,92 +1,37 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useCallback, useMemo, useState, type MouseEvent as ReactMouseEvent } from "react";
 import { Bell, BellRing } from "lucide-react";
-import { AlertTriangle, CheckCircle2, FileText, Gauge, Info, ShieldCheck, Wrench, ClipboardList } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/utils/utils";
-import type { Notification, NotificationFilters } from "../types";
+import type { Notification } from "../types";
 import { useNotifications } from "../hooks/useNotifications";
+import { useNotificationPanel } from "../hooks/useNotificationPanel";
 import { formatRelativeTime, sortNotificationsByDate } from "../utils/notificationUtils";
 import { navigateForNotification } from "../utils/notificationNavigation";
 import { NotificationToggle } from "./NotificationToggle";
-
-const TYPE_ICON_MAP: Record<Notification["type"], typeof Wrench> = {
-  work_order: Wrench,
-  work_request: FileText,
-  maintenance: Wrench,
-  meter_reading: Gauge,
-  asset_alert: AlertTriangle,
-  system: Info,
-  approval: CheckCircle2,
-  reminder: Bell,
-  warranty: ShieldCheck,
-  insurance: ShieldCheck,
-  claim: ClipboardList,
-};
-
-const UNREAD_FILTER: NotificationFilters = { status: "unread" };
+import { MAX_RECENT_NOTIFICATIONS, NOTIFICATION_TYPE_ICONS, UNREAD_ONLY_FILTER } from "../constants";
 
 export const NotificationBell = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"all" | "unread">("all");
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const panelId = useId();
   const {
     filteredNotifications,
     unreadCount,
     markAsRead,
     markAllAsRead,
     deleteNotification,
-  } = useNotifications(activeTab === "unread" ? UNREAD_FILTER : undefined);
+  } = useNotifications(activeTab === "unread" ? UNREAD_ONLY_FILTER : undefined);
   const navigate = useNavigate();
-  const prevUnreadCountRef = useRef(unreadCount);
+  const { close, containerRef, isOpen, panelId, toggle } = useNotificationPanel({ unreadCount });
 
   const recentNotifications = useMemo(() => {
-    return sortNotificationsByDate(filteredNotifications).slice(0, 10);
+    return sortNotificationsByDate(filteredNotifications).slice(0, MAX_RECENT_NOTIFICATIONS);
   }, [filteredNotifications]);
-
-  const closeDropdown = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  const openDropdown = useCallback(() => {
-    setIsOpen(true);
-  }, []);
-
-  const toggleDropdown = useCallback(() => {
-    setIsOpen((previous) => !previous);
-  }, []);
-
-  // Auto-open dropdown when new notifications arrive
-  useEffect(() => {
-    if (unreadCount > prevUnreadCountRef.current) {
-      openDropdown();
-    }
-    prevUnreadCountRef.current = unreadCount;
-  }, [openDropdown, unreadCount]);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        closeDropdown();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [closeDropdown, isOpen]);
 
   const handleNotificationClick = useCallback(
     (notification: Notification) => {
       markAsRead(notification.id);
-      navigateForNotification(notification, navigate, { onNavigate: closeDropdown });
+      navigateForNotification(notification, navigate, { onNavigate: close });
     },
-    [closeDropdown, markAsRead, navigate],
+    [close, markAsRead, navigate],
   );
 
   const handleMarkAllAsRead = useCallback(() => {
@@ -111,15 +56,15 @@ export const NotificationBell = () => {
 
   const handleViewAll = useCallback(() => {
     void navigate("/notifications");
-    closeDropdown();
-  }, [closeDropdown, navigate]);
+    close();
+  }, [close, navigate]);
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={containerRef}>
       {/* Bell Icon Button */}
       <button
         type="button"
-        onClick={toggleDropdown}
+        onClick={toggle}
         className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
         aria-label="Notifications"
         aria-haspopup="dialog"
@@ -146,7 +91,7 @@ export const NotificationBell = () => {
           {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/10 animate-in fade-in-0 duration-200 z-40"
-            onClick={closeDropdown}
+            onClick={close}
           />
           <div
             id={panelId}
@@ -155,120 +100,120 @@ export const NotificationBell = () => {
             aria-modal="true"
             aria-labelledby="notification-dropdown-title"
           >
-          {/* Header */}
-          <div className="px-6 pt-6 pb-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 id="notification-dropdown-title" className="text-2xl font-bold text-gray-900">Notifications</h3>
-              <button
-                type="button"
-                onClick={handleMarkAllAsRead}
-                className={cn(
-                  "text-sm font-medium text-gray-900 transition-colors underline hover:text-gray-700",
-                  unreadCount === 0 && "pointer-events-none opacity-50 no-underline",
-                )}
-                disabled={unreadCount === 0}
-              >
-                Mark all as read
-              </button>
+            {/* Header */}
+            <div className="px-6 pt-6 pb-4">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 id="notification-dropdown-title" className="text-2xl font-bold text-gray-900">
+                  Notifications
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleMarkAllAsRead}
+                  className={cn(
+                    "text-sm font-medium text-gray-900 transition-colors underline hover:text-gray-700",
+                    unreadCount === 0 && "pointer-events-none opacity-50 no-underline",
+                  )}
+                  disabled={unreadCount === 0}
+                >
+                  Mark all as read
+                </button>
+              </div>
+
+              {/* Tabs */}
+              <NotificationToggle activeTab={activeTab} onTabChange={setActiveTab} />
             </div>
 
-            {/* Tabs */}
-            <NotificationToggle activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
+            {/* Notifications List */}
+            <div className="max-h-[400px] overflow-y-auto">
+              {recentNotifications.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                  <Bell className="mb-2 h-12 w-12 text-gray-300" />
+                  <p className="text-sm">No notifications</p>
+                </div>
+              ) : (
+                <div>
+                  {recentNotifications.map((notification) => {
+                    const Icon = NOTIFICATION_TYPE_ICONS[notification.type];
 
-          {/* Notifications List */}
-          <div className="max-h-[400px] overflow-y-auto">
-            {recentNotifications.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-                <Bell className="h-12 w-12 mb-2 text-gray-300" />
-                <p className="text-sm">No notifications</p>
-              </div>
-            ) : (
-              <div>
-                {recentNotifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    onClick={() => {
-                      handleNotificationClick(notification);
-                    }}
-                    className={cn(
-                      "group flex gap-3 px-6 py-4 hover:bg-gray-50 cursor-pointer transition-colors border-t border-gray-100",
-                      notification.status === "unread" && "bg-yellow-50/50 border-l-4 border-yellow-200/50 shadow-sm"
-                    )}
-                  >
-                    {/* Icon */}
-                    <div className="flex-shrink-0 pt-1">
-                      <div className={cn(
-                        "flex h-10 w-10 items-center justify-center rounded-full bg-gray-100"
-                      )}>
-                        {(() => {
-                          const Icon = TYPE_ICON_MAP[notification.type];
-                          return <Icon className="h-5 w-5 text-gray-600" aria-hidden="true" />;
-                        })()}
-                        <span className="sr-only">
-                          {notification.type.replace(/_/g, " ")}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-[15px] font-medium text-gray-900 mb-1">
-                        {notification.title}
-                      </h4>
-                      <p className="text-[13px] text-gray-500 mb-1.5 line-clamp-2">
-                        {notification.message}
-                      </p>
-                      <div className="flex items-center gap-2 text-xs text-gray-400">
-                        <span>{formatRelativeTime(notification.createdAt)}</span>
-                        {notification.sourceModule && (
-                          <>
-                            <span>•</span>
-                            <span>{notification.sourceModule}</span>
-                          </>
+                    return (
+                      <div
+                        key={notification.id}
+                        onClick={() => {
+                          handleNotificationClick(notification);
+                        }}
+                        className={cn(
+                          "group flex cursor-pointer gap-3 border-t border-gray-100 px-6 py-4 transition-colors hover:bg-gray-50",
+                          notification.status === "unread" &&
+                            "bg-yellow-50/50 border-l-4 border-yellow-200/50 shadow-sm",
                         )}
-                      </div>
-
-                      {/* Action Buttons for requests/approvals */}
-                      {notification.type === "approval" && notification.status === "unread" && (
-                        <div className="flex items-center gap-2 mt-3">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              handleMarkAsRead(e, notification.id);
-                            }}
-                            className="px-4 py-1.5 rounded-full text-xs font-medium bg-gray-900 text-white hover:bg-gray-800 transition-colors"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              handleDelete(e, notification.id);
-                            }}
-                            className="px-4 py-1.5 rounded-full text-xs font-medium text-gray-900 hover:bg-gray-100 transition-colors"
-                          >
-                            Reject
-                          </button>
+                      >
+                        {/* Icon */}
+                        <div className="flex-shrink-0 pt-1">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+                            <Icon className="h-5 w-5 text-gray-600" aria-hidden="true" />
+                            <span className="sr-only">{notification.type.replace(/_/g, " ")}</span>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          {/* Footer */}
-          <div className="border-t border-gray-100 px-6 py-4">
-            <button
-              type="button"
-              onClick={handleViewAll}
-              className="w-full text-center text-sm font-medium text-gray-900 hover:text-gray-700 underline transition-colors"
-            >
-              See all notifications
-            </button>
-          </div>
+                        {/* Content */}
+                        <div className="min-w-0 flex-1">
+                          <h4 className="mb-1 text-[15px] font-medium text-gray-900">
+                            {notification.title}
+                          </h4>
+                          <p className="mb-1.5 text-[13px] text-gray-500 line-clamp-2">
+                            {notification.message}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-400">
+                            <span>{formatRelativeTime(notification.createdAt)}</span>
+                            {notification.sourceModule && (
+                              <>
+                                <span>•</span>
+                                <span>{notification.sourceModule}</span>
+                              </>
+                            )}
+                          </div>
+
+                          {/* Action Buttons for requests/approvals */}
+                          {notification.type === "approval" && notification.status === "unread" && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  handleMarkAsRead(e, notification.id);
+                                }}
+                                className="rounded-full bg-gray-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-gray-800"
+                              >
+                                Accept
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  handleDelete(e, notification.id);
+                                }}
+                                className="rounded-full px-4 py-1.5 text-xs font-medium text-gray-900 transition-colors hover:bg-gray-100"
+                              >
+                                Reject
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-gray-100 px-6 py-4">
+              <button
+                type="button"
+                onClick={handleViewAll}
+                className="w-full text-center text-sm font-medium text-gray-900 transition-colors hover:text-gray-700 underline"
+              >
+                See all notifications
+              </button>
+            </div>
           </div>
         </>
       )}

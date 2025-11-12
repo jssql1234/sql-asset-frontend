@@ -114,7 +114,7 @@ const MaintainLocationPage: React.FC = () => {
           <Button
             type="button"
             onClick={handleAddClick}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition"
           >
             <Plus className="h-4 w-4" />
             Add Location

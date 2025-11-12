@@ -141,7 +141,7 @@ const MaintainServiceProviderPage: React.FC = () => {
           subtitle="Manage service provider information and configurations"
           customActions={
             <div className="flex items-center gap-2">
-              <Button type="button" onClick={handleAddClick} className="flex items-center gap-2">
+              <Button type="button" onClick={handleAddClick} className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition">
                 <Plus className="h-4 w-4" />
                 Add Provider
               </Button>

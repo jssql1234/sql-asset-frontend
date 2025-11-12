@@ -231,7 +231,7 @@ const MaintainSparePartPage: React.FC = () => {
               <button
                 type="button"
                 onClick={handleExport}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+                className="flex items-center gap-2 px-2.5 py-1.5 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover transition"
                 title={`Export as ${selectedFormat.toUpperCase()}`}
               >
                 <ExportFile className="w-4 h-4" />
@@ -241,7 +241,7 @@ const MaintainSparePartPage: React.FC = () => {
               <Button
                 type="button"
                 onClick={handleAddSparePart}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition"
               >
                 <Plus className="h-4 w-4" />
                 Add Part

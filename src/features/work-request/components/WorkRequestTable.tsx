@@ -2,23 +2,28 @@ import React, { useMemo } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from '@/components/ui/components';
+import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import type { WorkRequest, WorkRequestAsset } from '../types';
 import { getStatusVariant } from '../constants';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 
 interface WorkRequestTableProps {
   workRequests: WorkRequest[];
   isLoading?: boolean;
   onSelectionChange: (workRequests: WorkRequest[]) => void;
   onReviewWorkRequest?: (workRequest: WorkRequest) => void;
+  searchComponent?: React.ReactNode;
 }
 
 const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   workRequests,
   onReviewWorkRequest,
+  searchComponent,
 }) => {
   // Table columns configuration
   const columns: ColumnDef<WorkRequest>[] = useMemo(() => [
     {
+      id: 'requestId',
       accessorKey: 'requestId',
       header: 'ID',
       cell: ({ getValue }: any) => (
@@ -26,6 +31,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       ),
     },
     {
+      id: 'requesterName',
       accessorKey: 'requesterName',
       header: 'Requester',
       cell: ({ row }) => {
@@ -43,19 +49,29 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       enableColumnFilter: false,
     },
     {
+      id: 'selectedAssets',
       accessorKey: 'selectedAssets',
       header: 'Assets',
       cell: ({ getValue }: any) => {
         const assets = getValue() as WorkRequestAsset[];
         const assetNames = assets.map((asset) => asset.main.name).join(', ');
+
         return (
-          <span className="text-sm line-clamp-2 max-w-xs" title={assetNames}>
-            {assetNames}
-          </span>
+          <div className="flex flex-wrap gap-1 " title={assetNames}>
+            {assets.map((asset) => (
+              <Badge
+                key={asset.main.name} 
+                text={asset.main.name}
+                variant="grey"
+                className="h-7 px-3 py-1 text-sm"
+              />
+            ))}
+          </div>
         );
       },
     },
     {
+      id: 'requestType',
       accessorKey: 'requestType',
       header: 'Type',
       cell: ({ getValue }: any) => (
@@ -63,14 +79,16 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       ),
     },
     {
+      id: 'status',
       accessorKey: 'status',
       header: 'Status',
       cell: ({ getValue }: any) => {
         const status = getValue() as WorkRequest['status'];
-        return <Badge text={status} variant={getStatusVariant(status)}/>;
+        return <Badge text={status} variant={getStatusVariant(status)} />;
       },
     },
     {
+      id: 'requestDate',
       accessorKey: 'requestDate',
       header: 'Request Date',
       cell: ({ getValue }: any) => {
@@ -87,6 +105,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       },
     },
     {
+      id: 'problemDescription',
       accessorKey: 'problemDescription',
       header: 'Problem Description',
       cell: ({ getValue }: any) => (
@@ -97,7 +116,12 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     },
   ], []);
 
-  // Row actions configuration
+  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
+    useTableColumns<WorkRequest, unknown>({
+      columns,
+      lockedColumnIds: [],
+    });
+
   const rowActions = useMemo(() => {
     const actions = [];
     
@@ -112,7 +136,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     return actions;
   }, [onReviewWorkRequest]);
 
-  // Sort work requests by request date (latest first)
   const sortedWorkRequests = useMemo(() => {
     return [...workRequests].sort((a, b) => {
       const dateA = new Date(a.requestDate).getTime();
@@ -121,17 +144,19 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     });
   }, [workRequests]);
 
-return (
-  <>
-    <style>{`
-      [data-table-container] th:last-child {
-        background-color: var(--color-surface-container);
-      }
-    `}</style>
-
-    <div data-table-container className="flex flex-col gap-4">
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <TableColumnVisibility
+          columns={toggleableColumns}
+          visibleColumns={visibleColumns}
+          setVisibleColumns={setVisibleColumns}
+        />
+        {searchComponent}
+      </div>
+      
       <DataTableExtended
-        columns={columns}
+        columns={displayedColumns}
         data={sortedWorkRequests}
         showPagination={true}
         rowActions={rowActions}

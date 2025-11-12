@@ -331,7 +331,7 @@ const ClaimsVariantTable = ({
         claimId: claim.id,
         claimNumber: claim.claimNumber,
         claimType: claim.type,
-        description: claim.description,
+        description: `Work order for ${claim.type} claim ${claim.claimNumber}`,
         assets: claim.assets,
         amount: claim.amount,
         status: claim.status,

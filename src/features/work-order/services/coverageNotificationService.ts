@@ -1,17 +1,18 @@
 import { notificationService } from "@/features/notification/services/notificationService";
 import type { CoverageWarranty, CoverageInsurance } from "@/features/coverage/types";
+import type { WarrantyNotificationMetadata, InsuranceNotificationMetadata, NotificationAsset } from "@/features/notification/types";
 import { mockWarranties, mockInsurances } from "@/features/coverage/mockData";
 
 /**
- * Check if assets have active warranty or insurance coverage and create notifications
- * This function integrates with the coverage module to get actual coverage data
+ * Check if assets have active warranty or insurance coverage and create notifications.
+ * This function integrates with the coverage module to get actual coverage data.
  *
  * @param assetIds - Array of asset IDs to check for coverage
  * @param workOrderId - The work order ID for reference
  * @param workOrderDescription - Optional description from the work order to prefill claim
  */
 export const checkAndNotifyCoverage = (
-  assetIds: string[],
+  assetIds: readonly string[],
   workOrderId: string,
   workOrderDescription?: string
 ): void => {
@@ -85,6 +86,24 @@ export const checkAndNotifyCoverage = (
           return asset?.name ?? id;
         });
 
+        // Get asset objects for prefilling the claim form
+        const assetObjects: NotificationAsset[] = coveredAssets.map((id) => {
+          const asset = warranty.assetsCovered.find((a) => a.id === id);
+          return asset ?? { id, name: id };
+        });
+
+        const warrantyMetadata: WarrantyNotificationMetadata = {
+          warrantyId: warranty.id,
+          warrantyName: warranty.name,
+          provider: warranty.provider,
+          coverage: warranty.coverage,
+          assetIds: coveredAssets,
+          assets: assetObjects,
+          expiryDate: warranty.expiryDate,
+          workOrderId: workOrderId,
+          workOrderDescription: workOrderDescription ?? "",
+        };
+
         notificationService.createNotification({
           type: "warranty",
           title: `Warranty Available for Work Order ${workOrderId}`,
@@ -93,14 +112,7 @@ export const checkAndNotifyCoverage = (
           sourceId: workOrderId,
           actionUrl: "/insurance?tab=claims",
           actionLabel: "File Warranty Claim",
-          metadata: {
-            warrantyId: warranty.id,
-            warrantyName: warranty.name,
-            assetIds: coveredAssets,
-            expiryDate: warranty.expiryDate,
-            workOrderId: workOrderId,
-            workOrderDescription: workOrderDescription ?? "",
-          },
+          metadata: warrantyMetadata as unknown as Record<string, unknown>,
         });
 
         notifiedWarranties.add(warranty.id);
@@ -126,6 +138,25 @@ export const checkAndNotifyCoverage = (
           return asset?.name ?? id;
         });
 
+        // Get asset objects for prefilling the claim form
+        const assetObjects: NotificationAsset[] = coveredAssets.map((id) => {
+          const asset = insurance.assetsCovered.find((a) => a.id === id);
+          return asset ?? { id, name: id };
+        });
+
+        const insuranceMetadata: InsuranceNotificationMetadata = {
+          insuranceId: insurance.id,
+          insuranceName: insurance.name,
+          provider: insurance.provider,
+          policyNumber: insurance.policyNumber,
+          assetIds: coveredAssets,
+          assets: assetObjects,
+          expiryDate: insurance.expiryDate,
+          remainingCoverage: insurance.remainingCoverage,
+          workOrderId: workOrderId,
+          workOrderDescription: workOrderDescription ?? "",
+        };
+
         notificationService.createNotification({
           type: "insurance",
           title: `Insurance Coverage Available for Work Order ${workOrderId}`,
@@ -134,16 +165,7 @@ export const checkAndNotifyCoverage = (
           sourceId: workOrderId,
           actionUrl: "/insurance?tab=claims",
           actionLabel: "File Insurance Claim",
-          metadata: {
-            insuranceId: insurance.id,
-            insuranceName: insurance.name,
-            policyNumber: insurance.policyNumber,
-            assetIds: coveredAssets,
-            expiryDate: insurance.expiryDate,
-            remainingCoverage: insurance.remainingCoverage,
-            workOrderId: workOrderId,
-            workOrderDescription: workOrderDescription ?? "",
-          },
+          metadata: insuranceMetadata as unknown as Record<string, unknown>,
         });
 
         notifiedInsurances.add(insurance.id);
@@ -156,3 +178,4 @@ export const checkAndNotifyCoverage = (
  * @deprecated Use checkAndNotifyCoverage instead
  */
 export const checkAndNotifyWarranty = checkAndNotifyCoverage;
+

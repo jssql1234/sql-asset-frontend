@@ -12,6 +12,8 @@ import { EMPTY_CLAIM_SUMMARY } from "@/features/coverage/types";
 import { useCoverageContext } from "@/features/coverage/hooks/useCoverageContext";
 import { useCoverageModals } from "@/features/coverage/hooks/useCoverageModals";
 import { useGetClaimSummary, useCreateClaim, useUpdateClaim, useDeleteClaim } from "@/features/coverage/hooks/useCoverageService";
+import type { WarrantyNotificationMetadata, InsuranceNotificationMetadata, WarrantyNotificationNavState, InsuranceNotificationNavState } from "@/features/notification/types";
+import { DEFAULT_NOTIFICATION_IDS } from "@/features/notification/constants";
 
 const ClaimPage = () => {
   const location = useLocation();
@@ -38,54 +40,23 @@ const ClaimPage = () => {
 
   const navigate = useNavigate();
 
-  interface WarrantyNotificationData {
-    warrantyId?: string;
-    warrantyName?: string;
-    provider?: string;
-    coverage?: string;
-    expiryDate?: string;
-    assetIds?: string[];
-    assets?: { id: string; name: string }[];
-    workOrderId?: string;
-    workOrderDescription?: string;
-  }
-
-  interface InsuranceNotificationData {
-    insuranceId?: string;
-    insuranceName?: string;
-    provider?: string;
-    policyNumber?: string;
-    expiryDate?: string;
-    assetIds?: string[];
-    assets?: { id: string; name: string }[];
-    remainingCoverage?: number;
-    workOrderId?: string;
-    workOrderDescription?: string;
-  }
-
   // Handle navigation state from warranty and insurance notifications
   useEffect(() => {
-    const state = location.state as {
-      openClaimForm?: boolean;
-      warrantyId?: string;
-      warrantyData?: Record<string, unknown>;
-      insuranceId?: string;
-      insuranceData?: Record<string, unknown>;
-      notificationId?: string;
-    } | null;
+    type ClaimNavState = Partial<WarrantyNotificationNavState | InsuranceNotificationNavState>;
+    const state = location.state as ClaimNavState | null;
 
     const clearNavigationState = () => {
       void navigate(`${location.pathname}${location.search}`, { replace: true });
     };
 
     // Handle warranty notification
-    if (state?.openClaimForm && (state.warrantyData || state.warrantyId)) {
-      const stateNotificationId = state.notificationId ?? "__warranty-claim__";
+    if (state?.openClaimForm && ("warrantyData" in state || "warrantyId" in state)) {
+      const stateNotificationId = state.notificationId ?? DEFAULT_NOTIFICATION_IDS.WARRANTY_CLAIM;
       const alreadyHandled =
         lastWarrantyNotificationIdRef.current === stateNotificationId && modals.claimForm;
 
       if (!alreadyHandled) {
-        const warrantyMetadata = state.warrantyData as WarrantyNotificationData | undefined;
+        const warrantyMetadata = state.warrantyData as WarrantyNotificationMetadata | undefined;
         const warrantyIdFromState = state.warrantyId ?? warrantyMetadata?.warrantyId;
         const latestWarranty = warrantyIdFromState
           ? warranties.find((item) => item.id === warrantyIdFromState)
@@ -99,12 +70,12 @@ const ClaimPage = () => {
           coverage: latestWarranty?.coverage ?? warrantyMetadata?.coverage,
           expiryDate: latestWarranty?.expiryDate ?? warrantyMetadata?.expiryDate,
           assetIds:
-            latestWarranty?.assetsCovered.map((asset) => asset.id) ??
             warrantyMetadata?.assetIds ??
+            latestWarranty?.assetsCovered.map((asset) => asset.id) ??
             [],
           assets:
-            latestWarranty?.assetsCovered ??
             warrantyMetadata?.assets ??
+            latestWarranty?.assetsCovered ??
             [],
         };
 
@@ -119,13 +90,13 @@ const ClaimPage = () => {
     }
 
     // Handle insurance notification
-    if (state?.openClaimForm && (state.insuranceData || state.insuranceId)) {
-      const stateNotificationId = state.notificationId ?? "__insurance-claim__";
+    if (state?.openClaimForm && ("insuranceData" in state || "insuranceId" in state)) {
+      const stateNotificationId = state.notificationId ?? DEFAULT_NOTIFICATION_IDS.INSURANCE_CLAIM;
       const alreadyHandled =
         lastInsuranceNotificationIdRef.current === stateNotificationId && modals.claimForm;
 
       if (!alreadyHandled) {
-        const insuranceMetadata = state.insuranceData as InsuranceNotificationData | undefined;
+        const insuranceMetadata = state.insuranceData as InsuranceNotificationMetadata | undefined;
         const insuranceIdFromState = state.insuranceId ?? insuranceMetadata?.insuranceId;
         const latestInsurance = insuranceIdFromState
           ? insurances.find((item) => item.id === insuranceIdFromState)
@@ -139,12 +110,12 @@ const ClaimPage = () => {
           policyNumber: latestInsurance?.policyNumber ?? insuranceMetadata?.policyNumber,
           expiryDate: latestInsurance?.expiryDate ?? insuranceMetadata?.expiryDate,
           assetIds:
-            latestInsurance?.assetsCovered.map((asset) => asset.id) ??
             insuranceMetadata?.assetIds ??
+            latestInsurance?.assetsCovered.map((asset) => asset.id) ??
             [],
           assets:
-            latestInsurance?.assetsCovered ??
             insuranceMetadata?.assets ??
+            latestInsurance?.assetsCovered ??
             [],
           remainingCoverage: latestInsurance?.remainingCoverage ?? insuranceMetadata?.remainingCoverage,
         };

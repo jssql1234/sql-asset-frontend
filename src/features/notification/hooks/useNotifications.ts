@@ -14,7 +14,6 @@ export const useNotifications = (filters?: NotificationFilters) => {
     markAllAsRead: markAllAsReadBase,
     deleteNotification: deleteNotificationBase,
     deleteNotifications,
-    archiveNotification,
     clearAll: clearAllBase,
     getNotificationById,
   } = useNotificationContext();
@@ -106,7 +105,6 @@ export const useNotifications = (filters?: NotificationFilters) => {
     refresh,
     createNotification,
     deleteNotifications,
-    archiveNotification,
     getNotificationById,
   };
 };

@@ -301,7 +301,7 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="unitPrice" className="block text-sm font-medium text-onSurface mb-1">
-                Unit Price ($)
+                Unit Price (RM)
               </label>
               <Input
                 id="unitPrice"

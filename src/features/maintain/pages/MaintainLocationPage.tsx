@@ -56,7 +56,6 @@ const MaintainLocationPage: React.FC = () => {
     locations,
     filteredLocations,
     filters,
-    editingLocation,
     updateFilters,
     handleSaveLocation,
     handleEditLocation,
@@ -74,14 +73,19 @@ const MaintainLocationPage: React.FC = () => {
     lockedColumnIds: ['select'],
   });
 
-  const [modals, setModals] = useState({ editLocation: false });
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [locationToDelete, setLocationToDelete] = useState<Location | null>(null);
 
   const handleEditLocationClick = (location: Location) => {
     handleEditLocation(location);
     setSelectedLocation(location);
-    setModals((prev) => ({ ...prev, editLocation: true }));
+    setIsFormModalOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setSelectedLocation(null);
+    setIsFormModalOpen(true);
   };
 
   const handleDeleteLocationClick = (location: Location) => {
@@ -97,9 +101,9 @@ const MaintainLocationPage: React.FC = () => {
 
   const handleCancelDelete = () => setLocationToDelete(null);
 
-  const handleModalClose = (modalKey: "editLocation") => {
-    setModals((prev) => ({ ...prev, [modalKey]: false }));
-    if (modalKey === "editLocation") setSelectedLocation(null);
+  const handleModalClose = () => {
+    setIsFormModalOpen(false);
+    setSelectedLocation(null);
   };
  
   return (
@@ -109,10 +113,7 @@ const MaintainLocationPage: React.FC = () => {
           <TabHeader title="Location Management" subtitle="Manage locations and related information" />
           <Button
             type="button"
-            onClick={() => {
-              setSelectedLocation(null);
-              setModals((prev) => ({ ...prev, editLocation: true }));
-            }}
+            onClick={handleAddClick}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -153,10 +154,10 @@ const MaintainLocationPage: React.FC = () => {
         </div>
 
         <LocationFormModal
-          isOpen={modals.editLocation}
-          onClose={() => handleModalClose("editLocation")}
+          isOpen={isFormModalOpen}
+          onClose={handleModalClose}
           onSave={handleSaveLocation}
-          editingLocation={selectedLocation ?? editingLocation}
+          editingLocation={selectedLocation}
           existingLocations={locations}
         />
 

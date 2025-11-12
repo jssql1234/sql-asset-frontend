@@ -64,7 +64,6 @@ const MaintainCustomerPage: React.FC = () => {
     customers,
     filteredCustomers,
     filters,
-    editingCustomer,
     updateFilters,
     handleSaveCustomer,
     handleEditCustomer,
@@ -82,14 +81,19 @@ const MaintainCustomerPage: React.FC = () => {
     lockedColumnIds: [],
   });
 
-  const [modals, setModals] = useState({ editCustomer: false });
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
   const handleEditCustomerClick = (customer: Customer) => {
     handleEditCustomer(customer);
     setSelectedCustomer(customer);
-    setModals((prev) => ({ ...prev, editCustomer: true }));
+    setIsFormModalOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setSelectedCustomer(null);
+    setIsFormModalOpen(true);
   };
 
   const handleDeleteCustomerClick = (customer: Customer) => {
@@ -105,9 +109,9 @@ const MaintainCustomerPage: React.FC = () => {
 
   const handleCancelDelete = () => setCustomerToDelete(null);
 
-  const handleModalClose = (modalKey: "editCustomer") => {
-    setModals((prev) => ({ ...prev, [modalKey]: false }));
-    if (modalKey === "editCustomer") setSelectedCustomer(null);
+  const handleModalClose = () => {
+    setIsFormModalOpen(false);
+    setSelectedCustomer(null);
   };
 
   return (
@@ -117,10 +121,7 @@ const MaintainCustomerPage: React.FC = () => {
           <TabHeader title="Customer Management" subtitle="Manage customer information and relationships" />
           <Button
             type="button"
-            onClick={() => {
-              setSelectedCustomer(null);
-              setModals((prev) => ({ ...prev, editCustomer: true }));
-            }}
+            onClick={handleAddClick}
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
@@ -161,10 +162,10 @@ const MaintainCustomerPage: React.FC = () => {
         </div>
 
         <CustomerFormModal
-          isOpen={modals.editCustomer}
-          onClose={() => handleModalClose("editCustomer")}
+          isOpen={isFormModalOpen}
+          onClose={handleModalClose}
           onSave={handleSaveCustomer}
-          editingCustomer={selectedCustomer ?? editingCustomer}
+          editingCustomer={selectedCustomer}
           existingCustomers={customers}
         />
 

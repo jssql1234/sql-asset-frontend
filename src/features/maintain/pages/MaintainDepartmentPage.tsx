@@ -55,7 +55,6 @@ const MaintainDepartmentPage: React.FC = () => {
     departments,
     filteredDepartments,
     filters,
-    editingDepartment,
     updateFilters,
     handleSaveDepartment,
     handleEditDepartment,
@@ -73,22 +72,22 @@ const MaintainDepartmentPage: React.FC = () => {
     lockedColumnIds: [],
   });
 
-  const [modals, setModals] = useState({ editDepartment: false });
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
   const handleEditClick = (department: Department) => {
     handleEditDepartment(department);
     setSelectedDepartment(department);
-    setModals({ editDepartment: true });
+    setIsFormModalOpen(true);
   };
 
   const handleAddClick = () => {
     setSelectedDepartment(null);
-    setModals({ editDepartment: true });
+    setIsFormModalOpen(true);
   };
 
   const handleModalClose = () => {
-    setModals({ editDepartment: false });
+    setIsFormModalOpen(false);
     setSelectedDepartment(null);
   };
 
@@ -152,10 +151,11 @@ const MaintainDepartmentPage: React.FC = () => {
         </div>
 
         <DepartmentFormModal
-          isOpen={modals.editDepartment}
+          key={selectedDepartment ? 'edit' : 'add'}
+          isOpen={isFormModalOpen}
           onClose={handleModalClose}
           onSave={handleSaveDepartment}
-          editingDepartment={selectedDepartment ?? editingDepartment}
+          editingDepartment={selectedDepartment}
           existingDepartments={departments}
         />
 

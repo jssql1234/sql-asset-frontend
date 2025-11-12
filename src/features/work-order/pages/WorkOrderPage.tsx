@@ -163,6 +163,7 @@ const WorkOrdersPage: React.FC = () => {
       actualCost: formData.actualCost,
       notes: formData.notes,
       progress: 0,
+      //warrantyId: formData.warrantyId,
     };
 
     // Add to work orders list

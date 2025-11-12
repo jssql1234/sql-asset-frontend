@@ -2,9 +2,11 @@ import { useMemo } from "react";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
+import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import type { WorkOrder, WorkOrderFilters } from "../types";
 import { useSidebar } from "@/layout/sidebar/SidebarContext";
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "@/layout/sidebar/SidebarConstant";
+import { useTableColumns } from "@/components/DataTableExtended/hooks/useTableColumns";
 
 const STATUS_BADGE_VARIANT: Record<
   WorkOrder["status"],
@@ -22,6 +24,7 @@ interface WorkOrderTableProps {
   onEditWorkOrder?: (workOrder: WorkOrder) => void;
   onViewDetails?: (workOrder: WorkOrder) => void;
   onDeleteWorkOrder?: (workOrder: WorkOrder) => void;
+  searchComponent?: React.ReactNode;
 }
 
 export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
@@ -30,6 +33,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   onEditWorkOrder,
   onViewDetails,
   onDeleteWorkOrder,
+  searchComponent,
 }) => {
   const { state } = useSidebar();
   const sidebarWidth = state === "collapsed" ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH;
@@ -66,6 +70,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
   const columns: ColumnDef<WorkOrder>[] = useMemo(
     () => [
       {
+        id: "id",
         accessorKey: "id",
         header: "ID",
         cell: ({ getValue }) => {
@@ -74,18 +79,25 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
       {
+        id: "assetName",
         accessorKey: "assetName",
         header: "Asset",
-        cell: ({ row }) => (
-          <div>
-            <div className="text-sm w-40 truncate font-medium " title={row.original.assetName}>
-              {row.original.assetName}
-              {/* <p>ja1212321321oi3j3oi21j3oi12j3oi21jo3i213jo21ij31o2ij32oi13j3oij132oi12oi3jio23</p> */}
+        cell: ({ row }) => {
+          const assetName = row.original.assetName;
+
+          return (
+            <div title={assetName}>
+              <Badge
+                text={assetName}
+                variant="grey"
+                className="h-7 px-3 py-1"
+              />
             </div>
-          </div>
-        ),
+          );
+        },
       },
       {
+        id: "jobTitle",
         accessorKey: "jobTitle",
         header: "Job Title",
         cell: ({ getValue }) => {
@@ -103,6 +115,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
       {
+        id: "type",
         accessorKey: "type",
         header: "Type",
         cell: ({ getValue }) => {
@@ -111,6 +124,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
       {
+        id: "scheduledDate",
         accessorKey: "scheduledDate",
         header: "Scheduled Date",
         cell: ({ getValue }) => {
@@ -127,6 +141,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
       {
+        id: "serviceBy",
         accessorKey: "serviceBy",
         header: "Service By",
         cell: ({ getValue }) => {
@@ -137,6 +152,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
       {
+        id: "assignedTo",
         accessorKey: "assignedTo",
         header: "Assigned To",
         cell: ({ getValue }) => {
@@ -148,23 +164,8 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
           );
         },
       },
-      // {
-      //   accessorKey: "estimatedCost",
-      //   header: "Est. Cost",
-      //   cell: ({ getValue }) => {
-      //     const cost = getValue() as number;
-      //     return (
-      //       <span className="label-medium text-onSurface">
-      //         RM{" "}
-      //         {cost.toLocaleString("en-US", {
-      //           minimumFractionDigits: 2,
-      //           maximumFractionDigits: 2,
-      //         })}
-      //       </span>
-      //     );
-      //   },
-      // },
       {
+        id: "status",
         accessorKey: "status",
         header: "Status",
         cell: ({ getValue }) => {
@@ -177,34 +178,42 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
     []
   );
 
+  // Use table columns hook for column visibility management
+  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
+    useTableColumns<WorkOrder, unknown>({
+      columns,
+      lockedColumnIds: [],
+    });
+
   // Row actions configuration
   const rowActions = useMemo(() => {
     const actions = [];
-    
+
     if (onViewDetails) {
       actions.push({
         type: 'view' as const,
         onClick: (row: WorkOrder) => onViewDetails(row),
       });
     }
-    
+
     if (onEditWorkOrder) {
       actions.push({
         type: 'edit' as const,
         onClick: (row: WorkOrder) => onEditWorkOrder(row),
       });
     }
-    
+
     if (onDeleteWorkOrder) {
       actions.push({
         type: 'delete' as const,
         onClick: (row: WorkOrder) => onDeleteWorkOrder(row),
       });
     }
-    
+
     return actions;
   }, [onViewDetails, onEditWorkOrder, onDeleteWorkOrder]);
-return (
+
+  return (
     <div
       className="flex flex-col gap-4 overflow-x-auto transition-[max-width] duration-100 ease-linear"
       style={{
@@ -217,9 +226,18 @@ return (
         }
       `}</style>
 
+      <div className="flex items-center justify-between gap-4">
+        <TableColumnVisibility
+          columns={toggleableColumns}
+          visibleColumns={visibleColumns}
+          setVisibleColumns={setVisibleColumns}
+        />
+        {searchComponent}
+      </div>
+
       <div data-table-container>
         <DataTableExtended
-          columns={columns}
+          columns={displayedColumns}
           data={filteredWorkOrders}
           showPagination={true}
           rowActions={rowActions}
@@ -229,4 +247,4 @@ return (
   );
 };
 
-export default WorkOrderTable;
+export default WorkOrderTable

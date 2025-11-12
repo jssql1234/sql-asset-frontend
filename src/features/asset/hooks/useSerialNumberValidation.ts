@@ -25,52 +25,62 @@ export const useSerialNumberValidation = (
   serialNumbers: SerialNumberData[]
 ): SerialNumberValidationResult => {
   return useMemo(() => {
-    const errors: Record<number, string> = {};
+    const allOrNoneErrors: Record<number, string> = {};
+    let allOrNoneMessage = '';
+    const duplicateErrors: Record<number, string> = {};
+    let duplicateMessage = '';
 
     if (serialNumbers.length === 0) {
       return { isValid: true, message: '', errors: {} };
     }
 
     const serialValues = serialNumbers.map(item => item.serial.trim());
-    const hasAnySerialNumber = serialValues.some(value => value !== '');
-
-    if (!hasAnySerialNumber) {
-      return { isValid: true, message: '', errors: {} };
-    }
 
     // Check if any serial numbers are filled but not all
-    const emptySerialNumbers = serialValues.filter(value => value === '');
-    const filledCount = serialNumbers.length - emptySerialNumbers.length;
+    const filledCount = serialValues.filter(value => value !== '').length;
+    const totalCount = serialNumbers.length;
 
-    if (emptySerialNumbers.length > 0) {
-      return {
-        isValid: false,
-        message: `Serial number validation failed: You have filled ${filledCount.toString()} out of ${serialNumbers.length.toString()} serial number fields. Please fill all serial number fields or leave them all empty.`,
-        errors: {}
-      };
+    if (totalCount > 0 && filledCount > 0 && filledCount < totalCount) {
+      allOrNoneMessage = 'Validation failed: Either all serial numbers must be filled, or all must be empty.';
+      serialNumbers.forEach((item, index) => {
+        if (item.serial.trim() === '') {
+          allOrNoneErrors[index] = 'This field is required as other serial numbers are filled.';
+        }
+      });
     }
 
     // Check for duplicate serial numbers
     const seenSerials = new Set<string>();
-    serialNumbers.forEach((item, index) => {
-      if (item.serial.trim()) {
-        if (seenSerials.has(item.serial.trim())) {
-          errors[index] = 'Duplicate serial number';
+    const duplicateValues = new Set<string>();
+
+    serialNumbers.forEach((item) => {
+      const trimmedSerial = item.serial.trim();
+      if (trimmedSerial) {
+        if (seenSerials.has(trimmedSerial)) {
+          duplicateValues.add(trimmedSerial);
         } else {
-          seenSerials.add(item.serial.trim());
+          seenSerials.add(trimmedSerial);
         }
       }
     });
 
-    if (Object.keys(errors).length > 0) {
-      return {
-        isValid: false,
-        message: 'Duplicate serial numbers found. Please ensure all serial numbers are unique.',
-        errors
-      };
+    if (duplicateValues.size > 0) {
+      duplicateMessage = 'Duplicate serial numbers found. Please ensure all serial numbers are unique.';
+      serialNumbers.forEach((item, index) => {
+        if (duplicateValues.has(item.serial.trim())) {
+          duplicateErrors[index] = 'Duplicate serial number';
+        }
+      });
     }
 
-    return { isValid: true, message: '', errors: {} };
+    const combinedErrors = { ...duplicateErrors, ...allOrNoneErrors };
+    const isValid = Object.keys(combinedErrors).length === 0;
+
+    return {
+      isValid,
+      message: allOrNoneMessage || duplicateMessage, // Prioritize the 'all or none' message
+      errors: combinedErrors,
+    };
   }, [serialNumbers]);
 };
 

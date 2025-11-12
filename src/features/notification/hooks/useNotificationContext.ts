@@ -11,7 +11,6 @@ export interface NotificationContextValue {
   markAllAsRead: () => number;
   deleteNotification: (id: string) => boolean;
   deleteNotifications: (ids: string[]) => number;
-  archiveNotification: (id: string) => boolean;
   clearAll: () => void;
   getNotificationById: (id: string) => Notification | undefined;
 }
@@ -59,8 +58,6 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     [],
   );
 
-  const archiveNotification = useCallback((id: string) => notificationService.archiveNotification(id), []);
-
   const clearAll = useCallback(() => {
     notificationService.clearAll();
   }, []);
@@ -80,12 +77,10 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       markAllAsRead,
       deleteNotification,
       deleteNotifications,
-      archiveNotification,
       clearAll,
       getNotificationById,
     }),
     [
-      archiveNotification,
       clearAll,
       createNotification,
       deleteNotification,

@@ -170,25 +170,6 @@ export const notificationService = {
     return deleted;
   },
 
-  archiveNotification(id: string): boolean {
-    let archived = false;
-
-    mutateNotifications((draft) => {
-      const index = draft.findIndex((notification) => notification.id === id);
-      if (index === -1) {
-        return;
-      }
-
-      draft[index] = {
-        ...draft[index],
-        status: "archived",
-      };
-      archived = true;
-    });
-
-    return archived;
-  },
-
   clearAll(): void {
     setNotifications([]);
   },

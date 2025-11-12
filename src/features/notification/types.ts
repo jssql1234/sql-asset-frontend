@@ -1,4 +1,4 @@
-export type NotificationStatus = "unread" | "read" | "archived";
+export type NotificationStatus = "unread" | "read";
 
 export type NotificationType =
 	| "work_order"

@@ -1,18 +1,11 @@
 import type { NavigateFunction } from "react-router-dom";
-import type { 
-	Notification, 
-	WarrantyNotificationMetadata, 
-	InsuranceNotificationMetadata,
-	ClaimNotificationMetadata,
-} from "../types";
+import type { Notification, WarrantyNotificationMetadata, InsuranceNotificationMetadata, ClaimNotificationMetadata } from "../types";
 
 interface NavigateNotificationOptions {
 	readonly onNavigate?: () => void;
 }
 
-/**
- * Type guard to check if metadata is warranty notification metadata
- */
+//Type guard to check if metadata is warranty notification metadata
 function isWarrantyMetadata(metadata: unknown): metadata is WarrantyNotificationMetadata {
 	return (
 		typeof metadata === "object" &&
@@ -21,9 +14,7 @@ function isWarrantyMetadata(metadata: unknown): metadata is WarrantyNotification
 	);
 }
 
-/**
- * Type guard to check if metadata is insurance notification metadata
- */
+//Type guard to check if metadata is insurance notification metadata
 function isInsuranceMetadata(metadata: unknown): metadata is InsuranceNotificationMetadata {
 	return (
 		typeof metadata === "object" &&
@@ -32,9 +23,7 @@ function isInsuranceMetadata(metadata: unknown): metadata is InsuranceNotificati
 	);
 }
 
-/**
- * Type guard to check if metadata is claim notification metadata
- */
+//Type guard to check if metadata is claim notification metadata
 function isClaimMetadata(metadata: unknown): metadata is ClaimNotificationMetadata {
 	return (
 		typeof metadata === "object" &&
@@ -43,10 +32,7 @@ function isClaimMetadata(metadata: unknown): metadata is ClaimNotificationMetada
 	);
 }
 
-/**
- * Navigate to the destination implied by a notification, handling special cases for
- * work orders, warranty, insurance, and claim notifications.
- */
+//Navigate to the destination implied by a notification, handling special cases for each module
 export const navigateForNotification = (
 	notification: Notification,
 	navigate: NavigateFunction,

@@ -174,6 +174,56 @@ const mapFormDataToAsset = (data: CreateAssetFormData): Asset => ({
   qty: data.quantity,
   quantityPerUnit: data.quantityPerUnit,
   active: !data.inactive,
+  inactiveStart: data.inactiveStart,
+  inactiveEnd: data.inactiveEnd,
+
+  // Allowance Tab
+  caAssetGroup: data.caAssetGroup,
+  allowanceClass: data.allowanceClass,
+  subClass: data.subClass,
+  iaRate: data.iaRate,
+  aaRate: data.aaRate,
+  aca: data.aca,
+  extraCheckbox: data.extraCheckbox,
+  extraCommercial: data.extraCommercial,
+  extraNewVehicle: data.extraNewVehicle,
+  manualQE: data.manualQE,
+  qeValue: data.qeValue,
+  residualExpenditure: data.residualExpenditure,
+  selfUsePercentage: data.selfUsePercentage,
+  rentedApportionPercentage: data.rentedApportionPercentage,
+  
+  // Hire Purchase Tab
+  hpStartDate: data.hpStartDate,
+  hpInstalment: data.hpInstalment,
+  hpDeposit: data.hpDeposit,
+  hpInterest: data.hpInterest,
+  hpFinance: data.hpFinance,
+
+
+  //Depreciation Tab
+  depreciationMethod: data.depreciationMethod,
+  depreciationFrequency: data.depreciationFrequency,
+  usefulLife: data.usefulLife,
+  residualValue: data.residualValue,
+  depreciationRate: data.depreciationRate,
+  totalDepreciation: data.totalDepreciation,
+
+  // Serial Number Tab
+  serialNumbers: data.serialNumbers,
+
+  // Allocation Tab
+  branch: data.branch,
+  department: data.department,
+  location: data.location,
+  personInCharge: data.personInCharge,
+  allocationNotes: data.allocationNotes,
+ 
+  // Warranty Tab
+  warrantyProvider: data.warrantyProvider,
+  warrantyStartDate: data.warrantyStartDate,
+  warrantyEndDate: data.warrantyEndDate,
+  warrantyNotes: data.warrantyNotes,
 });
 
 interface UserAssetContentAreaProps {
@@ -267,7 +317,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const handleUpdateSuccess = useCallback((data: CreateAssetFormData) => {
     updateAssetMutation.mutate(mapFormDataToAsset(data));
   }, [updateAssetMutation]);
-
+  
   const isTaxAgent = hasPermission("processCA", "execute");
   const isAdmin = hasPermission("maintainItem", "execute") && hasPermission("processCA", "execute");
 

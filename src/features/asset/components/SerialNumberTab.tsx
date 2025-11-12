@@ -12,11 +12,10 @@ interface SerialNumberData {
 const EMPTY_SERIAL_NUMBERS: SerialNumberData[] = [];
 
 interface SerialNumberTabProps {
-  quantity: number;
   quantityPerUnit?: number;
-  isBatchMode?: boolean;
   serialNumbers?: SerialNumberData[];
   onSerialNumbersChange?: (serialNumbers: SerialNumberData[]) => void;
+  onValidationChange?: (isValid: boolean) => void;
 }
 
 interface SerialNumberInputRowProps {
@@ -49,67 +48,65 @@ const SerialNumberInputRow: React.FC<SerialNumberInputRowProps> = ({ item, index
 );
 
 export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
-  quantity,
   quantityPerUnit = 1,
-  isBatchMode = false,
   serialNumbers = EMPTY_SERIAL_NUMBERS,
   onSerialNumbersChange,
+  onValidationChange,
 }) => {
   const [serialData, setSerialData] = useState<SerialNumberData[]>([]);
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
   const [serialFormat, setSerialFormat] = useState('SN-%.5d');
   const [startingNumber, setStartingNumber] = useState(1);
   const validation = useSerialNumberValidation(serialData);
-
-
-  const notifyParentRef = useRef(false);
+  
+  // Track previous values to prevent infinite loops
+  const prevQuantityPerUnitRef = useRef(quantityPerUnit);
+  const isInitialMountRef = useRef(true);
 
   useEffect(() => {
-    const assetsInBatch = isBatchMode ? quantity : 1;
-    const totalSerialFields = assetsInBatch * quantityPerUnit;
+    onValidationChange?.(validation.isValid);
+  }, [validation.isValid, onValidationChange]);
 
-    // Check if we need to update serialData by comparing expected vs current length
-    setSerialData(prevData => {
-      if (prevData.length === totalSerialFields) {
-        notifyParentRef.current = false;
-        return prevData;
-      }
-
-      const newSerialData: SerialNumberData[] = [];
-
-      for (let i = 0; i < totalSerialFields; i++) {
-        // Try to preserve existing data from props first, then from current state
-        if (i < serialNumbers.length && serialNumbers[i]) {
-          newSerialData.push({ ...serialNumbers[i] });
-        } else if (i < prevData.length && prevData[i]) {
-          newSerialData.push({ ...prevData[i] });
-        } else {
-          newSerialData.push({ serial: '', remark: '' });
-        }
-      }
-
-      notifyParentRef.current = true;
-      return newSerialData;
-    });
-  }, [quantity, quantityPerUnit, isBatchMode, serialNumbers]);
-
-  // Separate effect to notify parent after state update
   useEffect(() => {
-    if (notifyParentRef.current && serialData.length > 0) {
-      onSerialNumbersChange?.(serialData);
-      notifyParentRef.current = false;
+    const totalSerialFields = quantityPerUnit;
+    
+    // Check if structural props have changed
+    const hasStructuralChange = prevQuantityPerUnitRef.current !== quantityPerUnit;
+
+    if (hasStructuralChange || isInitialMountRef.current) {
+      const initialData = Array.from({ length: totalSerialFields }, (_, i) => ({
+        serial: serialNumbers[i]?.serial ?? '',
+        remark: serialNumbers[i]?.remark ?? '',
+      }));
+
+      setSerialData(initialData);
+      
+      if (isInitialMountRef.current) {
+        onSerialNumbersChange?.(initialData);
+        isInitialMountRef.current = false;
+      }
+      
+      // Update refs
+      prevQuantityPerUnitRef.current = quantityPerUnit;
     }
-  }, [serialData, onSerialNumbersChange]);
+  }, [quantityPerUnit]);
 
   const updateSerialNumber = useCallback((index: number, field: 'serial' | 'remark', value: string) => {
     setSerialData(prevData => {
-      const updated = [...prevData];
-      if (updated[index]) {
-        updated[index] = { ...updated[index], [field]: value };
+      const newData = [...prevData];
+      if (newData[index]) {
+        newData[index] = { ...newData[index], [field]: value };
       }
-      return updated;
+      return newData;
     });
   }, []);
+
+  // Sync changes to parent
+  useEffect(() => {
+    if (!isInitialMountRef.current) {
+      onSerialNumbersChange?.(serialData);
+    }
+  }, [serialData, onSerialNumbersChange]);
 
   const getNextAvailableSerialNumber = useMemo((): number => {
     const existingNumbers: number[] = [];
@@ -143,7 +140,6 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
     return nextNumber;
   }, [serialData, serialFormat, startingNumber]);
-
 
   const generateSerialNumbers = useCallback((count: number, format: string, nextNumber: number) => {
     // Update the stored format and starting number for future use
@@ -180,85 +176,11 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     return serialData.filter(item => !item.serial.trim()).length;
   }, [serialData]);
 
-  const renderSerialNumberInputs = () => {
-    const assetsInBatch = isBatchMode ? quantity : 1;
-    const showGroupedView = isBatchMode || assetsInBatch > 1;
-
-    if (showGroupedView) {
-      const assetIDs = [];
-      for (let i = 0; i < assetsInBatch; i++) {
-        assetIDs.push(`AS-${String(i + 1).padStart(4, '0')}`);
-      }
-
-      return assetIDs.map((assetID, assetIndex) => {
-        const startIndex = assetIndex * quantityPerUnit;
-        const endIndex = startIndex + quantityPerUnit;
-        const assetSerialData = serialData.slice(startIndex, endIndex);
-
-        const filledCount = assetSerialData.filter(item => item.serial.trim()).length;
-        const emptyCount = assetSerialData.filter(item => !item.serial.trim()).length;
-
-        return (
-          <div key={`asset-${String(assetIndex)}`} className="border border-outline rounded-lg p-4 bg-surface">
-            {/* Batch mode specific: Asset header with generate button */}
-            <div className="flex justify-between items-center mb-4 pb-2 border-b border-outline">
-              <div className="flex items-center gap-3">
-                <span className="label-medium text-onSurface">Asset ID: {assetID}</span>
-                <span className="body-small text-onSurfaceVariant">
-                  {filledCount} filled, {emptyCount} empty
-                </span>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => { setIsGenerationModalOpen(true); }}
-                className="text-xs"
-              >
-                Generate <span>{emptyCount}</span>
-              </Button>
-            </div>
-
-            <div className="grid gap-3">
-              {assetSerialData.map((item, serialIndex) => {
-                const globalIndex = startIndex + serialIndex;
-                return (
-                  <div key={`asset-${String(assetIndex)}-serial-${String(serialIndex)}`}>
-                    <SerialNumberInputRow
-                      item={item}
-                      index={globalIndex}
-                      serialIndex={serialIndex}
-                      validation={validation}
-                      onUpdate={updateSerialNumber}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      });
-    } else {
-
-      return serialData.map((item, index) => (
-        <div key={`single-mode-serial-${String(index)}`}>
-          <SerialNumberInputRow
-            item={item}
-            index={index}
-            serialIndex={index}
-            validation={validation}
-            onUpdate={updateSerialNumber}
-          />
-        </div>
-      ));
-    }
-  };
-
   return (
     <Card className="p-6 shadow-sm">
       <div className="flex justify-between items-center mb-4">
         <label className="body-medium text-onSurface">
-          Serial Numbers {isBatchMode ? "(Batch Mode)" : ""}
+          Serial Numbers
         </label>
         <Button
           type="button"
@@ -275,14 +197,24 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         </div>
       )}
 
-      <div className={isBatchMode ? "space-y-6" : "space-y-3"}>
+      <div className="space-y-3">
         {serialData.length === 0 && (
           <p className="body-small text-onSurfaceVariant text-center py-8">
             No serial numbers to display. Adjust quantity to add serial number fields.
           </p>
         )}
 
-        {renderSerialNumberInputs()}
+        {serialData.map((item, index) => (
+          <div key={`serial-${String(index)}`}>
+            <SerialNumberInputRow
+              item={item}
+              index={index}
+              serialIndex={index}
+              validation={validation}
+              onUpdate={updateSerialNumber}
+            />
+          </div>
+        ))}
       </div>
 
       <SerialNumberGenerationModal
@@ -298,6 +230,4 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   );
 };
 
-
 export default SerialNumberTab;
-

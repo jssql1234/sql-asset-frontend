@@ -89,7 +89,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Interest Rate (%)</label>
-          <Input type="number" {...register("hpInterest")} min="0" max="100" placeholder="0.00" disabled={isReadonly || !isHpEnabled} />
+          <Input type="number" {...register("hpInterest", { valueAsNumber: true })} min="0" max="100" placeholder="0.00" disabled={isReadonly || !isHpEnabled} />
         </div>
         <div>
           <label className="block text-sm font-medium text-onSurface">Finance</label>

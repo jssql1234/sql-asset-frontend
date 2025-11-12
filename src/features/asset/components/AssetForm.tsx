@@ -18,7 +18,7 @@ import type { Asset } from "@/types/asset";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useGetAsset } from "../hooks/useAssetService";
-
+import { useToast } from "@/components/ui/components/Toast/useToast";
 
 interface SerialNumberData {
   serial: string;
@@ -385,6 +385,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const [depreciationScheduleView, setDepreciationScheduleView] = useState<DepreciationScheduleViewState | null>(null);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSerialValid, setIsSerialValid] = useState(true);
   const { hasPermission } = usePermissions();
 
   // Determine user role based on permissions or prop
@@ -447,11 +448,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   // Active form destructuring without activeReset
   const { register: activeRegister, handleSubmit: activeHandleSubmit, watch: activeWatch, setValue: activeSetValue, control: activeControl, formState: { errors: activeErrors } } = activeForm;
 
+  const { addToast } = useToast();
   // Determine initial mode and populate forms
   // This effect runs on mount and when editingAsset or initialModeFromState changes
   useEffect(() => {
     if (editingAsset) {
       normalForm.reset({
+        ...normalDefaultValues,
         code: editingAsset.id,
         assetName: editingAsset.name,
         assetGroup: editingAsset.group,
@@ -461,16 +464,56 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
         cost: editingAsset.cost.toString(),
         quantity: editingAsset.qty || 1,
         quantityPerUnit: editingAsset.quantityPerUnit || 1,
+        inactiveStart: editingAsset.inactiveStart,
+        inactiveEnd: editingAsset.inactiveEnd,
         inactive: !editingAsset.active,
-        // Keep defaults for other fields
-        depreciationMethod: "Straight Line",
-        depreciationFrequency: "Yearly",
-        usefulLife: 10,
-        aca: false,
-        extraCheckbox: false,
-        extraCommercial: false,
-        extraNewVehicle: false,
-        serialNumbers: [],
+
+        // Allowance Tab
+        caAssetGroup: editingAsset.caAssetGroup,
+        allowanceClass: editingAsset.allowanceClass,
+        subClass: editingAsset.subClass,
+        iaRate: editingAsset.iaRate,
+        aaRate: editingAsset.aaRate,
+        aca: editingAsset.aca,
+        extraCheckbox: editingAsset.extraCheckbox,
+        extraCommercial: editingAsset.extraCommercial,
+        extraNewVehicle: editingAsset.extraNewVehicle,
+        manualQE: editingAsset.manualQE,
+        qeValue: editingAsset.qeValue,
+        residualExpenditure: editingAsset.residualExpenditure,
+        selfUsePercentage: editingAsset.selfUsePercentage,
+        rentedApportionPercentage: editingAsset.rentedApportionPercentage,
+
+        // Hire Purchase Tab
+        hpStartDate: editingAsset.hpStartDate,
+        hpInstalment: editingAsset.hpInstalment,
+        hpDeposit: editingAsset.hpDeposit,
+        hpInterest: editingAsset.hpInterest,
+        hpFinance: editingAsset.hpFinance,
+
+        // Serial Number Tab
+        serialNumbers: editingAsset.serialNumbers ?? [],
+        
+        //Depreciation Tab
+        depreciationMethod: editingAsset.depreciationMethod,
+        depreciationFrequency: editingAsset.depreciationFrequency,
+        usefulLife: editingAsset.usefulLife,
+        residualValue: editingAsset.residualValue,
+        depreciationRate: editingAsset.depreciationRate,
+        totalDepreciation: editingAsset.totalDepreciation,
+
+        // Allocation Tab
+        branch: editingAsset.branch,
+        department: editingAsset.department,
+        location: editingAsset.location,
+        personInCharge: editingAsset.personInCharge,
+        allocationNotes: editingAsset.allocationNotes,
+
+        // Warranty Tab
+        warrantyProvider: editingAsset.warrantyProvider,
+        warrantyStartDate: editingAsset.warrantyStartDate,
+        warrantyEndDate: editingAsset.warrantyEndDate,
+        warrantyNotes: editingAsset.warrantyNotes,
       });
 
       // Set activeTab for editing
@@ -498,21 +541,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       // Update layoutKey to force remounting of keyed components
       // This mimics the effect of switching tabs - React remounts content which triggers layout recalculation
       setLayoutKey(prev => prev + 1);
-      
-      // Also trigger layout recalculation directly
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (containerRef.current) {
-            const _offsetHeight = containerRef.current.offsetHeight;
-            const _scrollHeight = containerRef.current.scrollHeight;
-            if (_offsetHeight === 0 || _scrollHeight === 0) {
-              return;
-            }
-          }
-          // Trigger resize to recalculate sticky positioning
-          window.dispatchEvent(new Event('resize'));
-        });
-      });
     }, 100); // Small delay to ensure tabs are fully rendered
     
     return () => {
@@ -520,20 +548,8 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     };
   }, [isEditMode]); // Trigger on edit mode entry or mode switch
 
-  // Also trigger recalculation when activeTab changes (matches tab switch behavior)
   useEffect(() => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (containerRef.current) {
-          const _offsetHeight = containerRef.current.offsetHeight;
-          const _scrollHeight = containerRef.current.scrollHeight;
-          if (_offsetHeight === 0 || _scrollHeight === 0) {
-            return undefined;
-          }
-        }
-        window.dispatchEvent(new Event('resize'));
-      });
-    });
+
   }, [activeTab]);
 
   // Memoize the serial numbers change handler to prevent unnecessary re-renders
@@ -541,9 +557,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     activeSetValue("serialNumbers", serialNumbers);
   }, [activeSetValue]);
 
+  // Memoize the serial number validation handler
+  const handleSerialNumberValidationChange = useCallback((isValid: boolean) => {
+    setIsSerialValid(isValid);
+  }, []);
+
   // Watch form values for reactivity
   const serialNumbersValue = activeWatch("serialNumbers");
-  const quantity = activeWatch("quantity");
   const quantityPerUnit = activeWatch("quantityPerUnit");
   const inactive = activeWatch("inactive");
 
@@ -625,10 +645,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           value: "serial-no",
           content: (
             <SerialNumberTab
-              quantity={quantity}
               quantityPerUnit={quantityPerUnit}
               serialNumbers={memoizedSerialNumbers}
               onSerialNumbersChange={handleSerialNumbersChange}
+              onValidationChange={handleSerialNumberValidationChange}
             />
           ),
         },
@@ -671,10 +691,10 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
           value: "serial-no",
           content: (
             <SerialNumberTab
-              quantity={quantity}
               quantityPerUnit={quantityPerUnit}
               serialNumbers={memoizedSerialNumbers}
               onSerialNumbersChange={handleSerialNumbersChange}
+              onValidationChange={handleSerialNumberValidationChange}
             />
           ),
         },
@@ -686,12 +706,23 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
       ];
 
   // For onSubmit, ensure it's a block
-  const onSubmit = (data: CreateAssetFormData): void => {
+  const onSubmit = useCallback((data: CreateAssetFormData) => {
+    if (!isSerialValid) {
+      addToast({
+        variant: "error",
+        title: "Invalid Serial Numbers",
+        description: "Please fix the errors in the Serial No. tab before saving.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
-    onSuccess?.(data);
-    onBack?.();
-    setIsSubmitting(false);
-  };
+    try {
+      onSuccess?.(data);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [onSuccess, isSerialValid, addToast]);
 
   // Mock data for dropdowns
   const assetGroups: SelectDropdownOption[] = [

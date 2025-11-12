@@ -45,10 +45,10 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
   const cost = watch("cost");
   const quantityPerUnit = watch("quantityPerUnit");
   const manualQE = watch("manualQE", false); 
-  // Watched values for QE calculation
   const isMotorVehicle = watch("extraCheckbox");
   const isCommercial = watch("extraCommercial");
   const isNewVehicle = watch("extraNewVehicle");
+  const acaChecked = watch("aca");
 
   // Percentage options for dropdowns
   const percentageOptions = [
@@ -101,31 +101,42 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
     return Object.keys(entries).length > 1;
   }, [caAssetGroupValue, allowanceClassValue]);
 
-  // Auto-populate IA and AA rates when subclass is selected
   useEffect(() => {
-    if (caAssetGroupValue && allowanceClassValue && subClassValue) {
-
+    // Only auto-populate rates if ACA is not checked 
+    if (!acaChecked && caAssetGroupValue && allowanceClassValue && subClassValue) {
       const entry = ALLOWANCE_GROUPS[caAssetGroupValue].classes[allowanceClassValue].entries[subClassValue];
       if (entry) {
-        setValue("iaRate", entry.ia_rate.toString());
-        setValue("aaRate", entry.aa_rate.toString());
+        if (watch("iaRate") !== entry.ia_rate.toString()) {
+          setValue("iaRate", entry.ia_rate.toString(), { shouldDirty: true });
+        }
+        if (watch("aaRate") !== entry.aa_rate.toString()) {
+          setValue("aaRate", entry.aa_rate.toString(), { shouldDirty: true });
+        }
       }
     }
-  }, [caAssetGroupValue, allowanceClassValue, subClassValue, setValue]);
+  }, [acaChecked, caAssetGroupValue, allowanceClassValue, subClassValue, setValue, watch]);
 
-  // Clear dependent fields when parent changes
+ 
   useEffect(() => {
-    setValue("allowanceClass", "");
-    setValue("subClass", "");
-    setValue("iaRate", "");
-    setValue("aaRate", "");
-  }, [caAssetGroupValue, setValue]);
-
-  useEffect(() => {
-    setValue("subClass", "");
-    setValue("iaRate", "");
-    setValue("aaRate", "");
-  }, [allowanceClassValue, setValue]);
+    if (!caAssetGroupValue) {
+      if (allowanceClassValue || subClassValue || watch("iaRate") || watch("aaRate")) {
+        setValue("allowanceClass", "", { shouldDirty: true });
+        setValue("subClass", "", { shouldDirty: true });
+        setValue("iaRate", "", { shouldDirty: true });
+        setValue("aaRate", "", { shouldDirty: true });
+      }
+    } else {
+      // If allowanceClassValue is empty or invalid for the current caAssetGroupValue, clear subClass and rates
+      const group = ALLOWANCE_GROUPS[caAssetGroupValue];
+      if (!allowanceClassValue || !(allowanceClassValue in group.classes)) {
+        if (subClassValue || watch("iaRate") || watch("aaRate")) {
+          setValue("subClass", "", { shouldDirty: true });
+          setValue("iaRate", "", { shouldDirty: true });
+          setValue("aaRate", "", { shouldDirty: true });
+        }
+      }
+    }
+  }, [caAssetGroupValue, allowanceClassValue, subClassValue, setValue, watch]);
 
   // Clear subclass when switching between classes to prevent stale values
   useEffect(() => {
@@ -134,9 +145,9 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
       const allowanceClass = group.classes[allowanceClassValue];
       const currentSubClass = watch("subClass");
       if (currentSubClass && !(currentSubClass in allowanceClass.entries)) {
-        setValue("subClass", "");
-        setValue("iaRate", "");
-        setValue("aaRate", "");
+        setValue("subClass", "", { shouldDirty: true });
+        setValue("iaRate", "", { shouldDirty: true });
+        setValue("aaRate", "", { shouldDirty: true });
       }
     }
   }, [allowanceClassValue, caAssetGroupValue, setValue, watch]);
@@ -146,8 +157,9 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
     const costPerUnit = cost && quantityPerUnit ? parseFloat(cost) / quantityPerUnit : 0;
 
     if (allowanceClassValue === "6" && costPerUnit > 2000) {
-      setValue("allowanceClass", "1");
-      setValue("subClass", "a");
+      if (watch("allowanceClass") === "6") {
+        setValue("allowanceClass", "1", { shouldDirty: true });
+      }
     }
   }, [allowanceClassValue, cost, quantityPerUnit, setValue]);
 
@@ -159,7 +171,8 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
       const allowanceClass = group.classes[allowanceClassValue];
       const entries = allowanceClass.entries;
       const singleEntryKey = Object.keys(entries)[0];
-      if (singleEntryKey) {
+
+      if (singleEntryKey && (!subClassValue || !(subClassValue in entries))) {
         setValue("subClass", singleEntryKey);
       }
     }
@@ -168,8 +181,12 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
   // Auto-uncheck remaining checkboxes when Motor Vehicle is deselected
   useEffect(() => {
     if (!isMotorVehicle) {
-      setValue("extraCommercial", false);
-      setValue("extraNewVehicle", false);
+      if (watch("extraCommercial")) {
+        setValue("extraCommercial", false, { shouldDirty: true });
+      }
+      if (watch("extraNewVehicle")) {
+        setValue("extraNewVehicle", false, { shouldDirty: true });
+      }
     }
   }, [isMotorVehicle, setValue]);
 
@@ -177,6 +194,10 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
   useEffect(() => {
     if (isCommercial && isNewVehicle) {
       setValue("extraNewVehicle", false);
+      // Only set if it's currently true to avoid unnecessary updates
+      if (watch("extraNewVehicle")) {
+        setValue("extraNewVehicle", false, { shouldDirty: true });
+      }
     }
   }, [isCommercial, isNewVehicle, setValue]);
 
@@ -185,26 +206,30 @@ const AllowanceTab: React.FC<AllowanceTabProps> = ({ register, setValue, watch, 
     const totalCost = cost && cost.trim() !== "" ? parseFloat(cost) : 0;
     const qtyPerUnit = quantityPerUnit || 1;
     const costPerUnit = totalCost / qtyPerUnit;
+    
+    if (manualQE) {
+      return;
+    }
 
     if (isMotorVehicle) {
       if (isCommercial) {
         // No cap for commercial use
-        setValue("qeValue", totalCost.toString());
+        setValue("qeValue", totalCost.toString(), { shouldDirty: true });
       } else {
         // Non-commercial use
         if (costPerUnit <= 150000 && isNewVehicle) {
           // Cap at 100k per unit
           const cappedAmount = Math.min(costPerUnit, 100000) * qtyPerUnit;
-          setValue("qeValue", cappedAmount.toString());
+          setValue("qeValue", cappedAmount.toString(), { shouldDirty: true });
         } else {
           // Cap at 50k per unit
           const cappedAmount = Math.min(costPerUnit, 50000) * qtyPerUnit;
-          setValue("qeValue", cappedAmount.toString());
+          setValue("qeValue", cappedAmount.toString(), { shouldDirty: true });
         }
       }
     } else {
       // Not a motor vehicle, use total cost
-      setValue("qeValue", totalCost.toString());
+      setValue("qeValue", totalCost.toString(), { shouldDirty: true });
     }
   }, [isMotorVehicle, isCommercial, isNewVehicle, cost, quantityPerUnit, setValue]);
 

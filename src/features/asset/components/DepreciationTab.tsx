@@ -429,17 +429,18 @@ const computeDependentValues = (
     if (!flags.depreciationRate) {
       next.rate = 0;
     }
-    if (!flags.usefulLife && isMonthly) {
-      const defaultLife = 12;
-      next.usefulLife = defaultLife;
+    if (!flags.usefulLife) {
+
+      if (isMonthly && !usefulLife) {
+        next.usefulLife = 12;
+      } else {
+        next.usefulLife = usefulLife;
+      }
     }
     return next;
   }
 
-  if (!flags.residualValue && flags.totalDepreciation) {
-    residual = clampNonNegative(costValue - total);
-    next.residual = residual;
-  }
+
 
   if (!flags.totalDepreciation && flags.residualValue) {
     total = clampNonNegative(costValue - residual);
@@ -465,17 +466,16 @@ const computeDependentValues = (
 
   if (!flags.usefulLife) {
     if (rate > 0) {
-      life = (costValue - residual) / (costValue * (rate / 100));
-      if (!Number.isFinite(life) || life <= 0) {
-        life = isMonthly ? 12 : life;
-      }
+      const calculatedLife = (costValue - residual) / (costValue * (rate / 100));
+      life = (Number.isFinite(calculatedLife) && calculatedLife > 0) ? calculatedLife : usefulLife;
     } else if (total > 0) {
-      const estimated = (costValue - residual) / (total / (life || 1));
-      life = Number.isFinite(estimated) && estimated > 0 ? estimated : isMonthly ? 12 : life;
+      // Avoid division by zero if life is 0
+      const safeLife = life > 0 ? life : 1;
+      const estimated = (costValue - residual) / (total / safeLife);
+      life = (Number.isFinite(estimated) && estimated > 0) ? estimated : usefulLife;
     } else {
-      life = isMonthly ? 12 : life;
+      life = usefulLife;
     }
-    life = Math.max(1, Math.round(life));
     next.usefulLife = life;
 
     if (!flags.depreciationRate) {
@@ -484,6 +484,7 @@ const computeDependentValues = (
     }
   }
 
+  
   if (!flags.residualValue) {
     next.residual = clampNonNegative(residual);
   }
@@ -559,12 +560,6 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
             setValue("depreciationFrequency", previousFrequencyRef.current, { shouldDirty: false });
           }
        } else {
-         // Set useful life only if not in Manual mode with schedule or if confirmed
-         if (switchedToMonthly && !editableFlags.usefulLife) {
-           const defaultLife = 12;
-           setValue("usefulLife", defaultLife, { shouldDirty: false });
-         }
-         // Update the ref to track the current frequency for future changes
          previousFrequencyRef.current = frequency;
        }
      }
@@ -642,7 +637,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
     }
 
     if (computed.usefulLife !== undefined && !editableFlags.usefulLife) {
-      if (isMonthly && skipNextUsefulLifeComputeRef.current) {
+      if (isMonthly) {
         skipNextUsefulLifeComputeRef.current = false;
       } else {
         const rounded = Math.max(1, Math.round(computed.usefulLife));
@@ -1001,7 +996,7 @@ export const DepreciationTab: React.FC<DepreciationTabProps> = ({
                     if (event.key === "Enter") {
                       const validationHandler = createValidationHandler(
                         field,
-                        {
+                       {
                           min: 1,
                           max: editableFlags.usefulLife && depreciationRateNumber > 0 ? Math.floor(100 / depreciationRateNumber) : undefined,
                         },

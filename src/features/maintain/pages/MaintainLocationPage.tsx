@@ -14,12 +14,6 @@ import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const columnDefs = [
   {
-    id: 'select',
-    header: '',
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     id: 'locationId',
     accessorKey: 'id',
     header: 'Location ID',

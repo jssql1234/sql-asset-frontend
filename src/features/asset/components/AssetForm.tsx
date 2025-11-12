@@ -1073,13 +1073,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   //     originalQuantity,
   //     pendingData,
   //   };
-  // }
+  // } 
 
   return (
     <div ref={containerRef} className="bg-surface min-h-full flex flex-col justify-between">
       <div className="pb-4">
         {/* Header/Title */}
-        <div className="flex flex-col gap-6 p-2 md:p-6">
+        <div className="flex flex-col gap-6 p-2 md:p-2">
           <TabHeader 
             title={title}
             subtitle={isEditMode ? "Update the asset information." : "Fill in the details to create a new asset."}

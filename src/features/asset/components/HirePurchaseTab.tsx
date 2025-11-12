@@ -47,7 +47,7 @@ const HirePurchaseTab: React.FC<HirePurchaseTabProps> = ({ register, setValue, w
   ];
 
   return (
-    <Card className="p-6 shadow-sm">
+    <Card className="p-6 shadow-sm ">
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div>

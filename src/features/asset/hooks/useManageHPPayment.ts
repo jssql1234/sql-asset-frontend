@@ -13,7 +13,8 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentRow[]>([]);
-  const [originalPaymentSchedule, setOriginalPaymentSchedule] = useState<PaymentRow[]>([]);
+  const [, setOriginalPaymentSchedule] = useState<PaymentRow[]>([]);
+  const [pristineSchedule, setPristineSchedule] = useState<PaymentRow[]>([]); // Holds the initial, unmodified schedule
   const [financialYearGroups, setFinancialYearGroups] = useState<FinancialYearGroup[]>([]);
   const [totals, setTotals] = useState<HPPaymentTotals | null>(null);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(() => new Set()); // Track expanded YA groups
@@ -44,6 +45,63 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     setTotals(newTotals);
   }, []);
 
+  const recalculateScheduleFromIndex = (schedule: PaymentRow[], startIndex: number): PaymentRow[] => {
+    const newSchedule = [...schedule];
+    const monthlyInterestRate = interestRate / 100 / 12;
+  
+    // Step 1: Recalculate the edited month and determine the new outstanding principal
+    const editedItemIndex = startIndex;
+    const previousOutstandingPrincipal = editedItemIndex === 0
+      ? totalCost - depositAmount
+      : newSchedule[editedItemIndex - 1].outstandingPrincipal;
+  
+    const editedItem = { ...newSchedule[editedItemIndex] };
+    const interestForEditedMonth = previousOutstandingPrincipal * monthlyInterestRate;
+    const principalForEditedMonth = editedItem.totalInstalmentAmount - interestForEditedMonth;
+  
+    editedItem.interestAmount = Math.round(interestForEditedMonth * 100) / 100;
+    editedItem.principalAmount = Math.round(principalForEditedMonth * 100) / 100;
+    editedItem.outstandingPrincipal = Math.round((previousOutstandingPrincipal - editedItem.principalAmount) * 100) / 100;
+    newSchedule[editedItemIndex] = editedItem;
+  
+    // Step 2: If there are subsequent months, recalculate a new equal payment for them
+    const remainingInstalments = newSchedule.length - (startIndex + 1);
+    if (remainingInstalments > 0) {
+      const newFinancedAmount = editedItem.outstandingPrincipal;
+  
+      // Standard amortization formula for the remaining balance
+      const newMonthlyPayment = newFinancedAmount * (monthlyInterestRate * Math.pow(1 + monthlyInterestRate, remainingInstalments)) /
+                                (Math.pow(1 + monthlyInterestRate, remainingInstalments) - 1);
+  
+      let currentOutstanding = newFinancedAmount;
+      for (let i = startIndex + 1; i < newSchedule.length; i++) {
+        const currentItem = { ...newSchedule[i] };
+        const interestAmount = currentOutstanding * monthlyInterestRate;
+        const principalAmount = newMonthlyPayment - interestAmount;
+  
+        currentItem.totalInstalmentAmount = Math.round(newMonthlyPayment * 100) / 100;
+        currentItem.interestAmount = Math.round(interestAmount * 100) / 100;
+        currentItem.principalAmount = Math.round(principalAmount * 100) / 100;
+        currentOutstanding -= principalAmount;
+        currentItem.outstandingPrincipal = Math.max(0, Math.round(currentOutstanding * 100) / 100);
+  
+        newSchedule[i] = currentItem;
+      }
+    }
+  
+    return newSchedule;
+  };
+
+  const updatePaymentSchedule = (ya: number, month: number, newAmount: number) => {
+    setPaymentSchedule(prevSchedule => {
+      const itemIndex = prevSchedule.findIndex(item => item.ya === ya && item.month === month);
+      if (itemIndex === -1) return prevSchedule;
+      
+      const tempSchedule = [...prevSchedule];
+      tempSchedule[itemIndex] = { ...tempSchedule[itemIndex], totalInstalmentAmount: newAmount };
+      return recalculateScheduleFromIndex(tempSchedule, itemIndex);
+    });
+  };
   // Load payment schedule when data changes
   useEffect(() => {
     // Only run if the modal is open and has valid data
@@ -52,6 +110,7 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
       hpPaymentService.loadPaymentSchedule({ depositAmount, interestRate, numberOfInstalments, totalCost, startDate }).then(data => {
         setPaymentSchedule(data.paymentSchedule);
         setOriginalPaymentSchedule(data.paymentSchedule);
+        setPristineSchedule(data.paymentSchedule); 
         processScheduleForDisplay(data.paymentSchedule, data.depositAmount);
         setIsLoading(false);
       }).catch(() => {
@@ -62,14 +121,19 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     }
   }, [depositAmount, interestRate, numberOfInstalments, totalCost, startDate]);
 
+  useEffect(() => {
+    if (paymentSchedule.length > 0) {
+      processScheduleForDisplay(paymentSchedule, depositAmount);
+    }
+  }, [paymentSchedule, depositAmount, processScheduleForDisplay]);
   const toggleEditMode = () => {
     setIsEditMode(prev => !prev);
   };
 
   const resetPaymentSchedule = () => {
-    setPaymentSchedule(originalPaymentSchedule);
-    processScheduleForDisplay(originalPaymentSchedule, depositAmount);
-    setIsEditMode(false);
+    setPaymentSchedule(pristineSchedule);
+    setOriginalPaymentSchedule(pristineSchedule); 
+    setIsEditMode(false); 
   };
 
   const toggleYearExpansion = (ya: number) => {
@@ -86,9 +150,9 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
 
   const applyEarlySettlement = async (settlementMonth: number, interestAmount: number) => {
     try {
-      // Calculate the new schedule based on the original, last-saved schedule
+      // Calculate the new schedule based on the *current* schedule, which may include manual edits.
       const settledSchedule = await hpPaymentService.calculateEarlySettlement(
-        originalPaymentSchedule,
+        paymentSchedule,
         settlementMonth,
         interestAmount
       );
@@ -127,6 +191,7 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     paymentSchedule,
     financialYearGroups,
     totals,
+    updatePaymentSchedule,
     expandedYears,
     isEarlySettlementOpen,
     toggleEditMode,

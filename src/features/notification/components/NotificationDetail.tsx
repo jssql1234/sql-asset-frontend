@@ -2,13 +2,19 @@ import { useCallback, type KeyboardEvent, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 import { cn } from "@/utils/utils";
-import type { Notification } from "../types";
-import { formatRelativeTime } from "../utils/notificationUtils";
+import type { Notification, NotificationGroup as NotificationGroupType } from "../types";
+import { formatRelativeTime, describeGroupDate } from "../utils/notificationUtils";
 import { navigateForNotification } from "../utils/notificationNavigation";
 import { NOTIFICATION_TYPE_ICONS } from "../constants";
 
 interface NotificationItemProps {
   notification: Notification;
+  onMarkAsRead: (id: string) => void;
+  onDelete: (id: string) => void;
+}
+
+interface NotificationGroupProps {
+  group: NotificationGroupType;
   onMarkAsRead: (id: string) => void;
   onDelete: (id: string) => void;
 }
@@ -111,3 +117,23 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
     </article>
   );
 };
+
+export const NotificationGroup = ({ group, onMarkAsRead, onDelete }: NotificationGroupProps) => (
+  <section className="space-y-3">
+    <header className="flex items-center gap-3">
+      <h3 className="text-sm font-semibold text-onSurface">{describeGroupDate(group.date)}</h3>
+      <div className="h-px flex-1 bg-outlineVariant" />
+    </header>
+
+    <div className="space-y-2">
+      {group.notifications.map((notification) => (
+        <NotificationItem
+          key={notification.id}
+          notification={notification}
+          onMarkAsRead={onMarkAsRead}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  </section>
+);

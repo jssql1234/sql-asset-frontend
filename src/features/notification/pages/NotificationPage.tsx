@@ -3,7 +3,7 @@ import { AppLayout } from "@/layout/sidebar/AppLayout";
 import { Card } from "@/components/ui/components";
 import TabHeader from "@/components/TabHeader";
 import Search from "@/components/Search";
-import { NotificationGroup } from "../components/NotificationGroup";
+import { NotificationGroup } from "../components/NotificationDetail";
 import { CheckCheck, Trash2 } from "lucide-react";
 import type { NotificationFilters } from "../types";
 import { useNotifications } from "../hooks/useNotifications";

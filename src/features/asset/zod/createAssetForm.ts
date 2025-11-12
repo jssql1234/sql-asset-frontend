@@ -5,7 +5,6 @@ export const createAssetFormSchema = z.object({
   inactive: z.boolean(),
   inactiveStart: z.string().optional(),
   inactiveEnd: z.string().optional(),
-  batchID: z.string().optional(),
   code: z.string().min(1, "Asset ID is required"),
   assetGroup: z.string().min(1, "Asset Group is required"),
   assetName: z.string().min(1, "Asset Name is required"),

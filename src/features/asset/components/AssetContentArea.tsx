@@ -3,7 +3,6 @@ import { Button, Card } from "@/components/ui/components";
 import { TableColumnVisibility } from "@/components/ui/components/Table/index";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type CustomColumnDef } from "@/components/ui/utils/dataTable";
-import { cn } from "@/utils/utils";
 import AssetForm from "./AssetForm";
 import type { CreateAssetFormData } from "../zod/createAssetForm";
 import type { Asset } from "@/types/asset";
@@ -19,46 +18,18 @@ import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDr
 import { useToast } from "@/components/ui/components/Toast/useToast";
 
 // Column definitions for TanStack Table
-const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
+const createColumns = (): CustomColumnDef<Asset>[] => {
   const columns: CustomColumnDef<Asset>[] = [];
 
-  // Asset ID (excluded in batch mode)
-  if (!groupByBatch) {
-    columns.push({
-      id: "id",
-      accessorKey: "id",
-      header: "Asset ID",
-      meta: { label: "Asset ID" },
-      enableSorting: true,
-      enableColumnFilter: false,
-    });
-  }
-
-  // Batch ID (grouping anchor)
   columns.push({
-    id: "batchId",
-    accessorKey: "batchId",
-    header: "Batch ID",
-    meta: { label: "Batch ID" },
+    id: "id",
+    accessorKey: "id",
+    header: "Asset ID",
+    meta: { label: "Asset ID" },
     enableSorting: true,
     enableColumnFilter: false,
-    cell: ({ row, getValue }) => {
-      const value = getValue() || '';
-      if (row.getIsGrouped()) {
-        return (
-          <div>
-            <div className="font-medium">{value || "Ungrouped"}</div>
-            <div className="text-sm text-muted-foreground">
-              {row.subRows.length.toString()} asset{row.subRows.length !== 1 ? "s" : ""}
-            </div>
-          </div>
-        );
-      }
-      return value || "-";
-    },
   });
 
-  // Name (aggregate first value in batch mode)
   columns.push({
     id: "name",
     accessorKey: "name",
@@ -66,12 +37,8 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
     meta: { label: "Asset Name" },
     enableSorting: true,
     enableColumnFilter: false,
-    ...(groupByBatch && {
-      aggregationFn: (_columnId, leafRows) => String(leafRows[0].getValue('name') ?? ''),
-    }),
   });
 
-  // Group (aggregate first value in batch mode)
   columns.push({
     id: "group",
     accessorKey: "group",
@@ -79,12 +46,8 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
     meta: { label: "Asset Group" },
     enableSorting: true,
     enableColumnFilter: false,
-    ...(groupByBatch && {
-      aggregationFn: (_columnId, leafRows) => String(leafRows[0].getValue('group') ?? ''),
-    }),
   });
 
-  // Description (aggregate first value in batch mode)
   columns.push({
     id: "description",
     accessorKey: "description",
@@ -100,33 +63,26 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
     },
     enableSorting: true,
     enableColumnFilter: false,
-    ...(groupByBatch && {
-      aggregationFn: (_columnId, leafRows) => String(leafRows[0].getValue('description') ?? ''),
-    }),
   });
 
-  // Acquire & Purchase Dates (excluded in batch mode)
-  if (!groupByBatch) {
-    columns.push({
-      id: "acquireDate",
-      accessorKey: "acquireDate",
-      header: "Acquire Date",
-      meta: { label: "Acquire Date" },
-      enableSorting: true,
-      enableColumnFilter: false,
-    });
+  columns.push({
+    id: "acquireDate",
+    accessorKey: "acquireDate",
+    header: "Acquire Date",
+    meta: { label: "Acquire Date" },
+    enableSorting: true,
+    enableColumnFilter: false,
+  });
 
-    columns.push({
-      id: "purchaseDate",
-      accessorKey: "purchaseDate",
-      header: "Purchase Date",
-      meta: { label: "Purchase Date" },
-      enableSorting: true,
-      enableColumnFilter: false,
-    });
-  }
+  columns.push({
+    id: "purchaseDate",
+    accessorKey: "purchaseDate",
+    header: "Purchase Date",
+    meta: { label: "Purchase Date" },
+    enableSorting: true,
+    enableColumnFilter: false,
+  });
 
-  // Cost (sum in batch mode)
   columns.push({
     id: "cost",
     accessorKey: "cost",
@@ -138,48 +94,21 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
     },
     enableSorting: true,
     enableColumnFilter: false,
-    ...(groupByBatch && { aggregationFn: 'sum' as const }),
   });
 
-  // Quantity - shows individual asset qty in asset mode, batch count in batch mode
-  if (groupByBatch) {
-    // In batch mode: show count of assets in the batch
-    columns.push({
-      id: "qty",
-      accessorKey: "qty",
-      header: "Quantity",
-      meta: { label: "Quantity" },
-      cell: ({ row }) => {
-        if (row.getIsGrouped()) {
-          const leafRows = row.getLeafRows();
-          return leafRows.length.toString();
-        }
-        const value = Number(row.getValue('qty') || 0);
-        return Number.isFinite(value) ? value.toLocaleString() : '-';
-      },
-      enableSorting: true,
-      enableColumnFilter: false,
-      aggregationFn: (_columnId, leafRows) => {
-        return leafRows.length;
-      },
-    });
-  } else {
-    // In asset mode: show quantityPerUnit (units per asset)
-    columns.push({
-      id: "quantityPerUnit",
-      accessorKey: "quantityPerUnit",
-      header: "Qty",
-      meta: { label: "Qty" },
-      cell: ({ getValue }) => {
-        const value = Number(getValue() || 0);
-        return Number.isFinite(value) ? value.toLocaleString() : '-';
-      },
-      enableSorting: true,
-      enableColumnFilter: false,
-    });
-  }
+  columns.push({
+    id: "quantityPerUnit",
+    accessorKey: "quantityPerUnit",
+    header: "Qty",
+    meta: { label: "Qty" },
+    cell: ({ getValue }) => {
+      const value = Number(getValue() || 0);
+      return Number.isFinite(value) ? value.toLocaleString() : '-';
+    },
+    enableSorting: true,
+    enableColumnFilter: false,
+  });
 
-  // Active (custom aggregate summary in batch mode)
   columns.push({
     id: "active",
     accessorKey: "active",
@@ -188,25 +117,12 @@ const createColumns = (groupByBatch: boolean): CustomColumnDef<Asset>[] => {
       label: "Active",
       filterOptions: { true: "Yes", false: "No" },
     },
-    cell: ({ row, getValue }) => {
-      if (row.getIsGrouped()) {
-        const leafRows = row.getLeafRows();
-        const total = leafRows.length;
-        const activeCount = leafRows.filter((r) => (r.original).active).length;
-        return `${activeCount.toString()}/${total.toString()} active`;
-      }
+    cell: ({ getValue }) => {
       const value = Boolean(getValue());
       return value ? "Yes" : "No";
     },
     enableSorting: true,
     enableColumnFilter: false,
-    ...(groupByBatch && {
-      aggregationFn: (_columnId, leafRows) => {
-        const total = leafRows.length;
-        const activeCount = leafRows.filter((r) => (r.original).active).length;
-        return `${activeCount.toString()}/${total.toString()} active`;
-      },
-    }),
   });
 
   return columns;
@@ -249,7 +165,6 @@ const buildRowSelectionMap = (ids: string[]): Record<string, boolean> =>
 
 const mapFormDataToAsset = (data: CreateAssetFormData): Asset => ({
   id: data.code,
-  batchId: data.batchID ?? "",
   name: data.assetName,
   group: data.assetGroup,
   description: data.description ?? "",
@@ -272,16 +187,9 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const pendingSelectionRef = useRef<{ rows: Asset[]; selectedRowIds: string[] } | null>(null);
   const selectionFrameRef = useRef<number | null>(null);
   const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
-  const [selectedBatchIds, setSelectedBatchIds] = useState<string[]>([]);
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
-
-  // Initialize groupByBatch directly from sessionStorage to avoid flickering
-  const [groupByBatch, setGroupByBatch] = useState(() => {
-    const savedMode = sessionStorage.getItem('assetListMode');
-    return savedMode === 'batch';
-  });
 
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
@@ -419,8 +327,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
      }
    }, [location.pathname, params.id, assets, navigate]);
   
-  // Create columns and manage visibility (dynamic by batch mode)
-  const allColumns = useMemo(() => createColumns(groupByBatch), [groupByBatch]);
+  // Create columns and manage visibility
+  const allColumns = useMemo(() => createColumns(), []);
   const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
 
   // Use dynamic columns directly (exclusions handled in createColumns)
@@ -433,27 +341,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
   const resetSelectionState = useCallback(() => {
     setSelectedAssetIds([]);
-    setSelectedBatchIds([]);
     setRowSelection({});
   }, []);
-
-  // Clear selection when switching between batch and asset modes
-  const previousGroupByBatch = useRef(groupByBatch);
-  useEffect(() => {
-    if (previousGroupByBatch.current !== groupByBatch) {
-      resetSelectionState();
-    }
-    previousGroupByBatch.current = groupByBatch;
-  }, [groupByBatch, resetSelectionState]);
-
-  // Memoize grouping and expanded state to prevent unnecessary re-renders
-  const groupingState = useMemo<string[]>(() => {
-    return groupByBatch ? ['batchId'] : [];
-  }, [groupByBatch]);
-
-  const expandedState = useMemo(() => {
-    return groupByBatch ? {} : undefined;
-  }, [groupByBatch]);
 
   // Filter assets based on search value and tax year (for tax agents)
   const filteredAssets = useMemo(() => {
@@ -476,7 +365,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
       const searchLower = searchValue.toLowerCase().trim();
       filtered = filtered.filter(asset =>
         asset.id.toLowerCase().includes(searchLower) ||
-        asset.batchId.toLowerCase().includes(searchLower) ||
         asset.name.toLowerCase().includes(searchLower) ||
         asset.group.toLowerCase().includes(searchLower) ||
         asset.description.toLowerCase().includes(searchLower)
@@ -509,35 +397,11 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
       setRowSelection(nextRowSelection);
     }
 
-    if (!groupByBatch) {
-      const nextAssetIds = rows.map((r) => r.id);
-      if (!haveSameMembers(selectedAssetIds, nextAssetIds)) {
-        setSelectedAssetIds(nextAssetIds);
-      }
-      if (selectedBatchIds.length > 0) {
-        setSelectedBatchIds([]);
-      }
-      return;
-    }
-
-    const nextBatchIds = Array.from(new Set(rows.map((r) => r.batchId || '').filter(Boolean)));
-    if (!haveSameMembers(selectedBatchIds, nextBatchIds)) {
-      setSelectedBatchIds(nextBatchIds);
-    }
-
-    const assetsToInclude = new Set<string>();
-    const source = filteredAssets ?? assets;
-    for (const r of rows) {
-      const batch = r.batchId || '';
-      source
-        .filter((a) => (a.batchId || '') === batch)
-        .forEach((a) => assetsToInclude.add(a.id));
-    }
-    const nextAssetIds = Array.from(assetsToInclude);
+    const nextAssetIds = rows.map((r) => r.id);
     if (!haveSameMembers(selectedAssetIds, nextAssetIds)) {
       setSelectedAssetIds(nextAssetIds);
     }
-  }, [assets, filteredAssets, groupByBatch, resetSelectionState, rowSelection, selectedAssetIds, selectedBatchIds]);
+  }, [assets, filteredAssets, resetSelectionState, rowSelection, selectedAssetIds]);
 
   const scheduleSelectionFlush = useCallback(() => {
     if (!isMountedRef.current) {
@@ -559,7 +423,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
     if (pendingSelectionRef.current) {
       scheduleSelectionFlush();
     }
-  }, [assets, filteredAssets, groupByBatch, scheduleSelectionFlush]);
+  }, [assets, filteredAssets, scheduleSelectionFlush]);
 
   // Handle row selection and maintain asset ID mapping
   const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
@@ -721,7 +585,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
             <Search
               searchValue={searchValue}
-              searchPlaceholder="Search by asset ID, batch ID, asset name, asset group, description"
+              searchPlaceholder="Search by asset ID, asset name, asset group, description"
               onSearch={setSearchValue}
               live={true}
             />
@@ -731,35 +595,6 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
           {/* Header actions */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              {/* Asset/Batch Toggle */}
-              <div className="flex bg-secondaryContainer text-onSecondaryContainer rounded overflow-hidden">
-                <button
-                  type="button"
-                  className={cn(
-                    "px-3 py-1 body-small cursor-pointer",
-                    !groupByBatch && "bg-primary text-onPrimary"
-                  )}
-                  onClick={() => {
-                    setGroupByBatch(false);
-                    sessionStorage.setItem('assetListMode', 'asset');
-                  }}
-                >
-                  Asset
-                </button>
-                <button
-                  type="button"
-                  className={cn(
-                    "px-3 py-1 body-small cursor-pointer",
-                    groupByBatch && "bg-primary text-onPrimary"
-                  )}
-                  onClick={() => {
-                    setGroupByBatch(true);
-                    sessionStorage.setItem('assetListMode', 'batch');
-                  }}
-                >
-                  Batch
-                </button>
-              </div>
               <TableColumnVisibility
                 columns={tableColumns}
                 visibleColumns={visibleColumns}
@@ -771,14 +606,13 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
               <PermissionGuard feature="maintainItem" action="entryNew">
 
               <Button size="sm" onClick={() => {
-                sessionStorage.setItem('assetListMode', groupByBatch ? 'batch' : 'asset');
-                void navigate('/asset/create-asset', { state: { initialMode: groupByBatch ? 'batch' : 'normal' } });
+                void navigate('/asset/create-asset');
               }}>
                 <Plus className="h-4 w-4" />
                 Add
               </Button>
               </PermissionGuard>
-               {(groupByBatch ? selectedBatchIds.length > 0 : selectedAssetIds.length > 0) && (
+               {selectedAssetIds.length > 0 && (
                  <div className="flex items-center gap-2">
                    <Button
                      variant="outline"
@@ -792,10 +626,9 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                          const asset = assets.find(a => a.id === selectedAssetIds[0]);
 
                          if (asset) {
-                           sessionStorage.setItem('assetListMode', groupByBatch ? 'batch' : 'asset');
                            setEditingAsset(asset);
                            setView('edit');
-                           void navigate(`/asset/edit-asset/${asset.id}`, { state: { listMode: groupByBatch ? 'batch' : 'normal' } });
+                           void navigate(`/asset/edit-asset/${asset.id}`);
                          }
                        }
                      }}
@@ -810,7 +643,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                      void navigate('/disposal');
                    }}>Dispose</Button>
                    <div className="body-small text-onSurfaceVariant">
-                     {groupByBatch ? `${selectedBatchIds.length.toString()} batch${selectedBatchIds.length !== 1 ? 'es' : ''} selected` : `${selectedAssetIds.length.toString()} selected`}
+                     {`${selectedAssetIds.length.toString()} selected`}
                    </div>
                  </div>
                )}
@@ -825,26 +658,18 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
             rowSelection={rowSelection}
-            selectedCount={groupByBatch ? selectedBatchIds.length : selectedAssetIds.length}
-            totalCount={groupByBatch
-              ? (filteredAssets ? new Set(filteredAssets.map(a => a.batchId)).size : 0)
-              : filteredAssets?.length ?? 0}
-            enableGrouping={true}
-            grouping={groupingState}
-            expanded={expandedState}
+            selectedCount={selectedAssetIds.length}
+            totalCount={filteredAssets?.length ?? 0}
           />
         </Card>
         </div>
       ) : view === 'create' ? (
         <AssetForm
-          listModeHint={groupByBatch ? 'batch' : 'normal'}
           editingAsset={null}
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}
           userRole={effectiveUserRole}
-          onBack={(mode) => {
-            sessionStorage.setItem('assetListMode', mode === 'batch' ? 'batch' : 'asset');
-            setGroupByBatch(mode === 'batch');
+          onBack={() => {
             setView('list');
             setEditingAsset(null);
             void navigate(`/asset`);
@@ -853,14 +678,11 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
         />
       ) : (
         <AssetForm
-          listModeHint={groupByBatch ? 'batch' : 'normal'}
           editingAsset={editingAsset}
           selectedTaxYear={selectedTaxYear}
           taxYearOptions={taxYearOptions}
           userRole={effectiveUserRole}
-          onBack={(mode) => {
-            sessionStorage.setItem('assetListMode', mode === 'batch' ? 'batch' : 'asset');
-            setGroupByBatch(mode === 'batch');
+          onBack={() => {
             setView('list');
             setEditingAsset(null);
             void navigate(`/asset`);

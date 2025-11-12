@@ -26,34 +26,4 @@ export const deleteAsset = (id: string): void => {
   }
 };
 
-// Batch-related functions
-export const fetchBatchAssets = (batchId: string): Asset[] => {
-  return mockAssets.filter(asset => asset.batchId === batchId);
-};
 
-export const getBatchQuantity = (batchId: string): number => {
-  const assets = fetchBatchAssets(batchId);
-  return assets.length;
-};
-
-export const bulkUpdateAssetBatchId = (assetIds: string[], newBatchId: string | null): void => {
-  assetIds.forEach(id => {
-    const asset = mockAssets.find(a => a.id === id);
-    if (asset) {
-      asset.batchId = newBatchId ?? '';
-    }
-  });
-};
-
-export const bulkUpdateAssets = (updates: ({ id: string } & Partial<Asset>)[]): void => {
-  updates.forEach(({ id, ...partial }) => {
-    const asset = mockAssets.find(a => a.id === id);
-    if (asset) {
-      Object.assign(asset, partial);
-    }
-  });
-};
-
-export const createMultipleAssets = (assets: Asset[]): void => {
-  mockAssets.push(...assets);
-};

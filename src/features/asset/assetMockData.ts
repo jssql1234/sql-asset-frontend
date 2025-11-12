@@ -3,7 +3,6 @@ import type { Asset } from "@/types/asset";
 export const mockAssets: Asset[] = [
   {
     id: "AS-00001",
-    batchId: "B-2024-01",
     name: "Production Line A12",
     group: "Plant & Machinery",
     description: "Block A",
@@ -16,7 +15,6 @@ export const mockAssets: Asset[] = [
   },
   {
     id: "AS-00002",
-    batchId: "B-2024-02",
     name: "Block A Factory",
     group: "Industrial Building",
     description: "Block A",
@@ -29,7 +27,6 @@ export const mockAssets: Asset[] = [
   },
   {
     id: "AS-00003",
-    batchId: "B-2024-03",
     name: "Block B Factory",
     group: "Industrial Building",
     description: "Block B",
@@ -42,7 +39,6 @@ export const mockAssets: Asset[] = [
   },
   {
     id: "AS-00004",
-    batchId: "B-2024-02",
     name: "Printer A10",
     group: "Plant & Machinery",
     description: "Block B",

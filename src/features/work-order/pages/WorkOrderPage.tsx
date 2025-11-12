@@ -11,6 +11,8 @@ import { MOCK_WORK_ORDERS, MOCK_WORK_ORDER_SUMMARY } from "../mockData";
 import type { WorkOrderFilters, WorkOrder, WorkOrderFormData } from "../types";
 import { DEFAULT_WORK_ORDER_FILTERS } from "../types";
 import { COVERAGE_QUERY_KEYS } from "@/features/coverage/hooks/useCoverageService";
+import type { ClaimNotificationMetadata } from "@/features/notification/types";
+import { DEFAULT_NOTIFICATION_IDS } from "@/features/notification/constants";
 
 const WorkOrdersPage: React.FC = () => {
   const location = useLocation();
@@ -265,10 +267,11 @@ const WorkOrdersPage: React.FC = () => {
         return;
       }
 
-      const notificationIdentifier = state.notificationId ?? "__work-order-claim__";
+      const notificationIdentifier = state.notificationId ?? DEFAULT_NOTIFICATION_IDS.WORK_ORDER_CLAIM;
       let latestClaimData: Record<string, unknown> | null = null;
 
-      const claimIdFromState = state.claimId ?? (state.claimData?.claimId as string | undefined);
+      const claimMetadata = state.claimData as ClaimNotificationMetadata | undefined;
+      const claimIdFromState = state.claimId ?? claimMetadata?.claimId;
 
       if (claimIdFromState) {
         try {
@@ -280,7 +283,7 @@ const WorkOrdersPage: React.FC = () => {
               claimId: claim.id,
               claimNumber: claim.claimNumber,
               claimType: claim.type,
-              description: claim.description,
+              description: `Work order for ${claim.type} claim ${claim.claimNumber}`,
               assets: claim.assets,
               amount: claim.amount,
               status: claim.status,

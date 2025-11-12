@@ -8,6 +8,7 @@ import { ExportFile, Upload } from '@/assets/icons';
 import TabHeader from '@/components/TabHeader';
 import SelectDropdown from '@/components/SelectDropdown';
 import type { SelectDropdownOption } from '@/components/SelectDropdown';
+import { Plus } from '@/assets/icons';
 
 const MaintainUserGroupPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('csv');
@@ -50,44 +51,52 @@ const MaintainUserGroupPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <SelectDropdown
               value={selectedFormat}
-              onChange={(value) => { setSelectedFormat(value as 'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'); }}
+              onChange={(value) =>
+                setSelectedFormat(
+                  value as 'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'
+                )
+              }
               options={exportOptions}
               placeholder="Select format"
               buttonVariant="outline"
               buttonSize="sm"
               className="min-w-[100px]"
             />
+
             <button
               type="button"
-              onClick={() => { handleExportData(selectedFormat); }}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+              onClick={() => handleExportData(selectedFormat)}
+              className="flex items-center gap-2 px-2.5 py-1.5 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover transition"
               title={`Export as ${selectedFormat.toUpperCase()}`}
             >
               <ExportFile className="w-4 h-4" />
               Export Data
             </button>
+
             <button
               type="button"
               onClick={handleImportCSV}
-              className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+              className="flex items-center gap-2 px-2.5 py-1.5 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover transition"
               title="Import CSV"
             >
               <Upload className="w-4 h-4" />
               Import CSV
             </button>
+
             <button
               type="button"
               onClick={handleAddGroup}
-              className="px-3 py-2 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover"
+              className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition"
             >
+              <Plus className="h-4 w-4" />
               Add Group
             </button>
+
           </div>
         }
       />
 
       <div className="flex flex-col h-full">
-        {/* Hidden file input for CSV import */}
         <input
           ref={fileInputRef}
           type="file"
@@ -96,7 +105,6 @@ const MaintainUserGroupPage: React.FC = () => {
           className="hidden"
         />
 
-        {/* Groups Table */}
         <div className="flex-1">
           <UserGroupTable
             groups={groups}
@@ -105,7 +113,6 @@ const MaintainUserGroupPage: React.FC = () => {
           />
         </div>
 
-        {/* Add/Edit Modal */}
         <UserGroupModal
           open={isModalOpen}
           onOpenChange={handleCloseModal}
@@ -113,7 +120,6 @@ const MaintainUserGroupPage: React.FC = () => {
           onSave={handleSaveGroup}
         />
 
-        {/* Delete Confirmation Dialog */}
         <DeleteConfirmationDialog
           isOpen={deleteDialogOpen}
           onClose={handleCancelDelete}
@@ -121,7 +127,7 @@ const MaintainUserGroupPage: React.FC = () => {
           itemName={groupToDelete?.name ?? ''}
         />
       </div>
-      
+
     </AppLayout>
   );
 };

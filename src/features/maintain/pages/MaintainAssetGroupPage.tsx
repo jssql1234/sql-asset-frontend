@@ -12,6 +12,8 @@ import { ExportFile } from '@/assets/icons';
 import type { AssetGroup } from '../types/assetGroups';
 import { Button } from '@/components/ui/components';
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import { Plus } from '@/assets/icons';
+
 
 const MaintainAssetGroupPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('pdf');
@@ -116,6 +118,7 @@ const MaintainAssetGroupPage: React.FC = () => {
                 onClick={handleAddAssetGroup}
                 className="flex items-center gap-2"
               >
+                <Plus className="h-4 w-4" />
                 Add Group
               </Button>
             </div>

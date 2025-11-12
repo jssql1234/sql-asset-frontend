@@ -27,10 +27,7 @@ const columnDefs = [
     accessorKey: 'name',
     header: 'Department',
     cell: ({ row }: any) => (
-      <div>
         <div className="font-medium">{row.original.name}</div>
-        <div className="text-sm text-onSurfaceVariant">Code: {row.original.typeId}</div>
-      </div>
     ),
   },
   {
@@ -58,7 +55,6 @@ const MaintainDepartmentPage: React.FC = () => {
     departments,
     filteredDepartments,
     filters,
-    departmentTypes,
     editingDepartment,
     updateFilters,
     handleSaveDepartment,
@@ -161,7 +157,6 @@ const MaintainDepartmentPage: React.FC = () => {
           onSave={handleSaveDepartment}
           editingDepartment={selectedDepartment ?? editingDepartment}
           existingDepartments={departments}
-          departmentTypes={departmentTypes}
         />
 
         <DeleteConfirmationDialog

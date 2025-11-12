@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,11 +10,10 @@ import {
 import { Input } from '@/components/ui/components/Input/Input';
 import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';
-import { SearchableDropdown } from '@/components/SearchableDropdown';
+
 import type {
   Department,
   DepartmentFormData,
-  DepartmentTypeOption,
   DepartmentValidationErrors,
 } from '../types/departments';
 import { generateDepartmentId, validateDepartmentForm } from '../utils/departmentUtils';
@@ -25,13 +24,11 @@ interface DepartmentFormModalProps {
   onSave: (data: DepartmentFormData) => Promise<void> | void;
   editingDepartment?: Department | null;
   existingDepartments: Department[];
-  departmentTypes: DepartmentTypeOption[];
 }
 
 const initialFormState: DepartmentFormData = {
   id: '',
   name: '',
-  typeId: '',
   manager: '',
   contact: '',
   description: '',
@@ -43,25 +40,17 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
   onSave,
   editingDepartment,
   existingDepartments,
-  departmentTypes,
 }) => {
   const [formData, setFormData] = useState<DepartmentFormData>(initialFormState);
   const [errors, setErrors] = useState<DepartmentValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
-  // Convert department types to SearchableDropdown format
-  const departmentTypeItems = useMemo(() => departmentTypes.map(type => ({
-    id: type.id,
-    label: type.name,
-  })), [departmentTypes]);
-
   useEffect(() => {
     if (editingDepartment) {
       setFormData({
         id: editingDepartment.id,
         name: editingDepartment.name,
-        typeId: editingDepartment.typeId,
         manager: editingDepartment.manager,
         contact: editingDepartment.contact,
         description: editingDepartment.description,
@@ -85,7 +74,7 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
       [field]: value,
     }));
 
-    if (field === 'name' || field === 'typeId') {
+    if (field === 'name') {
       if (errors[field]) {
         setErrors(prevErrors => ({
           ...prevErrors,
@@ -171,22 +160,6 @@ export const DepartmentFormModal: React.FC<DepartmentFormModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
 
-            <div>
-              <label htmlFor="departmentType" className="block text-sm font-medium text-onSurface mb-1">
-                Department Type <span className="text-error">*</span>
-              </label>
-              <SearchableDropdown
-                items={departmentTypeItems}
-                selectedId={formData.typeId}
-                onSelect={(typeId) => { handleInputChange('typeId', typeId); }}
-                placeholder="Select a department type"
-                emptyMessage="No department types found."
-                className={errors.typeId ? 'border-error' : ''}
-                maxHeight="max-h-60"
-                mode="search"
-              />
-              {errors.typeId && <p className="text-sm text-error mt-1">{errors.typeId}</p>}
-            </div>
             <div>
               <label htmlFor="departmentManager" className="block text-sm font-medium text-onSurface mb-1">
                 Department Manager

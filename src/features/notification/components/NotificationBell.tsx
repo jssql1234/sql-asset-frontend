@@ -165,12 +165,6 @@ export const NotificationBell = () => {
                           </p>
                           <div className="flex items-center gap-2 text-xs text-gray-400">
                             <span>{formatRelativeTime(notification.createdAt)}</span>
-                            {notification.sourceModule && (
-                              <>
-                                <span>•</span>
-                                <span>{notification.sourceModule}</span>
-                              </>
-                            )}
                           </div>
 
                           {/* Action Buttons for requests/approvals */}

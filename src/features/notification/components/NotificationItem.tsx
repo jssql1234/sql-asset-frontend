@@ -88,37 +88,24 @@ export const NotificationItem = ({ notification, onMarkAsRead, onDelete }: Notif
 
         <p className="text-sm text-onSurfaceVariant line-clamp-2">{notification.message}</p>
 
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-onSurfaceVariant">
-            <span className="rounded bg-surfaceContainerHigh px-2 py-0.5">
-              {notification.sourceModule}
-            </span>
-            {notification.sourceId && (
-              <span className="rounded bg-surfaceContainerHigh px-2 py-0.5">
-                {notification.sourceId}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {notification.status === "unread" && (
-              <button
-                type="button"
-                onClick={handleMarkAsRead}
-                className="rounded border border-primary/30 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
-              >
-                Mark as read
-              </button>
-            )}
+        <div className="flex items-center justify-end gap-2">
+          {notification.status === "unread" && (
             <button
               type="button"
-              onClick={handleDelete}
-              className="rounded border border-error/20 p-1 text-error transition-colors hover:bg-error/10"
-              aria-label="Delete notification"
+              onClick={handleMarkAsRead}
+              className="rounded border border-primary/30 px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10"
             >
-              <Trash2 className="size-4" aria-hidden="true" />
+              Mark as read
             </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={handleDelete}
+            className="rounded border border-error/20 p-1 text-error transition-colors hover:bg-error/10"
+            aria-label="Delete notification"
+          >
+            <Trash2 className="size-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </article>

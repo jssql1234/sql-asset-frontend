@@ -30,7 +30,7 @@ const sampleSpareParts: SparePart[] = [
     lowStockThreshold: 10,
     unitPrice: 25.50,
     supplier: 'AutoParts Inc',
-    location: 'A-01-15',
+    location: 'Warehouse A-Shelf 3',
     lastUpdated: '2025-07-20',
     operationalStatus: 'Active'
   },
@@ -43,7 +43,7 @@ const sampleSpareParts: SparePart[] = [
     lowStockThreshold: 12,
     unitPrice: 125.00,
     supplier: 'BrakeMaster',
-    location: 'B-02-08',
+    location: 'Warehouse B-Rack 2',
     lastUpdated: '2025-07-18',
     operationalStatus: 'Active'
   },
@@ -56,7 +56,7 @@ const sampleSpareParts: SparePart[] = [
     lowStockThreshold: 15,
     unitPrice: 45.75,
     supplier: 'HydroTech',
-    location: 'C-03-12',
+    location: 'Warehouse A-Shelf 1',
     lastUpdated: '2025-07-22',
     operationalStatus: 'Active'
   },
@@ -69,7 +69,7 @@ const sampleSpareParts: SparePart[] = [
     lowStockThreshold: 8,
     unitPrice: 35.20,
     supplier: 'Industrial Parts Co',
-    location: 'A-02-10',
+    location: 'Warehouse C-Bin 7',
     lastUpdated: '2025-08-15',
     operationalStatus: 'Active'
   },
@@ -82,7 +82,7 @@ const sampleSpareParts: SparePart[] = [
     lowStockThreshold: 7,
     unitPrice: 89.00,
     supplier: 'Bearing Supply Ltd',
-    location: 'C-01-05',
+    location: 'Warehouse B-Rack 5',
     lastUpdated: '2025-08-10',
     operationalStatus: 'Active'
   }

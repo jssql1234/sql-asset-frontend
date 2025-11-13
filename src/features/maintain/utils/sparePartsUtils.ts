@@ -17,7 +17,6 @@ export function calculateStockStatus(stockQty: number, lowStockThreshold: number
   }
 }
 
-
 /**
  * Validate spare part form data
  */
@@ -31,10 +30,6 @@ export function validateSparePartForm(formData: SparePartFormData): SparePartVal
 
   if (!formData.name.trim()) {
     errors.name = 'Part Name is required';
-  }
-
-  if (!formData.category.trim()) {
-    errors.category = 'Category is required';
   }
 
   // Validate numeric fields

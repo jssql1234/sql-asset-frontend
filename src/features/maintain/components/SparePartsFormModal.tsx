@@ -323,10 +323,20 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
               </label>
               <Input
                 id="location"
+                list="location-options"
                 value={formData.location}
-                onChange={(e) => { handleInputChange('location', e.target.value); }}
-                placeholder="Storage location"
+                onChange={(e) => handleInputChange('location', e.target.value)}
+                placeholder="Select or type location"
               />
+              <datalist id="location-options">
+                <option value="Warehouse A - Shelf 1" />
+                <option value="Warehouse A - Shelf 3" />
+                <option value="Warehouse B - Rack 2" />
+                <option value="Warehouse B - Rack 5" />
+                <option value="Warehouse C - Bin 7" />
+                <option value="Main Storage Room" />
+                <option value="Outdoor Yard" />
+              </datalist>
             </div>
           </div>
 

@@ -162,7 +162,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
         rowActions={rowActions}
       />
     </div>
-  </>
 );
 };
 

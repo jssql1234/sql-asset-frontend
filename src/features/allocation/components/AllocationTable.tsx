@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import type { AssetRecord, RentalRecord } from "../types";
 
 const allocationStatusVariantMap: Record<AssetRecord["status"], string> = {

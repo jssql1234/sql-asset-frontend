@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/utils/utils';
-import { DataTableExtended } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import type { MaintenanceHistory } from '@/types/work-request';
 import { Badge } from '@/components/ui/components/Badge';
 

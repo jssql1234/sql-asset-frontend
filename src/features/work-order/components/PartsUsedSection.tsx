@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import type { PartUsed } from "../types";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import { AddPartDialog } from "./AddPartDialog";
 import { Button } from "@/components/ui/components";
 import { BinFilled, Edit, Plus } from "@/assets/icons";

@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { FinancialYearGroup } from "../services/hpPaymentService";

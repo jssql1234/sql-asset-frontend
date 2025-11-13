@@ -3,15 +3,15 @@ import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowMode
          getExpandedRowModel, getGroupedRowModel, type SortingState, type ColumnFiltersState, type ExpandedState, type GroupingState, type Row } from '@tanstack/react-table';
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable';
-import { Table, TableBody, TableHeader, TableRow, TablePagination } from '@/components/ui/components/Table';
+import { Table, TableBody, TableHeader, TableRow, TablePagination, TableCell } from '@/components/ui/components/Table';
+import { Skeleton } from '@/components/ui/components';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/utils/utils';
 import { multiSelectFilterFn, fuzzyArrayIncludesFilterFn } from '@/components/ui/utils/tableFilter';
 import type { DataTableExtendedProps } from './types';
 import { createSelectionColumn } from './createSelectionColumn';
 import { createRowActionsColumn } from './createRowActionsColumn';
 import { DraggableColumn, ActiveHeaderOverlay } from './DraggableColumn';
-import { SkeletonRow } from './SkeletonRow';
-import { EmptyDataRow } from './EmptyDataRow';
 import { DataTableRow } from './DataTableRow';
 import { useDraggableColumnOrder } from './useDraggableColumnOrder';
 
@@ -66,6 +66,7 @@ export function DataTableExtended<TData, TValue>({
   onColumnOrderChange,
   rowActions,
 }: DataTableExtendedProps<TData, TValue>) {
+  const { t } = useTranslation('common');
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
@@ -322,11 +323,25 @@ export function DataTableExtended<TData, TValue>({
             
             <TableBody>
               {isLoading ? (
-                <SkeletonRow columns={effectiveColumns} rowCount={DEFAULT_SKELETON_ROWS} />
+                <>
+                  {Array.from({ length: DEFAULT_SKELETON_ROWS }, (_, i) => (
+                    <TableRow key={`skeleton-row-${i.toString()}`} className="hover:bg-transparent">
+                      {effectiveColumns.map((_, j) => (
+                        <TableCell key={`skeleton-cell-${i.toString()}-${j.toString()}`}>
+                          <Skeleton className="h-5 rounded-sm" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </>
               ) : table.getRowModel().rows.length ? (
                 <DataTableRow table={table} enableRowClickSelection={enableRowClickSelection} columnOrder={columnOrder}/>
               ) : (
-                <EmptyDataRow columnLength={effectiveColumns.length} />
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={effectiveColumns.length} className="text-onSurface text-center">
+                    {t('No records found. Add a new entry to get started.')}
+                  </TableCell>
+                </TableRow>
               )}
             </TableBody>
           </Table>

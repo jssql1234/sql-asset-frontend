@@ -1,7 +1,3 @@
-/**
- * DataTableRow component for rendering table rows
- */
-
 import type { MouseEvent } from 'react';
 import type { Row, Table as TanStackTable } from '@tanstack/react-table';
 import { flexRender } from '@tanstack/react-table';

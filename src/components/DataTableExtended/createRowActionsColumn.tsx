@@ -1,7 +1,3 @@
-/**
- * Create row actions column for the DataTable
- */
-
 import type { ComponentType } from 'react';
 import type { ColumnDef } from '@tanstack/react-table';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/components';

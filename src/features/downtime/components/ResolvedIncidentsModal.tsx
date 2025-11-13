@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/components";
 import { Badge } from "@/components/ui/components";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
 import Search from "@/components/Search";
 import type { DowntimeIncident } from "@/features/downtime/types";

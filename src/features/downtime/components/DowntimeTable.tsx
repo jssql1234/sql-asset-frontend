@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { Badge } from "@/components/ui/components";
-import { DataTableExtended, type RowAction } from "@/components/DataTableExtended";
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
+import type { RowAction } from '@/components/DataTableExtended/types';
 import { type ColumnDef } from "@tanstack/react-table";
 import type { DowntimeIncident } from "@/features/downtime/types";
 import Search from "@/components/Search";

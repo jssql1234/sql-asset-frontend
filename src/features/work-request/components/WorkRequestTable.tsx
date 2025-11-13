@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { DataTableExtended } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from '@/components/ui/components';
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";

@@ -1,7 +1,3 @@
-/**
- * Create selection column for the DataTable
- */
-
 import type { ChangeEvent } from 'react';
 import type { ColumnDef, Row, Table as TanStackTable } from '@tanstack/react-table';
 import { Option } from '@/components/ui/components';

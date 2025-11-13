@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { Input } from '@/components/ui/components/Input';
 import { Banner } from '@/components/ui/components';
 import { cn } from '@/utils/utils';
-import { DataTableExtended } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import type { ColumnDef } from '@tanstack/react-table';
 
 export interface AssetCostAllocation {

@@ -1,5 +1,6 @@
 import React from 'react';
-import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
+import type { RowAction } from '@/components/DataTableExtended/types';
 import type { Location } from '../types/locations';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Edit, Delete } from '@/assets/icons';

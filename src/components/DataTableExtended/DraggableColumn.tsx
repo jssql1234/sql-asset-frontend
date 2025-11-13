@@ -1,7 +1,3 @@
-/**
- * DraggableColumn component for column reordering
- */
-
 import { useMemo } from 'react';
 import { flexRender, type Header, type Table as TanStackTable } from '@tanstack/react-table';
 import { useSortable } from '@dnd-kit/sortable';

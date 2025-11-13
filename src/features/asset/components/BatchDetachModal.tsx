@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataTableExtended } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/DialogExtended';
 import { Button } from '@/components/ui/components';
 import type { Asset } from '@/types/asset';

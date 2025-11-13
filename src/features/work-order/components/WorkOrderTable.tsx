@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/components";
-import { DataTableExtended } from "@/components/DataTableExtended";
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import type { WorkOrder, WorkOrderFilters } from "../types";

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
+import type { RowAction } from '@/components/DataTableExtended/types';
 import { Edit, Delete } from '@/assets/icons';
 import { Badge } from '@/components/ui/components/Badge';
 import type { Department } from '../types/departments';

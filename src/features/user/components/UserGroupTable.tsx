@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
+import { DataTableExtended } from '@/components/DataTableExtended/DataTableExtended';
+import type { RowAction } from '@/components/DataTableExtended/types';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import Search from '@/components/Search';
 import type { UserGroup } from '@/types/user-group';

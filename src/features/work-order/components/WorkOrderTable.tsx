@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import { type ColumnDef } from "@tanstack/react-table";
@@ -6,7 +6,6 @@ import TableColumnVisibility from "@/components/ui/components/Table/TableColumnV
 import type { WorkOrder, WorkOrderFilters } from "../types";
 import { useSidebar } from "@/layout/sidebar/SidebarContext";
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "@/layout/sidebar/SidebarConstant";
-import { useTableColumns } from "@/components/DataTableExtended/hooks/useTableColumns";
 
 const STATUS_BADGE_VARIANT: Record<
   WorkOrder["status"],
@@ -175,15 +174,10 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
         },
       },
     ],
-    []
+    [],
   );
 
-  // Use table columns hook for column visibility management
-  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
-    useTableColumns<WorkOrder, unknown>({
-      columns,
-      lockedColumnIds: [],
-    });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<WorkOrder>[]>(columns);
 
   // Row actions configuration
   const rowActions = useMemo(() => {
@@ -228,7 +222,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
 
       <div className="flex items-center justify-between gap-4">
         <TableColumnVisibility
-          columns={toggleableColumns}
+          columns={columns}
           visibleColumns={visibleColumns}
           setVisibleColumns={setVisibleColumns}
         />
@@ -237,7 +231,7 @@ export const WorkOrderTable: React.FC<WorkOrderTableProps> = ({
 
       <div data-table-container>
         <DataTableExtended
-          columns={displayedColumns}
+          columns={visibleColumns}
           data={filteredWorkOrders}
           showPagination={true}
           rowActions={rowActions}

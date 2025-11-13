@@ -10,7 +10,6 @@ interface DepartmentsTableProps {
   onEditDepartment: (department: Department) => void;
   onDeleteDepartment: (department: Department) => void;
   displayedColumns: ColumnDef<Department>[];
-  handleColumnOrderChange: (updater: any) => void;
 }
 
 export const DepartmentsTable: React.FC<DepartmentsTableProps> = ({

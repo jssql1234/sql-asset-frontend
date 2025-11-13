@@ -9,7 +9,6 @@ interface LocationsTableProps {
   onEditLocation: (location: Location) => void;
   onDeleteLocation: (location: Location) => void;
   displayedColumns: ColumnDef<Location>[];
-  handleColumnOrderChange: (updater: any) => void;
 }
 
 export const LocationsTable: React.FC<LocationsTableProps> = ({

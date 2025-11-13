@@ -9,7 +9,6 @@ interface CustomersTableProps {
   onEditCustomer: (customer: Customer) => void;
   onDeleteCustomer: (customer: Customer) => void;
   displayedColumns: ColumnDef<Customer>[];
-  handleColumnOrderChange: (updater: any) => void;
 }
 
 export const CustomersTable: React.FC<CustomersTableProps> = ({

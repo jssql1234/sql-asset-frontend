@@ -1,7 +1,3 @@
-/**
- * DataTableExtended - Extended wrapper for DataTable with additional features
- */
-
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useReactTable, getCoreRowModel, getPaginationRowModel, getSortedRowModel, getFilteredRowModel, getFacetedRowModel, getFacetedUniqueValues, 
          getExpandedRowModel, getGroupedRowModel, type SortingState, type ColumnFiltersState, type ExpandedState, type GroupingState, type Row } from '@tanstack/react-table';
@@ -301,13 +297,7 @@ export function DataTableExtended<TData, TValue>({
   return (
     <div className="flex flex-col h-full">
       <div className={cn('flex-1 rounded-md border border-outlineVariant overflow-auto', className)}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
           <Table style={{ width: '100%', height: '100%' }}>
             <TableHeader>
               <SortableContext items={columnOrder} strategy={horizontalListSortingStrategy}>
@@ -322,14 +312,7 @@ export function DataTableExtended<TData, TValue>({
                   return (
                     <TableRow key={headerGroup.id} className="hover:bg-tertiaryContainer/80">
                       {sortedHeaders.map((header, index) => (
-                        <DraggableColumn 
-                          key={header.id} 
-                          header={header} 
-                          index={index}
-                          totalHeaders={totalHeaders}
-                          activeId={activeId}
-                          overId={overId}
-                        />
+                        <DraggableColumn key={header.id} header={header} index={index} totalHeaders={totalHeaders} activeId={activeId} overId={overId}/>
                       ))}
                     </TableRow>
                   );
@@ -341,11 +324,7 @@ export function DataTableExtended<TData, TValue>({
               {isLoading ? (
                 <SkeletonRow columns={effectiveColumns} rowCount={DEFAULT_SKELETON_ROWS} />
               ) : table.getRowModel().rows.length ? (
-                <DataTableRow
-                  table={table}
-                  enableRowClickSelection={enableRowClickSelection}
-                  columnOrder={columnOrder}
-                />
+                <DataTableRow table={table} enableRowClickSelection={enableRowClickSelection} columnOrder={columnOrder}/>
               ) : (
                 <EmptyDataRow columnLength={effectiveColumns.length} />
               )}

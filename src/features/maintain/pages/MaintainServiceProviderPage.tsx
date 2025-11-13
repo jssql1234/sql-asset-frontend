@@ -1,11 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import Search from '@/components/Search';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
-import { useTableColumns } from '@/components/DataTableExtended';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { ServiceProvider } from '../types/serviceProvider';
 import { ServiceProviderTable } from '../components/ServiceProviderTable';
@@ -92,22 +91,7 @@ const MaintainServiceProviderPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [providerToDelete, setProviderToDelete] = useState<ServiceProvider | null>(null);
 
-  const {
-    toggleableColumns,
-    visibleColumns,
-    setVisibleColumns,
-    displayedColumns,
-    handleColumnOrderChange,
-  } = useTableColumns<ServiceProvider, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: [],
-  });
-
-  useEffect(() => {
-    if (visibleColumns.length === 0) {
-      setVisibleColumns(toggleableColumns);
-    }
-  }, [visibleColumns, toggleableColumns, setVisibleColumns]);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<ServiceProvider>[]>(columnDefs);
 
   const handleAddClick = () => {
     handleAddServiceProvider();
@@ -153,7 +137,7 @@ const MaintainServiceProviderPage: React.FC = () => {
           <div className="relative">
             <div className="relative top-2">
               <TableColumnVisibility
-                columns={toggleableColumns}
+                columns={columnDefs}
                 visibleColumns={visibleColumns}
                 setVisibleColumns={setVisibleColumns}
               />
@@ -175,10 +159,9 @@ const MaintainServiceProviderPage: React.FC = () => {
         <div className="flex-1 overflow-hidden">
           <ServiceProviderTable
             serviceProvider={filteredServiceProvider}
-            columns={displayedColumns}
+            columns={visibleColumns}
             onEditProvider={handleEditClick}
             onDeleteProvider={handleDeleteClick}
-            onColumnOrderChange={handleColumnOrderChange}
           />
         </div>
 

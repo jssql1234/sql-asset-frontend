@@ -8,9 +8,9 @@ import { useLocations } from '../hooks/useLocations';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended';
 import type { Location } from '../types/locations';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import type { ColumnDef } from '@tanstack/react-table';
 
 const columnDefs = [
   {
@@ -56,16 +56,7 @@ const MaintainLocationPage: React.FC = () => {
     handleDeleteLocation,
   } = useLocations();
 
-  const {
-    toggleableColumns,
-    visibleColumns,
-    setVisibleColumns,
-    displayedColumns,
-    handleColumnOrderChange,
-  } = useTableColumns<Location, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: ['select'],
-  });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<Location>[]>(columnDefs);
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -119,7 +110,7 @@ const MaintainLocationPage: React.FC = () => {
             <div className="relative">
               <div className="relative top-2">
                 <TableColumnVisibility
-                  columns={toggleableColumns}
+                  columns={columnDefs}
                   visibleColumns={visibleColumns}
                   setVisibleColumns={setVisibleColumns}
                 />
@@ -142,8 +133,7 @@ const MaintainLocationPage: React.FC = () => {
             locations={filteredLocations}
             onEditLocation={handleEditLocationClick}
             onDeleteLocation={handleDeleteLocationClick}
-            displayedColumns={displayedColumns}
-            handleColumnOrderChange={handleColumnOrderChange}
+            displayedColumns={visibleColumns}
           />
         </div>
 

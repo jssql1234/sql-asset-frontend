@@ -22,6 +22,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
   
   const { form, handleFormSubmit, handleCancel } = useUserGroupModal(
     editingGroup,
+    open,
     onOpenChange,
     onSave
   );
@@ -44,7 +45,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
             {!editingGroup && (
               <div>
                 <label className="block text-sm font-medium mb-1">
-                  Group ID *
+                  Group ID <span className="text-error">*</span>
                 </label>
                 <Input
                   {...register('id')}
@@ -59,7 +60,7 @@ export const UserGroupModal: React.FC<UserGroupModalProps> = ({
             {/* Group Name */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Group Name *
+                Group Name <span className="text-error">*</span>
               </label>
               <Input
                 {...register('name')}

@@ -7,6 +7,7 @@ import type { UserGroup } from '@/types/user-group';
 
 export function useUserGroupModal(
   editingGroup: UserGroup | null,
+  open: boolean,
   onOpenChange: (open: boolean) => void,
   onSave: (groupData: UserGroup, onSuccess?:() => void) => void,
 ) {
@@ -26,10 +27,10 @@ export function useUserGroupModal(
         name: editingGroup.name,
         description: editingGroup.description,
       });
-    } else {
+    } else if (open) {
       form.reset({ id: '', name: '', description: '' });
     }
-  }, [editingGroup, form]);
+  }, [editingGroup, open, form]);
 
   const handleSubmit = form.handleSubmit((data: UserGroupFormData) => {
     // Duplicate ID validation
@@ -57,6 +58,7 @@ export function useUserGroupModal(
   };
 
   const handleCancel = () => {
+    form.reset();
     onOpenChange(false);
   }
 

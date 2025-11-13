@@ -19,6 +19,7 @@ import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDr
 import { usePermissions } from "@/hooks/usePermissions";
 import { useGetAsset } from "../hooks/useAssetService";
 import { useToast } from "@/components/ui/components/Toast/useToast";
+import { hpPaymentService } from '../services/hpPaymentService';
 
 interface SerialNumberData {
   serial: string;
@@ -387,6 +388,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSerialValid, setIsSerialValid] = useState(true);
   const { hasPermission } = usePermissions();
+  const [stableAssetId] = useState(() => editingAsset?.id || `temp-asset-${Date.now()}`);
 
   // Determine user role based on permissions or prop
   const isTaxAgent = hasPermission("processCA", "execute");
@@ -719,10 +721,13 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
     setIsSubmitting(true);
     try {
       onSuccess?.(data);
+       if (!isEditMode) {
+        hpPaymentService.transferSchedule(stableAssetId, data.code);
+      }
     } finally {
       setIsSubmitting(false);
     }
-  }, [onSuccess, isSerialValid, addToast]);
+  }, [onSuccess, isSerialValid, addToast, isEditMode, stableAssetId]);
 
   // Mock data for dropdowns
   const assetGroups: SelectDropdownOption[] = [
@@ -845,7 +850,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
                     {activeErrors.code && (
                       <span className="body-small text-error mt-1 block">{activeErrors.code.message}</span>
                       )}
-                    </div>
+                  </div>
 
                   {/* Asset Name */}
                   <div>
@@ -1008,6 +1013,7 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
             <ManageHPPaymentModal
               isOpen={isPaymentModalOpen}
               onClose={() => setIsPaymentModalOpen(false)}
+              assetId={stableAssetId}
               depositAmount={parseFloat(activeWatch("hpDeposit") ?? '0') || 0}
               interestRate={activeWatch("hpInterest") ?? 0}
               numberOfInstalments={parseInt(activeWatch("hpInstalment") ?? '0') || 0}

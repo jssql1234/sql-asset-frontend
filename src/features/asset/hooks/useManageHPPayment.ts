@@ -7,19 +7,21 @@ export interface UseManageHPPaymentProps {
   numberOfInstalments: number;
   totalCost: number;
   startDate: string;
+  assetId?: string;
 }
 
 export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditMode, setIsEditMode] = useState(false);
   const [paymentSchedule, setPaymentSchedule] = useState<PaymentRow[]>([]);
-  const [, setOriginalPaymentSchedule] = useState<PaymentRow[]>([]);
+  const [originalPaymentSchedule, setOriginalPaymentSchedule] = useState<PaymentRow[]>([]);
   const [pristineSchedule, setPristineSchedule] = useState<PaymentRow[]>([]); // Holds the initial, unmodified schedule
   const [financialYearGroups, setFinancialYearGroups] = useState<FinancialYearGroup[]>([]);
   const [totals, setTotals] = useState<HPPaymentTotals | null>(null);
   const [expandedYears, setExpandedYears] = useState<Set<number>>(() => new Set()); // Track expanded YA groups
   const [isEarlySettlementOpen, setIsEarlySettlementOpen] = useState(false);
-  const { depositAmount, interestRate, numberOfInstalments, totalCost, startDate } = props;
+  const [hasCustomSchedule, setHasCustomSchedule] = useState(false);
+  const { depositAmount, interestRate, numberOfInstalments, totalCost, startDate, assetId } = props;
 
   // Reusable function to process the schedule for display
   const processScheduleForDisplay = useCallback((schedule: PaymentRow[], deposit: number) => {
@@ -107,10 +109,11 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     // Only run if the modal is open and has valid data
     if (numberOfInstalments > 0 && totalCost > 0 && startDate) {
       setIsLoading(true);
-      hpPaymentService.loadPaymentSchedule({ depositAmount, interestRate, numberOfInstalments, totalCost, startDate }).then(data => {
+      hpPaymentService.loadPaymentSchedule({ depositAmount, interestRate, numberOfInstalments, totalCost, startDate, assetId }).then(data => {
         setPaymentSchedule(data.paymentSchedule);
         setOriginalPaymentSchedule(data.paymentSchedule);
-        setPristineSchedule(data.paymentSchedule); 
+        setPristineSchedule(data.pristineSchedule); 
+        setHasCustomSchedule(data.hasCustomSchedule);
         processScheduleForDisplay(data.paymentSchedule, data.depositAmount);
         setIsLoading(false);
       }).catch(() => {
@@ -119,21 +122,22 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     } else {
       setIsLoading(false);
     }
-  }, [depositAmount, interestRate, numberOfInstalments, totalCost, startDate]);
+  }, [depositAmount, interestRate, numberOfInstalments, totalCost, startDate, assetId, processScheduleForDisplay]);
 
   useEffect(() => {
     if (paymentSchedule.length > 0) {
       processScheduleForDisplay(paymentSchedule, depositAmount);
     }
   }, [paymentSchedule, depositAmount, processScheduleForDisplay]);
-  const toggleEditMode = () => {
+
+   const toggleEditMode = () => {
+    if (isEditMode) {
+      setPaymentSchedule(originalPaymentSchedule);
+    }
     setIsEditMode(prev => !prev);
   };
-
   const resetPaymentSchedule = () => {
     setPaymentSchedule(pristineSchedule);
-    setOriginalPaymentSchedule(pristineSchedule); 
-    setIsEditMode(false); 
   };
 
   const toggleYearExpansion = (ya: number) => {
@@ -168,21 +172,28 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     setIsEarlySettlementOpen(false);
   };
 
-  const savePaymentSchedule = async () => {
-    try {
-      const result = await hpPaymentService.savePaymentSchedule(paymentSchedule);
+  const savePaymentSchedule = () => {
+    hpPaymentService.savePaymentSchedule(paymentSchedule, {
+      depositAmount,
+      interestRate,
+      numberOfInstalments,
+      totalCost,
+      startDate,
+      assetId,
+    }).then(result => {
       if (result.success) {
-        // The displayed schedule is now the new "original"
-        setOriginalPaymentSchedule(paymentSchedule);
+        // The saved schedule becomes the new "original" 
+        setOriginalPaymentSchedule([...paymentSchedule]);
+        setHasCustomSchedule(true); 
         setIsEditMode(false);
-        alert(result.message);
+        alert(result.message || 'Payment schedule saved successfully');
       } else {
-        alert('Failed to save schedule.');
+        alert(result.message || 'Failed to save schedule.');
       }
-    } catch (error) {
+    }).catch(error => {
       console.error('Error saving schedule:', error);
       alert('An error occurred while saving.');
-    }
+    });
   };
 
   return {
@@ -194,6 +205,7 @@ export const useManageHPPayment = (props: UseManageHPPaymentProps) => {
     updatePaymentSchedule,
     expandedYears,
     isEarlySettlementOpen,
+    hasCustomSchedule,
     toggleEditMode,
     toggleYearExpansion,
     resetPaymentSchedule,

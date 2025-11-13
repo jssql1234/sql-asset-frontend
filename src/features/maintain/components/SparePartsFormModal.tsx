@@ -344,7 +344,6 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
                 errors.operationalStatus ? 'border-error' : 'border-outlineVariant'
               }`}
             >
-              <option value="">Select Status</option>
               <option value="Active">Active</option>
               <option value="Discontinued">Discontinued</option>
             </select>

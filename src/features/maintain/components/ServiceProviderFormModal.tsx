@@ -39,7 +39,7 @@ const initialFormState: ServiceProviderFormData = {
   email: '',
   phone: '',
   description: '',
-  status: '' as 'Active' | 'Inactive',
+  status: 'Active',
   createdAt: '',
 };
 
@@ -210,9 +210,8 @@ export const ServiceProviderFormModal: React.FC<ServiceProviderFormModalProps> =
                   }
                 }}
                 options={[
-                  { value: '', label: 'Select Status',disabled: true },
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Inactive', label: 'Inactive' }
+                  { value: 'Active', label: 'Active', disabled: formData.status === 'Active'},
+                  { value: 'Inactive', label: 'Inactive', disabled: formData.status === 'Inactive'}
                 ]}
                 placeholder="Select Type"
                 className={`w-full ${errors.status ? 'border-error' : ''}`}

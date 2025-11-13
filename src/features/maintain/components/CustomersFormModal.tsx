@@ -31,7 +31,7 @@ const initialFormState: CustomerFormData = {
   contactPerson: '',
   email: '',
   phone: '',
-  status: '' as 'Active' | 'Inactive',
+  status: 'Active',
 };
 
 export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
@@ -180,11 +180,10 @@ export const CustomerFormModal: React.FC<CustomerFormModalProps> = ({
                   handleInputChange('status', value as 'Active' | 'Inactive');
                 }}
                 options={[
-                  { value: '', label: 'Select Status', disabled: true },
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Inactive', label: 'Inactive' },
+                  { value: 'Active', label: 'Active' , disabled: formData.status === 'Active'},
+                  { value: 'Inactive', label: 'Inactive' , disabled: formData.status === 'Inactive'},
                 ]}
-                placeholder="Select Status"
+                placeholder="Active"
                 className={`w-full ${errors.status ? 'border-error' : ''}`}
               />
               {errors.status && <p className="text-sm text-error mt-1">{errors.status}</p>}

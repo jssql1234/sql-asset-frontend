@@ -8,9 +8,9 @@ import { useDepartments } from '../hooks/useDepartments';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 import type { Department } from '../types/departments';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
+import type { ColumnDef } from '@tanstack/react-table';
 
 const columnDefs = [
   {
@@ -61,16 +61,7 @@ const MaintainDepartmentPage: React.FC = () => {
     handleDeleteDepartment,
   } = useDepartments();
 
-  const {
-    toggleableColumns,
-    visibleColumns,
-    setVisibleColumns,
-    displayedColumns,
-    handleColumnOrderChange,
-  } = useTableColumns<Department, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: [],
-  });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<Department>[]>(columnDefs);
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
@@ -122,7 +113,7 @@ const MaintainDepartmentPage: React.FC = () => {
             <div className="relative">
               <div className="relative top-2">
                 <TableColumnVisibility
-                  columns={toggleableColumns}
+                  columns={columnDefs}
                   visibleColumns={visibleColumns}
                   setVisibleColumns={setVisibleColumns}
                 />
@@ -145,8 +136,7 @@ const MaintainDepartmentPage: React.FC = () => {
             departments={filteredDepartments}
             onEditDepartment={handleEditClick}
             onDeleteDepartment={handleDeleteClick}
-            displayedColumns={displayedColumns}
-            handleColumnOrderChange={handleColumnOrderChange}
+            displayedColumns={visibleColumns}
           />
         </div>
 

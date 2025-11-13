@@ -8,10 +8,10 @@ import { useCustomers } from '../hooks/useCustomers';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 import type { Customer } from '../types/customers';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/components/Badge';
+import type { ColumnDef } from '@tanstack/react-table';
 
 const columnDefs = [
   {
@@ -70,16 +70,7 @@ const MaintainCustomerPage: React.FC = () => {
     handleDeleteCustomer,
   } = useCustomers();
 
-  const {
-    toggleableColumns,
-    visibleColumns,
-    setVisibleColumns,
-    displayedColumns,
-    handleColumnOrderChange,
-  } = useTableColumns<Customer, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: [],
-  });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<Customer, unknown>[]>(columnDefs);
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -133,7 +124,7 @@ const MaintainCustomerPage: React.FC = () => {
             <div className="relative">
               <div className="relative top-2">
                 <TableColumnVisibility
-                  columns={toggleableColumns}
+                  columns={columnDefs}
                   visibleColumns={visibleColumns}
                   setVisibleColumns={setVisibleColumns}
                 />
@@ -154,8 +145,7 @@ const MaintainCustomerPage: React.FC = () => {
         <div className="flex-1 overflow-hidden">
           <CustomersTable
             customers={filteredCustomers}
-            displayedColumns={displayedColumns}
-            handleColumnOrderChange={handleColumnOrderChange}
+            displayedColumns={visibleColumns}
             onEditCustomer={handleEditCustomerClick}
             onDeleteCustomer={handleDeleteCustomerClick}
           />

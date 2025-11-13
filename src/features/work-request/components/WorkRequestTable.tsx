@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DataTableExtended } from '@/components/DataTableExtended';
 import { type ColumnDef } from "@tanstack/react-table";
 import { Badge } from '@/components/ui/components';
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import type { WorkRequest, WorkRequestAsset } from '../types';
 import { getStatusVariant } from '../constants';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 
 interface WorkRequestTableProps {
   workRequests: WorkRequest[];
@@ -116,11 +115,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     },
   ], []);
 
-  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
-    useTableColumns<WorkRequest, unknown>({
-      columns,
-      lockedColumnIds: [],
-    });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<WorkRequest>[]>(columns);
 
   const rowActions = useMemo(() => {
     const actions = [];
@@ -148,7 +143,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <TableColumnVisibility
-          columns={toggleableColumns}
+          columns={columns}
           visibleColumns={visibleColumns}
           setVisibleColumns={setVisibleColumns}
         />
@@ -156,7 +151,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       </div>
       
       <DataTableExtended
-        columns={displayedColumns}
+        columns={visibleColumns}
         data={sortedWorkRequests}
         showPagination={true}
         rowActions={rowActions}

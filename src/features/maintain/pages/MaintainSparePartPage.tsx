@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import SelectDropdown from '@/components/SelectDropdown';
@@ -12,7 +12,6 @@ import { useSpareParts } from '../hooks/useSpareParts';
 import { Button } from '@/components/ui/components';
 import type { SparePart } from '../types/spareParts';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/components/Badge';
 import {
@@ -143,13 +142,6 @@ const MaintainSparePartPage: React.FC = () => {
     { value: 'txt', label: 'TXT' },
   ];
 
-  const handleVisibleColumnsChange = useCallback(
-    (visible: ColumnDef<SparePart>[]) => {
-      setVisibleColumnIds(visible.map(c => c.id ?? ''));
-    },
-    []
-  );
-
   useEffect(() => {
     setVisibleColumnIds([
       'partId',
@@ -199,15 +191,7 @@ const MaintainSparePartPage: React.FC = () => {
 
   const handleCancelDelete = () => setSparePartToDelete(null);
 
-  const {
-    toggleableColumns,
-    visibleColumns,
-    setVisibleColumns,
-  } = useTableColumns<SparePart, unknown>({
-    columns: columnDefs,
-    lockedColumnIds: ['select'],
-    onVisibleColumnsChange: handleVisibleColumnsChange,
-  });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<SparePart>[]>(columnDefs);
 
   return (
     <AppLayout>
@@ -254,7 +238,7 @@ const MaintainSparePartPage: React.FC = () => {
             <div className="relative">
               <div className="relative top-2">
                 <TableColumnVisibility
-                  columns={toggleableColumns}
+                  columns={columnDefs}
                   visibleColumns={visibleColumns}
                   setVisibleColumns={setVisibleColumns}
                 />

@@ -9,7 +9,6 @@ interface ServiceProviderTableProps {
   columns: ColumnDef<ServiceProvider>[];
   onEditProvider: (provider: ServiceProvider) => void;
   onDeleteProvider: (provider: ServiceProvider) => void;
-  onColumnOrderChange?: (updater: any) => void;
 }
 
 export const ServiceProviderTable: React.FC<ServiceProviderTableProps> = ({

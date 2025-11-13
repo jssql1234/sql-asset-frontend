@@ -1,11 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { Badge } from '@/components/ui/components/Badge';
 import type { AssetGroup } from '../types/assetGroups';
 import type { ColumnDef } from '@tanstack/react-table';
 import { formatAssetGroupDate } from '../utils/assetGroupUtils';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 
 interface AssetGroupsTableProps {
   assetGroups: AssetGroup[];
@@ -74,12 +73,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
     },
   ], [assetCounts]);
 
-  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
-    useTableColumns<AssetGroup, unknown>({
-      columns: columnDefs,
-      lockedColumnIds: [],
-      onVisibleColumnsChange,
-    });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<AssetGroup>[]>(columnDefs);
 
   const rowActions: RowAction<AssetGroup>[] = useMemo(() => [
     { type: 'edit', onClick: onEditAssetGroup },
@@ -88,7 +82,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
 
   const columnVisibilityElement = (
     <TableColumnVisibility
-      columns={toggleableColumns}
+      columns={columnDefs}
       visibleColumns={visibleColumns}
       setVisibleColumns={setVisibleColumns}
     />
@@ -114,7 +108,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
 
       <div data-table-container>
         <DataTableExtended
-          columns={displayedColumns}
+          columns={visibleColumns}
           data={assetGroups}
           showPagination
           rowActions={rowActions}

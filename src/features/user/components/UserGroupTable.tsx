@@ -1,10 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DataTableExtended, type RowAction } from '@/components/DataTableExtended';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import Search from '@/components/Search';
 import type { UserGroup } from '@/types/user-group';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 
 interface UserGroupTableProps {
   groups: UserGroup[];
@@ -23,11 +22,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
     { id: 'description', accessorKey: 'description', header: 'Description' },
   ], []);
 
-  const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
-    useTableColumns<UserGroup, unknown>({
-      columns,
-      lockedColumnIds: [],
-    });
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<UserGroup>[]>(columns);
 
   const rowActions: RowAction<UserGroup>[] = useMemo(() => [
     {
@@ -59,7 +54,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
     <div className="flex items-center justify-between gap-3 mb-2">
       <div className="relative top-2">
         <TableColumnVisibility
-          columns={toggleableColumns}
+          columns={columns}
           visibleColumns={visibleColumns}
           setVisibleColumns={setVisibleColumns}
         />
@@ -84,7 +79,7 @@ export const UserGroupTable: React.FC<UserGroupTableProps> = ({
 
       <div data-table-container>
         <DataTableExtended
-          columns={displayedColumns}
+          columns={visibleColumns}
           data={filteredGroups}
           showPagination
           rowActions={rowActions} 

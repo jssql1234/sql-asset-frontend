@@ -276,8 +276,8 @@ export function DataTableExtended<TData, TValue>({
     }
 
     if (hasActiveGrouping) {
-      const rows = table.getRowModel().rows;
-      base.totalCount = rows.filter((row) => row.getIsGrouped()).length;
+      const allRows = table.getPrePaginationRowModel().rows;
+      base.totalCount = allRows.length;
       base.currentPage = table.getState().pagination.pageIndex;
       base.pageSize = table.getState().pagination.pageSize;
       base.onPageChange = (page: number) => {
@@ -286,7 +286,8 @@ export function DataTableExtended<TData, TValue>({
       base.onPageSizeChange = (size: number) => {
         table.setPageSize(size);
       };
-      base.selectedCount = rows.filter((row) => row.getIsGrouped() && row.getIsSelected()).length;
+      const selectedRows = table.getFilteredSelectedRowModel().rows;
+      base.selectedCount = selectedRows.filter((row) => row.getIsGrouped()).length;
       return base;
     }
 

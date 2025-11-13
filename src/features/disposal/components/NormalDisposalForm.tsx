@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Input } from '@/components/ui/components/Input';
 import { Button } from '@/components/ui/components';
 import Card from '@/components/ui/components/Card';
 import MultipleAssetsTable from './MultipleAssetsTable';
 import { SemiDatePicker } from '@/components/ui/components';
-
+import type { AssetData } from './MultipleAssetsTable';
 
 interface NormalDisposalFormData {
   assetId: string;
@@ -33,6 +33,7 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
 }) => {
   const [localData, setLocalData] = useState(data);
   const [isMultipleAssets, setIsMultipleAssets] = useState(false);
+  const [multipleAssets, setMultipleAssets] = useState<AssetData[]>([]);
 
   useEffect(() => {
     setLocalData(data);
@@ -53,13 +54,33 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
   const handleCheckboxChange = (field: keyof NormalDisposalFormData) => 
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.checked;
-      setLocalData(prev => ({ ...prev, [field]: value }));
-      onChange(field, value);
+      const isScrappedOrControlled = (field === 'isAssetScrapped' && value) || 
+                                    (field === 'isControlledDisposal' && value) ||
+                                    (field !== 'isAssetScrapped' && localData.isAssetScrapped) ||
+                                    (field !== 'isControlledDisposal' && localData.isControlledDisposal);
+
       
-      // If asset is scrapped, set disposal value to 0
+      const updatedLocalData = { ...localData, [field]: value };
+      setLocalData(updatedLocalData);
+      onChange(field, value);
+
+      // single asset mode
       if (field === 'isAssetScrapped' && value) {
         setLocalData(prev => ({ ...prev, disposalValue: 0 }));
         onChange('disposalValue', 0);
+      }
+
+      // multiple assets mode
+      if (isMultipleAssets) {
+        if (isScrappedOrControlled) {
+          setMultipleAssets(prevAssets =>
+            prevAssets.map(asset => ({
+              ...asset,
+              disposalValue: 0,
+              disposedCost: 0,
+            }))
+          );
+        }
       }
     };
 
@@ -77,6 +98,36 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
     onChange(field, isoDate);
   };
 
+  const handleAddAsset = useCallback(() => {
+    const newAsset: AssetData = {
+      id: `temp-${Date.now().toString()}`,
+      assetId: '',
+      acquireDate: '',
+      recipient: '',
+      disposalValue: 0,
+      originalCost: 0,
+      disposedCost: 0,
+      qty: 0,
+      selectedSerials: [],
+    };
+    setMultipleAssets(prev => [...prev, newAsset]);
+  }, []);
+
+  const handleRemoveAsset = useCallback((id: string) => {
+    setMultipleAssets(prev => prev.filter(asset => asset.id !== id));
+  }, []);
+
+  const handleAssetChange = useCallback((id: string, field: keyof AssetData, value: string | number | string[]) => {
+    setMultipleAssets(prev =>
+      prev.map(asset =>
+        asset.id === id ? { ...asset, [field]: value } : asset
+      )
+    );
+  }, []);
+
+  // Memoize the assets array to prevent unnecessary re-renders
+  const memoizedAssets = useMemo(() => multipleAssets, [multipleAssets]);
+
   return (
     <Card className="space-y-6">
       <div className="border-b border-outlineVariant pb-4">
@@ -85,7 +136,6 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
             Normal / Partial / Controlled / Written Off Disposal
           </h3>
           
-          {/* Toggle Button for Single/Multiple Assets */}
           <div className="flex items-center space-x-3">
             <span className="text-sm text-onSurface">Single Asset</span>
             <button
@@ -181,15 +231,17 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
           <hr className="border-t border-outline my-6" />
 
           {/* Multiple Assets Table */}
-           <MultipleAssetsTable
-             assets={[]}
-             disposalType="normal"
-             onAssetChange={() => { /* empty */ }}
-             onAddAsset={() => { /* empty */ }}
-             onRemoveAsset={() => { /* empty */ }}
-             availableAssetIds={['AS-0001', 'AS-0002', 'AS-0004', 'AS-0005']}
-             readOnly={readOnly}
-           />
+          <MultipleAssetsTable
+            assets={memoizedAssets}
+            disposalType="normal"
+            onAssetChange={handleAssetChange}
+            onAddAsset={handleAddAsset}
+            onRemoveAsset={handleRemoveAsset}
+            availableAssetIds={['AS-0001', 'AS-0002', 'AS-0004', 'AS-0005']}
+            readOnly={readOnly}
+            isAssetScrapped={localData.isAssetScrapped}
+            isControlledDisposal={localData.isControlledDisposal}
+          />
 
           {/* Warning Messages */}
           {localData.isAssetScrapped && (
@@ -349,6 +401,7 @@ const NormalDisposalForm: React.FC<NormalDisposalFormProps> = ({
           <Button
             onClick={onNext}
             className="min-w-24"
+            disabled={!localData.disposalDate}
           >
             Next
           </Button>

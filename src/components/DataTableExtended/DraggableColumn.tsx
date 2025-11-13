@@ -7,9 +7,7 @@ import { cn } from '@/utils/utils';
 import { TableHead, MemoizedTableFilter } from '@/components/ui/components/Table';
 import { CaretUpFilled, CaretDownFilled, CaretUpDown } from '@/assets/icons';
 
-/**
- * SortIndicator component for table headers
- */
+//SortIndicator component for table headers
 function SortIndicator<TData, TValue>({ header }: { header: Header<TData, TValue> }) {
   if (!header.column.getCanSort()) return null;
 
@@ -18,16 +16,11 @@ function SortIndicator<TData, TValue>({ header }: { header: Header<TData, TValue
     sortState === 'asc' ? CaretUpFilled : sortState === 'desc' ? CaretDownFilled : CaretUpDown;
 
   const colorClass =
-    sortState === 'asc' || sortState === 'desc'
-      ? 'text-onSurfaceVariant'
-      : 'text-onSwitchOffContainer';
+    sortState === 'asc' || sortState === 'desc' ? 'text-onSurfaceVariant' : 'text-onSwitchOffContainer';
 
   return <Icon className={`w-4 h-4 min-w-[0.875rem] min-h-[0.875rem] ${colorClass}`} />;
 }
-
-/**
- * Type guard for column definitions with header alignment
- */
+//Type guard for column definitions with header alignment
 function hasHeaderAlign<TData, TValue>(
   columnDef: import('@tanstack/react-table').ColumnDef<TData, TValue>
 ): columnDef is import('@tanstack/react-table').ColumnDef<TData, TValue> & { headerAlign?: 'right' } {
@@ -124,11 +117,7 @@ export function DraggableColumn<TData, TValue>({
       </div>
 
       {header.column.getCanFilter() && (
-        <MemoizedTableFilter
-          column={header.column}
-          uniqueValues={filterOptions}
-          filterAlignment="center"
-        />
+        <MemoizedTableFilter column={header.column} uniqueValues={filterOptions} filterAlignment="center"/>
       )}
     </div>
   );

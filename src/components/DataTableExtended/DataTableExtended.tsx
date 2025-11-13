@@ -13,7 +13,7 @@ import { createSelectionColumn } from './createSelectionColumn';
 import { createRowActionsColumn } from './createRowActionsColumn';
 import { DraggableColumn, ActiveHeaderOverlay } from './DraggableColumn';
 import { DataTableRow } from './DataTableRow';
-import { useDraggableColumnOrder } from './useDraggableColumnOrder';
+import { useDraggableColumn } from './useDraggableColumn';
 
 type RowSelectionState = Record<string, boolean>;
 
@@ -129,7 +129,7 @@ export function DataTableExtended<TData, TValue>({
     activeId,
     overId,
     setColumnOrder,
-  } = useDraggableColumnOrder({
+  } = useDraggableColumn({
     columns: effectiveColumns,
     onOrderChange: onColumnOrderChange,
   });
@@ -363,6 +363,3 @@ export function DataTableExtended<TData, TValue>({
     </div>
   );
 }
-
-// Re-export the original DataTable for convenience
-export { DataTable } from '@/components/ui/components/Table';

@@ -3,16 +3,16 @@ import { KeyboardSensor, PointerSensor, type DragEndEvent, type DragOverEvent, t
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
-import { DEFAULT_FIXED_END_IDS, DEFAULT_FIXED_START_IDS, arraysAreEqual, reconcileColumnOrder, resolveColumnId } from './columnOrderHelpers';
+import { DEFAULT_FIXED_END_IDS, DEFAULT_FIXED_START_IDS, arraysAreEqual, reconcileColumnOrder, resolveColumnId } from './draggableColumnHelpers';
 
-export interface UseDraggableColumnOrderOptions<TData, TValue> {
+export interface UseDraggableColumnOptions<TData, TValue> {
   columns: (ColumnDef<TData, TValue> | CustomColumnDef<TData, TValue>)[];
   fixedStartIds?: string[];
   fixedEndIds?: string[];
   onOrderChange?: (order: string[]) => void;
 }
 
-export interface UseDraggableColumnOrderResult {
+export interface UseDraggableColumnResult {
   columnOrder: string[];
   sensors: ReturnType<typeof useSensors>;
   handleDragStart: (event: DragStartEvent) => void;
@@ -25,9 +25,9 @@ export interface UseDraggableColumnOrderResult {
   ) => void;
 }
 
-export function useDraggableColumnOrder<TData, TValue>(
-  options: UseDraggableColumnOrderOptions<TData, TValue>
-): UseDraggableColumnOrderResult {
+export function useDraggableColumn<TData, TValue>(
+  options: UseDraggableColumnOptions<TData, TValue>
+): UseDraggableColumnResult {
   const { columns, fixedEndIds, fixedStartIds, onOrderChange } = options;
 
   const availableIds = useMemo(
@@ -161,14 +161,5 @@ export function useDraggableColumnOrder<TData, TValue>(
     [endSet, setColumnOrder, startSet]
   );
 
-  return {
-    columnOrder,
-    sensors,
-    handleDragStart,
-    handleDragOver,
-    handleDragEnd,
-    activeId,
-    overId,
-    setColumnOrder,
-  };
+  return { columnOrder, sensors, handleDragStart, handleDragOver, handleDragEnd, activeId, overId, setColumnOrder };
 }

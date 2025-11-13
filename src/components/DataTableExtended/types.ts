@@ -1,7 +1,3 @@
-/**
- * Type definitions for DataTableExtended component
- */
-
 import type { ColumnDef, ExpandedState, GroupingState } from '@tanstack/react-table';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
 

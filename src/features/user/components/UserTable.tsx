@@ -19,19 +19,33 @@ export const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onDelete,
 }) => {
-  const columns: ColumnDef<User>[] = useMemo(() => [
-    { id: 'name', accessorKey: 'name', header: 'Name' },
-    { id: 'email', accessorKey: 'email', header: 'Email' },
-    { id: 'phone', accessorKey: 'phone', header: 'Phone' },
-    { id: 'position', accessorKey: 'position', header: 'Position' },
-    { id: 'department', accessorKey: 'department', header: 'Department' },
-    { id: 'location', accessorKey: 'location', header: 'Location' },
-    {
-      id: 'groupId',
-      accessorFn: (row) => groups.find(g => g.id === row.groupId)?.name ?? row.groupId,
-      header: 'User Group',
+ const columns: ColumnDef<User>[] = useMemo(() => [
+  {
+    id: 'contact',
+    header: 'Contact',
+    cell: ({ row }) => {
+      const { name, email, phone } = row.original;
+     return (
+        <div className="text-sm text-onSurface">
+          <div className="font-medium">{name}</div>
+          <div className="text-onSurfaceVariant">
+            {email} <span className="mx-1">•</span> {phone}
+          </div>
+        </div>
+      );
     },
-  ], [groups]);
+  },
+  { id: 'position', accessorKey: 'position', header: 'Position' },
+  { id: 'department', accessorKey: 'department', header: 'Department' },
+  { id: 'location', accessorKey: 'location', header: 'Location' },
+  {
+    id: 'groupId',
+    accessorFn: (row) => groups.find(g => g.id === row.groupId)?.name ?? row.groupId,
+    header: 'User Group',
+  },
+], [groups]);
+
+
 
   const { toggleableColumns, visibleColumns, setVisibleColumns, displayedColumns } =
     useTableColumns<User, unknown>({
@@ -59,25 +73,27 @@ export const UserTable: React.FC<UserTableProps> = ({
     );
   }, [users, searchTerm, groups]);
 
- return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 mb-2">
+return (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between gap-3 mb-2">
+      <div className="relative top-2">
         <TableColumnVisibility
           columns={toggleableColumns}
           visibleColumns={visibleColumns}
           setVisibleColumns={setVisibleColumns}
         />
-        <Search
-          searchLabel="Search Users"
-          searchPlaceholder="Search by name, email, or group"
-          searchValue={searchTerm}
-          onSearch={setSearchTerm}
-          live
-          className="w-80"
-          inputClassName="h-10 w-full"
-          showLiveSearchIcon
-        />
       </div>
+
+      <Search
+        searchPlaceholder="Search by name, email, or group"
+        searchValue={searchTerm}
+        onSearch={setSearchTerm}
+        live
+        className="w-80"
+        inputClassName="h-10 w-full"
+        showLiveSearchIcon
+      />
+    </div>
 
       <style>{`
         [data-table-container] th:last-child {

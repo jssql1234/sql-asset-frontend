@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/components';
 import type { SparePart } from '../types/spareParts';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/components/Badge';
 import {
   calculateStockStatus,
@@ -22,32 +23,11 @@ import {
 
 const columnDefs: ColumnDef<SparePart>[] = [
   {
-    id: 'select',
-    header: ({ table }) => (
-      <input
-        type="checkbox"
-        checked={table.getIsAllRowsSelected()}
-        onChange={table.getToggleAllRowsSelectedHandler()}
-        className="rounded border-outlineVariant text-primary focus:ring-primary"
-      />
-    ),
-    cell: ({ row }) => (
-      <input
-        type="checkbox"
-        checked={row.getIsSelected()}
-        onChange={row.getToggleSelectedHandler()}
-        className="rounded border-outlineVariant text-primary focus:ring-primary"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
     id: 'partId',
     accessorKey: 'id',
     header: 'Part ID',
     cell: ({ row }) => (
-      <div className="font-mono text-sm font-medium">
+      <div className="font-normal">
         {row.original.id}
       </div>
     )
@@ -151,6 +131,7 @@ const MaintainSparePartPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] =
     useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('pdf');
   const [visibleColumnIds, setVisibleColumnIds] = useState<string[]>([]);
+  const [sparePartToDelete, setSparePartToDelete] = useState<SparePart | null>(null);
 
   const exportOptions: SelectDropdownOption[] = [
     { value: 'pdf', label: 'PDF' },
@@ -196,7 +177,7 @@ const MaintainSparePartPage: React.FC = () => {
     exportData,
     handleAddSparePart,
     handleEditSparePart,
-    handleDeleteMultipleSpareParts,
+    handleDeleteSparePart,
     handleSaveSparePart,
   } = useSpareParts();
 
@@ -204,19 +185,29 @@ const MaintainSparePartPage: React.FC = () => {
     exportData(selectedFormat, visibleColumnIds);
   };
 
-  const handleDeleteSingle = (id: string) => {
-    handleDeleteMultipleSpareParts([id]);
+  const handleDeleteClick = (id: string) => {
+    const part = spareParts.find(p => p.id === id);
+    if (part) setSparePartToDelete(part);
   };
 
-const {
-  toggleableColumns,
-  visibleColumns,
-  setVisibleColumns,
-} = useTableColumns<SparePart, unknown>({
-  columns: columnDefs,
-  lockedColumnIds: ['select'],
-  onVisibleColumnsChange: handleVisibleColumnsChange,
-});
+  const handleConfirmDelete = () => {
+    if (sparePartToDelete) {
+      handleDeleteSparePart(sparePartToDelete.id);
+      setSparePartToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => setSparePartToDelete(null);
+
+  const {
+    toggleableColumns,
+    visibleColumns,
+    setVisibleColumns,
+  } = useTableColumns<SparePart, unknown>({
+    columns: columnDefs,
+    lockedColumnIds: ['select'],
+    onVisibleColumnsChange: handleVisibleColumnsChange,
+  });
 
   return (
     <AppLayout>
@@ -226,14 +217,6 @@ const {
           subtitle="Manage spare parts inventory and information"
           customActions={
             <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                onClick={handleAddSparePart}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Part
-              </Button>
 
               <SelectDropdown
                 value={selectedFormat}
@@ -241,31 +224,42 @@ const {
                 options={exportOptions}
                 placeholder="Select format"
                 buttonVariant="outline"
-                buttonSize="sm"
+                buttonSize="button"
                 className="min-w-[100px]"
               />
 
               <button
                 type="button"
                 onClick={handleExport}
-                className="flex items-center gap-2 px-3 py-2 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover"
+                className="flex items-center gap-2 px-2.5 py-1.5 text-sm border border-outlineVariant rounded-md bg-surfaceContainerHighest text-onSurface hover:bg-hover transition"
                 title={`Export as ${selectedFormat.toUpperCase()}`}
               >
                 <ExportFile className="w-4 h-4" />
                 Export
               </button>
+
+              <Button
+                type="button"
+                onClick={handleAddSparePart}
+                className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition"
+              >
+                <Plus className="h-4 w-4" />
+                Add Part
+              </Button>
             </div>
           }
         />
 
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <TableColumnVisibility
-              columns={toggleableColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
-            />
-          </div>
+            <div className="relative">
+              <div className="relative top-2">
+                <TableColumnVisibility
+                  columns={toggleableColumns}
+                  visibleColumns={visibleColumns}
+                  setVisibleColumns={setVisibleColumns}
+                />
+              </div>
+            </div>
 
           <div className="flex justify-end w-full">
             <Search
@@ -284,7 +278,7 @@ const {
             spareParts={filteredSpareParts}
             columns={visibleColumns}  
             onEditPart={handleEditSparePart}
-            onDeletePart={handleDeleteSingle}
+            onDeletePart={handleDeleteClick}
           />
         </div>
 
@@ -296,6 +290,18 @@ const {
           existingParts={spareParts}
           validationErrors={formErrors}
           clearValidationErrors={clearFormErrors}
+        />
+
+        <DeleteConfirmationDialog
+          isOpen={!!sparePartToDelete}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title="Delete spare part?"
+          description="This will permanently remove the spare part. This action cannot be undone."
+          confirmButtonText="Delete Spare Part"
+          itemIds={sparePartToDelete ? [sparePartToDelete.id] : []}
+          itemNames={sparePartToDelete ? [sparePartToDelete.name] : []}
+          itemCount={sparePartToDelete ? 1 : 0}
         />
       </div>
     </AppLayout>

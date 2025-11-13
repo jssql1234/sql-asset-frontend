@@ -294,6 +294,26 @@ export function useLocations() {
     }
   };
 
+  const handleDeleteLocation = (id: string) => {
+    if (!id) return;
+
+      try {
+        deleteMultipleLocations([id]);
+
+        addToast({
+          title: 'Success',
+          description: 'Location deleted successfully!',
+          variant: 'success',
+        });
+      } catch (error) {
+        addToast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'An error occurred while deleting the location.',
+          variant: 'error',
+        });
+      }
+  };
+
   const handleDeleteMultipleLocations = (ids: string[]) => {
     if (ids.length === 0) {
       return;
@@ -332,6 +352,7 @@ export function useLocations() {
     handleAddLocation,
     handleEditLocation,
     handleDeleteMultipleLocations,
+    handleDeleteLocation, 
     handleSaveLocation,
 
     // Unused exports?

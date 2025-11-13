@@ -15,33 +15,35 @@ import { Badge } from '@/components/ui/components/Badge';
 
 const columnDefs = [
   {
+    id: 'customerCode',
+    accessorKey: 'code',
+    header: 'Customer Code',
+    cell: ({ row }: any) => (
+      <span className="font-normal">{row.original.code}</span>
+    ),
+  },
+  {
     id: 'name',
     accessorKey: 'name',
     header: 'Customer Name',
     cell: ({ row }: any) => (
-      <div>
-        <div className="font-medium">{row.original.name}</div>
-        <div className="text-sm text-onSurfaceVariant">Code: {row.original.code}</div>
-      </div>
+      <div className="font-medium">{row.original.name}</div>
     ),
   },
-  {
-    id: 'contactPerson',
-    accessorKey: 'contactPerson',
-    header: 'Contact Person',
-    cell: ({ row }: any) => row.original.contactPerson || 'N/A',
-  },
-  {
-    id: 'email',
-    accessorKey: 'email',
-    header: 'Email',
-    cell: ({ row }: any) => row.original.email || 'N/A',
-  },
-  {
-    id: 'phone',
-    accessorKey: 'phone',
-    header: 'Phone',
-    cell: ({ row }: any) => row.original.phone || 'N/A',
+ {
+    id: 'contact',
+    header: 'Contact',
+    cell: ({ row }: any) => {
+      const { contactPerson, email, phone } = row.original;
+      const details = [email, phone].filter(Boolean).join(' • ');
+
+      return (
+        <div className="text-sm text-onSurfaceVariant">
+          <div className="font-medium text-onSurface">{contactPerson || 'N/A'}</div>
+          {details && <div>{details}</div>}
+        </div>
+      );
+    },
   },
   {
     id: 'status',
@@ -62,10 +64,10 @@ const MaintainCustomerPage: React.FC = () => {
     customers,
     filteredCustomers,
     filters,
-    editingCustomer,
     updateFilters,
     handleSaveCustomer,
-    handleDeleteMultipleCustomers,
+    handleEditCustomer,
+    handleDeleteCustomer,
   } = useCustomers();
 
   const {
@@ -79,13 +81,19 @@ const MaintainCustomerPage: React.FC = () => {
     lockedColumnIds: [],
   });
 
-  const [modals, setModals] = useState({ editCustomer: false });
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
 
   const handleEditCustomerClick = (customer: Customer) => {
+    handleEditCustomer(customer);
     setSelectedCustomer(customer);
-    setModals((prev) => ({ ...prev, editCustomer: true }));
+    setIsFormModalOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setSelectedCustomer(null);
+    setIsFormModalOpen(true);
   };
 
   const handleDeleteCustomerClick = (customer: Customer) => {
@@ -94,16 +102,16 @@ const MaintainCustomerPage: React.FC = () => {
 
   const handleConfirmDelete = () => {
     if (customerToDelete) {
-      handleDeleteMultipleCustomers([customerToDelete.code]);
+      handleDeleteCustomer(customerToDelete.code);
       setCustomerToDelete(null);
     }
   };
 
   const handleCancelDelete = () => setCustomerToDelete(null);
 
-  const handleModalClose = (modalKey: "editCustomer") => {
-    setModals((prev) => ({ ...prev, [modalKey]: false }));
-    if (modalKey === "editCustomer") setSelectedCustomer(null);
+  const handleModalClose = () => {
+    setIsFormModalOpen(false);
+    setSelectedCustomer(null);
   };
 
   return (
@@ -112,12 +120,9 @@ const MaintainCustomerPage: React.FC = () => {
         <div className="flex items-center justify-between">
           <TabHeader title="Customer Management" subtitle="Manage customer information and relationships" />
           <Button
-            size="sm"
-            onClick={() => {
-              setSelectedCustomer(null);
-              setModals((prev) => ({ ...prev, editCustomer: true }));
-            }}
-            className="flex items-center gap-2"
+            type="button"
+            onClick={handleAddClick}
+            className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition"
           >
             <Plus className="h-4 w-4" />
             Add Customer
@@ -125,13 +130,15 @@ const MaintainCustomerPage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2 justify-between">
-          <div className="flex items-center gap-2">
-            <TableColumnVisibility
-              columns={toggleableColumns}
-              visibleColumns={visibleColumns}
-              setVisibleColumns={setVisibleColumns}
-            />
-          </div>
+            <div className="relative">
+              <div className="relative top-2">
+                <TableColumnVisibility
+                  columns={toggleableColumns}
+                  visibleColumns={visibleColumns}
+                  setVisibleColumns={setVisibleColumns}
+                />
+              </div>
+            </div>
           <div className="flex-1 flex justify-end">
             <Search
               searchValue={filters.search ?? ""}
@@ -155,10 +162,10 @@ const MaintainCustomerPage: React.FC = () => {
         </div>
 
         <CustomerFormModal
-          isOpen={modals.editCustomer}
-          onClose={() => handleModalClose("editCustomer")}
+          isOpen={isFormModalOpen}
+          onClose={handleModalClose}
           onSave={handleSaveCustomer}
-          editingCustomer={selectedCustomer ?? editingCustomer}
+          editingCustomer={selectedCustomer}
           existingCustomers={customers}
         />
 

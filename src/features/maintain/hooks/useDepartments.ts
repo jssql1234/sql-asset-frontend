@@ -28,7 +28,6 @@ const sampleDepartments: Department[] = [
   {
     id: 'DEPT001',
     name: 'Maintenance',
-    typeId: 'OPS',
     manager: 'Robert Johnson',
     contact: '+60 12-345 6789',
     description: 'Responsible for equipment maintenance and facility upkeep.',
@@ -38,7 +37,6 @@ const sampleDepartments: Department[] = [
   {
     id: 'DEPT002',
     name: 'Engineering',
-    typeId: 'ENG',
     manager: 'Sarah Wilson',
     contact: '+60 13-222 3344',
     description: 'Design and technical development department.',
@@ -48,7 +46,6 @@ const sampleDepartments: Department[] = [
   {
     id: 'DEPT003',
     name: 'Quality Control',
-    typeId: 'QAC',
     manager: 'Michael Lee',
     contact: '+60 16-555 6677',
     description: 'Quality assurance and compliance monitoring.',
@@ -58,7 +55,6 @@ const sampleDepartments: Department[] = [
   {
     id: 'DEPT004',
     name: 'Safety',
-    typeId: 'SAF',
     manager: 'Jennifer Adams',
     contact: '+60 11-444 5566',
     description: 'Workplace safety and compliance oversight.',
@@ -68,7 +64,6 @@ const sampleDepartments: Department[] = [
   {
     id: 'DEPT005',
     name: 'Administration',
-    typeId: 'ADM',
     manager: 'Thomas Miller',
     contact: '+60 17-888 9900',
     description: 'Administrative and support functions.',
@@ -83,7 +78,6 @@ export function useDepartments() {
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [filters, setFilters] = useState<DepartmentsFilters>({
     search: '',
-    typeId: '',
   });
   const [departmentTypes, setDepartmentTypes] = useState<DepartmentTypeOption[]>(sampleDepartmentTypes);
   const [isLoading, setIsLoading] = useState(true);
@@ -125,7 +119,7 @@ export function useDepartments() {
 
         setDepartmentTypes(initialTypes);
         setDepartments(initialDepartments);
-        setFilteredDepartments(filterDepartments(initialDepartments, '', '', initialTypes));
+        setFilteredDepartments(filterDepartments(initialDepartments, ''));
         setIsLoading(false);
       } catch (initializationError) {
         console.error('Error initializing departments data:', initializationError);
@@ -146,7 +140,7 @@ export function useDepartments() {
       return;
     }
 
-    const filtered = filterDepartments(departments, filters.search, filters.typeId, departmentTypes);
+    const filtered = filterDepartments(departments, filters.search);
     setFilteredDepartments(filtered);
   }, [departments, filters, departmentTypes]);
 
@@ -232,7 +226,7 @@ export function useDepartments() {
     setDepartments(sampleDepartments);
     setDepartmentTypes(sampleDepartmentTypes);
     setSelectedDepartments([]);
-    setFilters({ search: '', typeId: '' });
+    setFilters({ search: ''});
     persistDepartments(sampleDepartments);
     persistDepartmentTypes(sampleDepartmentTypes);
   }, [persistDepartments, persistDepartmentTypes]);
@@ -292,6 +286,25 @@ export function useDepartments() {
     }
   };
 
+  const handleDeleteDepartment = (id: string) => {
+    if (!id) return;
+
+    try {
+      deleteMultipleDepartments([id]);  // or deleteDepartment(id)
+      addToast({
+        title: 'Success',
+        description: 'Department deleted successfully!',
+        variant: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'An error occurred while deleting the department.',
+        variant: 'error',
+      });
+    }
+  };
+
   const handleDeleteMultipleDepartments = (ids: string[]) => {
     if (ids.length === 0) {
       return;
@@ -329,6 +342,7 @@ export function useDepartments() {
     toggleDepartmentSelection,
     handleAddDepartment,
     handleEditDepartment,
+    handleDeleteDepartment,
     handleDeleteMultipleDepartments,
     handleSaveDepartment,
 

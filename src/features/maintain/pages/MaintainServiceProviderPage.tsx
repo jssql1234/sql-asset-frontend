@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AppLayout } from '@/layout/sidebar/AppLayout';
 import { TabHeader } from '@/components/TabHeader';
 import Search from '@/components/Search';
@@ -11,19 +11,23 @@ import type { ServiceProvider } from '../types/serviceProvider';
 import { ServiceProviderTable } from '../components/ServiceProviderTable';
 import { ServiceProviderFormModal } from '../components/ServiceProviderFormModal';
 import { useServiceProvider } from '../hooks/useServiceProvider';
+import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 
 const columnDefs: ColumnDef<ServiceProvider>[] = [
+  {
+    id: 'providerCode',
+    accessorKey: 'code', 
+    header: 'Provider Code',
+    cell: ({ row }) => (
+      <span className="font-normal">{row.original.code}</span>
+    ),
+  },
   {
     id: 'name',
     accessorKey: 'name',
     header: 'Provider Name',
     cell: ({ row }) => (
-      <div>
         <div className="font-medium">{row.original.name}</div>
-        <div className="text-sm text-onSurfaceVariant">
-          Code: {row.original.code}
-        </div>
-      </div>
     ),
   },
   {
@@ -37,19 +41,21 @@ const columnDefs: ColumnDef<ServiceProvider>[] = [
     },
   },
   {
-    id: 'contactPerson',
-    accessorKey: 'contactPerson',
-    header: 'Contact Person',
-  },
-  {
-    id: 'email',
-    accessorKey: 'email',
-    header: 'Email',
-  },
-  {
-    id: 'phone',
-    accessorKey: 'phone',
-    header: 'Phone',
+    id: 'contact',
+    header: 'Contact',
+    cell: ({ row }) => {
+      const { contactPerson, email, phone } = row.original;
+      const details = [email, phone].filter(Boolean).join(' • ');
+
+      return (
+        <div className="text-sm text-onSurfaceVariant">
+          <div className="font-medium text-onSurface">
+            {contactPerson || 'N/A'}
+          </div>
+          {details && <div>{details}</div>}
+        </div>
+      );
+    },
   },
   {
     id: 'status',
@@ -78,14 +84,14 @@ const MaintainServiceProviderPage: React.FC = () => {
     editingServiceProvider,
     handleAddServiceProvider,
     handleEditServiceProvider,
-    handleDeleteMultipleServiceProvider,
+    handleDeleteServiceProvider,
     handleSaveServiceProvider,
     updateFilters,
   } = useServiceProvider();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [providerToDelete, setProviderToDelete] = useState<ServiceProvider | null>(null);
 
-  // Table column control
   const {
     toggleableColumns,
     visibleColumns,
@@ -97,7 +103,6 @@ const MaintainServiceProviderPage: React.FC = () => {
     lockedColumnIds: [],
   });
 
-  // Initialize defaults
   useEffect(() => {
     if (visibleColumns.length === 0) {
       setVisibleColumns(toggleableColumns);
@@ -114,14 +119,18 @@ const MaintainServiceProviderPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Convert single delete to multi-delete API
-  const handleDeleteSingle = useCallback(
-    (provider: ServiceProvider) => {
-      if (!provider?.id) return;
-      handleDeleteMultipleServiceProvider([provider.id]);
-    },
-    [handleDeleteMultipleServiceProvider]
-  );
+  const handleDeleteClick = (provider: ServiceProvider) => {
+    setProviderToDelete(provider);
+  };
+
+  const handleConfirmDelete = () => {
+    if (providerToDelete) {
+      handleDeleteServiceProvider(providerToDelete.id);
+      setProviderToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => setProviderToDelete(null);
 
   return (
     <AppLayout>
@@ -132,7 +141,7 @@ const MaintainServiceProviderPage: React.FC = () => {
           subtitle="Manage service provider information and configurations"
           customActions={
             <div className="flex items-center gap-2">
-              <Button size="sm" onClick={handleAddClick} className="flex items-center gap-2">
+              <Button type="button" onClick={handleAddClick} className="flex items-center gap-2 px-2.5 py-1.5 text-sm bg-primary text-onPrimary rounded-md hover:bg-primary-hover transition">
                 <Plus className="h-4 w-4" />
                 Add Provider
               </Button>
@@ -141,12 +150,15 @@ const MaintainServiceProviderPage: React.FC = () => {
         />
 
         <div className="flex items-center gap-2 justify-between">
-
-          <TableColumnVisibility
-            columns={toggleableColumns}
-            visibleColumns={visibleColumns}
-            setVisibleColumns={setVisibleColumns}
-          />
+          <div className="relative">
+            <div className="relative top-2">
+              <TableColumnVisibility
+                columns={toggleableColumns}
+                visibleColumns={visibleColumns}
+                setVisibleColumns={setVisibleColumns}
+              />
+            </div>
+          </div>
 
           <div className="flex-1 flex justify-end">
             <Search
@@ -165,7 +177,7 @@ const MaintainServiceProviderPage: React.FC = () => {
             serviceProvider={filteredServiceProvider}
             columns={displayedColumns}
             onEditProvider={handleEditClick}
-            onDeleteProvider={handleDeleteSingle}
+            onDeleteProvider={handleDeleteClick}
             onColumnOrderChange={handleColumnOrderChange}
           />
         </div>
@@ -177,6 +189,18 @@ const MaintainServiceProviderPage: React.FC = () => {
           editingServiceProvider={editingServiceProvider}
           existingServiceProvider={serviceProvider}
           serviceProviderTypes={serviceProviderTypes}
+        />
+
+        <DeleteConfirmationDialog
+          isOpen={!!providerToDelete}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title="Delete service provider?"
+          description="This will permanently remove the service provider. This action cannot be undone."
+          confirmButtonText="Delete Provider"
+          itemIds={providerToDelete ? [providerToDelete.id] : []}
+          itemNames={providerToDelete ? [providerToDelete.name] : []}
+          itemCount={providerToDelete ? 1 : 0}
         />
       </div>
     </AppLayout>

@@ -1,7 +1,6 @@
 import type {
   Department,
   DepartmentFormData,
-  DepartmentTypeOption,
   DepartmentValidationErrors,
 } from '../types/departments';
 
@@ -36,16 +35,9 @@ export function formatDepartmentDate(dateString: string): string {
   });
 }
 
-export function getDepartmentTypeName(typeId: string, departmentTypes: DepartmentTypeOption[]): string {
-  const matchedType = departmentTypes.find(type => type.id === typeId);
-  return matchedType ? matchedType.name : 'Unknown';
-}
-
 export function filterDepartments(
   departments: Department[],
   searchTerm: string,
-  typeId: string,
-  departmentTypes: DepartmentTypeOption[],
 ): Department[] {
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -56,12 +48,9 @@ export function filterDepartments(
       department.name.toLowerCase().includes(normalizedSearch) ||
       department.manager.toLowerCase().includes(normalizedSearch) ||
       department.contact.toLowerCase().includes(normalizedSearch) ||
-      department.description.toLowerCase().includes(normalizedSearch) ||
-      getDepartmentTypeName(department.typeId, departmentTypes).toLowerCase().includes(normalizedSearch);
+      department.description.toLowerCase().includes(normalizedSearch);
 
-    const matchesType = typeId === '' || department.typeId === typeId;
-
-    return matchesSearch && matchesType;
+    return matchesSearch;
   });
 }
 
@@ -75,7 +64,6 @@ export function createDepartmentFromForm(
     return {
       ...existingDepartment,
       name: formData.name,
-      typeId: formData.typeId,
       manager: formData.manager,
       contact: formData.contact,
       description: formData.description,
@@ -86,7 +74,6 @@ export function createDepartmentFromForm(
   return {
     id: formData.id,
     name: formData.name,
-    typeId: formData.typeId,
     manager: formData.manager,
     contact: formData.contact,
     description: formData.description,
@@ -100,10 +87,6 @@ export function validateDepartmentForm(formData: DepartmentFormData): Department
 
   if (!formData.name.trim()) {
     errors.name = 'Department name is required';
-  }
-
-  if (!formData.typeId.trim()) {
-    errors.typeId = 'Department type is required';
   }
 
   return errors;

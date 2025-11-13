@@ -12,6 +12,8 @@ import { ExportFile } from '@/assets/icons';
 import type { AssetGroup } from '../types/assetGroups';
 import { Button } from '@/components/ui/components';
 import DeleteConfirmationDialog from "@/components/DeleteConfirmationDialog";
+import { Plus } from '@/assets/icons';
+
 
 const MaintainAssetGroupPage: React.FC = () => {
   const [selectedFormat, setSelectedFormat] = useState<'csv' | 'xlsx' | 'json' | 'txt' | 'html' | 'xml' | 'pdf'>('pdf');
@@ -71,13 +73,13 @@ const MaintainAssetGroupPage: React.FC = () => {
     setDeleteDialogOpen(false);
     setAssetGroupsToDelete(null);
   };
-  
+
   const handleCancelDelete = () => {
     setDeleteDialogOpen(false);
     setAssetGroupsToDelete(null);
   };
 
-  
+
   return (
     <AppLayout>
       <div className="flex h-full flex-col gap-4 overflow-hidden">
@@ -116,6 +118,7 @@ const MaintainAssetGroupPage: React.FC = () => {
                 onClick={handleAddAssetGroup}
                 className="flex items-center gap-2"
               >
+                <Plus className="h-4 w-4" />
                 Add Group
               </Button>
             </div>
@@ -128,20 +131,19 @@ const MaintainAssetGroupPage: React.FC = () => {
             assetCounts={assetGroupAssetCounts}
             onAddAssetGroup={handleAddAssetGroup}
             onEditAssetGroup={handleEditAssetGroup}
-            onDeleteSelected={handleDeleteClick} 
+            onDeleteSelected={handleDeleteClick}
             onVisibleColumnsChange={handleVisibleColumnsChange}
             renderToolbar={({ columnVisibility, actions }) => (
               <div className="flex flex-col gap-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
+                <div className="flex items-end justify-between gap-4 w-full">
+                     <div className="relative top-2">
                     {columnVisibility}
                   </div>
-
                   <Search
                     searchValue={filters.searchValue || ''}
                     onSearch={(value: string) => updateFilters({ searchValue: value })}
                     searchPlaceholder="Search Asset Groups"
-                    live={true}
+                    live
                     className="w-80"
                     inputClassName="h-10 w-full"
                     showLiveSearchIcon
@@ -155,6 +157,8 @@ const MaintainAssetGroupPage: React.FC = () => {
                 )}
               </div>
             )}
+
+
           />
         </div>
 

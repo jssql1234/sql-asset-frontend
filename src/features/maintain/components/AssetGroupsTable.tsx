@@ -33,7 +33,7 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
       id: 'assetGroupCode',
       accessorKey: 'id',
       header: 'Asset Group Code',
-      cell: ({ row }) => <span className="font-mono text-sm font-medium">{row.original.id}</span>,
+      cell: ({ row }) => <span className="font-normal">{row.original.id}</span>,
     },
     {
       id: 'name',
@@ -97,11 +97,11 @@ export const AssetGroupsTable: React.FC<AssetGroupsTableProps> = ({
   const actionsElement = null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 ">
       {renderToolbar ? (
         renderToolbar({ columnVisibility: columnVisibilityElement, actions: actionsElement })
       ) : (
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 ">
           <div>{columnVisibilityElement}</div>
         </div>
       )}

@@ -378,6 +378,25 @@ export function useSpareParts() {
     }
   }, [addSparePart, addToast, editingPart, updateSparePart]);
 
+  const handleDeleteSparePart = (id: string) => {
+    if (!id) return;
+
+    try {
+      deleteMultipleSpareParts([id]); 
+      addToast({
+        title: 'Success',
+        description: 'Spare part deleted successfully!',
+        variant: 'success',
+      });
+    } catch (error) {
+      addToast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to delete spare part.',
+        variant: 'error',
+      });
+    }
+  };
+
   const handleDeleteMultipleSpareParts = useCallback((ids: string[]) => {
     if (ids.length === 0) {
       return;
@@ -424,6 +443,7 @@ export function useSpareParts() {
     clearSelection,
     handleAddSparePart,
     handleEditSparePart,
+    handleDeleteSparePart,
     handleDeleteMultipleSpareParts,
     handleSaveSparePart,
     clearFormErrors,

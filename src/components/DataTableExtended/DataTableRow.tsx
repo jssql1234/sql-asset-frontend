@@ -24,6 +24,14 @@ export function DataTableRow<TData>({
     const isInteractiveElement = target.closest(
       'button, a, input, select, textarea, [role="button"]'
     );
+    const canExpand = row.getCanExpand();
+
+    if (canExpand && !isInteractiveElement) {
+      event.preventDefault();
+      row.toggleExpanded();
+      return;
+    }
+
     // Prioritize selection on row click when enabled
     if (
       enableRowClickSelection &&
@@ -52,9 +60,12 @@ export function DataTableRow<TData>({
             data-state={row.getIsSelected() && 'selected'}
             onClick={(event) => { handleRowClick(row, event); }}
             className={cn(
-              'group/row',
+              'group/row transition-colors',
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
-              row.getIsGrouped() && 'cursor-pointer'
+              row.getCanExpand() && 'cursor-pointer',
+              row.getIsGrouped()
+                ? '!bg-blue-50 hover:!bg-blue-100 !font-medium !text-onSurface'
+                : ''
             )}
           >
             {sortedCells.map((cell) => (

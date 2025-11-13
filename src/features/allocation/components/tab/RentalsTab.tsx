@@ -3,11 +3,19 @@ import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationTable from "../AllocationTable";
 import Search from "@/components/Search";
+import RentalModal from "../RentalModal";
+import type { RentalPayload } from "../RentalModal";
+import type { AssetRecord } from "../../types";
 import { MOCK_RENTALS } from "../../mockData.ts";
 import { getRentalSummaryCards } from "../AllocationSummaryCards.tsx";
 
-const RentalsTab: React.FC = () => {
+interface RentalsTabProps {
+  assets: AssetRecord[];
+}
+
+const RentalsTab: React.FC<RentalsTabProps> = ({ assets }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
 
   // Filter rentals based on search query
   const filteredRentals = useMemo(() => {
@@ -26,6 +34,11 @@ const RentalsTab: React.FC = () => {
     [filteredRentals]
   );
 
+  const handleRentalSubmit = (payload: RentalPayload) => {
+    console.log("Rental payload:", payload);
+    // TODO: Implement rental submission logic
+  };
+
   return (
     <div className="flex h-full flex-col gap-6 p-2">
       <TabHeader
@@ -35,6 +48,7 @@ const RentalsTab: React.FC = () => {
           {
             label: "Rent Asset",
             size: "sm",
+            onAction: () => { setIsRentalModalOpen(true); },
           },
         ]}
       />
@@ -51,6 +65,13 @@ const RentalsTab: React.FC = () => {
     <div className="flex-1 border-t border-outline">
        <AllocationTable variant="rental" rentals={filteredRentals} />
       </div>
+
+      <RentalModal
+        isOpen={isRentalModalOpen}
+        assets={assets}
+        onClose={() => { setIsRentalModalOpen(false); }}
+        onSubmit={handleRentalSubmit}
+      />
     </div>
   );
 };

@@ -29,7 +29,7 @@ export const getAllocationTabs = ({
     {
       value: "rentals",
       label: "Rentals",
-      content: <RentalsTab />,
+      content: <RentalsTab assets={filteredAssets} />,
     },
     {
       value: "calendar",

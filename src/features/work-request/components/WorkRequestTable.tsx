@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/components';
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import type { WorkRequest, WorkRequestAsset } from '../types';
 import { getStatusVariant } from '../constants';
+import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useSidebar } from "@/layout/sidebar/SidebarContext";
+import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "@/layout/sidebar/SidebarConstant";
 
 interface WorkRequestTableProps {
   workRequests: WorkRequest[];
@@ -19,7 +22,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
   onReviewWorkRequest,
   searchComponent,
 }) => {
-  // Table columns configuration
   const columns: ColumnDef<WorkRequest>[] = useMemo(() => [
     {
       id: 'requestId',
@@ -54,12 +56,11 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
       cell: ({ getValue }: any) => {
         const assets = getValue() as WorkRequestAsset[];
         const assetNames = assets.map((asset) => asset.main.name).join(', ');
-
         return (
           <div className="flex flex-wrap gap-1 " title={assetNames}>
             {assets.map((asset) => (
               <Badge
-                key={asset.main.name} 
+                key={asset.main.name}
                 text={asset.main.name}
                 variant="grey"
                 className="h-7 px-3 py-1 text-sm"
@@ -119,7 +120,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
 
   const rowActions = useMemo(() => {
     const actions = [];
-    
     if (onReviewWorkRequest) {
       actions.push({
         type: 'view' as const,
@@ -127,7 +127,6 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
         onClick: (row: WorkRequest) => onReviewWorkRequest(row),
       });
     }
-    
     return actions;
   }, [onReviewWorkRequest]);
 
@@ -135,12 +134,21 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
     return [...workRequests].sort((a, b) => {
       const dateA = new Date(a.requestDate).getTime();
       const dateB = new Date(b.requestDate).getTime();
-      return dateB - dateA; 
+      return dateB - dateA;
     });
   }, [workRequests]);
 
+  const { state } = useSidebar();
+  const sidebarWidth =
+    state === "expanded" ? SIDEBAR_WIDTH : SIDEBAR_COLLAPSED_WIDTH;
+
   return (
-    <div className="flex flex-col gap-4">
+    <div
+      className="flex flex-col gap-4 overflow-x-auto transition-[max-width] duration-100 ease-linear"
+      style={{
+        maxWidth: `calc(100vw - ${sidebarWidth} - 3rem)`,
+      }}
+    >
       <div className="flex items-center justify-between gap-4">
         <TableColumnVisibility
           columns={columns}
@@ -149,7 +157,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
         />
         {searchComponent}
       </div>
-      
+
       <DataTableExtended
         columns={visibleColumns}
         data={sortedWorkRequests}
@@ -157,7 +165,7 @@ const WorkRequestTable: React.FC<WorkRequestTableProps> = ({
         rowActions={rowActions}
       />
     </div>
-);
+  );
 };
 
 export default WorkRequestTable;

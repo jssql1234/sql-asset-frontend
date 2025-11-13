@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button, Card, Badge,} from "@/components/ui/components";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button, Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
+import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { cn } from "@/utils/utils";
 import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord, } from "../types";
 
@@ -31,10 +32,28 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
   const [startDate, setStartDate] = useState<string | Date | undefined>();
   const [endDate, setEndDate] = useState<string | Date | undefined>();
   const [notes, setNotes] = useState("");
-  const [selectedMap, setSelectedMap] = useState<Record<string, number>>({});
+  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
-  const availableAssets = useMemo(() => {
-    return assets;
+  // Prepare asset categories for SearchWithDropdown
+  const assetCategories = useMemo(() => {
+    const categories = Array.from(new Set(assets.map((asset) => asset.category)));
+    return [
+      { id: "all", label: "All Categories" },
+      ...categories.map((category) => ({
+        id: category,
+        label: category,
+      })),
+    ];
+  }, [assets]);
+
+  // Prepare asset items for SearchWithDropdown
+  const assetItems = useMemo(() => {
+    return assets.map((asset) => ({
+      id: asset.id,
+      label: `${asset.name} (${asset.code})`,
+      sublabel: asset.category,
+    }));
   }, [assets]);
 
   const resetState = () => {
@@ -45,66 +64,38 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
     setStartDate(undefined);
     setEndDate(undefined);
     setNotes("");
-    setSelectedMap({});
+    setSelectedAssetIds([]);
+    setSelectedCategoryId("all");
   };
 
   useEffect(() => {
     if (isOpen) {
-      setSelectedMap({});
+      setSelectedAssetIds([]);
+      setSelectedCategoryId("all");
     } else {
       resetState();
     }
   }, [isOpen]);
 
-  const toggleAsset = (assetId: string, maxQuantity: number) => {
-    setSelectedMap((prev) => {
-      if (prev[assetId]) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { [assetId]: removed, ...rest } = prev;
-        return rest;
-      } else {
-        return {
-          ...prev,
-          [assetId]: Math.min(1, maxQuantity) > 0 ? 1 : Math.min(1, maxQuantity),
-        };
-      }
-    });
-  };
-
-  const updateQuantity = (assetId: string, value: number, max: number) => {
-    setSelectedMap((prev) => ({
-      ...prev,
-      [assetId]: Math.max(0, Math.min(value, max)),
-    }));
+  // Handle asset selection from SearchWithDropdown
+  const handleAssetSelectionChange = (assetIds: string[]) => {
+    setSelectedAssetIds(assetIds);
   };
 
   const buildSelections = (): AllocationSelection[] =>
-    Object.entries(selectedMap)
-      .filter(([, quantity]) => quantity > 0)
-      .map(([assetId, quantity]) => {
-        const asset = assets.find((item) => item.id === assetId);
-        return {
-          assetId,
-          assetName: asset?.name ?? assetId,
-          requestedQuantity: quantity,
-          availableQuantity: asset?.remaining ?? 0,
-        };
-      });
+    selectedAssetIds.map((assetId) => {
+      const asset = assets.find((item) => item.id === assetId);
+      return {
+        assetId,
+        assetName: asset?.name ?? assetId,
+        requestedQuantity: 1,
+        availableQuantity: asset?.remaining ?? 0,
+      };
+    });
 
   const canProceed = useMemo(() => {
     if (!allocationType) return false;
-    const selections = Object.entries(selectedMap)
-      .filter(([, quantity]) => quantity > 0)
-      .map(([assetId, quantity]) => {
-        const asset = assets.find((item) => item.id === assetId);
-        return {
-          assetId,
-          assetName: asset?.name ?? assetId,
-          requestedQuantity: quantity,
-          availableQuantity: asset?.remaining ?? 0,
-        };
-      });
-    const hasAssets = selections.length > 0;
+    const hasAssets = selectedAssetIds.length > 0;
     if (!hasAssets) return false;
     if (allocationType === "location") {
       return targetLocation.trim().length > 0;
@@ -114,7 +105,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
       startDate !== undefined &&
       startDate !== ""
     );
-  }, [allocationType, targetLocation, targetUser, startDate, selectedMap, assets]);
+  }, [allocationType, targetLocation, targetUser, startDate, selectedAssetIds]);
 
   const handleBack = () => {
     setAllocationType(null);
@@ -264,18 +255,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                           Selected assets
                         </dt>
                         <dd className="label-large text-onSurface">
-                          {Object.keys(selectedMap).length}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="body-small text-onSurfaceVariant">
-                          Total quantity
-                        </dt>
-                        <dd className="label-large text-onSurface">
-                          {Object.values(selectedMap).reduce(
-                            (sum, quantity) => sum + quantity,
-                            0
-                          )}
+                          {selectedAssetIds.length}
                         </dd>
                       </div>
                     </dl>
@@ -290,101 +270,22 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                       Select Assets
                     </h3>
                     <p className="body-small text-onSurfaceVariant">
-                      Set the quantity for each asset. Max quantity is based on remaining availability.
+                      Choose specific assets from each category to allocate.
                     </p>
                   </div>
 
-                  <div className="grid gap-3 md:grid-cols-2">
-                    {availableAssets.map((asset) => {
-                      const selected = Boolean(selectedMap[asset.id]);
-                      const quantity = selectedMap[asset.id] ?? 0;
-                      const maxQuantity = Math.max(asset.remaining, asset.total - asset.allocated);
-                      return (
-                        <button
-                          type="button"
-                          key={asset.id}
-                          onClick={() => { toggleAsset(asset.id, maxQuantity); }}
-                          className={cn(
-                            "flex h-full flex-col gap-4 rounded-lg border p-4 text-left transition-shadow",
-                            selected
-                              ? "border-primary bg-primaryContainer shadow-sm"
-                              : "border-outline bg-surface hover:border-primary"
-                          )}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="space-y-1">
-                              <p className="label-medium text-onSurface">
-                                {asset.name}
-                              </p>
-                              <p className="body-small text-onSurfaceVariant">
-                                {asset.code} • {asset.category}
-                              </p>
-                            </div>
-                            <Badge
-                              text={asset.status}
-                              variant={selected ? "primary" : "secondary"}
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div className="space-y-1">
-                              <span className="body-small text-onSurfaceVariant">
-                                Remaining
-                              </span>
-                              <span className="label-large text-onSurface">
-                                {asset.remaining}
-                              </span>
-                            </div>
-                            <div className="space-y-1">
-                              <span className="body-small text-onSurfaceVariant">
-                                Utilisation
-                              </span>
-                              <span className="label-large text-onSurface">
-                                {Math.round(asset.utilizationRate * 100)}%
-                              </span>
-                            </div>
-                          </div>
-                          {selected && (
-                            <div
-                              className="flex items-center gap-3 rounded-md border border-primary bg-primaryContainer px-3 py-2"
-                              onClick={(event) => { event.stopPropagation(); }}
-                            >
-                              <label
-                                htmlFor={`allocation-qty-${asset.id}`}
-                                className="body-small text-primary"
-                              >
-                                Quantity
-                              </label>
-                              <Input
-                                id={`allocation-qty-${asset.id}`}
-                                type="number"
-                                min={1}
-                                max={maxQuantity}
-                                value={quantity}
-                                onChange={(event) => {
-                                  updateQuantity(
-                                    asset.id,
-                                    Number(event.target.value),
-                                    maxQuantity
-                                  );
-                                }}
-                                className="w-20"
-                              />
-                              <span className="body-small text-onSurfaceVariant">
-                                of {maxQuantity}
-                              </span>
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {availableAssets.length === 0 && (
-                    <div className="rounded-md border border-dashed border-outline p-6 text-center">
-                      <p className="body-medium text-onSurfaceVariant">
-                        No assets available for allocation. Select assets from the main table first.
-                      </p>
-                    </div>
-                  )}
+                  <SearchWithDropdown
+                    categories={assetCategories}
+                    selectedCategoryId={selectedCategoryId}
+                    onCategoryChange={setSelectedCategoryId}
+                    items={assetItems}
+                    selectedIds={selectedAssetIds}
+                    onSelectionChange={handleAssetSelectionChange}
+                    placeholder="Search assets by name or code..."
+                    emptyMessage="No assets found"
+                    className="w-full"
+                    hideSelectedCount
+                  />
                 </div>
               </Card>
 
@@ -409,7 +310,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
           {step === 2 ? (
             <div className="flex w-full items-center justify-between gap-3">
               <div className="body-small text-onSurfaceVariant">
-                {Object.keys(selectedMap).length === 0 &&
+                {selectedAssetIds.length === 0 &&
                   "Select at least one asset to continue."}
               </div>
               <div className="flex items-center gap-3">

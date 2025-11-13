@@ -44,7 +44,7 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
         subtitle="Monitor allocation status, utilization, and perform bulk actions."
         actions={[
           {
-            label: "New Allocation",
+            label: "Allocate",
             onAction: () => onOpenAllocationModal?.(),
             variant: "default",
           }

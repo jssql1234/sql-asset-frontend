@@ -12,6 +12,7 @@ import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';
 import type { SparePart, SparePartFormData, SparePartValidationErrors } from '../types/spareParts';
 import { validateSparePartForm, generateSparePartId, getUniqueCategories } from '../utils/sparePartsUtils';
+import SelectDropdown from '@/components/SelectDropdown';
 
 interface SparePartsFormModalProps {
   isOpen: boolean;
@@ -209,23 +210,21 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="category" className="block text-sm font-medium text-onSurface mb-1">
-                Category <span className="text-error">*</span>
+                Category
               </label>
-              <select
+              <Input
                 id="category"
+                list="category-options"
                 value={formData.category}
-                onChange={(e) => { handleInputChange('category', e.target.value); }}
-                className={`w-full px-3 py-2 border rounded-md bg-surfaceContainerHighest text-onSurface focus:outline-none focus:ring-2 focus:ring-primary ${
-                  errors.category ? 'border-error' : 'border-outlineVariant'
-                }`}
-              >
-                <option value="">Select Category</option>
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                placeholder="Type or select category"
+                className={errors.category ? 'border-error' : ''}
+              />
+              <datalist id="category-options">
                 {categoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
+                  <option key={category} value={category} />
                 ))}
-              </select>
+              </datalist>
               {errors.category && (
                 <p className="text-sm text-error mt-1">{errors.category}</p>
               )}
@@ -336,17 +335,18 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
             <label htmlFor="operationalStatus" className="block text-sm font-medium text-onSurface mb-1">
               Operational Status <span className="text-error">*</span>
             </label>
-            <select
-              id="operationalStatus"
-              value={formData.operationalStatus}
-              onChange={(e) => { handleInputChange('operationalStatus', e.target.value); }}
-              className={`w-full px-3 py-2 border rounded-md bg-surfaceContainerHighest text-onSurface focus:outline-none focus:ring-2 focus:ring-primary ${
-                errors.operationalStatus ? 'border-error' : 'border-outlineVariant'
-              }`}
-            >
-              <option value="Active">Active</option>
-              <option value="Discontinued">Discontinued</option>
-            </select>
+              <SelectDropdown
+                value={formData.operationalStatus}
+                onChange={(value) => {
+                  handleInputChange('operationalStatus', value);
+                }}
+                options={[
+                  { value: 'Active', label: 'Active' },
+                  { value: 'Discontinued', label: 'Discontinued' },
+                ]}
+                placeholder="Active"
+                className={`w-full ${errors.operationalStatus ? 'border-error' : ''}`}
+              />
             {errors.operationalStatus && (
               <p className="text-sm text-error mt-1">{errors.operationalStatus}</p>
             )}

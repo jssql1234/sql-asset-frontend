@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { SetStateAction } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
-import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
-
-export type DataTableColumn<TData, TValue> =
-  | ColumnDef<TData, TValue>
-  | CustomColumnDef<TData, TValue>;
+import type { DataTableColumn } from './columnOrderHelpers';
+import { resolveColumnId } from './columnOrderHelpers';
 
 interface UseTableColumnsOptions<TData, TValue> {
   columns: DataTableColumn<TData, TValue>[];
@@ -22,23 +18,6 @@ interface UseTableColumnsResult<TData, TValue> {
   handleColumnOrderChange: (orderedIds: string[]) => void;
 }
 
-function getColumnKey<TData, TValue>(
-  column: DataTableColumn<TData, TValue>,
-  fallbackIndex: number
-): string {
-  const potentialId = (column as { id?: unknown }).id;
-  if (typeof potentialId === 'string' && potentialId.length > 0) {
-    return potentialId;
-  }
-
-  const potentialAccessor = (column as { accessorKey?: unknown }).accessorKey;
-  if (typeof potentialAccessor === 'string' || typeof potentialAccessor === 'number') {
-    return String(potentialAccessor);
-  }
-
-  return `col-${fallbackIndex.toString()}`;
-}
-
 function areColumnsEqual<TData, TValue>(
   a: DataTableColumn<TData, TValue>[],
   b: DataTableColumn<TData, TValue>[]
@@ -51,9 +30,15 @@ function areColumnsEqual<TData, TValue>(
     return false;
   }
 
-  return a.every((column, index) => {
-    return getColumnKey(column, index) === getColumnKey(b[index], index);
-  });
+  for (let index = 0; index < a.length; index += 1) {
+    const column = a[index];
+    const other = b[index];
+    if (resolveColumnId(column, index) !== resolveColumnId(other, index)) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 const DEFAULT_LOCKED_COLUMN_IDS = ['select'];
@@ -82,14 +67,14 @@ export function useTableColumns<TData, TValue>(
 
   const lockedColumns = useMemo(() => {
     return columns.filter((column, index) => {
-      const key = getColumnKey(column, index);
+      const key = resolveColumnId(column, index);
       return normalizedLockedIds.includes(key);
     });
   }, [columns, normalizedLockedIds]);
 
   const toggleableColumns = useMemo(() => {
     return columns.filter((column, index) => {
-      const key = getColumnKey(column, index);
+      const key = resolveColumnId(column, index);
       return !normalizedLockedIds.includes(key);
     });
   }, [columns, normalizedLockedIds]);
@@ -97,7 +82,7 @@ export function useTableColumns<TData, TValue>(
   const [visibleColumns, setVisibleColumnsState] = useState(() => {
     if (initialVisibleColumnIds?.length) {
       const keyedColumns = new Map(
-        toggleableColumns.map((column, index) => [getColumnKey(column, index), column])
+        toggleableColumns.map((column, index) => [resolveColumnId(column, index), column])
       );
       const initial = initialVisibleColumnIds
         .map(id => keyedColumns.get(id))
@@ -134,14 +119,14 @@ export function useTableColumns<TData, TValue>(
   useEffect(() => {
     setVisibleColumns(previous => {
       const columnMap = new Map(
-        toggleableColumns.map((column, index) => [getColumnKey(column, index), column])
+        toggleableColumns.map((column, index) => [resolveColumnId(column, index), column])
       );
 
       const next: DataTableColumn<TData, TValue>[] = [];
       const seenKeys = new Set<string>();
 
       previous.forEach((column, index) => {
-        const key = getColumnKey(column, index);
+        const key = resolveColumnId(column, index);
         const current = columnMap.get(key);
 
         if (current && !seenKeys.has(key)) {
@@ -151,7 +136,7 @@ export function useTableColumns<TData, TValue>(
       });
 
       toggleableColumns.forEach((column, index) => {
-        const key = getColumnKey(column, index);
+        const key = resolveColumnId(column, index);
         if (!seenKeys.has(key)) {
           next.push(column);
           seenKeys.add(key);
@@ -182,7 +167,7 @@ export function useTableColumns<TData, TValue>(
 
       setVisibleColumns(previous => {
         const columnMap = new Map(
-          previous.map((column, index) => [getColumnKey(column, index), column])
+          previous.map((column, index) => [resolveColumnId(column, index), column])
         );
 
         const next: DataTableColumn<TData, TValue>[] = orderedIds
@@ -196,8 +181,8 @@ export function useTableColumns<TData, TValue>(
 
         if (next.length < previous.length) {
           previous.forEach(column => {
-            const key = getColumnKey(column, 0);
-            if (!next.some(existing => getColumnKey(existing, 0) === key)) {
+            const key = resolveColumnId(column, 0);
+            if (!next.some(existing => resolveColumnId(existing, 0) === key)) {
               next.push(column);
             }
           });

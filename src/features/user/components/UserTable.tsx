@@ -4,7 +4,7 @@ import TableColumnVisibility from '@/components/ui/components/Table/TableColumnV
 import Search from '@/components/Search';
 import type { User } from '@/types/user';
 import type { ColumnDef } from '@tanstack/react-table';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableColumns } from '@/components/DataTableExtended';
 
 interface UserTableProps {
   users: User[];

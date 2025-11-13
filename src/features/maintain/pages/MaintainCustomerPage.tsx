@@ -8,7 +8,7 @@ import { useCustomers } from '../hooks/useCustomers';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableColumns } from '@/components/DataTableExtended';
 import type { Customer } from '../types/customers';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/components/Badge';

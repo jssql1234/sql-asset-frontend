@@ -12,7 +12,7 @@ import { useSpareParts } from '../hooks/useSpareParts';
 import { Button } from '@/components/ui/components';
 import type { SparePart } from '../types/spareParts';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableColumns } from '@/components/DataTableExtended';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 import { Badge } from '@/components/ui/components/Badge';
 import {

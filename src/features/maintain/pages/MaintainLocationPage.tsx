@@ -8,7 +8,7 @@ import { useLocations } from '../hooks/useLocations';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableColumns } from '@/components/DataTableExtended';
 import type { Location } from '../types/locations';
 import DeleteConfirmationDialog from '@/components/DeleteConfirmationDialog';
 

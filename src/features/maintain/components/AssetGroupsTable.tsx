@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/components/Badge';
 import type { AssetGroup } from '../types/assetGroups';
 import type { ColumnDef } from '@tanstack/react-table';
 import { formatAssetGroupDate } from '../utils/assetGroupUtils';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableColumns } from '@/components/DataTableExtended/useTableColumns';
 
 interface AssetGroupsTableProps {
   assetGroups: AssetGroup[];

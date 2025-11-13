@@ -5,7 +5,7 @@ import Search from '@/components/Search';
 import TableColumnVisibility from '@/components/ui/components/Table/TableColumnVisibility';
 import { Button } from '@/components/ui/components';
 import { Plus } from '@/assets/icons';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
+import { useTableColumns } from '@/components/DataTableExtended';
 import type { ColumnDef } from '@tanstack/react-table';
 import type { ServiceProvider } from '../types/serviceProvider';
 import { ServiceProviderTable } from '../components/ServiceProviderTable';

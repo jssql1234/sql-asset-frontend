@@ -5,14 +5,13 @@ import { userFormSchema, type UserFormData } from '../zod/userForm';
 import type { User } from '@/types/user';
 import { useUserContext } from '@/context/UserContext';
 import type { Location } from '@/features/maintain/types/locations'
-import type { Department } from '@/features/maintain/types/departments';
 
 export function useUserModal(
   editingUser: User | null,
+  open: boolean,
   onOpenChange: (open: boolean) => void,
   onSave: (userData: User, onSuccess?:() => void) => void,
   locations: Location[],
-  departments: Department[],
 ) {
 
   const form = useForm<UserFormData>({
@@ -22,7 +21,6 @@ export function useUserModal(
     email: '',
     phone: '',
     position: '',
-    department: '',
     location: '',
     groupId: '',
     },
@@ -43,13 +41,6 @@ export function useUserModal(
     sublabel: location.id, // Show location ID as sublabel
   })), [locations]);
 
-  // Convert departments to SearchableDropdown format
-  const departmentItems = useMemo(() => departments.map(department => ({
-    id: department.id,
-    label: `${department.name} (${department.id})`,
-    sublabel: department.manager,
-  })), [departments]);
-
   useEffect(() => {
     if (editingUser) {
       form.reset({
@@ -57,22 +48,20 @@ export function useUserModal(
         email: editingUser.email,
         phone: editingUser.phone ?? '',
         position: editingUser.position ?? '',
-        department: editingUser.department ?? '',
         location: editingUser.location ?? '',
         groupId: editingUser.groupId,
       });
-    } else {
+    } else if (open) {
       form.reset({
         name: '',
         email: '',
         phone: '',
         position: '',
-        department: '',
         location: '',
         groupId: '',
       });
     }
-  }, [editingUser, form]);
+  }, [editingUser, open, form]);
 
   const handleSubmit = form.handleSubmit((data: UserFormData)=> {
     const userData: User = {
@@ -81,7 +70,6 @@ export function useUserModal(
       email: data.email,
       phone: data.phone ?? undefined,
       position: data.position ?? undefined,
-      department: data.department,
       location: data.location,
       groupId: data.groupId,
     };
@@ -90,6 +78,7 @@ export function useUserModal(
   });
 
   const handleCancel = () => {
+    form.reset();
     onOpenChange(false);
   };
 
@@ -104,6 +93,5 @@ export function useUserModal(
     handleCancel,
     groupItems,
     locationItems,
-    departmentItems,
   }
 }

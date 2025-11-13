@@ -5,7 +5,6 @@ export const userFormSchema = z.object({
   email: z.email().min(1, "Email is required"),
   phone: z.string().optional(),
   position: z.string().optional(),
-  department: z.string().min(1, "Department is required"),
   location: z.string().min(1, "Location is required"),
   groupId: z.string().min(1, "User Group is required"),
 });

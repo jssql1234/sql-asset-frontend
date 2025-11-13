@@ -7,7 +7,6 @@ import { SearchableDropdown } from '@/components/SearchableDropdown';
 import type { User } from '@/types/user';
 import { useUserModal } from '../hooks/useUserModal';
 import type { Location } from '@/features/maintain/types/locations'
-import type { Department } from '@/features/maintain/types/departments';
 
 interface UserModalProps {
   open: boolean;
@@ -16,9 +15,7 @@ interface UserModalProps {
   onSave: (userData: User, onSuccess?: () => void) => void;
   onCreateGroup?: () => void;
   onCreateLocation?: () => void;
-  onCreateDepartment?: () => void;
   locations: Location[];
-  departments: Department[];
 }
 
 export const UserModal: React.FC<UserModalProps> = ({
@@ -28,24 +25,21 @@ export const UserModal: React.FC<UserModalProps> = ({
   onSave,
   onCreateGroup,
   onCreateLocation,
-  onCreateDepartment,
-  locations,
-  departments,
+  locations = [],
 }) => {
   
-  const { form, handleFormSubmit, handleCancel, groupItems, locationItems, departmentItems } = useUserModal(
+  const { form, handleFormSubmit, handleCancel, groupItems, locationItems } = useUserModal(
     editingUser,
+    open,
     onOpenChange,
     onSave,
     locations,
-    departments,
   );
 
   const { register, watch, setValue , formState: { errors } } = form;
 
   const selectedGroupId = watch('groupId');
   const selectedLocationId = watch('location');
-  const selectedDepartmentId = watch('department');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} >
@@ -61,7 +55,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             {/* Name */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Name *
+                Name <span className="text-error">*</span>
               </label>
               <Input
                 {...register('name')}
@@ -75,7 +69,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             {/* Email */}
             <div>
               <label className="block text-sm font-medium mb-1">
-                Email *
+                Email <span className="text-error">*</span>
               </label>
               <Input
                 {...register('email')}
@@ -115,47 +109,10 @@ export const UserModal: React.FC<UserModalProps> = ({
               )}
             </div>
 
-            {/* Department */}
-            <div className='col-span-2'>
-              <label className="block text-sm font-medium mb-1">
-                Department *
-              </label>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <SearchableDropdown
-                    items={departmentItems}
-                    selectedId={selectedDepartmentId}
-                    onSelect={(departmentId) => {
-                      setValue('department', departmentId, { shouldValidate: true });
-                    }}
-                    placeholder="Select a department"
-                    emptyMessage="No department found."
-                    className="w-full"
-                    maxHeight="max-h-60"
-                    mode="search"
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="default"
-                  onClick={() => {
-                    onCreateDepartment?.();
-                  }}
-                  className="px-3"
-                >
-                  + New
-                </Button>
-              </div>
-              {errors.department && (
-                <p className="text-sm text-error mt-1">{errors.department.message}</p>
-              )}
-            </div>
-
             {/* Location */}
             <div className='col-span-2'>
               <label className="block text-sm font-medium mb-1">
-                Location *
+                Location <span className="text-error">*</span>
               </label>
               <div className="flex gap-2">
                 <div className="flex-1">
@@ -192,7 +149,7 @@ export const UserModal: React.FC<UserModalProps> = ({
             {/* User Group */}
             <div className='col-span-2'>
               <label className="block text-sm font-medium mb-1">
-                User Group *
+                User Group <span className="text-error">*</span>
               </label>
               <div className="flex gap-2">
                 <div className="flex-1">

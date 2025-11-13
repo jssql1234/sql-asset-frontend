@@ -24,18 +24,16 @@ export const UserTable: React.FC<UserTableProps> = ({
     header: 'Contact',
     cell: ({ row }) => {
       const { name, email, phone } = row.original;
-     return (
-        <div className="text-sm text-onSurface">
-          <div className="font-medium">{name}</div>
-          <div className="text-onSurfaceVariant">
-            {email} <span className="mx-1">•</span> {phone}
-          </div>
+      const details = [email, phone].filter(Boolean).join(' • ');
+    return (
+        <div className="text-sm text-onSurfaceVariant">
+          <div className="font-medium text-onSurface">{name || 'N/A'}</div>
+          {details && <div>{details}</div>}
         </div>
       );
     },
   },
   { id: 'position', accessorKey: 'position', header: 'Position' },
-  { id: 'department', accessorKey: 'department', header: 'Department' },
   { id: 'location', accessorKey: 'location', header: 'Location' },
   {
     id: 'groupId',
@@ -60,7 +58,6 @@ export const UserTable: React.FC<UserTableProps> = ({
       u.name.toLowerCase().includes(term) ||
       u.email.toLowerCase().includes(term) ||
       (u.position?.toLowerCase().includes(term) ?? false) ||
-      (u.department?.toLowerCase().includes(term) ?? false) ||
       (u.location?.toLowerCase().includes(term) ?? false) ||
       (groups.find(g => g.id === u.groupId)?.name.toLowerCase().includes(term) ?? false)
     );

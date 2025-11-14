@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef, ExpandedState, GroupingState } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
 import { DataTableExtended } from "@/components/DataTableExtended";
+import Search from "@/components/Search";
 import type { AssetRecord, RentalRecord } from "../types";
 
 const allocationStatusVariantMap: Record<AssetRecord["status"], string> = {
@@ -23,11 +24,17 @@ const rentalStatusToneMap: Record<RentalRecord["status"], string> = {
 interface AllocationVariantProps {
   variant: "allocation";
   assets: AssetRecord[];
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
+  searchPlaceholder?: string;
 }
 
 interface RentalVariantProps {
   variant: "rental";
   rentals: RentalRecord[];
+  searchQuery?: string;
+  onSearchQueryChange?: (query: string) => void;
+  searchPlaceholder?: string;
 }
 
 type TableProps = AllocationVariantProps | RentalVariantProps;
@@ -36,17 +43,40 @@ type GroupableAssetRecord = AssetRecord & { assetGroup: string };
 
 const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
   assets,
+  searchQuery: externalSearchQuery,
+  onSearchQueryChange,
+  searchPlaceholder = "Search assets...",
 }) => {
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+
   const [grouping, setGrouping] = useState<GroupingState>(["assetGroup"]);
   const [expanded, setExpanded] = useState<ExpandedState>(true);
 
+  const filteredAssets = useMemo(() => {
+    if (!searchQuery.trim()) return assets;
+    
+    const query = searchQuery.toLowerCase();
+    return assets.filter((asset) => {
+      return (
+        asset.name.toLowerCase().includes(query) ||
+        asset.code.toLowerCase().includes(query) ||
+        asset.status.toLowerCase().includes(query) ||
+        asset.location.toLowerCase().includes(query) ||
+        asset.category.toLowerCase().includes(query) ||
+        asset.pic.toLowerCase().includes(query)
+      );
+    });
+  }, [assets, searchQuery]);
+
   const data = useMemo<GroupableAssetRecord[]>(
     () =>
-      assets.map((asset) => ({
+      filteredAssets.map((asset) => ({
         ...asset,
         assetGroup: asset.category,
       })),
-    [assets]
+    [filteredAssets]
   );
 
   useEffect(() => {
@@ -241,6 +271,11 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
 
   return (
     <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex-shrink-0 w-80">
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder={searchPlaceholder} live={true} />
+        </div>
+      </div>
       <DataTableExtended<GroupableAssetRecord, unknown>
         columns={columns}
         data={data}
@@ -255,7 +290,31 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
   );
 };
 
-const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
+const RentalVariantTable: React.FC<RentalVariantProps> = ({ 
+  rentals,
+  searchQuery: externalSearchQuery,
+  onSearchQueryChange,
+  searchPlaceholder = "Search rentals...",
+}) => {
+  const [internalSearchQuery, setInternalSearchQuery] = useState("");
+  const searchQuery = externalSearchQuery ?? internalSearchQuery;
+  const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+
+  const filteredRentals = useMemo(() => {
+    if (!searchQuery.trim()) return rentals;
+    
+    const query = searchQuery.toLowerCase();
+    return rentals.filter((rental) => {
+      return (
+        rental.assetName.toLowerCase().includes(query) ||
+        rental.customerName.toLowerCase().includes(query) ||
+        rental.status.toLowerCase().includes(query) ||
+        rental.location.toLowerCase().includes(query) ||
+        (rental.contactEmail?.toLowerCase().includes(query) ?? false) ||
+        (rental.contactPhone?.toLowerCase().includes(query) ?? false)
+      );
+    });
+  }, [rentals, searchQuery]);
   const columns = useMemo<ColumnDef<RentalRecord>[]>(
     () => [
       {
@@ -347,9 +406,14 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
 
   return (
     <div className="flex h-full flex-col">
+      <div className="flex items-center justify-between gap-4 mb-4">
+        <div className="flex-shrink-0 w-80">
+          <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder={searchPlaceholder} live={true} />
+        </div>
+      </div>
       <DataTableExtended<RentalRecord, unknown>
         columns={columns}
-        data={rentals}
+        data={filteredRentals}
         showPagination
       />
     </div>
@@ -358,17 +422,28 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({ rentals }) => {
 
 const Table: React.FC<TableProps> = (props) => {
   if (props.variant === "allocation") {
-    const { assets } = props;
+    const { assets, searchQuery, onSearchQueryChange, searchPlaceholder } = props;
     return (
       <AllocationVariantTable
         variant="allocation"
         assets={assets}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        searchPlaceholder={searchPlaceholder}
       />
     );
   }
 
-  const { rentals } = props;
-  return <RentalVariantTable variant="rental" rentals={rentals} />;
+  const { rentals, searchQuery, onSearchQueryChange, searchPlaceholder } = props;
+  return (
+    <RentalVariantTable 
+      variant="rental" 
+      rentals={rentals} 
+      searchQuery={searchQuery}
+      onSearchQueryChange={onSearchQueryChange}
+      searchPlaceholder={searchPlaceholder}
+    />
+  );
 };
 
 const formatDate = (date?: string) => {

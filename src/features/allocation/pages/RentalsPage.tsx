@@ -2,11 +2,9 @@ import { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationTable from "../components/AllocationTable";
-import Search from "@/components/Search";
 import RentalModal from "../components/RentalModal";
 import type { AssetRecord, RentalPayload, RentalRecord } from "../types";
 import { getRentalSummaryCards } from "../components/AllocationSummaryCards";
-import { filterRentalsByQuery } from "../utils/filtering";
 
 interface RentalsPageProps {
   assets: AssetRecord[];
@@ -18,14 +16,9 @@ const RentalsPage: React.FC<RentalsPageProps> = ({ assets, rentals, onCreateRent
   const [searchQuery, setSearchQuery] = useState("");
   const [isRentalModalOpen, setIsRentalModalOpen] = useState(false);
 
-  // Filter rentals based on search query
-  const filteredRentals = useMemo(() => {
-    return filterRentalsByQuery(rentals, searchQuery);
-  }, [rentals, searchQuery]);
-
   const summaryCards = useMemo(
-    () => getRentalSummaryCards(filteredRentals),
-    [filteredRentals]
+    () => getRentalSummaryCards(rentals),
+    [rentals]
   );
 
   const handleRentalSubmit = (payload: RentalPayload) => {
@@ -48,15 +41,14 @@ const RentalsPage: React.FC<RentalsPageProps> = ({ assets, rentals, onCreateRent
 
       <SummaryCards data={summaryCards} columns={4} />
 
-      <Search
-        searchValue={searchQuery}
-        searchPlaceholder="Search by asset, customer, or status"
-        onSearch={setSearchQuery}
-        live
-      />
-
-      <div className="flex-1 border-t border-outline">
-        <AllocationTable variant="rental" rentals={filteredRentals} />
+      <div className="flex-1">
+        <AllocationTable 
+          variant="rental" 
+          rentals={rentals} 
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          searchPlaceholder="Search by asset, customer, or status"
+        />
       </div>
 
       <RentalModal

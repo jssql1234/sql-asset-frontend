@@ -1,12 +1,10 @@
 import { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
-import Search from "@/components/Search";
 import AllocationTable from "../components/AllocationTable";
 import { getAllocationSummaryCards } from "../components/AllocationSummaryCards";
 import AllocationModal from "../components/AllocationModal";
 import type { AllocationSummary, AssetRecord, AllocationActionPayload } from "../types";
-import { filterAssetsByQuery } from "../utils/filtering";
 
 interface AllocationPageProps {
   assets: AssetRecord[];
@@ -31,12 +29,6 @@ const AllocationPage: React.FC<AllocationPageProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter assets based on search query
-  const filteredAssets = useMemo(
-    () => filterAssetsByQuery(assets, searchQuery),
-    [assets, searchQuery]
-  );
-
   const summaryCards = useMemo(
     () => getAllocationSummaryCards(summary),
     [summary]
@@ -58,18 +50,15 @@ const AllocationPage: React.FC<AllocationPageProps> = ({
 
       <SummaryCards data={summaryCards} />
 
-      <Search
-        searchValue={searchQuery}
-        searchPlaceholder="Search by asset, status, or location"
-        onSearch={setSearchQuery}
-        live
-      />
-        <div className="flex-1 border-t border-outline">
-          <AllocationTable
-            variant="allocation"
-            assets={filteredAssets}
-          />
-        </div>
+      <div className="flex-1">
+        <AllocationTable
+          variant="allocation"
+          assets={assets}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          searchPlaceholder="Search by asset, status, or location"
+        />
+      </div>
 
       <AllocationModal
         isOpen={isAllocationModalOpen}

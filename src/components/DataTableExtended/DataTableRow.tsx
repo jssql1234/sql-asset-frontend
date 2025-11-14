@@ -50,7 +50,10 @@ export function DataTableRow<TData>({
             className={cn(
               'group/row',
               enableRowClickSelection && row.getCanSelect() && 'cursor-pointer',
-              row.getIsGrouped() && 'cursor-pointer'
+              row.getCanExpand() && 'cursor-pointer',
+              row.getIsGrouped()
+                ? '!bg-gray-200 hover:!bg-gray-100 !font-medium !text-onSurface'
+                : ''
             )}
           >
             {sortedCells.map((cell) => (

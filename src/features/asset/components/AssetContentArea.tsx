@@ -12,54 +12,124 @@ import { TabHeader } from "@/components/TabHeader";
 import Search from "@/components/Search";
 import PermissionGuard from "@/components/PermissionGuard";
 import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import type { Row } from "@tanstack/react-table";
 import { Delete, Edit, Plus } from "@/assets/icons";
 import { usePermissions } from "@/hooks/usePermissions";
 import SelectDropdown, { type SelectDropdownOption } from "@/components/SelectDropdown";
 import { useToast } from "@/components/ui/components/Toast/useToast";
 
-// Column definitions for TanStack Table
-const createColumns = (): CustomColumnDef<Asset>[] => {
-  const columns: CustomColumnDef<Asset>[] = [];
+type AssetRowData = {
+  id: string; 
+  type: 'asset';
+  asset: Asset;
+  isExpanded: boolean;
+  canExpand: boolean;
+} | {
+  id: string; 
+  type: 'serial';
+  parentAssetId: string;
+  serialId: string;     
+  serialNumber: string; 
+  date: string;         
+  active: boolean;     
+};
+
+const createColumns = (
+  onToggleExpand: (assetId: string) => void
+): CustomColumnDef<AssetRowData>[] => {
+  const columns: CustomColumnDef<AssetRowData>[] = [];
 
   columns.push({
     id: "id",
-    accessorKey: "id",
-    header: "Asset ID",
-    meta: { label: "Asset ID" },
+    header: "Asset ID / Serial ID",
+    meta: { label: "Asset ID / Serial ID" },
     enableSorting: true,
     enableColumnFilter: false,
+    cell: ({ row }) => {
+      const data = row.original; 
+
+      if (data.type === 'asset') {
+        return (
+          <div className="flex items-center gap-2">
+            {data.canExpand ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleExpand(data.asset.id);
+                }}
+                className="flex h-6 w-6 items-center justify-center rounded-full border border-outlineVariant text-body-medium text-onSurface"
+                aria-label={data.isExpanded ? "Collapse" : "Expand"}
+              >
+                {data.isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              </button>
+            ) : (
+              <span className="inline-block w-6" /> 
+            )}
+            {data.asset.id}
+          </div>
+        );
+      }
+
+      if (data.type === 'serial') {
+        return (
+          <div className="pl-12 text-onSurfaceVariant">
+            {data.serialId} 
+          </div>
+        );
+      }
+      return null;
+    },
   });
 
   columns.push({
     id: "name",
-    accessorKey: "name",
-    header: "Asset Name",
-    meta: { label: "Asset Name" },
+    header: "Asset Name / Serial Number", 
+    meta: { label: "Asset Name / Serial Number" }, 
     enableSorting: true,
     enableColumnFilter: false,
+    cell: ({ row }) => {
+      const data = row.original; 
+      if (data.type === 'asset') {
+        return data.asset.name;
+      }
+      if (data.type === 'serial') {
+        return <span className="pl-12 text-onSurfaceVariant">{data.serialNumber}</span>;
+      }
+      return null;
+    },
   });
 
   columns.push({
     id: "group",
-    accessorKey: "group",
-    header: "Asset Group",
-    meta: { label: "Asset Group" },
+    header: "Asset Group", 
+    meta: { label: "Asset Group" }, 
     enableSorting: true,
     enableColumnFilter: false,
+    cell: ({ row }) => {
+      const data = row.original; 
+      if (data.type === 'asset') {
+        return data.asset.group;
+      }
+      return null;
+    },
   });
-
+  
   columns.push({
     id: "description",
-    accessorKey: "description",
     header: "Description",
     meta: { label: "Description" },
-    cell: ({ getValue }) => {
-      const value = getValue();
-      return (
-        <span className="truncate block" title={typeof value === 'string' ? value : ''}>
-          {value}
-        </span>
-      );
+    cell: ({ row }) => {
+      if (row.original.type === 'asset') {
+        const value = row.original.asset.description;
+        return (
+          <span className="truncate block" title={typeof value === 'string' ? value : ''}>
+            {value}
+          </span>
+        );
+      }
+      return null; 
     },
     enableSorting: true,
     enableColumnFilter: false,
@@ -67,30 +137,41 @@ const createColumns = (): CustomColumnDef<Asset>[] => {
 
   columns.push({
     id: "acquireDate",
-    accessorKey: "acquireDate",
-    header: "Acquire Date",
-    meta: { label: "Acquire Date" },
+    header: "Acquire Date", 
+    meta: { label: "Acquire Date" }, 
     enableSorting: true,
     enableColumnFilter: false,
+    cell: ({ row }) => {
+      const data = row.original;
+      if (data.type === 'asset') {
+        return data.asset.acquireDate;
+      }
+      if (data.type === 'serial') {
+        return <span className="pl-12 text-onSurfaceVariant">{data.date}</span>;
+      }
+      return null;
+    },
   });
 
   columns.push({
     id: "purchaseDate",
-    accessorKey: "purchaseDate",
     header: "Purchase Date",
     meta: { label: "Purchase Date" },
+    cell: ({ row }) => row.original.type === 'asset' ? row.original.asset.purchaseDate : null,
     enableSorting: true,
     enableColumnFilter: false,
   });
 
   columns.push({
     id: "cost",
-    accessorKey: "cost",
     header: "Cost",
     meta: { label: "Cost" },
-    cell: ({ getValue }) => {
-      const value = Number(getValue() || 0);
-      return Number.isFinite(value) ? value.toLocaleString() : '-';
+    cell: ({ row }) => {
+      if (row.original.type === 'asset') {
+        const value = Number(row.original.asset.cost || 0);
+        return Number.isFinite(value) ? value.toLocaleString() : '-';
+      }
+      return null;
     },
     enableSorting: true,
     enableColumnFilter: false,
@@ -98,12 +179,14 @@ const createColumns = (): CustomColumnDef<Asset>[] => {
 
   columns.push({
     id: "quantityPerUnit",
-    accessorKey: "quantityPerUnit",
     header: "Qty",
     meta: { label: "Qty" },
-    cell: ({ getValue }) => {
-      const value = Number(getValue() || 0);
-      return Number.isFinite(value) ? value.toLocaleString() : '-';
+    cell: ({ row }) => {
+      if (row.original.type === 'asset') {
+        const value = Number(row.original.asset.quantityPerUnit || 0);
+        return Number.isFinite(value) ? value.toLocaleString() : '-';
+      }
+      return null;
     },
     enableSorting: true,
     enableColumnFilter: false,
@@ -111,15 +194,22 @@ const createColumns = (): CustomColumnDef<Asset>[] => {
 
   columns.push({
     id: "active",
-    accessorKey: "active",
-    header: "Active",
+    header: "Active", 
     meta: {
-      label: "Active",
+      label: "Active", 
       filterOptions: { true: "Yes", false: "No" },
     },
-    cell: ({ getValue }) => {
-      const value = Boolean(getValue());
-      return value ? "Yes" : "No";
+    cell: ({ row }) => {
+      const data = row.original;
+      if (data.type === 'asset') {
+        const value = Boolean(data.asset.active); 
+        return value ? "Yes" : "No";
+      }
+      if (data.type === 'serial') {
+        const value = Boolean(data.active);
+        return <span className="pl-12 text-onSurfaceVariant">{value ? "Yes" : "No"}</span>;
+      }
+      return null;
     },
     enableSorting: true,
     enableColumnFilter: false,
@@ -240,6 +330,18 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
   const [view, setView] = useState<'list' | 'create' | 'edit'>('list');
   const [searchValue, setSearchValue] = useState('');
+  const [expandedAssetIds, setExpandedAssetIds] = useState<Set<string>>(new Set());
+  const handleToggleAssetExpansion = useCallback((assetId: string) => {
+    setExpandedAssetIds(prev => {
+      const next = new Set(prev);
+      if (next.has(assetId)) {
+        next.delete(assetId);
+      } else {
+        next.add(assetId);
+      }
+      return next;
+    });
+  }, []); 
 
   const [editingAsset, setEditingAsset] = useState<Asset | null>(null);
   const [internalSelectedTaxYear, setInternalSelectedTaxYear] = useState<string>(new Date().getFullYear().toString());
@@ -378,13 +480,13 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
    }, [location.pathname, params.id, assets, navigate]);
   
   // Create columns and manage visibility
-  const allColumns = useMemo(() => createColumns(), []);
-  const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<Asset>[]>(allColumns);
-
-  // Use dynamic columns directly (exclusions handled in createColumns)
+  const allColumns = useMemo(
+    () => createColumns(handleToggleAssetExpansion), 
+    [handleToggleAssetExpansion]
+  );
+  const [visibleColumns, setVisibleColumns] = useState<CustomColumnDef<AssetRowData>[]>(allColumns);
   const tableColumns = useMemo(() => allColumns, [allColumns]);
 
-  // Update visible columns when switching modes
   useEffect(() => {
     setVisibleColumns(tableColumns);
   }, [tableColumns]);
@@ -423,6 +525,49 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
     return filtered;
   }, [assets, searchValue, isTaxAgent, selectedTaxYear]);
+  const tableData = useMemo(() => {
+    if (!filteredAssets) return [];
+
+    const rows: AssetRowData[] = [];
+    
+    filteredAssets.forEach(asset => {
+      
+      const serials = (asset.serialNumbers as any[]) || [];
+      
+      const canExpand = serials.length > 0;
+      const isExpanded = expandedAssetIds.has(asset.id);
+
+      rows.push({
+        id: asset.id,
+        type: 'asset',
+        asset: asset,
+        isExpanded: isExpanded,
+        canExpand: canExpand,
+      });
+
+      if (isExpanded && canExpand) {
+        serials.forEach((serial: any, index: number) => { 
+          
+          const constructedSerialId = `${asset.id}-${String(index + 1).padStart(2, '0')}`;
+          
+          if (serial && serial.serial) { 
+            rows.push({
+              id: constructedSerialId, 
+              type: 'serial',
+              parentAssetId: asset.id,
+              
+              serialId: constructedSerialId,       
+              serialNumber: serial.serial,         
+              date: serial.acquireDate,            
+              active: !serial.inactive,            
+            });
+          }
+        });
+      }
+    });
+
+    return rows;
+  }, [filteredAssets, expandedAssetIds]);
 
   const flushSelection = useCallback(() => {
     if (!pendingSelectionRef.current) {
@@ -476,10 +621,31 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   }, [assets, filteredAssets, scheduleSelectionFlush]);
 
   // Handle row selection and maintain asset ID mapping
-  const handleRowSelectionChange = useCallback((rows: Asset[], selectedRowIds: string[]) => {
-    pendingSelectionRef.current = { rows, selectedRowIds };
+  const handleRowSelectionChange = useCallback((rows: AssetRowData[], selectedRowIds: string[]) => {
+    const selectedAssetRows = rows
+      .filter((row): row is Extract<AssetRowData, { type: 'asset' }> => row.type === 'asset')
+      .map(row => row.asset);
+    
+    const selectedAssetRowIds = selectedRowIds
+      .filter(id => {
+        const row = tableData.find(r => r.id === id);
+        return row && row.type === 'asset';
+      });
+    
+    pendingSelectionRef.current = { rows: selectedAssetRows, selectedRowIds: selectedAssetRowIds };
     scheduleSelectionFlush();
-  }, [scheduleSelectionFlush]);
+  }, [scheduleSelectionFlush, tableData]); 
+
+  const canSelectRow = useCallback((row: Row<AssetRowData>) => {
+    return row.original.type === 'asset';
+  }, []);
+
+  const getRowCanExpand = useCallback((row: Row<AssetRowData>) => {
+    if (row.original.type === 'asset') {
+      return row.original.canExpand;
+    }
+    return false;
+  }, []);
 
   const handleProcessCapitalAllowance = useCallback(() => {
     const currentSelection = selectedTaxYear;
@@ -688,7 +854,7 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
                    </Button>
                    <Button variant="destructive" size="sm" onClick={handleDeleteSelected}>
                      <Delete className="h-4 w-4" />Delete Selected
-                   </Button>
+                   </Button> 
                    <Button variant="destructive" size="sm" onClick={() => {
                      void navigate('/disposal');
                    }}>Dispose</Button>
@@ -702,14 +868,17 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
 
           <DataTableExtended
             columns={visibleColumns}
-            data={filteredAssets ?? []}
+            data={tableData ?? []} // Use new tableData
             showPagination={true}
             showCheckbox={true}
             enableRowClickSelection={true}
             onRowSelectionChange={handleRowSelectionChange}
             rowSelection={rowSelection}
             selectedCount={selectedAssetIds.length}
-            totalCount={filteredAssets?.length ?? 0}
+            totalCount={filteredAssets?.length ?? 0} // Base count on assets, not rows
+            getRowId={(row) => row.id} 
+            canSelectRow={canSelectRow} 
+            getRowCanExpand={getRowCanExpand} 
           />
         </Card>
         </div>

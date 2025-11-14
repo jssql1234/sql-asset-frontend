@@ -12,7 +12,8 @@ import { TextArea } from '@/components/ui/components/Input/TextArea';
 import { Button } from '@/components/ui/components/Button';
 import type { SparePart, SparePartFormData, SparePartValidationErrors } from '../types/spareParts';
 import { validateSparePartForm, generateSparePartId, getUniqueCategories } from '../utils/sparePartsUtils';
-import SelectDropdown from '@/components/SelectDropdown';
+import SelectDropdown, { type SelectDropdownOption } from '@/components/SelectDropdown';
+import { SearchableDropdown } from '@/components/SearchableDropdown';
 
 interface SparePartsFormModalProps {
   isOpen: boolean;
@@ -51,7 +52,30 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
   const [errors, setErrors] = useState<SparePartValidationErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string>('');
-  const categoryOptions = useMemo(() => getUniqueCategories(existingParts), [existingParts]);
+  
+  // Generate category options from existing parts
+  const categoryOptions = useMemo(() => {
+    const categories = getUniqueCategories(existingParts);
+    return categories.map(cat => ({ id: cat, label: cat }));
+  }, [existingParts]);
+
+  // Location options - generate from existing parts or use predefined list
+  const locationOptions: SelectDropdownOption[] = useMemo(() => {
+    const existingLocations = [...new Set(existingParts.map(p => p.location).filter(Boolean))];
+    const predefinedLocations = [
+      'Warehouse A - Shelf 1',
+      'Warehouse A - Shelf 3',
+      'Warehouse B - Rack 2',
+      'Warehouse B - Rack 5',
+      'Warehouse C - Bin 7',
+      'Main Storage Room',
+      'Outdoor Yard',
+    ];
+    
+    // Combine and deduplicate
+    const allLocations = [...new Set([...existingLocations, ...predefinedLocations])];
+    return allLocations.map(loc => ({ value: loc, label: loc }));
+  }, [existingParts]);
 
   // Populate form when editing
   useEffect(() => {
@@ -212,19 +236,14 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
               <label htmlFor="category" className="block text-sm font-medium text-onSurface mb-1">
                 Category
               </label>
-              <Input
-                id="category"
-                list="category-options"
+              <SearchableDropdown
+                items={categoryOptions}
                 value={formData.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
-                placeholder="Type or select category"
-                className={errors.category ? 'border-error' : ''}
+                onChange={(value) => handleInputChange('category', value)}
+                position='bottom'
+                hideEmptyMessage
+                mode='freeInput'
               />
-              <datalist id="category-options">
-                {categoryOptions.map((category) => (
-                  <option key={category} value={category} />
-                ))}
-              </datalist>
               {errors.category && (
                 <p className="text-sm text-error mt-1">{errors.category}</p>
               )}
@@ -321,22 +340,13 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
               <label htmlFor="location" className="block text-sm font-medium text-onSurface mb-1">
                 Location
               </label>
-              <Input
-                id="location"
-                list="location-options"
+              <SelectDropdown
                 value={formData.location}
-                onChange={(e) => handleInputChange('location', e.target.value)}
-                placeholder="Select or type location"
+                onChange={(value) => handleInputChange('location', value)}
+                options={locationOptions}
+                placeholder="Select location"
+                className="w-full"
               />
-              <datalist id="location-options">
-                <option value="Warehouse A - Shelf 1" />
-                <option value="Warehouse A - Shelf 3" />
-                <option value="Warehouse B - Rack 2" />
-                <option value="Warehouse B - Rack 5" />
-                <option value="Warehouse C - Bin 7" />
-                <option value="Main Storage Room" />
-                <option value="Outdoor Yard" />
-              </datalist>
             </div>
           </div>
 
@@ -345,18 +355,18 @@ export const SparePartsFormModal: React.FC<SparePartsFormModalProps> = ({
             <label htmlFor="operationalStatus" className="block text-sm font-medium text-onSurface mb-1">
               Operational Status <span className="text-error">*</span>
             </label>
-              <SelectDropdown
-                value={formData.operationalStatus}
-                onChange={(value) => {
-                  handleInputChange('operationalStatus', value);
-                }}
-                options={[
-                  { value: 'Active', label: 'Active' },
-                  { value: 'Discontinued', label: 'Discontinued' },
-                ]}
-                placeholder="Active"
-                className={`w-full ${errors.operationalStatus ? 'border-error' : ''}`}
-              />
+            <SelectDropdown
+              value={formData.operationalStatus}
+              onChange={(value) => {
+                handleInputChange('operationalStatus', value);
+              }}
+              options={[
+                { value: 'Active', label: 'Active', disabled: formData.operationalStatus === 'Active' },
+                { value: 'Discontinued', label: 'Discontinued', disabled: formData.operationalStatus === 'Discontinued'},
+              ]}
+              placeholder="Active"
+              className={`w-full ${errors.operationalStatus ? 'border-error' : ''}`}
+            />
             {errors.operationalStatus && (
               <p className="text-sm text-error mt-1">{errors.operationalStatus}</p>
             )}

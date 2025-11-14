@@ -113,3 +113,24 @@ export interface AllocationDetailsSection {
   title: string;
   content: ReactNode;
 }
+
+export interface AllocationCategoryOption {
+  id: string;
+  label: string;
+}
+
+export interface AllocationItemOption {
+  id: string;
+  label: string;
+  sublabel: string;
+}
+
+export interface UseAllocationAssetsResult {
+  assetCategories: AllocationCategoryOption[];
+  assetItems: AllocationItemOption[];
+  selectedAssetIds: string[];
+  selectedCategoryId: string;
+  setSelectedCategoryId: (categoryId: string) => void;
+  handleAssetSelectionChange: (assetIds: string[]) => void;
+  resetAssetSelection: () => void;
+}

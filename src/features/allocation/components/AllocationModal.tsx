@@ -5,6 +5,7 @@ import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { cn } from "@/utils/utils";
+import { useAllocationAssets } from "@/features/allocation/hooks/useAllocationAssets";
 import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord, } from "../types";
 
 interface AllocationModalProps {
@@ -32,29 +33,8 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
   const [startDate, setStartDate] = useState<string | Date | undefined>();
   const [endDate, setEndDate] = useState<string | Date | undefined>();
   const [notes, setNotes] = useState("");
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
-  // Prepare asset categories for SearchWithDropdown
-  const assetCategories = useMemo(() => {
-    const categories = Array.from(new Set(assets.map((asset) => asset.category)));
-    return [
-      { id: "all", label: "All Categories" },
-      ...categories.map((category) => ({
-        id: category,
-        label: category,
-      })),
-    ];
-  }, [assets]);
-
-  // Prepare asset items for SearchWithDropdown
-  const assetItems = useMemo(() => {
-    return assets.map((asset) => ({
-      id: asset.id,
-      label: `${asset.name} (${asset.code})`,
-      sublabel: asset.category,
-    }));
-  }, [assets]);
+  const { assetCategories, assetItems, selectedAssetIds, selectedCategoryId, setSelectedCategoryId, handleAssetSelectionChange, resetAssetSelection } = useAllocationAssets(assets);
 
   const resetState = useCallback(() => {
     setStep(1);
@@ -64,20 +44,14 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
     setStartDate(undefined);
     setEndDate(undefined);
     setNotes("");
-    setSelectedAssetIds([]);
-    setSelectedCategoryId("all");
-  }, []);
+    resetAssetSelection();
+  }, [resetAssetSelection]);
 
   useEffect(() => {
     if (!isOpen) {
       resetState();
     }
   }, [isOpen, resetState]);
-
-  // Handle asset selection from SearchWithDropdown
-  const handleAssetSelectionChange = useCallback((assetIds: string[]) => {
-    setSelectedAssetIds(assetIds);
-  }, []);
 
   const buildSelections = (): AllocationSelection[] =>
     selectedAssetIds.map((assetId) => {

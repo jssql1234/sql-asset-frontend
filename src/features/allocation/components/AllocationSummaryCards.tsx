@@ -11,7 +11,6 @@ export const getAllocationSummaryCards = (summary: AllocationSummary): SummaryCa
     label: "Utilised Quantity",
     value: summary.allocatedAssets.toLocaleString(),
     description: "Currently assigned",
-    tone: "warning" as const,
   },
   {
     label: "Available Quantity",
@@ -23,7 +22,7 @@ export const getAllocationSummaryCards = (summary: AllocationSummary): SummaryCa
     label: "Utilization Rate",
     value: `${summary.utilizationRate.toString()}%`,
     description: "Allocation efficiency",
-    tone: summary.utilizationRate > 75 ? "warning" : "default",
+    tone: summary.utilizationRate > 80 ? "warning" : "default",
   },
 ];
 
@@ -45,19 +44,16 @@ export const getRentalSummaryCards = (
       label: "Active Rentals",
       value: stats.Active,
       description: "Currently in progress",
-      tone: "success" as const,
     },
     {
       label: "Scheduled Rentals",
       value: stats.Scheduled,
       description: "Upcoming reservations",
-      tone: "warning" as const,
     },
     {
       label: "Completed Rentals",
       value: stats.Completed,
       description: "Successfully finished",
-      tone: "default" as const,
     },
     {
       label: "Total Income",

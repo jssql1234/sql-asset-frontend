@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
+import { useAllocationAssets } from "@/features/allocation/hooks/useAllocationAssets";
 import type { AssetRecord, RentalPayload } from "../types";
 
 interface RentalModalProps {
@@ -24,29 +25,8 @@ const RentalModal: React.FC<RentalModalProps> = ({
   const [startDate, setStartDate] = useState<string | Date | undefined>();
   const [endDate, setEndDate] = useState<string | Date | undefined>();
   const [notes, setNotes] = useState("");
-  const [selectedAssetIds, setSelectedAssetIds] = useState<string[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
-  // Prepare asset categories for SearchWithDropdown
-  const assetCategories = useMemo(() => {
-    const categories = Array.from(new Set(assets.map((asset) => asset.category)));
-    return [
-      { id: "all", label: "All Categories" },
-      ...categories.map((category) => ({
-        id: category,
-        label: category,
-      })),
-    ];
-  }, [assets]);
-
-  // Prepare asset items for SearchWithDropdown
-  const assetItems = useMemo(() => {
-    return assets.map((asset) => ({
-      id: asset.id,
-      label: `${asset.name} (${asset.code})`,
-      sublabel: asset.category,
-    }));
-  }, [assets]);
+  const { assetCategories, assetItems, selectedAssetIds, selectedCategoryId, setSelectedCategoryId, handleAssetSelectionChange, resetAssetSelection } = useAllocationAssets(assets);
 
   const resetState = useCallback(() => {
     setCustomerName("");
@@ -54,19 +34,14 @@ const RentalModal: React.FC<RentalModalProps> = ({
     setStartDate(undefined);
     setEndDate(undefined);
     setNotes("");
-    setSelectedAssetIds([]);
-    setSelectedCategoryId("all");
-  }, []);
+    resetAssetSelection();
+  }, [resetAssetSelection]);
 
   useEffect(() => {
     if (!isOpen) {
       resetState();
     }
   }, [isOpen, resetState]);
-
-  const handleAssetSelectionChange = useCallback((assetIds: string[]) => {
-    setSelectedAssetIds(assetIds);
-  }, []);
 
   const parsedRentAmount = Number(rentAmount);
   const hasValidRentAmount = Number.isFinite(parsedRentAmount) && parsedRentAmount > 0;

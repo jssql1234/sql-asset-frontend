@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ColumnDef, ExpandedState, GroupingState } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/components";
+import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import Search from "@/components/Search";
 import type { AssetRecord, RentalRecord } from "../types";
@@ -53,6 +54,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
 
   const [grouping, setGrouping] = useState<GroupingState>(["assetGroup"]);
   const [expanded, setExpanded] = useState<ExpandedState>(true);
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<GroupableAssetRecord>[]>([]);
 
   const filteredAssets = useMemo(() => {
     if (!searchQuery.trim()) return assets;
@@ -135,6 +137,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         filterFn: "multiSelect",
       },
       {
+        id: "total",
         accessorKey: "total",
         header: "Total",
         aggregationFn: "sum",
@@ -164,6 +167,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "allocated",
         accessorKey: "allocated",
         header: "Allocated",
         aggregationFn: "sum",
@@ -193,6 +197,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "remaining",
         accessorKey: "remaining",
         header: "Remaining",
         aggregationFn: "sum",
@@ -222,6 +227,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "status",
         accessorKey: "status",
         header: "Status",
         aggregationFn: () => null,
@@ -244,6 +250,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         enableSorting: true,
       },
       {
+        id: "location",
         accessorKey: "location",
         header: "Location",
         aggregationFn: () => null,
@@ -269,15 +276,28 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
     []
   );
 
+  useEffect(() => {
+    if (visibleColumns.length === 0 && columns.length > 0) {
+      setVisibleColumns(columns);
+    }
+  }, [columns, visibleColumns.length]);
+
+  const resolvedColumns = visibleColumns.length > 0 ? visibleColumns : columns;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-4 mb-4">
+        <TableColumnVisibility
+          columns={columns}
+          visibleColumns={resolvedColumns}
+          setVisibleColumns={setVisibleColumns}
+        />
         <div className="flex-shrink-0 w-80">
           <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder={searchPlaceholder} live={true} />
         </div>
       </div>
       <DataTableExtended<GroupableAssetRecord, unknown>
-        columns={columns}
+        columns={resolvedColumns}
         data={data}
         showPagination
         enableGrouping
@@ -299,6 +319,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
   const [internalSearchQuery, setInternalSearchQuery] = useState("");
   const searchQuery = externalSearchQuery ?? internalSearchQuery;
   const setSearchQuery = onSearchQueryChange ?? setInternalSearchQuery;
+  const [visibleColumns, setVisibleColumns] = useState<ColumnDef<RentalRecord>[]>([]);
 
   const filteredRentals = useMemo(() => {
     if (!searchQuery.trim()) return rentals;
@@ -318,6 +339,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
   const columns = useMemo<ColumnDef<RentalRecord>[]>(
     () => [
       {
+        id: "assetName",
         accessorKey: "assetName",
         header: "Asset",
         cell: ({ row }) => (
@@ -332,6 +354,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "customerName",
         accessorKey: "customerName",
         header: "Customer",
         cell: ({ row }) => (
@@ -346,6 +369,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "location",
         accessorKey: "location",
         header: "Location",
         cell: ({ row }) => (
@@ -357,6 +381,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         enableSorting: true,
       },
       {
+        id: "status",
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
@@ -389,6 +414,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         enableColumnFilter: false,
       },
       {
+        id: "quantity",
         accessorKey: "quantity",
         header: "Qty",
         cell: ({ row }) => (
@@ -404,15 +430,28 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
     []
   );
 
+  useEffect(() => {
+    if (visibleColumns.length === 0 && columns.length > 0) {
+      setVisibleColumns(columns);
+    }
+  }, [columns, visibleColumns.length]);
+
+  const resolvedColumns = visibleColumns.length > 0 ? visibleColumns : columns;
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-4 mb-4">
+        <TableColumnVisibility
+          columns={columns}
+          visibleColumns={resolvedColumns}
+          setVisibleColumns={setVisibleColumns}
+        />
         <div className="flex-shrink-0 w-80">
           <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder={searchPlaceholder} live={true} />
         </div>
       </div>
       <DataTableExtended<RentalRecord, unknown>
-        columns={columns}
+        columns={resolvedColumns}
         data={filteredRentals}
         showPagination
       />

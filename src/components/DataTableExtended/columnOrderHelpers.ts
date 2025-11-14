@@ -48,6 +48,11 @@ function sanitizeOrder({
   const fixedEndSet = new Set(fixedEndIds);
   const middle: string[] = [];
   const seen = new Set<string>();
+  const basePositions = new Map<string, number>();
+
+  availableIds.forEach((id, index) => {
+    basePositions.set(id, index);
+  });
 
   order.forEach((id) => {
     if (!availableSet.has(id)) return;
@@ -60,7 +65,19 @@ function sanitizeOrder({
   availableIds.forEach((id) => {
     if (fixedStartSet.has(id) || fixedEndSet.has(id)) return;
     if (seen.has(id)) return;
-    middle.push(id);
+    const targetPosition = basePositions.get(id) ?? Number.POSITIVE_INFINITY;
+    let insertIndex = 0;
+
+    for (let i = 0; i < middle.length; i += 1) {
+      const existingId = middle[i];
+      const existingPosition = basePositions.get(existingId) ?? Number.POSITIVE_INFINITY;
+
+      if (existingPosition <= targetPosition) {
+        insertIndex = i + 1;
+      }
+    }
+
+    middle.splice(insertIndex, 0, id);
     seen.add(id);
   });
 

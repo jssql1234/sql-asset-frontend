@@ -565,7 +565,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
   const serialNumbersValue = activeWatch("serialNumbers");
   const quantityPerUnit = activeWatch("quantityPerUnit");
   const inactive = activeWatch("inactive");
-  const useSimpleSerialLayout = !(isEditMode && (editingAsset?.serialNumbers?.length ?? 0) > 0);
 
   // Memoize serialNumbers to prevent unnecessary re-renders
   const memoizedSerialNumbers = useMemo(() => serialNumbersValue, [serialNumbersValue]);
@@ -649,7 +648,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
               serialNumbers={memoizedSerialNumbers}
               onSerialNumbersChange={handleSerialNumbersChange}
               onValidationChange={handleSerialNumberValidationChange}
-              useSimpleLayout={useSimpleSerialLayout}
             />
           ),
         },
@@ -696,7 +694,6 @@ const AssetForm = ({ ref, ...props }: AssetFormProps & { ref?: React.RefObject<A
               serialNumbers={memoizedSerialNumbers}
               onSerialNumbersChange={handleSerialNumbersChange}
               onValidationChange={handleSerialNumberValidationChange}
-              useSimpleLayout={useSimpleSerialLayout}
             />
           ),
         },

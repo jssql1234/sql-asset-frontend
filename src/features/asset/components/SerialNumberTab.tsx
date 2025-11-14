@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { Card, Button, Option } from "@/components/ui/components";
+import { Card, Button, Option, Switch } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { useSerialNumberValidation } from "../hooks/useSerialNumberValidation";
@@ -14,7 +14,6 @@ interface SerialNumberTabProps {
   serialNumbers?: SerialNumberData[];
   onSerialNumbersChange?: (serialNumbers: SerialNumberData[]) => void;
   onValidationChange?: (isValid: boolean) => void;
-  useSimpleLayout?: boolean;
 }
 
 interface SerialNumberInputRowProps {
@@ -183,10 +182,10 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   serialNumbers = EMPTY_SERIAL_NUMBERS,
   onSerialNumbersChange,
   onValidationChange,
-  useSimpleLayout = true,
 }) => {
   const [serialData, setSerialData] = useState<SerialNumberData[]>([]);
   const [isGenerationModalOpen, setIsGenerationModalOpen] = useState(false);
+  const [isComplexViewEnabled, setIsComplexViewEnabled] = useState(false);
   const [serialFormat, setSerialFormat] = useState('SN-%.5d');
   const [startingNumber, setStartingNumber] = useState(1);
   const validation = useSerialNumberValidation(serialData);
@@ -198,6 +197,12 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
   useEffect(() => {
     onValidationChange?.(validation.isValid);
   }, [validation.isValid, onValidationChange]);
+
+  useEffect(() => {
+    if (quantityPerUnit <= 1) {
+      setIsComplexViewEnabled(false);
+    }
+  }, [quantityPerUnit]);
 
   useEffect(() => {
     const totalSerialFields = quantityPerUnit;
@@ -225,7 +230,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
       // Update refs
       prevQuantityPerUnitRef.current = quantityPerUnit;
     }
-  }, [quantityPerUnit]);
+  }, [quantityPerUnit, serialNumbers]); 
 
   const updateSerialNumber = useCallback((index: number, field: keyof SerialNumberData, value: string | boolean) => {
     setSerialData(prevData => {
@@ -249,7 +254,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
     serialData.forEach(item => {
       if (item.serial) {
-        // Extract number from serial number based on current format pattern
+       // Extract number from serial number based on current format pattern
         const formatRegex = serialFormat.replace(/%.(\d+)d/g, '(\\d+)');
         const regex = new RegExp(formatRegex.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace('\\(\\\\d\\+\\)', '(\\d+)'));
         const match = item.serial.match(regex);
@@ -291,7 +296,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
 
       let counter = nextNumber;
 
-      // Generate serial numbers and update state
+       // Generate serial numbers and update state
       const updated = [...prevData];
       emptyFields.forEach(({ index }) => {
         const serialNumber = format.replace(/%.(\d+)d/g, (_, digits: string) => {
@@ -312,12 +317,25 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
     return serialData.filter(item => !item.serial.trim()).length;
   }, [serialData]);
 
+  const shouldUseSimpleLayout = quantityPerUnit <= 1 || !isComplexViewEnabled;
+
   return (
     <Card className="p-6 shadow-sm">
       <div className="flex justify-between items-center mb-4">
-        <label className="body-medium text-onSurface">
-          Serial Numbers
-        </label>
+        <div className="flex items-center gap-4">
+          <label className="body-medium text-onSurface">
+            Serial Numbers
+          </label>
+          {quantityPerUnit > 1 && (
+            <label className="flex items-center gap-2 body-small text-onSurfaceVariant cursor-pointer">
+              <Switch
+                isChecked={isComplexViewEnabled}
+                onChange={setIsComplexViewEnabled}
+              />
+              Use Advanced Details
+            </label>
+          )}
+        </div>
         <Button
           type="button"
           onClick={() => { setIsGenerationModalOpen(true); }}
@@ -341,7 +359,7 @@ export const SerialNumberTab: React.FC<SerialNumberTabProps> = ({
         )}
 
         {serialData.map((item, index) =>
-          useSimpleLayout ? (
+          shouldUseSimpleLayout ? (
             <SimpleSerialNumberInputRow
               key={`serial-${String(index)}`}
               item={item}

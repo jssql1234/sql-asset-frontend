@@ -68,11 +68,11 @@ export function createSelectionColumn<TData, TValue>(
     },
     cell: ({ row }: { row: Row<TData> }) => {
       // In grouping mode, disable selection for leaf rows
+      if (!row.getCanSelect()) {
+        return null;
+      }
       const handleToggle = (event: ChangeEvent<HTMLInputElement>) => {
         event.stopPropagation();
-        if (!row.getCanSelect()) {
-          return;
-        }
         row.toggleSelected(event.target.checked);
       };
 
@@ -85,7 +85,6 @@ export function createSelectionColumn<TData, TValue>(
         >
           <Option
             checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
             onChange={handleToggle}
           />
         </div>

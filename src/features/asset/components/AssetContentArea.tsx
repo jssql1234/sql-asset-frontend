@@ -203,8 +203,16 @@ const createColumns = (
     cell: ({ row }) => {
       const data = row.original;
       if (data.type === 'asset') {
-        const value = Boolean(data.asset.active); 
-        return value ? "Yes" : "No";
+        const serials = (data.asset.serialNumbers as any[]) || [];
+        const totalSerials = serials.length;
+
+        if (totalSerials > 0) {
+          const activeSerials = serials.filter(serial => serial && !serial.inactive).length;
+          return `${activeSerials}/${totalSerials}`;
+        } else {
+          const value = Boolean(data.asset.active); 
+          return value ? "Yes" : "No";
+        }
       }
       if (data.type === 'serial') {
         const value = Boolean(data.active);

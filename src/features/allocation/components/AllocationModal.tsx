@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button, Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
@@ -56,7 +56,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
     }));
   }, [assets]);
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setStep(1);
     setAllocationType(null);
     setTargetLocation("");
@@ -66,21 +66,18 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
     setNotes("");
     setSelectedAssetIds([]);
     setSelectedCategoryId("all");
-  };
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      setSelectedAssetIds([]);
-      setSelectedCategoryId("all");
-    } else {
+    if (!isOpen) {
       resetState();
     }
-  }, [isOpen]);
+  }, [isOpen, resetState]);
 
   // Handle asset selection from SearchWithDropdown
-  const handleAssetSelectionChange = (assetIds: string[]) => {
+  const handleAssetSelectionChange = useCallback((assetIds: string[]) => {
     setSelectedAssetIds(assetIds);
-  };
+  }, []);
 
   const buildSelections = (): AllocationSelection[] =>
     selectedAssetIds.map((assetId) => {
@@ -135,7 +132,14 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-5xl max-h-[92vh] overflow-hidden border border-outline bg-surface p-0">
         <DialogHeader className="space-y-2 border-b border-outline px-6 py-4">
           <DialogTitle className="title-medium text-onSurface">

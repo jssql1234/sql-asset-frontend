@@ -1,45 +1,85 @@
-import { AppLayout } from "@/layout/sidebar/AppLayout";
-import Tabs from "@/components/ui/components/Tabs";
+import { useMemo, useState } from "react";
+import TabHeader from "@/components/TabHeader";
+import SummaryCards from "@/components/SummaryCards";
+import Search from "@/components/Search";
+import AllocationTable from "../components/AllocationTable";
+import { getAllocationSummaryCards } from "../components/AllocationSummaryCards";
 import AllocationModal from "../components/AllocationModal";
-import { useAllocationState } from "../hooks/useAllocationState";
-import { getAllocationTabs } from "../hooks/useAllocationTabs";
-import { useMemo } from "react";
+import type { AllocationSummary, AssetRecord, AllocationActionPayload } from "../types";
+import { filterAssetsByQuery } from "../utils/filtering";
 
-const AllocationPage: React.FC = () => {
-  const { filteredAssets, summary, isAllocationModalOpen, assets,
-    openAllocationModal, closeAllocationModal, handleAllocationSubmit,
-  } = useAllocationState();
+interface AllocationPageProps {
+  assets: AssetRecord[];
+  summary: AllocationSummary;
+  locations: string[];
+  users: string[];
+  isAllocationModalOpen: boolean;
+  onOpenAllocationModal: () => void;
+  onCloseAllocationModal: () => void;
+  onAllocationSubmit: (payload: AllocationActionPayload) => void;
+}
 
-  // Extract unique locations and users from assets for modal dropdowns
-  const locations = useMemo(() => {
-    const locationSet = new Set(filteredAssets.map(asset => asset.location));
-    return Array.from(locationSet).sort();
-  }, [filteredAssets]);
+const AllocationPage: React.FC<AllocationPageProps> = ({
+  assets,
+  summary,
+  locations,
+  users,
+  isAllocationModalOpen,
+  onOpenAllocationModal,
+  onCloseAllocationModal,
+  onAllocationSubmit,
+}) => {
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const users = useMemo(() => {
-    const userSet = new Set(filteredAssets.map(asset => asset.pic));
-    return Array.from(userSet).sort();
-  }, [filteredAssets]);
+  // Filter assets based on search query
+  const filteredAssets = useMemo(
+    () => filterAssetsByQuery(assets, searchQuery),
+    [assets, searchQuery]
+  );
 
-  const tabs = getAllocationTabs({ filteredAssets, summary,
-    onOpenAllocationModal: openAllocationModal,
-  });
+  const summaryCards = useMemo(
+    () => getAllocationSummaryCards(summary),
+    [summary]
+  );
 
   return (
-    <AppLayout>
-      <div className="flex h-full flex-col gap-4 overflow-hidden">
-        <Tabs tabs={tabs} defaultValue="allocation" />
-      </div>
+    <div className="flex h-full flex-col gap-6 p-2">
+      <TabHeader
+        title="Asset Allocation"
+        subtitle="Monitor allocation status, utilization, and perform bulk actions."
+        actions={[
+          {
+            label: "Allocate",
+            onAction: onOpenAllocationModal,
+            variant: "default",
+          }
+        ]}
+      />
+
+      <SummaryCards data={summaryCards} />
+
+      <Search
+        searchValue={searchQuery}
+        searchPlaceholder="Search by asset, status, or location"
+        onSearch={setSearchQuery}
+        live
+      />
+        <div className="flex-1 border-t border-outline">
+          <AllocationTable
+            variant="allocation"
+            assets={filteredAssets}
+          />
+        </div>
 
       <AllocationModal
         isOpen={isAllocationModalOpen}
-        onClose={closeAllocationModal}
-        onSubmit={handleAllocationSubmit}
+        onClose={onCloseAllocationModal}
+        onSubmit={onAllocationSubmit}
         assets={assets}
         locations={locations}
         users={users}
       />
-    </AppLayout>
+    </div>
   );
 };
 

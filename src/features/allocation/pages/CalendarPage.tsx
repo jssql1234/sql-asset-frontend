@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import TabHeader from "@/components/TabHeader";
-import CalendarView from "../CalendarView";
+import CalendarView from "../components/CalendarView";
 
 const ASSET_CATEGORIES = [
   { value: "", label: "All Assets" },

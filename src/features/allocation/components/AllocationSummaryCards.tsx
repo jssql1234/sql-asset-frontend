@@ -1,4 +1,4 @@
-import type { AllocationSummary } from "../types";
+import type { AllocationSummary, RentalRecord } from "../types";
 import type { SummaryCardItem } from "@/components/SummaryCards";
 
 export const getAllocationSummaryCards = (summary: AllocationSummary): SummaryCardItem[] => [
@@ -28,7 +28,7 @@ export const getAllocationSummaryCards = (summary: AllocationSummary): SummaryCa
 ];
 
 export const getRentalSummaryCards = (
-  rentals: { status: string; quantity: number }[]
+  rentals: RentalRecord[]
 ) => {
   const stats = rentals.reduce<Record<string, number>>(
     (acc, rental) => {

@@ -1,25 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button, Card } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
 import { SearchWithDropdown } from "@/components/SearchWithDropdown";
-import type { AssetRecord } from "../types";
+import type { AssetRecord, RentalPayload } from "../types";
 
 interface RentalModalProps {
   isOpen: boolean;
   assets: AssetRecord[];
   onClose: () => void;
   onSubmit: (payload: RentalPayload) => void;
-}
-
-export interface RentalPayload {
-  assetIds: string[];
-  customerName: string;
-  rentAmount: number;
-  startDate: string;
-  endDate?: string;
-  notes?: string;
 }
 
 const RentalModal: React.FC<RentalModalProps> = ({
@@ -29,7 +20,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
   onSubmit,
 }) => {
   const [customerName, setCustomerName] = useState("");
-  const [rentAmount, setRentAmount] = useState<number>(0);
+  const [rentAmount, setRentAmount] = useState("");
   const [startDate, setStartDate] = useState<string | Date | undefined>();
   const [endDate, setEndDate] = useState<string | Date | undefined>();
   const [notes, setNotes] = useState("");
@@ -57,45 +48,50 @@ const RentalModal: React.FC<RentalModalProps> = ({
     }));
   }, [assets]);
 
-  const resetState = () => {
+  const resetState = useCallback(() => {
     setCustomerName("");
-    setRentAmount(0);
+    setRentAmount("");
     setStartDate(undefined);
     setEndDate(undefined);
     setNotes("");
     setSelectedAssetIds([]);
     setSelectedCategoryId("all");
-  };
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      setSelectedAssetIds([]);
-      setSelectedCategoryId("all");
-    } else {
+    if (!isOpen) {
       resetState();
     }
-  }, [isOpen]);
+  }, [isOpen, resetState]);
 
-  // Handle asset selection from SearchWithDropdown
-  const handleAssetSelectionChange = (assetIds: string[]) => {
+  const handleAssetSelectionChange = useCallback((assetIds: string[]) => {
     setSelectedAssetIds(assetIds);
-  };
+  }, []);
+
+  const parsedRentAmount = Number(rentAmount);
+  const hasValidRentAmount = Number.isFinite(parsedRentAmount) && parsedRentAmount > 0;
+  const rentAmountDisplay = hasValidRentAmount
+    ? parsedRentAmount.toFixed(2)
+    : "0.00";
 
   const canProceed = useMemo(() => {
     return (
       selectedAssetIds.length > 0 &&
       customerName.trim().length > 0 &&
-      rentAmount > 0 &&
+      hasValidRentAmount &&
       startDate !== undefined &&
       startDate !== ""
     );
-  }, [customerName, rentAmount, startDate, selectedAssetIds]);
+  }, [customerName, hasValidRentAmount, startDate, selectedAssetIds]);
 
   const handleSubmit = () => {
+    if (!hasValidRentAmount || !startDate) {
+      return;
+    }
     const payload: RentalPayload = {
       assetIds: selectedAssetIds,
       customerName: customerName.trim(),
-      rentAmount: rentAmount,
+      rentAmount: parsedRentAmount,
       startDate: startDate ? new Date(startDate).toISOString() : "",
       endDate: endDate ? new Date(endDate).toISOString() : undefined,
       notes: notes.trim() || undefined,
@@ -106,7 +102,14 @@ const RentalModal: React.FC<RentalModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent className="max-w-5xl max-h-[92vh] overflow-hidden border border-outline bg-surface p-0">
         <DialogHeader className="space-y-2 border-b border-outline px-6 py-4">
           <DialogTitle className="title-medium text-onSurface">
@@ -145,7 +148,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
                         type="number"
                         placeholder="eg. 100.00"
                         value={rentAmount}
-                        onChange={(event) => { setRentAmount(Number(event.target.value)); }}
+                        onChange={(event) => { setRentAmount(event.target.value); }}
                       />
                     </div>
                   </div>
@@ -189,7 +192,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
                         Rent amount
                       </dt>
                       <dd className="label-large text-onSurface">
-                        ${rentAmount.toFixed(2)}
+                        ${rentAmountDisplay}
                       </dd>
                     </div>
                   </dl>
@@ -244,8 +247,8 @@ const RentalModal: React.FC<RentalModalProps> = ({
             <div className="body-small text-onSurfaceVariant">
               {selectedAssetIds.length === 0 && "Select at least one asset to continue."}
               {selectedAssetIds.length > 0 && !customerName.trim() && "Customer name is required."}
-              {selectedAssetIds.length > 0 && customerName.trim() && rentAmount <= 0 && "Rent amount must be greater than 0."}
-              {selectedAssetIds.length > 0 && customerName.trim() && rentAmount > 0 && !startDate && "Start date is required."}
+              {selectedAssetIds.length > 0 && customerName.trim() && !hasValidRentAmount && "Rent amount must be greater than 0."}
+              {selectedAssetIds.length > 0 && customerName.trim() && hasValidRentAmount && !startDate && "Start date is required."}
             </div>
             <div className="flex items-center gap-3">
               <Button variant="outline" onClick={onClose}>

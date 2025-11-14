@@ -1,12 +1,12 @@
 import { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
-import AllocationTable from "../AllocationTable";
+import AllocationTable from "../components/AllocationTable";
 import Search from "@/components/Search";
-import RentalModal from "../RentalModal";
-import type { AssetRecord, RentalPayload, RentalRecord } from "../../types";
-import { getRentalSummaryCards } from "../AllocationSummaryCards";
-import { filterRentalsByQuery } from "../../utils/filtering";
+import RentalModal from "../components/RentalModal";
+import type { AssetRecord, RentalPayload, RentalRecord } from "../types";
+import { getRentalSummaryCards } from "../components/AllocationSummaryCards";
+import { filterRentalsByQuery } from "../utils/filtering";
 
 interface RentalsPageProps {
   assets: AssetRecord[];

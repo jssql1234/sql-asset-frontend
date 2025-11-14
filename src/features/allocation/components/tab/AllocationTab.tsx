@@ -5,14 +5,15 @@ import Search from "@/components/Search";
 import AllocationTable from "../AllocationTable";
 import { getAllocationSummaryCards } from "../AllocationSummaryCards";
 import type { AllocationSummary, AssetRecord } from "../../types";
+import { filterAssetsByQuery } from "../../utils/filtering";
 
-interface AllocationTabProps {
+interface AllocationPageProps {
   assets: AssetRecord[];
   summary: AllocationSummary;
   onOpenAllocationModal?: () => void;
 }
 
-const AllocationTab: React.FC<AllocationTabProps> = ({
+const AllocationPage: React.FC<AllocationPageProps> = ({
   assets,
   summary,
   onOpenAllocationModal,
@@ -20,17 +21,10 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   // Filter assets based on search query
-  const filteredAssets = useMemo(() => {
-    if (!searchQuery.trim()) return assets;
-    
-    const query = searchQuery.toLowerCase();
-    return assets.filter((asset) => 
-      asset.name.toLowerCase().includes(query) ||
-      asset.code.toLowerCase().includes(query) ||
-      asset.status.toLowerCase().includes(query) ||
-      asset.location.toLowerCase().includes(query)
-    );
-  }, [assets, searchQuery]);
+  const filteredAssets = useMemo(
+    () => filterAssetsByQuery(assets, searchQuery),
+    [assets, searchQuery]
+  );
 
   const summaryCards = useMemo(
     () => getAllocationSummaryCards(summary),
@@ -69,4 +63,4 @@ const AllocationTab: React.FC<AllocationTabProps> = ({
   );
 };
 
-export default AllocationTab;
+export default AllocationPage;

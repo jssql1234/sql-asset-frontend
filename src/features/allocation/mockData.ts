@@ -1,6 +1,5 @@
 import type {
   AssetRecord,
-  CalendarEventRecord,
   RentalRecord,
 } from "./types";
 
@@ -146,61 +145,6 @@ export const MOCK_ASSETS: AssetRecord[] = [
     updatedAt: addDays(-7),
     tags: ["Software", "Design"],
     notes: "New seats arriving next month.",
-  },
-];
-
-export const MOCK_CALENDAR_EVENTS: CalendarEventRecord[] = [
-  {
-    id: "event-001",
-    assetId: "asset-002",
-    assetName: "Apple MacBook Pro 16\"",
-    type: "active-rental",
-    start: addDays(-5),
-    end: addDays(2),
-    assignee: "Design Sprint Team",
-    status: "In Use",
-    notes: "Extended due to project milestone.",
-  },
-  {
-    id: "event-002",
-    assetId: "asset-003",
-    assetName: "Epson EB-U50 Projector",
-    type: "scheduled-rental",
-    start: addDays(3),
-    end: addDays(4),
-    location: "HQ Auditorium",
-    status: "Available",
-    notes: "Leadership town hall.",
-  },
-  {
-    id: "event-003",
-    assetId: "asset-004",
-    assetName: "Toyota HiAce Van",
-    type: "maintenance",
-    start: addDays(-1),
-    end: addDays(1),
-    location: "Service Center",
-    status: "Maintenance",
-    notes: "Brake system inspection.",
-  },
-  {
-    id: "event-004",
-    assetId: "asset-006",
-    assetName: "Canon EOS R6 Kit",
-    type: "in-use",
-    start: addDays(-2),
-    end: addDays(6),
-    assignee: "Marketing Studio",
-    status: "In Use",
-    notes: "Product launch shoot.",
-  },
-  {
-    id: "event-005",
-    assetId: "asset-008",
-    assetName: "Adobe Creative Cloud Licenses",
-    type: "return-due",
-    start: addDays(7),
-    notes: "License renewal reminder.",
   },
 ];
 

@@ -27,7 +27,7 @@ const NotificationPage = lazy(() => import("./features/notification/pages/Notifi
 
 const Testing = lazy(() => import("@/example/example"));
 const TableDemo = lazy(() => import("@/example/tableDemo"));
-const AllocationPage = lazy(() => import("@/features/allocation/pages/AllocationPage"));
+const AllocationMainPage = lazy(() => import("@/features/allocation/pages/AllocationMainPage"));
   
 function AppRoutes() {
   const { hasPermission } = usePermissions();
@@ -64,7 +64,7 @@ function AppRoutes() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/work-orders" element={<WorkOrdersPage />} />
           <Route path="/work-request" element={<WorkRequestPage />} />
-          <Route path="/allocation" element={<AllocationPage />} />
+          <Route path="/allocation" element={<AllocationMainPage />} />
           <Route path="/downtime-tracking" element={<DowntimeTrackingPage />} />
           <Route path="/insurance" element={<CoverageMainPage />} />
           <Route path="/meter-reading" element={<MeterPage />} />

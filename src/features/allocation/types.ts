@@ -100,6 +100,15 @@ export interface RentalRecord {
   notes?: string;
 }
 
+export interface RentalPayload {
+  assetIds: string[];
+  customerName: string;
+  rentAmount: number;
+  startDate: string;
+  endDate?: string;
+  notes?: string;
+}
+
 export interface AllocationDetailsSection {
   title: string;
   content: ReactNode;

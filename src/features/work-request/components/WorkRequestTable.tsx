@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/components';
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import type { WorkRequest, WorkRequestAsset } from '../types';
 import { getStatusVariant } from '../constants';
-import { useTableColumns } from '@/components/DataTableExtended/hooks/useTableColumns';
 import { useSidebar } from "@/layout/sidebar/SidebarContext";
 import { SIDEBAR_WIDTH, SIDEBAR_COLLAPSED_WIDTH } from "@/layout/sidebar/SidebarConstant";
 

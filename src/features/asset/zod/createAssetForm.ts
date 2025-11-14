@@ -51,9 +51,13 @@ export const createAssetFormSchema = z.object({
   allocationNotes: z.string().optional(),
 
   // Serial No tab
-  serialNumbers: z.array(z.object({
+    serialNumbers: z.array(z.object({
     serial: z.string(),
     remark: z.string(),
+    acquireDate: z.string().optional(),
+    inactive: z.boolean().optional(),
+    inactiveStart: z.string().optional(),
+    inactiveEnd: z.string().optional(),
   })),
 
   // Hire Purchase tab

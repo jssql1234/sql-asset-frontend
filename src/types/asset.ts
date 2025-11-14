@@ -70,5 +70,9 @@ export interface Asset {
 
 export interface SerialNumberData {
   serial: string;
-  remark?: string;
+  remark: string;
+  acquireDate?: string;
+  inactive?: boolean;
+  inactiveStart?: string;
+  inactiveEnd?: string;
 }

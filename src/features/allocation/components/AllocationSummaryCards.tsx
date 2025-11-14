@@ -1,63 +1,87 @@
-import type { AllocationSummary, RentalRecord } from "../types";
 import type { SummaryCardItem } from "@/components/SummaryCards";
+import { formatCount, formatCurrency, formatPercentage } from "../utils/formatters";
+import type { AllocationSummary, RentalRecord, RentalStatus } from "../types";
 
 export const getAllocationSummaryCards = (summary: AllocationSummary): SummaryCardItem[] => [
   {
     label: "Total Asset Quantity",
-    value: summary.totalAssets.toLocaleString(),
+    value: formatCount(summary.totalAssets),
     description: "Across all categories",
   },
   {
     label: "Utilised Quantity",
-    value: summary.allocatedAssets.toLocaleString(),
+    value: formatCount(summary.allocatedAssets),
     description: "Currently assigned",
   },
   {
     label: "Available Quantity",
-    value: summary.availableAssets.toLocaleString(),
+    value: formatCount(summary.availableAssets),
     description: "Ready for deployment",
     tone: "success" as const,
   },
   {
     label: "Utilization Rate",
-    value: `${summary.utilizationRate.toString()}%`,
+    value: formatPercentage(summary.utilizationRate),
     description: "Allocation efficiency",
     tone: summary.utilizationRate > 80 ? "warning" : "default",
   },
 ];
 
-export const getRentalSummaryCards = (
-  rentals: RentalRecord[]
-) => {
-  const stats = rentals.reduce<Record<string, number>>(
-    (acc, rental) => {
-      acc.total += 1;
-      acc[rental.status] = (acc[rental.status] ?? 0) + 1;
-      acc.totalIncome += rental.quantity * 50; // Assume $50 per unit
-      return acc;
+const RENTAL_STATUS_KEYS: readonly RentalStatus[] = [
+  "Active",
+  "Scheduled",
+  "Completed",
+  "Overdue",
+  "Cancelled",
+];
+
+interface RentalStats {
+  totalIncome: number;
+  counts: Record<RentalStatus, number>;
+}
+
+const buildRentalStats = (rentals: RentalRecord[]): RentalStats => {
+  const initialCounts = RENTAL_STATUS_KEYS.reduce<Record<RentalStatus, number>>(
+    (accumulator, status) => {
+      accumulator[status] = 0;
+      return accumulator;
     },
-    { total: 0, totalIncome: 0, Active: 0, Scheduled: 0, Completed: 0, Overdue: 0, Cancelled: 0 }
+    {} as Record<RentalStatus, number>
   );
+
+  return rentals.reduce<RentalStats>(
+    (accumulator, rental) => {
+      accumulator.counts[rental.status] += 1;
+      const rentalValue = rental.rentAmount ?? rental.quantity * (rental.rentPerUnit ?? 0);
+      accumulator.totalIncome += rentalValue;
+      return accumulator;
+    },
+    { counts: initialCounts, totalIncome: 0 }
+  );
+};
+
+export const getRentalSummaryCards = (rentals: RentalRecord[]): SummaryCardItem[] => {
+  const { counts, totalIncome } = buildRentalStats(rentals);
 
   return [
     {
       label: "Active Rentals",
-      value: stats.Active,
+      value: formatCount(counts.Active),
       description: "Currently in progress",
     },
     {
       label: "Scheduled Rentals",
-      value: stats.Scheduled,
+      value: formatCount(counts.Scheduled),
       description: "Upcoming reservations",
     },
     {
       label: "Completed Rentals",
-      value: stats.Completed,
+      value: formatCount(counts.Completed),
       description: "Successfully finished",
     },
     {
       label: "Total Income",
-      value: `RM ${stats.totalIncome.toLocaleString()}`,
+      value: formatCurrency(totalIncome),
       description: "From all rentals",
       tone: "success" as const,
     },

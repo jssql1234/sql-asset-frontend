@@ -1,18 +1,9 @@
-import type { ReactNode } from "react";
-
 export type AssetStatus =
   | "Available"
   | "In Use"
   | "Fully Booked"
   | "Maintenance"
   | "Reserved";
-
-export type AvailabilityStatus =
-  | "Available"
-  | "Scheduled"
-  | "In Maintenance"
-  | "Reserved"
-  | "Unavailable";
 
 export interface AssetRecord {
   id: string;
@@ -57,27 +48,6 @@ export interface AllocationActionPayload {
   assets: AllocationSelection[];
   notes?: string;
 }
-
-export type CalendarEventType =
-  | "scheduled-rental"
-  | "active-rental"
-  | "in-use"
-  | "maintenance"
-  | "return-due";
-
-export interface CalendarEventRecord {
-  id: string;
-  assetId: string;
-  assetName: string;
-  type: CalendarEventType;
-  start: string;
-  end?: string;
-  location?: string;
-  assignee?: string;
-  status?: AssetStatus;
-  notes?: string;
-}
-
 export type RentalStatus =
   | "Scheduled"
   | "Active"
@@ -95,6 +65,8 @@ export interface RentalRecord {
   startDate: string;
   endDate?: string;
   quantity: number;
+  rentAmount?: number;
+  rentPerUnit?: number;
   contactEmail?: string;
   contactPhone?: string;
   notes?: string;
@@ -107,11 +79,6 @@ export interface RentalPayload {
   startDate: string;
   endDate?: string;
   notes?: string;
-}
-
-export interface AllocationDetailsSection {
-  title: string;
-  content: ReactNode;
 }
 
 export interface AllocationCategoryOption {
@@ -133,4 +100,21 @@ export interface UseAllocationAssetsResult {
   setSelectedCategoryId: (categoryId: string) => void;
   handleAssetSelectionChange: (assetIds: string[]) => void;
   resetAssetSelection: () => void;
+}
+
+export type AllocationCalendarEventType =
+  | "user-assignment"
+  | "location-allocation"
+  | "overdue"
+  | "maintenance";
+
+export interface AllocationCalendarEvent {
+  id: string;
+  title: string;
+  type: AllocationCalendarEventType;
+  start: string;
+  end?: string;
+  assetName: string;
+  assignee?: string;
+  location?: string;
 }

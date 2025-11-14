@@ -1,72 +1,65 @@
-import { type ReactElement, useState } from "react";
+import { type ReactElement, useMemo, useState } from "react";
 import { Button, Card } from "@/components/ui/components";
 import { ChevronLeft, ChevronRight } from "@/assets/icons";
+import { parseDateLike } from "../utils/formatters";
+import type { AllocationCalendarEvent, AllocationCalendarEventType } from "../types";
+
+export type CalendarViewMode = "month" | "week" | "day";
 
 interface CalendarViewProps {
-  viewMode: string;
+  viewMode: CalendarViewMode;
   searchTerm: string;
   assetFilter: string;
+  events: AllocationCalendarEvent[];
 }
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  type: "user-assignment" | "location-allocation" | "overdue" | "maintenance";
-  date: Date;
+interface CalendarEventWithDates extends AllocationCalendarEvent {
+  startDate: Date;
   endDate?: Date;
-  assetName: string;
-  assignee?: string;
-  location?: string;
 }
 
 function CalendarView({
   viewMode,
   searchTerm,
   assetFilter,
+  events,
 }: CalendarViewProps): ReactElement {
   const [currentDate, setCurrentDate] = useState(() => new Date());
 
-  // Sample events data
-  const events: CalendarEvent[] = [
-    {
-      id: "1",
-      title: "Laptop Assignment - John Doe",
-      type: "user-assignment",
-      date: new Date(2024, 0, 15),
-      endDate: new Date(2024, 0, 30),
-      assetName: 'MacBook Pro 16"',
-      assignee: "John Doe",
-    },
-    {
-      id: "2",
-      title: "Conference Room A - Projector",
-      type: "location-allocation",
-      date: new Date(2024, 0, 20),
-      assetName: "Epson Projector",
-      location: "Conference Room A",
-    },
-    {
-      id: "3",
-      title: "Maintenance - Vehicle 001",
-      type: "maintenance",
-      date: new Date(2024, 0, 25),
-      assetName: "Company Van 001",
-    },
-  ];
+  const eventsWithDates = useMemo<CalendarEventWithDates[]>(() => {
+    return events.reduce<CalendarEventWithDates[]>((accumulator, event) => {
+      const startDate = parseDateLike(event.start);
+      if (!startDate) {
+        return accumulator;
+      }
+
+      const endDate = parseDateLike(event.end);
+
+      accumulator.push({
+        ...event,
+        startDate,
+        endDate: endDate ?? undefined,
+      });
+
+      return accumulator;
+    }, []);
+  }, [events]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
   const normalizedFilter = assetFilter.trim().toLowerCase();
 
-  const filteredEvents = events.filter((event) => {
-    const searchTarget = `${event.assetName} ${event.title} ${event.assignee ?? ""} ${event.location ?? ""}`.toLowerCase();
-    const matchesSearch = normalizedSearch
-      ? searchTarget.includes(normalizedSearch)
-      : true;
-    const matchesAssetFilter = normalizedFilter
-      ? event.assetName.toLowerCase().includes(normalizedFilter)
-      : true;
-    return matchesSearch && matchesAssetFilter;
-  });
+  const filteredEvents = useMemo(() => {
+    return eventsWithDates.filter((event) => {
+      const searchTarget = `${event.assetName} ${event.title} ${event.assignee ?? ""} ${event.location ?? ""}`.toLowerCase();
+      const matchesSearch = normalizedSearch
+        ? searchTarget.includes(normalizedSearch)
+        : true;
+      const matchesAssetFilter = normalizedFilter
+        ? event.assetName.toLowerCase().includes(normalizedFilter)
+        : true;
+      return matchesSearch && matchesAssetFilter;
+    });
+  }, [eventsWithDates, normalizedFilter, normalizedSearch]);
 
   const getDaysInMonth = (date: Date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
@@ -88,7 +81,7 @@ function CalendarView({
     );
   };
 
-  const getEventTypeStyle = (type: CalendarEvent["type"]) => {
+  const getEventTypeStyle = (type: AllocationCalendarEventType) => {
     switch (type) {
       case "user-assignment":
         return "bg-primary text-onPrimary";
@@ -115,13 +108,15 @@ function CalendarView({
 
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-  const dayEvents = filteredEvents.filter((event) => {
-        const eventDate = new Date(event.date);
-        return (
-          eventDate.getDate() === day &&
-          eventDate.getMonth() === currentDate.getMonth() &&
-          eventDate.getFullYear() === currentDate.getFullYear()
-        );
+      const dayDate = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        day
+      );
+      const dayEvents = filteredEvents.filter((event) => {
+        const eventStart = event.startDate;
+        const eventEnd = event.endDate ?? eventStart;
+        return dayDate >= eventStart && dayDate <= eventEnd;
       });
 
       days.push(

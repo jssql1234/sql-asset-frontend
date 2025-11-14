@@ -34,6 +34,12 @@ export function useAllocationAssets(assets: AssetRecord[]): UseAllocationAssetsR
     setSelectedAssetIds((previous) => previous.filter((id) => validIds.has(id)));
   }, [assets]);
 
+  useEffect(() => {
+    if (!assetCategories.some((category) => category.id === selectedCategoryId)) {
+      setSelectedCategoryId("all");
+    }
+  }, [assetCategories, selectedCategoryId, setSelectedCategoryId]);
+
   const resetAssetSelection = useCallback(() => {
     setSelectedAssetIds([]);
     setSelectedCategoryId("all");

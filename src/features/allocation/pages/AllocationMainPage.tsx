@@ -15,6 +15,7 @@ const AllocationMainPage = () => {
   const {
     assets,
     rentals,
+    calendarEvents,
     summary,
     locations,
     users,
@@ -40,7 +41,7 @@ const AllocationMainPage = () => {
       label: "Allocation",
       value: "allocation",
       content: (
-        <Suspense>
+        <Suspense fallback={<div className="p-4 text-onSurfaceVariant">Loading allocation...</div>}>
           <AllocationPage 
             assets={assets}
             summary={summary}
@@ -58,7 +59,7 @@ const AllocationMainPage = () => {
       label: "Rentals",
       value: "rentals",
       content: (
-        <Suspense>
+        <Suspense fallback={<div className="p-4 text-onSurfaceVariant">Loading rentals...</div>}>
           <RentalsPage 
             assets={assets}
             rentals={rentals}
@@ -71,12 +72,12 @@ const AllocationMainPage = () => {
       label: "Calendar",
       value: "calendar",
       content: (
-        <Suspense>
-          <CalendarPage />
+        <Suspense fallback={<div className="p-4 text-onSurfaceVariant">Loading calendar...</div>}>
+          <CalendarPage events={calendarEvents} />
         </Suspense>
       ),
     },
-  ], [assets, rentals, summary, locations, users, isAllocationModalOpen, openAllocationModal, closeAllocationModal, handleAllocationSubmit, handleRentalSubmit]);
+  ], [assets, rentals, calendarEvents, summary, locations, users, isAllocationModalOpen, openAllocationModal, closeAllocationModal, handleAllocationSubmit, handleRentalSubmit]);
 
   return (
     <AppLayout>

@@ -2,7 +2,8 @@ import { useMemo, useState } from "react";
 import { Button, DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, FilterChip } from "@/components/ui/components";
 import { Input } from "@/components/ui/components/Input";
 import TabHeader from "@/components/TabHeader";
-import CalendarView from "../components/CalendarView";
+import CalendarView, { type CalendarViewMode } from "../components/CalendarView";
+import type { AllocationCalendarEvent } from "../types";
 
 const ASSET_CATEGORIES = [
   { value: "", label: "All Assets" },
@@ -18,10 +19,14 @@ const VIEW_OPTIONS = [
   { value: "day", label: "Day View" },
 ];
 
-const CalendarPage = () => {
+interface CalendarPageProps {
+  events: AllocationCalendarEvent[];
+}
+
+const CalendarPage = ({ events }: CalendarPageProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [assetFilter, setAssetFilter] = useState("");
-  const [viewMode, setViewMode] = useState("month");
+  const [viewMode, setViewMode] = useState<CalendarViewMode>("month");
 
   const activeViewLabel = useMemo(
     () => VIEW_OPTIONS.find((option) => option.value === viewMode)?.label ?? "Month View",
@@ -82,10 +87,14 @@ const CalendarPage = () => {
             <DropdownMenu>
               <DropdownMenuTrigger label={activeViewLabel} className="w-44 justify-between" />
               <DropdownMenuContent matchTriggerWidth disablePortal>
-                <DropdownMenuRadioGroup
-                  value={viewMode}
-                  onValueChange={(value) => { setViewMode(value); }}
-                >
+                  <DropdownMenuRadioGroup
+                    value={viewMode}
+                    onValueChange={(value) => {
+                      if (value === "month" || value === "week" || value === "day") {
+                        setViewMode(value);
+                      }
+                    }}
+                  >
                   {VIEW_OPTIONS.map((option) => (
                     <DropdownMenuRadioItem key={option.value} value={option.value}>
                       {option.label}
@@ -158,6 +167,7 @@ const CalendarPage = () => {
           viewMode={viewMode}
           searchTerm={searchTerm}
           assetFilter={assetFilter}
+          events={events}
         />
       </div>
     </div>

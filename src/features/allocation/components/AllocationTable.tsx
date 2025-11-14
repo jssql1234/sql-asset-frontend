@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/components";
 import TableColumnVisibility from "@/components/ui/components/Table/TableColumnVisibility";
 import { DataTableExtended } from "@/components/DataTableExtended";
 import Search from "@/components/Search";
+import { formatDate } from "../utils/formatters";
 import type { AssetRecord, RentalRecord } from "../types";
 
 const allocationStatusVariantMap: Record<AssetRecord["status"], string> = {
@@ -57,17 +58,19 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
   const [visibleColumns, setVisibleColumns] = useState<ColumnDef<GroupableAssetRecord>[]>([]);
 
   const filteredAssets = useMemo(() => {
-    if (!searchQuery.trim()) return assets;
-    
-    const query = searchQuery.toLowerCase();
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return assets;
+    }
+
     return assets.filter((asset) => {
       return (
-        asset.name.toLowerCase().includes(query) ||
-        asset.code.toLowerCase().includes(query) ||
-        asset.status.toLowerCase().includes(query) ||
-        asset.location.toLowerCase().includes(query) ||
-        asset.category.toLowerCase().includes(query) ||
-        asset.user.toLowerCase().includes(query)
+        asset.name.toLowerCase().includes(normalizedQuery) ||
+        asset.code.toLowerCase().includes(normalizedQuery) ||
+        asset.status.toLowerCase().includes(normalizedQuery) ||
+        asset.location.toLowerCase().includes(normalizedQuery) ||
+        asset.category.toLowerCase().includes(normalizedQuery) ||
+        asset.user.toLowerCase().includes(normalizedQuery)
       );
     });
   }, [assets, searchQuery]);
@@ -113,9 +116,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
                 )}
                 <div className="flex flex-col">
                   <span className="label-medium text-onSurface">{groupName}</span>
-                  <span className="body-small text-onSurfaceVariant">
-                    {assetCount} asset{assetCount === 1 ? "" : "s"}
-                  </span>
+                  <span className="body-small text-onSurfaceVariant">{assetCount} asset{assetCount === 1 ? "" : "s"}</span>
                 </div>
               </div>
             );
@@ -126,9 +127,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           return (
             <div className="flex flex-col gap-1 pl-9">
               <span className="label-medium text-onSurface">{original.name}</span>
-              <span className="body-small text-onSurfaceVariant">
-                {original.code} • {original.assetGroup} 
-              </span>
+              <span className="body-small text-onSurfaceVariant">{original.code} • {original.assetGroup}</span>
             </div>
           );
         },
@@ -146,9 +145,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             const rawValue = cell.getValue<number>();
             const value = typeof rawValue === "number" ? rawValue : 0;
             return (
-              <div className="text-center label-medium text-onSurface">
-                {value}
-              </div>
+              <div className="text-center label-medium text-onSurface">{value}</div>
             );
           }
 
@@ -157,9 +154,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           }
 
           return (
-            <div className="text-center label-medium text-onSurface">
-              {row.original.total}
-            </div>
+            <div className="text-center label-medium text-onSurface">{row.original.total}</div>
           );
         },
         size: 96,
@@ -176,9 +171,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             const rawValue = cell.getValue<number>();
             const value = typeof rawValue === "number" ? rawValue : 0;
             return (
-              <div className="text-center label-medium text-onSurface">
-                {value}
-              </div>
+              <div className="text-center label-medium text-onSurface">{value}</div>
             );
           }
 
@@ -187,9 +180,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           }
 
           return (
-            <div className="text-center label-medium text-onSurface">
-              {row.original.allocated}
-            </div>
+            <div className="text-center label-medium text-onSurface">{row.original.allocated}</div>
           );
         },
         size: 112,
@@ -206,9 +197,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             const rawValue = cell.getValue<number>();
             const value = typeof rawValue === "number" ? rawValue : 0;
             return (
-              <div className="text-center label-medium text-onSurface">
-                {value}
-              </div>
+              <div className="text-center label-medium text-onSurface">{value}</div>
             );
           }
 
@@ -217,9 +206,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           }
 
           return (
-            <div className="text-center label-medium text-onSurface">
-              {row.original.remaining}
-            </div>
+            <div className="text-center label-medium text-onSurface">{row.original.remaining}</div>
           );
         },
         size: 116,
@@ -237,11 +224,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           }
 
           return (
-            <Badge
-              text={row.original.status}
-              variant={allocationStatusVariantMap[row.original.status]}
-              dot
-            />
+            <Badge text={row.original.status} variant={allocationStatusVariantMap[row.original.status]} dot/>
           );
         },
         size: 150,
@@ -262,9 +245,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
           return (
             <div className="flex flex-col gap-1">
               <span className="label-medium text-onSurface">{row.original.location}</span>
-              <span className="body-small text-onSurfaceVariant">
-                User: {row.original.user}
-              </span>
+              <span className="body-small text-onSurfaceVariant">User: {row.original.user}</span>
             </div>
           );
         },
@@ -287,11 +268,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-4 mb-4">
-        <TableColumnVisibility
-          columns={columns}
-          visibleColumns={resolvedColumns}
-          setVisibleColumns={setVisibleColumns}
-        />
+        <TableColumnVisibility columns={columns} visibleColumns={resolvedColumns} setVisibleColumns={setVisibleColumns}/>
         <div className="flex-shrink-0 w-80">
           <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder={searchPlaceholder} live={true} />
         </div>
@@ -322,17 +299,19 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
   const [visibleColumns, setVisibleColumns] = useState<ColumnDef<RentalRecord>[]>([]);
 
   const filteredRentals = useMemo(() => {
-    if (!searchQuery.trim()) return rentals;
-    
-    const query = searchQuery.toLowerCase();
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return rentals;
+    }
+
     return rentals.filter((rental) => {
       return (
-        rental.assetName.toLowerCase().includes(query) ||
-        rental.customerName.toLowerCase().includes(query) ||
-        rental.status.toLowerCase().includes(query) ||
-        rental.location.toLowerCase().includes(query) ||
-        (rental.contactEmail?.toLowerCase().includes(query) ?? false) ||
-        (rental.contactPhone?.toLowerCase().includes(query) ?? false)
+        rental.assetName.toLowerCase().includes(normalizedQuery) ||
+        rental.customerName.toLowerCase().includes(normalizedQuery) ||
+        rental.status.toLowerCase().includes(normalizedQuery) ||
+        rental.location.toLowerCase().includes(normalizedQuery) ||
+        (rental.contactEmail?.toLowerCase().includes(normalizedQuery) ?? false) ||
+        (rental.contactPhone?.toLowerCase().includes(normalizedQuery) ?? false)
       );
     });
   }, [rentals, searchQuery]);
@@ -345,9 +324,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="label-medium text-onSurface">{row.original.assetName}</span>
-            <span className="body-small text-onSurfaceVariant">
-              Rental ID: {row.original.id}
-            </span>
+            <span className="body-small text-onSurfaceVariant">{row.original.id}</span>
           </div>
         ),
         enableSorting: true,
@@ -360,9 +337,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         cell: ({ row }) => (
           <div className="flex flex-col">
             <span className="label-medium text-onSurface">{row.original.customerName}</span>
-            <span className="body-small text-onSurfaceVariant">
-              {row.original.contactEmail ?? "No email"}
-            </span>
+            <span className="body-small text-onSurfaceVariant">{row.original.contactEmail ?? "No email"}</span>
           </div>
         ),
         enableSorting: true,
@@ -385,11 +360,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => (
-          <Badge
-            text={row.original.status}
-            variant={rentalStatusToneMap[row.original.status]}
-            dot
-          />
+          <Badge text={row.original.status} variant={rentalStatusToneMap[row.original.status]} dot/>
         ),
         size: 130,
         filterFn: "multiSelect",
@@ -401,12 +372,8 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         header: "Window",
         cell: ({ row }) => (
           <div className="flex flex-col">
-            <span className="label-medium text-onSurface">
-              {formatDate(row.original.startDate)}
-            </span>
-            <span className="body-small text-onSurfaceVariant">
-              to {formatDate(row.original.endDate)}
-            </span>
+            <span className="label-medium text-onSurface">{formatDate(row.original.startDate)}</span>
+            <span className="body-small text-onSurfaceVariant">to {formatDate(row.original.endDate)}</span>
           </div>
         ),
         size: 180,
@@ -418,9 +385,7 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
         accessorKey: "quantity",
         header: "Qty",
         cell: ({ row }) => (
-          <div className="text-center label-medium text-onSurface">
-            {row.original.quantity}
-          </div>
+          <div className="text-center label-medium text-onSurface">{row.original.quantity}</div>
         ),
         size: 80,
         enableSorting: true,
@@ -441,20 +406,12 @@ const RentalVariantTable: React.FC<RentalVariantProps> = ({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between gap-4 mb-4">
-        <TableColumnVisibility
-          columns={columns}
-          visibleColumns={resolvedColumns}
-          setVisibleColumns={setVisibleColumns}
-        />
+        <TableColumnVisibility columns={columns} visibleColumns={resolvedColumns} setVisibleColumns={setVisibleColumns}/>
         <div className="flex-shrink-0 w-80">
           <Search searchValue={searchQuery} onSearch={setSearchQuery} searchPlaceholder={searchPlaceholder} live={true} />
         </div>
       </div>
-      <DataTableExtended<RentalRecord, unknown>
-        columns={resolvedColumns}
-        data={filteredRentals}
-        showPagination
-      />
+      <DataTableExtended<RentalRecord, unknown> columns={resolvedColumns} data={filteredRentals} showPagination/>
     </div>
   );
 };
@@ -463,31 +420,14 @@ const Table: React.FC<TableProps> = (props) => {
   if (props.variant === "allocation") {
     const { assets, searchQuery, onSearchQueryChange, searchPlaceholder } = props;
     return (
-      <AllocationVariantTable
-        variant="allocation"
-        assets={assets}
-        searchQuery={searchQuery}
-        onSearchQueryChange={onSearchQueryChange}
-        searchPlaceholder={searchPlaceholder}
-      />
+      <AllocationVariantTable variant="allocation" assets={assets} searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} searchPlaceholder={searchPlaceholder}/>
     );
   }
 
   const { rentals, searchQuery, onSearchQueryChange, searchPlaceholder } = props;
   return (
-    <RentalVariantTable 
-      variant="rental" 
-      rentals={rentals} 
-      searchQuery={searchQuery}
-      onSearchQueryChange={onSearchQueryChange}
-      searchPlaceholder={searchPlaceholder}
-    />
+    <RentalVariantTable variant="rental" rentals={rentals} searchQuery={searchQuery} onSearchQueryChange={onSearchQueryChange} searchPlaceholder={searchPlaceholder}/>
   );
-};
-
-const formatDate = (date?: string) => {
-  if (!date) return "TBD";
-  return new Date(date).toLocaleDateString();
 };
 
 export type { AllocationVariantProps, RentalVariantProps };

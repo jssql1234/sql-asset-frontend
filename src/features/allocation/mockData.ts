@@ -1,7 +1,4 @@
-import type {
-  AssetRecord,
-  RentalRecord,
-} from "./types";
+import type { AssetRecord, RentalRecord } from "./types";
 
 const now = new Date();
 const addDays = (days: number) => {

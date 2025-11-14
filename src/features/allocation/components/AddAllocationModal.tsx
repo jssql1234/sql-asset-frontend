@@ -3,10 +3,12 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Button,
 import { Input } from "@/components/ui/components/Input";
 import { TextArea } from "@/components/ui/components/Input/TextArea";
 import { SemiDatePicker } from "@/components/ui/components/DateTimePicker";
-import { SearchWithDropdown } from "@/components/SearchWithDropdown";
 import { cn } from "@/utils/utils";
 import { useAllocationAssets } from "@/features/allocation/hooks/useAllocationAssets";
-import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord, } from "../types";
+import AssetSelectionSection from "./AssetSelectionSection";
+import { parseDateLike } from "../utils/formatters";
+import { buildAllocationPayload, validateAllocationForm } from "../zod/allocationSchemas";
+import type { AllocationActionPayload, AllocationSelection, AllocationType, AssetRecord } from "../types";
 
 interface AllocationModalProps {
   isOpen: boolean;
@@ -17,14 +19,14 @@ interface AllocationModalProps {
   onSubmit: (payload: AllocationActionPayload) => void;
 }
 
-const AddAllocationModal: React.FC<AllocationModalProps> = ({
+const AddAllocationModal = ({
   isOpen,
   assets,
   locations,
   users,
   onClose,
   onSubmit,
-}) => {
+}: AllocationModalProps) => {
   const [step, setStep] = useState<1 | 2>(1);
   const [allocationType, setAllocationType] =
     useState<AllocationType | null>(null);
@@ -34,7 +36,17 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
   const [endDate, setEndDate] = useState<string | Date | undefined>();
   const [notes, setNotes] = useState("");
 
-  const { assetCategories, assetItems, selectedAssetIds, selectedCategoryId, setSelectedCategoryId, handleAssetSelectionChange, resetAssetSelection } = useAllocationAssets(assets);
+  const {
+    assetCategories,
+    assetItems,
+    selectedAssetIds,
+    selectedCategoryId,
+    setSelectedCategoryId,
+    handleAssetSelectionChange,
+    resetAssetSelection,
+  } = useAllocationAssets(assets);
+
+  const assetById = useMemo(() => new Map(assets.map((asset) => [asset.id, asset])), [assets]);
 
   const resetState = useCallback(() => {
     setStep(1);
@@ -53,30 +65,35 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
     }
   }, [isOpen, resetState]);
 
-  const buildSelections = (): AllocationSelection[] =>
-    selectedAssetIds.map((assetId) => {
-      const asset = assets.find((item) => item.id === assetId);
-      return {
-        assetId,
-        assetName: asset?.name ?? assetId,
-        requestedQuantity: 1,
-        availableQuantity: asset?.remaining ?? 0,
-      };
-    });
+  const selections = useMemo<AllocationSelection[]>(
+    () =>
+      selectedAssetIds.map((assetId) => {
+        const asset = assetById.get(assetId);
+        return {
+          assetId,
+          assetName: asset?.name ?? assetId,
+          requestedQuantity: 1,
+          availableQuantity: asset?.remaining ?? 0,
+        };
+      }),
+    [assetById, selectedAssetIds]
+  );
 
-  const canProceed = useMemo(() => {
-    if (!allocationType) return false;
-    const hasAssets = selectedAssetIds.length > 0;
-    if (!hasAssets) return false;
-    if (allocationType === "location") {
-      return targetLocation.trim().length > 0;
-    }
-    return (
-      targetUser.trim().length > 0 &&
-      startDate !== undefined &&
-      startDate !== ""
-    );
-  }, [allocationType, targetLocation, targetUser, startDate, selectedAssetIds]);
+  const start = useMemo(() => parseDateLike(startDate), [startDate]);
+  const end = useMemo(() => parseDateLike(endDate), [endDate]);
+
+  const validation = useMemo(
+    () => validateAllocationForm(allocationType, targetLocation, targetUser, start, end, notes, selections),
+    [allocationType, targetLocation, targetUser, start, end, notes, selections]
+  );
+
+  const canProceed = validation.success;
+  const validationMessage = validation.message;
+
+  const isDateRangeValid = useMemo(() => {
+    if (!start || !end) return true;
+    return end.getTime() >= start.getTime();
+  }, [start, end]);
 
   const handleBack = () => {
     setAllocationType(null);
@@ -84,25 +101,23 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
   };
 
   const handleSubmit = () => {
-    if (!allocationType) return;
-    const payload: AllocationActionPayload = {
-      type: allocationType,
-      targetLocation: allocationType === "location" ? targetLocation : undefined,
-      targetUser: allocationType === "user" ? targetUser : undefined,
-      startDate:
-        allocationType === "user" && startDate
-          ? new Date(startDate).toISOString()
-          : undefined,
-      endDate:
-        allocationType === "user" && endDate
-          ? new Date(endDate).toISOString()
-          : undefined,
-      notes: notes.trim() || undefined,
-      assets: buildSelections(),
-    };
+    if (!allocationType || !canProceed) {
+      return;
+    }
 
-    onSubmit(payload);
-    onClose();
+    if (!validation.data) {
+      return;
+    }
+
+    const payload: AllocationActionPayload = buildAllocationPayload(
+      validation.data
+    );
+
+    try {
+      onSubmit(payload);
+    } finally {
+      onClose();
+    }
   };
 
   return (
@@ -158,12 +173,7 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
                       <div className="space-y-4">
                         <div className="flex flex-col gap-1">
                           <label className="body-small text-onSurface">Target Location</label>
-                          <Input
-                            placeholder="eg. HQ - IT Store"
-                            value={targetLocation}
-                            onChange={(event) => { setTargetLocation(event.target.value); }}
-                            list="allocation-locations"
-                          />
+                          <Input placeholder="eg. HQ - IT Store" value={targetLocation} onChange={(event) => { setTargetLocation(event.target.value) }} list="allocation-locations"/>
                           <datalist id="allocation-locations">
                             {locations.map((location) => (
                               <option key={location} value={location} />
@@ -177,12 +187,7 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="flex flex-col gap-1">
                             <label className="body-small text-onSurface">Assign To</label>
-                            <Input
-                              placeholder="eg. John Lee"
-                              value={targetUser}
-                              onChange={(event) => { setTargetUser(event.target.value); }}
-                              list="allocation-users"
-                            />
+                            <Input placeholder="eg. John Lee" value={targetUser} onChange={(event) => { setTargetUser(event.target.value) }} list="allocation-users"/>
                             <datalist id="allocation-users">
                               {users.map((user) => (
                                 <option key={user} value={user} />
@@ -191,19 +196,14 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
                           </div>
                           <div className="flex flex-col gap-1">
                             <label className="body-small text-onSurface">Start Date</label>
-                            <SemiDatePicker
-                              inputType="dateTime"
-                              value={startDate}
-                              onChange={(value) => { setStartDate(value as string | Date); }}
-                            />
+                            <SemiDatePicker inputType="dateTime" value={startDate} onChange={(value) => { setStartDate(value as string | Date) }}/>
                           </div>
                           <div className="flex flex-col gap-1">
                             <label className="body-small text-onSurface">End Date (Optional)</label>
-                            <SemiDatePicker
-                              inputType="dateTime"
-                              value={endDate}
-                              onChange={(value) => { setEndDate(value as string | Date); }}
-                            />
+                            <SemiDatePicker inputType="dateTime" value={endDate} onChange={(value) => { setEndDate(value as string | Date) }}/>
+                            {!isDateRangeValid && (
+                              <span className="body-small text-error">End date cannot be before start date.</span>
+                            )}
                           </div>
                         </div>
                         <p className="body-small text-onSurfaceVariant">Assignments can be returned or transferred earlier if needed.</p>
@@ -223,27 +223,15 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
                 </div>
               </Card>
 
-              <Card className="border border-outline bg-surfaceContainer">
-                <div className="flex flex-col gap-4">
-                  <div>
-                    <h3 className="title-small text-onSurface">Select Assets</h3>
-                    <p className="body-small text-onSurfaceVariant">Choose specific assets from each category to allocate.</p>
-                  </div>
-
-                  <SearchWithDropdown
-                    categories={assetCategories}
-                    selectedCategoryId={selectedCategoryId}
-                    onCategoryChange={setSelectedCategoryId}
-                    items={assetItems}
-                    selectedIds={selectedAssetIds}
-                    onSelectionChange={handleAssetSelectionChange}
-                    placeholder="Search assets by name or code..."
-                    emptyMessage="No assets found"
-                    className="w-full"
-                    hideSelectedCount
-                  />
-                </div>
-              </Card>
+              <AssetSelectionSection
+                description="Choose specific assets from each category to allocate."
+                categories={assetCategories}
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={setSelectedCategoryId}
+                items={assetItems}
+                selectedIds={selectedAssetIds}
+                onSelectionChange={handleAssetSelectionChange}
+              />
 
               <div className="flex flex-col gap-2">
                 <label className="body-small text-onSurface" htmlFor="allocation-notes">Notes (optional)</label>
@@ -253,7 +241,9 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
                   maxRows={6}
                   placeholder="Provide additional instructions or context for this allocation."
                   value={notes}
-                  onChange={(event) => { setNotes(event.target.value); }}
+                  onChange={(event) => {
+                    setNotes(event.target.value);
+                  }}
                 />
               </div>
             </div>
@@ -262,7 +252,10 @@ const AddAllocationModal: React.FC<AllocationModalProps> = ({
 
         <DialogFooter className="border-t border-outline bg-surface px-6 py-4">
           {step === 2 ? (
-            <div className="flex w-full items-center justify-end gap-3">
+            <div className="flex w-full items-center justify-between gap-3">
+              <div className="body-small text-onSurfaceVariant min-h-5">
+                {validationMessage}
+              </div>
               <div className="flex items-center gap-3">
                 <Button variant="outline" onClick={handleBack}>Back</Button>
                 <Button disabled={!canProceed} onClick={handleSubmit}>Create Allocation</Button>
@@ -286,12 +279,12 @@ interface AllocationTypeCardProps {
   onClick: () => void;
 }
 
-const AllocationTypeCard: React.FC<AllocationTypeCardProps> = ({
+const AllocationTypeCard = ({
   title,
   description,
   iconColor,
   onClick,
-}) => (
+}: AllocationTypeCardProps) => (
   <button
     type="button"
     onClick={onClick}

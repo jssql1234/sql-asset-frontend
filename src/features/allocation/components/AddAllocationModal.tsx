@@ -17,7 +17,7 @@ interface AllocationModalProps {
   onSubmit: (payload: AllocationActionPayload) => void;
 }
 
-const AllocationModal: React.FC<AllocationModalProps> = ({
+const AddAllocationModal: React.FC<AllocationModalProps> = ({
   isOpen,
   assets,
   locations,
@@ -114,11 +114,9 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
         }
       }}
     >
-      <DialogContent className="max-w-5xl max-h-[92vh] overflow-hidden border border-outline bg-surface p-0">
+      <DialogContent className={cn("max-h-[92vh] overflow-hidden border border-outline bg-surface p-0", step === 2 && "w-4xl")}>
         <DialogHeader className="space-y-2 border-b border-outline px-6 py-4">
-          <DialogTitle className="title-medium text-onSurface">
-            Asset Allocation & Assignment
-          </DialogTitle>
+          <DialogTitle className="title-medium text-onSurface">Asset Allocation & Assignment</DialogTitle>
           <p className="body-small text-onSurfaceVariant">
             {step === 1
               ? "Choose the allocation workflow that matches your requirement."
@@ -155,15 +153,11 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
               <Card className="border border-outline bg-surfaceContainer">
                 <div className="flex flex-col gap-4 lg:flex-row lg:justify-between">
                   <div className="space-y-3">
-                    <h3 className="title-small text-onSurface">
-                      Allocation Details
-                    </h3>
+                    <h3 className="title-small text-onSurface">Allocation Details</h3>
                     {allocationType === "location" ? (
                       <div className="space-y-4">
                         <div className="flex flex-col gap-1">
-                          <label className="body-small text-onSurface">
-                            Target Location
-                          </label>
+                          <label className="body-small text-onSurface">Target Location</label>
                           <Input
                             placeholder="eg. HQ - IT Store"
                             value={targetLocation}
@@ -176,17 +170,13 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             ))}
                           </datalist>
                         </div>
-                        <p className="body-small text-onSurfaceVariant">
-                          Assets remain at this location until returned or transferred.
-                        </p>
+                        <p className="body-small text-onSurfaceVariant">Assets remain at this location until returned or transferred.</p>
                       </div>
                     ) : (
                       <div className="space-y-4">
                         <div className="grid gap-4 md:grid-cols-2">
                           <div className="flex flex-col gap-1">
-                            <label className="body-small text-onSurface">
-                              Assign To
-                            </label>
+                            <label className="body-small text-onSurface">Assign To</label>
                             <Input
                               placeholder="eg. John Lee"
                               value={targetUser}
@@ -200,9 +190,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             </datalist>
                           </div>
                           <div className="flex flex-col gap-1">
-                            <label className="body-small text-onSurface">
-                              Start Date
-                            </label>
+                            <label className="body-small text-onSurface">Start Date</label>
                             <SemiDatePicker
                               inputType="dateTime"
                               value={startDate}
@@ -210,9 +198,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             />
                           </div>
                           <div className="flex flex-col gap-1">
-                            <label className="body-small text-onSurface">
-                              End Date (Optional)
-                            </label>
+                            <label className="body-small text-onSurface">End Date (Optional)</label>
                             <SemiDatePicker
                               inputType="dateTime"
                               value={endDate}
@@ -220,18 +206,14 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
                             />
                           </div>
                         </div>
-                        <p className="body-small text-onSurfaceVariant">
-                          Assignments can be returned or transferred earlier if needed.
-                        </p>
+                        <p className="body-small text-onSurfaceVariant">Assignments can be returned or transferred earlier if needed.</p>
                       </div>
                     )}
                   </div>
                   <div className="rounded-lg border border-outline bg-surfaceContainerLow p-4">
                     <dl className="grid gap-2">
                       <div>
-                        <dt className="body-small text-onSurfaceVariant">
-                          Selected assets
-                        </dt>
+                        <dt className="body-small text-onSurfaceVariant">Selected assets</dt>
                         <dd className="label-large text-onSurface">
                           {selectedAssetIds.length}
                         </dd>
@@ -244,12 +226,8 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
               <Card className="border border-outline bg-surfaceContainer">
                 <div className="flex flex-col gap-4">
                   <div>
-                    <h3 className="title-small text-onSurface">
-                      Select Assets
-                    </h3>
-                    <p className="body-small text-onSurfaceVariant">
-                      Choose specific assets from each category to allocate.
-                    </p>
+                    <h3 className="title-small text-onSurface">Select Assets</h3>
+                    <p className="body-small text-onSurfaceVariant">Choose specific assets from each category to allocate.</p>
                   </div>
 
                   <SearchWithDropdown
@@ -268,9 +246,7 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
               </Card>
 
               <div className="flex flex-col gap-2">
-                <label className="body-small text-onSurface" htmlFor="allocation-notes">
-                  Notes (optional)
-                </label>
+                <label className="body-small text-onSurface" htmlFor="allocation-notes">Notes (optional)</label>
                 <TextArea
                   id="allocation-notes"
                   rows={3}
@@ -286,28 +262,15 @@ const AllocationModal: React.FC<AllocationModalProps> = ({
 
         <DialogFooter className="border-t border-outline bg-surface px-6 py-4">
           {step === 2 ? (
-            <div className="flex w-full items-center justify-between gap-3">
-              <div className="body-small text-onSurfaceVariant">
-                {selectedAssetIds.length === 0 &&
-                  "Select at least one asset to continue."}
-              </div>
+            <div className="flex w-full items-center justify-end gap-3">
               <div className="flex items-center gap-3">
-                <Button variant="outline" onClick={handleBack}>
-                  Back
-                </Button>
-                <Button variant="outline" onClick={onClose}>
-                  Cancel
-                </Button>
-                <Button disabled={!canProceed} onClick={handleSubmit}>
-                  Create Allocation
-                </Button>
+                <Button variant="outline" onClick={handleBack}>Back</Button>
+                <Button disabled={!canProceed} onClick={handleSubmit}>Create Allocation</Button>
               </div>
             </div>
           ) : (
             <div className="flex w-full items-center justify-end gap-3">
-              <Button variant="outline" onClick={onClose}>
-                Close
-              </Button>
+              <Button variant="outline" onClick={onClose}>Close</Button>
             </div>
           )}
         </DialogFooter>
@@ -344,4 +307,4 @@ const AllocationTypeCard: React.FC<AllocationTypeCardProps> = ({
   </button>
 );
 
-export default AllocationModal;
+export default AddAllocationModal;

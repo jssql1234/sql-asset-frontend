@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationTable from "../components/AllocationTable";
-import RentalModal from "../components/RentalModal";
+import AddRentalModal from "../components/AddRentalModal";
 import type { AssetRecord, RentalPayload, RentalRecord } from "../types";
 import { getRentalSummaryCards } from "../components/AllocationSummaryCards";
 
@@ -51,7 +51,7 @@ const RentalsPage: React.FC<RentalsPageProps> = ({ assets, rentals, onCreateRent
         />
       </div>
 
-      <RentalModal
+      <AddRentalModal
         isOpen={isRentalModalOpen}
         assets={assets}
         onClose={() => { setIsRentalModalOpen(false); }}

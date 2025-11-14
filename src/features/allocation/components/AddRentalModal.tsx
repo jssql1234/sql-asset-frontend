@@ -14,7 +14,7 @@ interface RentalModalProps {
   onSubmit: (payload: RentalPayload) => void;
 }
 
-const RentalModal: React.FC<RentalModalProps> = ({
+const AddRentalModal: React.FC<RentalModalProps> = ({
   isOpen,
   assets,
   onClose,
@@ -87,12 +87,8 @@ const RentalModal: React.FC<RentalModalProps> = ({
     >
       <DialogContent className="max-w-5xl max-h-[92vh] overflow-hidden border border-outline bg-surface p-0">
         <DialogHeader className="space-y-2 border-b border-outline px-6 py-4">
-          <DialogTitle className="title-medium text-onSurface">
-            New Asset Rental
-          </DialogTitle>
-          <p className="body-small text-onSurfaceVariant">
-            Create a rental agreement for customer asset usage with scheduling details.
-          </p>
+          <DialogTitle className="title-medium text-onSurface">New Asset Rental</DialogTitle>
+          <p className="body-small text-onSurfaceVariant">Create a rental agreement for customer asset usage with scheduling details.</p>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
@@ -100,15 +96,11 @@ const RentalModal: React.FC<RentalModalProps> = ({
             <Card className="border border-outline bg-surfaceContainer">
               <div className="flex flex-col gap-4 lg:flex-row lg:justify-between">
                 <div className="flex-1 space-y-4">
-                  <h3 className="title-small text-onSurface">
-                    Customer Information
-                  </h3>
+                  <h3 className="title-small text-onSurface">Customer Information</h3>
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="body-small text-onSurface">
-                        Customer Name <span className="text-error">*</span>
-                      </label>
+                      <label className="body-small text-onSurface">Customer Name <span className="text-error">*</span></label>
                       <Input
                         placeholder="eg. John Doe"
                         value={customerName}
@@ -116,9 +108,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="body-small text-onSurface">
-                        Rent Amount <span className="text-error">*</span>
-                      </label>
+                      <label className="body-small text-onSurface">Rent Amount <span className="text-error">*</span></label>
                       <Input
                         type="number"
                         placeholder="eg. 100.00"
@@ -130,9 +120,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
 
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="flex flex-col gap-1">
-                      <label className="body-small text-onSurface">
-                        Start Date <span className="text-error">*</span>
-                      </label>
+                      <label className="body-small text-onSurface">Start Date <span className="text-error">*</span></label>
                       <SemiDatePicker
                         inputType="dateTime"
                         value={startDate}
@@ -140,9 +128,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
                       />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <label className="body-small text-onSurface">
-                        End Date
-                      </label>
+                      <label className="body-small text-onSurface">End Date</label>
                       <SemiDatePicker
                         inputType="dateTime"
                         value={endDate}
@@ -155,20 +141,12 @@ const RentalModal: React.FC<RentalModalProps> = ({
                 <div className="rounded-lg border border-outline bg-surfaceContainerLow p-4">
                   <dl className="grid gap-2">
                     <div>
-                      <dt className="body-small text-onSurfaceVariant">
-                        Selected assets
-                      </dt>
-                      <dd className="label-large text-onSurface">
-                        {selectedAssetIds.length}
-                      </dd>
+                      <dt className="body-small text-onSurfaceVariant">Selected assets</dt>
+                      <dd className="label-large text-onSurface">{selectedAssetIds.length}</dd>
                     </div>
                     <div>
-                      <dt className="body-small text-onSurfaceVariant">
-                        Rent amount
-                      </dt>
-                      <dd className="label-large text-onSurface">
-                        ${rentAmountDisplay}
-                      </dd>
+                      <dt className="body-small text-onSurfaceVariant">Rent amount</dt>
+                      <dd className="label-large text-onSurface">${rentAmountDisplay}</dd>
                     </div>
                   </dl>
                 </div>
@@ -178,12 +156,8 @@ const RentalModal: React.FC<RentalModalProps> = ({
             <Card className="border border-outline bg-surfaceContainer">
               <div className="flex flex-col gap-4">
                 <div>
-                  <h3 className="title-small text-onSurface">
-                    Select Assets
-                  </h3>
-                  <p className="body-small text-onSurfaceVariant">
-                    Choose assets to include in this rental agreement.
-                  </p>
+                  <h3 className="title-small text-onSurface">Select Assets</h3>
+                  <p className="body-small text-onSurfaceVariant">Choose assets to include in this rental agreement.</p>
                 </div>
 
                 <SearchWithDropdown
@@ -202,9 +176,7 @@ const RentalModal: React.FC<RentalModalProps> = ({
             </Card>
 
             <div className="flex flex-col gap-2">
-              <label className="body-small text-onSurface" htmlFor="rental-notes">
-                Notes (optional)
-              </label>
+              <label className="body-small text-onSurface" htmlFor="rental-notes">Notes (optional)</label>
               <TextArea
                 id="rental-notes"
                 rows={3}
@@ -226,12 +198,8 @@ const RentalModal: React.FC<RentalModalProps> = ({
               {selectedAssetIds.length > 0 && customerName.trim() && hasValidRentAmount && !startDate && "Start date is required."}
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button disabled={!canProceed} onClick={handleSubmit}>
-                Create Rental
-              </Button>
+              <Button variant="outline" onClick={onClose}>Cancel</Button>
+              <Button disabled={!canProceed} onClick={handleSubmit}>Create Rental</Button>
             </div>
           </div>
         </DialogFooter>
@@ -240,4 +208,4 @@ const RentalModal: React.FC<RentalModalProps> = ({
   );
 };
 
-export default RentalModal;
+export default AddRentalModal;

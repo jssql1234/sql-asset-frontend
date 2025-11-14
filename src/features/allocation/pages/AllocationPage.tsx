@@ -3,7 +3,7 @@ import TabHeader from "@/components/TabHeader";
 import SummaryCards from "@/components/SummaryCards";
 import AllocationTable from "../components/AllocationTable";
 import { getAllocationSummaryCards } from "../components/AllocationSummaryCards";
-import AllocationModal from "../components/AllocationModal";
+import AddAllocationModal from "../components/AddAllocationModal";
 import type { AllocationSummary, AssetRecord, AllocationActionPayload } from "../types";
 
 interface AllocationPageProps {
@@ -60,7 +60,7 @@ const AllocationPage: React.FC<AllocationPageProps> = ({
         />
       </div>
 
-      <AllocationModal
+      <AddAllocationModal
         isOpen={isAllocationModalOpen}
         onClose={onCloseAllocationModal}
         onSubmit={onAllocationSubmit}

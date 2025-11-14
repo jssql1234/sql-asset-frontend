@@ -136,8 +136,7 @@ export const SearchWithDropdown = ({
   const prevFilteredLengthRef = useRef<number>(filteredItems.length);
   
   useEffect(() => {
-    // Close dropdown only when filtered items transition from having items to being empty
-    // This happens when user selects the last available item
+    // Close dropdown only when filtered items is empty
     if (isSearchDropdownOpen && filteredItems.length === 0 && prevFilteredLengthRef.current > 0) {
       setIsSearchDropdownOpen(false);
     }
@@ -239,25 +238,13 @@ export const SearchWithDropdown = ({
                             {category.label}
                           </span>
                           {category.sublabel && (
-                            <span className="text-xs text-onSurfaceVariant opacity-75">
-                              {category.sublabel}
-                            </span>
+                            <span className="text-xs text-onSurfaceVariant opacity-75">{category.sublabel}</span>
                           )}
                         </div>
                         {selected && (
                           <div className="flex items-center justify-center w-4 h-4 rounded-full bg-primary">
-                            <svg
-                              className="w-2.5 h-2.5 text-onPrimary"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={3}
-                                d="M5 13l4 4L19 7"
-                              />
+                            <svg className="w-2.5 h-2.5 text-onPrimary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7"/>
                             </svg>
                           </div>
                         )}
@@ -306,21 +293,15 @@ export const SearchWithDropdown = ({
                         className="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm hover:bg-surfaceContainerLowest transition-colors"
                       >
                         <div className="flex flex-col">
-                          <span className="font-medium">
-                            {renderAssetLabel(item.label)}
-                          </span>
+                          <span className="font-medium">{renderAssetLabel(item.label)}</span>
                           {item.sublabel && (
-                            <span className="text-xs text-onSurfaceVariant opacity-75">
-                              {item.sublabel}
-                            </span>
+                            <span className="text-xs text-onSurfaceVariant opacity-75">{item.sublabel}</span>
                           )}
                         </div>
                       </button>
                     ))
                   ) : (
-                    <div className="px-4 py-6 text-center text-sm text-onSurfaceVariant">
-                      {emptyMessage}
-                    </div>
+                    <div className="px-4 py-6 text-center text-sm text-onSurfaceVariant">{emptyMessage}</div>
                   )}
                 </div>
               </div>
@@ -353,9 +334,7 @@ export const SearchWithDropdown = ({
           )}
 
           {resolvedSelectedIds.length === 0 ? (
-            <div className="flex items-center justify-center rounded-lg border border-dashed border-outlineVariant/50 bg-surfaceContainerLowest px-4 py-6 text-sm text-onSurfaceVariant">
-              Use the search above to add items to this list.
-            </div>
+            <div className="flex items-center justify-center px-4 py-6 text-sm text-onSurfaceVariant">Use the search above to add items to this list.</div>
           ) : (
             <div className="max-h-34 overflow-y-auto pr-2">
               <ul className="grid gap-2 sm:grid-cols-2">
@@ -368,13 +347,9 @@ export const SearchWithDropdown = ({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex flex-col">
-                          <span className="text-sm font-medium text-onSurface">
-                            {renderAssetLabel(item?.label ?? id)}
-                          </span>
+                          <span className="text-sm font-medium text-onSurface">{renderAssetLabel(item?.label ?? id)}</span>
                           {item?.sublabel && (
-                            <span className="text-xs text-onSurfaceVariant mt-1">
-                              {item.sublabel}
-                            </span>
+                            <span className="text-xs text-onSurfaceVariant mt-1">{item.sublabel}</span>
                           )}
                         </div>
                         {!disable && (
@@ -386,18 +361,8 @@ export const SearchWithDropdown = ({
                             className="rounded-full p-1 text-onSurfaceVariant transition-colors hover:bg-primary/15 hover:text-primary"
                             aria-label={`Remove ${item?.label ?? id}`}
                           >
-                            <svg
-                              className="h-3.5 w-3.5"
-                              fill="none"
-                              stroke="red"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
+                            <svg className="h-3.5 w-3.5" fill="none" stroke="red" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                           </button>
                         )}

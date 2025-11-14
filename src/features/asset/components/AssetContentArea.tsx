@@ -32,7 +32,8 @@ type AssetRowData = {
   serialId: string;     
   serialNumber: string; 
   date: string;         
-  active: boolean;     
+  active: boolean;
+  remark: string; 
 };
 
 const createColumns = (
@@ -208,6 +209,29 @@ const createColumns = (
       if (data.type === 'serial') {
         const value = Boolean(data.active);
         return <span className="pl-12 text-onSurfaceVariant">{value ? "Yes" : "No"}</span>;
+      }
+      return null;
+    },
+    enableSorting: true,
+    enableColumnFilter: false,
+  });
+
+  columns.push({
+    id: "remark",
+    header: "Remark",
+    meta: { label: "Remark" },
+    cell: ({ row }) => {
+      const data = row.original;
+      if (data.type === 'asset') {
+        const value = data.asset.allocationNotes; 
+        return (
+          <span className="truncate block" title={typeof value === 'string' ? value : ''}>
+            {value}
+          </span>
+        );
+      }
+      if (data.type === 'serial') {
+        return <span className="pl-12 text-onSurfaceVariant">{data.remark}</span>;
       }
       return null;
     },
@@ -488,8 +512,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
   const tableColumns = useMemo(() => allColumns, [allColumns]);
 
   useEffect(() => {
-    setVisibleColumns(tableColumns);
-  }, [tableColumns]);
+    setVisibleColumns(allColumns.filter(col => col.id !== 'remark'));
+  }, [allColumns]);
 
   const resetSelectionState = useCallback(() => {
     setSelectedAssetIds([]);
@@ -559,7 +583,8 @@ export default function AssetContentArea({ selectedTaxYear: externalSelectedTaxY
               serialId: constructedSerialId,       
               serialNumber: serial.serial,         
               date: serial.acquireDate,            
-              active: !serial.inactive,            
+              active: !serial.inactive,
+              remark: serial.remark ?? '', 
             });
           }
         });

@@ -156,7 +156,7 @@ export const SerialNumberSelectionModal: React.FC<SerialNumberSelectionModalProp
           </p>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 flex flex-col space-y-3 py-2 overflow-y-auto">
+        <div className="flex-1 min-h-0 flex flex-col space-y-3 py-3 overflow-y-auto">
           <div className="px-1 flex-shrink-0">
             <SearchWithDropdown
               categories={[{ id: 'all', label: 'All' }]}
@@ -172,11 +172,11 @@ export const SerialNumberSelectionModal: React.FC<SerialNumberSelectionModalProp
               emptyMessage="No serial numbers found"
               disable={false}
               hideSearchField={false}
-              hideSelectedField={false}
+              hideSelectedField={selectedSerials.size === 0}
             />
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Button
               variant="outline"
               size="sm"
@@ -196,9 +196,11 @@ export const SerialNumberSelectionModal: React.FC<SerialNumberSelectionModalProp
           </div>
 
           <div className="flex items-center justify-between px-1 pt-2 flex-shrink-0">
-            <span className="body-small text-onSurfaceVariant">
-              {selectedSerials.size} of {maxSelection} selected
-            </span>
+            {selectedSerials.size > 0 && (
+              <span className="body-small text-onSurfaceVariant">
+                {selectedSerials.size} of {maxSelection} selected
+              </span>
+            )}
             <span className="body-small text-onSurfaceVariant">
               {filteredSerials.length} total available
             </span>

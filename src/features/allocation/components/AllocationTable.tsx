@@ -65,7 +65,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
         asset.status.toLowerCase().includes(query) ||
         asset.location.toLowerCase().includes(query) ||
         asset.category.toLowerCase().includes(query) ||
-        asset.pic.toLowerCase().includes(query)
+        asset.user.toLowerCase().includes(query)
       );
     });
   }, [assets, searchQuery]);
@@ -125,7 +125,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             <div className="flex flex-col gap-1 pl-9">
               <span className="label-medium text-onSurface">{original.name}</span>
               <span className="body-small text-onSurfaceVariant">
-                {original.code}
+                {original.code} • {original.assetGroup} 
               </span>
             </div>
           );
@@ -256,7 +256,7 @@ const AllocationVariantTable: React.FC<AllocationVariantProps> = ({
             <div className="flex flex-col gap-1">
               <span className="label-medium text-onSurface">{row.original.location}</span>
               <span className="body-small text-onSurfaceVariant">
-                PIC: {row.original.pic}
+                User: {row.original.user}
               </span>
             </div>
           );

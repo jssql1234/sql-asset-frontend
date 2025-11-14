@@ -20,7 +20,7 @@ export interface AssetRecord {
   name: string;
   category: string;
   location: string;
-  pic: string;
+  user: string;
   status: AssetStatus;
   total: number;
   allocated: number;

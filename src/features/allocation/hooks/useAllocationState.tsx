@@ -18,7 +18,7 @@ export const useAllocationState = () => {
   );
 
   const users = useMemo(
-    () => getUniqueSortedValues(assets, (asset) => asset.pic),
+    () => getUniqueSortedValues(assets, (asset) => asset.user),
     [assets]
   );
 

@@ -2,7 +2,7 @@
  * Type definitions for DataTableExtended component
  */
 
-import type { ColumnDef, ExpandedState, GroupingState } from '@tanstack/react-table';
+import type { ColumnDef, ExpandedState, GroupingState, Row } from '@tanstack/react-table';
 import type { CustomColumnDef } from '@/components/ui/utils/dataTable';
 
 // Row action types
@@ -50,6 +50,9 @@ export interface DataTableExtendedProps<TData, TValue> {
   expanded?: ExpandedState;
   onExpandedChange?: (expanded: ExpandedState) => void;
   onColumnOrderChange?: (columnOrder: string[]) => void;
+  canSelectRow?: (row: Row<TData>) => boolean;
+  getRowId?: (originalRow: TData, relativeIndex: number, parent?: Row<TData>) => string;
+  getRowCanExpand?: (row: Row<TData>) => boolean;
 }
 
 // Column definition with header alignment

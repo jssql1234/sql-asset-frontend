@@ -65,7 +65,10 @@ export function DataTableExtended<TData, TValue>({
   onExpandedChange,
   onColumnOrderChange,
   rowActions,
-}: DataTableExtendedProps<TData, TValue>) {
+  canSelectRow: canSelectRowProp,
+  getRowId,
+  getRowCanExpand,
+}: DataTableExtendedProps<TData, TValue>) { 
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({});
@@ -96,12 +99,15 @@ export function DataTableExtended<TData, TValue>({
 
   const selectionEnabled = showCheckbox || enableRowClickSelection;
 
-  const canSelectRow = useCallback((row: Row<TData>) => {
+  // RENAME from canSelectRow to internalCanSelectRow
+  const internalCanSelectRow = useCallback((row: Row<TData>) => {
     if (!selectionEnabled) {
       return false;
     }
     return hasActiveGrouping ? row.getIsGrouped() : true;
   }, [hasActiveGrouping, selectionEnabled]);
+
+  const effectiveCanSelectRow = canSelectRowProp ?? internalCanSelectRow;
 
   const effectiveColumns = useMemo(() => {
     const nextColumns = [...columns];
@@ -143,7 +149,9 @@ export function DataTableExtended<TData, TValue>({
   const table = useReactTable({
     data,
     columns: effectiveColumns,
-    enableRowSelection: canSelectRow,
+    enableRowSelection: effectiveCanSelectRow, 
+    getRowId: getRowId, 
+    getRowCanExpand: getRowCanExpand,
     autoResetPageIndex: isInteractive,
     onColumnOrderChange: setColumnOrder,
     filterFromLeafRows: true,
